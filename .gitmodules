@@ -1,0 +1,36 @@
+[submodule "pi-dev"]
+	path = pi-dev
+	url = git@github.com:earendil-works/pi.git
+	branch = main
+[submodule "agent-tools"]
+	path = agent-tools
+	url = git@github.com:artmsilva/agent-tools.git
+	branch = main
+[submodule "herdr-pi-extensions"]
+	path = herdr-pi-extensions
+	url = git@github.com:ogulcancelik/pi-extensions.git
+	branch = main
+[submodule "pi-context"]
+	path = pi-context
+	url = git@github.com:ttttmr/pi-context.git
+	branch = main
+[submodule "pi-intercom"]
+	path = pi-intercom
+	url = git@github.com:nicobailon/pi-intercom.git
+	branch = main
+[submodule "pi-subagents"]
+	path = pi-subagents
+	url = git@github.com:nicobailon/pi-subagents.git
+	branch = main
+[submodule "pi-trace-extension"]
+	path = pi-trace-extension
+	url = git@github.com:npxcnency-ux/pi-trace-extension.git
+	branch = main
+[submodule "pi-workflows"]
+	path = pi-workflows
+	url = git@github.com:osolmaz/pi-workflows.git
+	branch = main
+[submodule "deepseek-harness"]
+	path = deepseek-harness
+	url = https://github.com/deepseek-ai/deepseek-harness
+	branch = master

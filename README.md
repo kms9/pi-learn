@@ -6,24 +6,28 @@ Pi 相关上游仓库的**本地阅读与中文维护层**。上游源码仍各�
 
 | 路径 | 作用 |
 |------|------|
+| `docs/` | LLM Wiki：概念、决策、会话写回、学习路径 |
 | `docs-zh/` | 中文阅读层，镜像 `pi-dev/` 的相对路径 |
 | `docs-zh/manifest.json` | 每篇译文对应的上游路径和 `sourceSha256` |
 | `scripts/sync-zh.py` | 对照本地 `pi-dev`，标出过期/缺失/上游新文档 |
-| `pi-dev/` | [earendil-works/pi](https://github.com/earendil-works/pi) 的本地 clone（**不提交到本仓库**） |
-| 其他 `pi-*` / `agent-tools` 等 | 同样是本地 clone，未纳入本仓库 |
+| `pi-dev/` 等 | 已有 GitHub 仓，以 **git submodule** 钉死 commit（见 `.gitmodules`） |
+
+学习与沟通记录走 LLM Wiki：入口 [`docs/index.md`](docs/index.md)。规则在 `AGENTS.md`。上游中文镜像仍在 `docs-zh/`。
 
 读扩展实现：从 `docs-zh/pi-dev/packages/coding-agent/docs/extensions.md` 和 `extensions-impl.md` 开始。
 
 ## 日常更新
 
 ```bash
-# 1. 更新上游（在干净的 pi-dev 上）
-git -C pi-dev pull
+# 1. 把各 GitHub submodule 拉到 .gitmodules 里记录的分支尖
+./scripts/sync-submodules.sh
 
-# 2. 看哪些译文过期
+# 2. overlay 里会看到 gitlink SHA 变化；确认后 commit 这些路径以钉死新版本
+
+# 3. 对照 pi-dev 译文是否过期
 python3 scripts/sync-zh.py
 
-# 3. 改 docs-zh 里对应文件后，接受新的原文哈希
+# 4. 改 docs-zh 里对应文件后，接受新的原文哈希
 python3 scripts/sync-zh.py \
   --accept pi-dev/packages/coding-agent/docs/extensions.md \
   --record-head
@@ -38,19 +42,18 @@ python3 scripts/sync-zh.py \
 推荐方式：
 
 1. 在 GitHub 建一个空仓库（例如 `yourname/pi-case`），不要从 pi 官方仓 fork。
-2. 本仓库只提交 `docs-zh/`、`scripts/`、`README.md`、`.gitignore`。
-3. 协作者 clone 本仓库后，再把官方 pi clone 到旁边的 `pi-dev/`：
+2. Overlay 提交 wiki、`docs-zh/`、脚本、`.gitmodules` 和各 submodule 的 gitlink SHA，不把上游源码打进本仓历史。
+3. 协作者：
 
 ```bash
-git clone git@github.com:yourname/pi-case.git
-cd pi-case
-git clone git@github.com:earendil-works/pi.git pi-dev
-git -C pi-dev checkout $(python3 -c "import json; print(json.load(open('docs-zh/manifest.json'))['upstream']['head'])")
+git clone --recurse-submodules git@github.com:yourname/pi-case.git
+# 若已经 clone 过但没带子模块：
+git submodule update --init --recursive
 ```
 
-4. 之后：`git -C pi-dev pull` → `python3 scripts/sync-zh.py` → 更新过期译文 → 把 `docs-zh` 的改动 commit / push 到**本仓库**。
+4. 之后：`./scripts/sync-submodules.sh` → 如需钉版本则 commit gitlink → `python3 scripts/sync-zh.py` → 更新过期译文 → push **本 overlay 仓库**。
 
-不要把 `pi-dev` 推进这个 GitHub 仓库：体积大、和上游重复、也无法干净 `git pull`。需要钉死上游版本时，用 `manifest.json` 里的 `upstream.head`，或以后再改成 submodule。
+Submodule 只记录对方仓库的 commit SHA，不会把整份源码打进 overlay 历史。
 
 ## 约定
 
