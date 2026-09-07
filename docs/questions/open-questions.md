@@ -17,3 +17,4 @@ tags:
 | Q2 | `docs-zh` 里尚未翻译的上游文档（`sync-zh.py` 列出约 17 篇）要不要补 | open | 含 `pi-dev/README.md`、`coding-agent/README.md` 等 |
 | Q3 | `pi-dev` 以后是否改成 git submodule | closed | 2026-09-07 已把现有 GitHub clone 全部收成 submodule |
 | Q4 | 用户自己的新插件代码放哪（本仓子目录 / 另开仓 / `~/.pi/agent/extensions`） | open | 未指定前不要写进 `pi-dev/` |
+| Q5 | Pi coding-agent 默认路径何时切到 `AgentHarness` | open | 2026-09-07 对照：默认仍是 `Agent`/`agentLoop`；`AgentHarness` 在 `packages/agent` 与 `coding-agent/src/experimental/`。Mario X 帖称新 harness 未进 coding-agent 默认产品。 |

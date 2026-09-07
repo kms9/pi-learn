@@ -110,6 +110,7 @@ tags:
 | Extension | 运行时模块 | [[docs/concepts/extension]] |
 | Pi package | `pi install` 分发单位 | [[docs/concepts/pi-package]] |
 | Chord plugin | 实验性分进程 facet | [[docs/concepts/chord-plugin]] |
+| Harness | agent − model 那一层运行时 | [[docs/concepts/harness]]；完整对照 [[docs/learning/harness对照讲解]] |
 
 学习路径、运行时、写作约束见 [[docs/learning/怎么学写插件]]。证据在 `docs-zh/pi-dev/packages/coding-agent/docs/extensions.md` 与 `extensions-impl.md`。
 

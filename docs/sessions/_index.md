@@ -14,3 +14,4 @@ tags:
 
 - [[2026-09-07-overlay-and-plugin-learning|2026-09-07 overlay、译文迁移与插件学习]]
 - [[2026-09-07-github-clones-as-submodules|2026-09-07 现有 GitHub 仓改为 submodule]]
+- [[2026-09-07-harness-pi-vs-dsh|2026-09-07 对照 Pi 与 DeepSeek 的 harness 实现]]

@@ -13,3 +13,6 @@ tags:
 
 - [[source-register|来源登记]] - 已 ingest 来源总表
 - [[llm-wiki-pattern|LLM Wiki 模式]] - Karpathy 模式在本仓库的落地
+- [[pi-agent-core|Pi agent core 与 coding-agent]]
+- [[deepseek-harness|DeepSeek Harness]]
+- [[agent-harness-x-discourse|agent harness 的 X 讨论]]

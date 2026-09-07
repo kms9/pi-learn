@@ -13,3 +13,4 @@ tags:
 - [[extension|Extension]]
 - [[pi-package|Pi package]]
 - [[chord-plugin|Chord plugin / facet]]
+- [[harness|Harness]]

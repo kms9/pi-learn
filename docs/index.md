@@ -28,6 +28,8 @@ tags:
 
 - [[learning/_index|学习索引]]
 - [[learning/怎么学写插件|怎么学写插件]] - 阅读顺序、试跑方式、写插件时的硬约束
+- [[learning/harness对照讲解|Harness 对照讲解]] - Pi coding-agent 与 DeepSeek Harness 的独立讲解稿
+- [[learning/harness对照-pi与dsh|Pi 与 DeepSeek Harness 对照]] - 同上的条目提纲
 
 ## 概念
 
@@ -35,6 +37,7 @@ tags:
 - [[concepts/extension|Extension]] - 本仓库默认的「插件」
 - [[concepts/pi-package|Pi package]] - 用 `pi install` 分发的包
 - [[concepts/chord-plugin|Chord plugin / facet]] - 实验性分进程插件
+- [[concepts/harness|Harness]] - agent − model；Pi 产品 / AgentHarness / DSH 三套用法
 
 ## 决策
 
@@ -47,12 +50,16 @@ tags:
 
 - [[sessions/_index|会话索引]]
 - [[sessions/2026-09-07-overlay-and-plugin-learning|2026-09-07 overlay、译文迁移与插件学习]] - 本轮沟通编译
+- [[sessions/2026-09-07-harness-pi-vs-dsh|2026-09-07 对照 Pi 与 DeepSeek 的 harness 实现]]
 
 ## 来源
 
 - [[sources/_index|来源索引]]
 - [[sources/source-register|来源登记]]
 - [[sources/llm-wiki-pattern|LLM Wiki 模式]]
+- [[sources/pi-agent-core|Pi agent core 与 coding-agent]]
+- [[sources/deepseek-harness|DeepSeek Harness]]
+- [[sources/agent-harness-x-discourse|agent harness 的 X 讨论]]
 
 ## 开放问题
 

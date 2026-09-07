@@ -27,6 +27,7 @@ TypeScript 模块，default export 为 `(pi: ExtensionAPI) => void | Promise<voi
 
 - 不是 [[pi-package|Pi package]]（那是分发单位，里面可以带扩展）
 - 不是 [[chord-plugin|Chord facet]]（实验性、按进程拆 bundle）
+- 不是 [[harness|Harness]]（Extension 挂在 harness 上；harness 是 loop / session / 工具宿主）
 
 ## 证据
 
