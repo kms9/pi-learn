@@ -1,0 +1,17 @@
+# Upstream clones stay local so this overlay repo can be pushed to GitHub
+# without vendoring earendil-works/pi (or the other sibling checkouts).
+/pi-dev/
+/agent-tools/
+/herdr-pi-extensions/
+/pi-context/
+/pi-intercom/
+/pi-subagents/
+/pi-trace-extension/
+/pi-workflows/
+
+node_modules/
+.DS_Store
+*.log
+.python-version
+.venv/
+venv/

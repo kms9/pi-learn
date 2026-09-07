@@ -1,0 +1,698 @@
+{
+  "upstream": {
+    "path": "pi-dev",
+    "remote": "git@github.com:earendil-works/pi.git",
+    "branch": "main",
+    "head": "92d8e2d17d4f357788381c49ce2cdb3f4ed1f21c"
+  },
+  "entries": [
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/README.md",
+      "zh": "pi-dev/packages/agent/README.md",
+      "note": null,
+      "sourceSha256": "04e44bb21db2894ed77b13c0fb63a5e9f619df633abd1b8f9fe4a04472040c3b",
+      "status": "ok"
+    },
+    {
+      "kind": "original",
+      "source": null,
+      "zh": "pi-dev/packages/agent/docs/README.md",
+      "note": "本仓库新增的中文文档，上游没有对应英文文件",
+      "sourceSha256": null,
+      "status": "original"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/assistant-durability.md",
+      "zh": "pi-dev/packages/agent/docs/assistant-durability.md",
+      "note": null,
+      "sourceSha256": "c07961d0fb7fb8416bf980544f952cf1491f8c1526822a8eb4b02b03490e164c",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/harness.md",
+      "zh": "pi-dev/packages/agent/docs/harness.md",
+      "note": null,
+      "sourceSha256": "8aabc5d1b8922c0874e5cd2353616c7cdc6c6a696787cdcbd8a9f7a23e0e5f96",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/mobile-handoff/01-harness/01-delta/FINDINGS.md",
+      "zh": "pi-dev/packages/agent/docs/mobile-handoff/01-harness/01-delta/FINDINGS.md",
+      "note": null,
+      "sourceSha256": "282d59edf9f01b2774f3a0875c7a1de6329a2a129b4b80036b0b9a2f17a0fd8a",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/mobile-handoff/01-harness/01-delta/append-decision.md",
+      "zh": "pi-dev/packages/agent/docs/mobile-handoff/01-harness/01-delta/append-decision.md",
+      "note": null,
+      "sourceSha256": "7eacef6240e8e3fc22101860b6064a2024866d1435c48305f1ee37f72b37cd77",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/mobile-handoff/01-harness/01-delta/delta.md",
+      "zh": "pi-dev/packages/agent/docs/mobile-handoff/01-harness/01-delta/delta.md",
+      "note": null,
+      "sourceSha256": "50587087a0cf128f3fb6449d50a1cb674011622d41b24b6dd91adf672da326bc",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/mobile-handoff/01-harness/02-scopes/implementation-handoff.md",
+      "zh": "pi-dev/packages/agent/docs/mobile-handoff/01-harness/02-scopes/implementation-handoff.md",
+      "note": null,
+      "sourceSha256": "71846ba3845bd2f994fba6935f28e3cd3bfa5ee3f26f142956f9d044e06936c5",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/mobile-handoff/01-harness/02-scopes/scopes.md",
+      "zh": "pi-dev/packages/agent/docs/mobile-handoff/01-harness/02-scopes/scopes.md",
+      "note": null,
+      "sourceSha256": "9be423f5fe02ca839a08d368acae519f72292d89bd142e5761a76163454b15d5",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/mobile-handoff/01-harness/03-execenv/execenv.md",
+      "zh": "pi-dev/packages/agent/docs/mobile-handoff/01-harness/03-execenv/execenv.md",
+      "note": null,
+      "sourceSha256": "81bd51d228915c99c167f8cabfd8851a48563e305770569c3a98372465a7e7c7",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/mobile-handoff/01-harness/04-tool-output/bash-worked-example.md",
+      "zh": "pi-dev/packages/agent/docs/mobile-handoff/01-harness/04-tool-output/bash-worked-example.md",
+      "note": null,
+      "sourceSha256": "f3f4da9963d26629c8886e0a25d2326cf91d2e6504dd7e703c9db5c7224c4ded",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/mobile-handoff/01-harness/04-tool-output/harness-tools.md",
+      "zh": "pi-dev/packages/agent/docs/mobile-handoff/01-harness/04-tool-output/harness-tools.md",
+      "note": null,
+      "sourceSha256": "2cf5f7f5182515609f719d0e749a2b1932c3337312de529190b90fac01066fac",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/mobile-handoff/01-harness/04-tool-output/rate-limiting.md",
+      "zh": "pi-dev/packages/agent/docs/mobile-handoff/01-harness/04-tool-output/rate-limiting.md",
+      "note": null,
+      "sourceSha256": "646fc651871ca65ff0d48bdb4c5030b9c5114a2afe668230f22e6d06a1a80aac",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/mobile-handoff/01-harness/05-assistant-output/message-update.md",
+      "zh": "pi-dev/packages/agent/docs/mobile-handoff/01-harness/05-assistant-output/message-update.md",
+      "note": null,
+      "sourceSha256": "a18568c6941f953df551d5b5ebe5ed98d41f27925277cc6a0ecd4366576742c8",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/mobile-handoff/02-plugins/01-facets/facets.md",
+      "zh": "pi-dev/packages/agent/docs/mobile-handoff/02-plugins/01-facets/facets.md",
+      "note": null,
+      "sourceSha256": "047e49f8ee28c84270601ebe652b28e40b3dcadf02a0b83d2d44a7d082f77e62",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/mobile-handoff/02-plugins/02-sandbox/README.md",
+      "zh": "pi-dev/packages/agent/docs/mobile-handoff/02-plugins/02-sandbox/README.md",
+      "note": null,
+      "sourceSha256": "a8bf209e84447eac892ae23d2dde457a9a18be05913ec2791ba4271860611992",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/mobile-handoff/README.md",
+      "zh": "pi-dev/packages/agent/docs/mobile-handoff/README.md",
+      "note": null,
+      "sourceSha256": "45ae30da0f72f3487e97bc32ae0c962d36f98d2ceb862c0b656266c2f6f24762",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/plugins.md",
+      "zh": "pi-dev/packages/agent/docs/plugins.md",
+      "note": null,
+      "sourceSha256": "56c3c9fd76e4389a85658ae853632dad48f621acef15dac1c9529f5a87ef9468",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/post-wp05-roadmap.md",
+      "zh": "pi-dev/packages/agent/docs/post-wp05-roadmap.md",
+      "note": null,
+      "sourceSha256": "2dba08e6aaffc7e8317b1e1c8a35cf3f390cc1bdc7cb7634902c80f26ab72c36",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/rpc.md",
+      "zh": "pi-dev/packages/agent/docs/rpc.md",
+      "note": null,
+      "sourceSha256": "089e7c850c8772f8ba21533873bd05ef8f843bc94afa63b203fc1ac26d57e4ec",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/runtime-simplification.md",
+      "zh": "pi-dev/packages/agent/docs/runtime-simplification.md",
+      "note": null,
+      "sourceSha256": "1bf746b56adf8588ce348d0936c696737614fd88946e213a44b9fc19e8029238",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/telemetry-schema.md",
+      "zh": "pi-dev/packages/agent/docs/telemetry-schema.md",
+      "note": null,
+      "sourceSha256": "a8c7228e5c50b45501b3c6e3edf7f5a75433c98cf81d2d3b848b14e12cd9572a",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/telemetry.md",
+      "zh": "pi-dev/packages/agent/docs/telemetry.md",
+      "note": null,
+      "sourceSha256": "31cd30ed04222de36ae002768ffde85db0a0dcf57aea3be6aad6bd8b2b4723c9",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/tool-durability.md",
+      "zh": "pi-dev/packages/agent/docs/tool-durability.md",
+      "note": null,
+      "sourceSha256": "e42fc1900b7a80a6a525e31b6bd4b551b937a5e8f5cadc5cae7a7fe12a74d874",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/values.md",
+      "zh": "pi-dev/packages/agent/docs/values.md",
+      "note": null,
+      "sourceSha256": "ca2dfc2bd97d8e4f8eacddc9254b9077eb1403a20d5660ed844309b54c471c43",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/work-packages/00-runtime1-removal.md",
+      "zh": "pi-dev/packages/agent/docs/work-packages/00-runtime1-removal.md",
+      "note": null,
+      "sourceSha256": "948961e65aec2d552e9a60e54976d01db67ac0c54e5659bdeec09cbfa708c2fd",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/work-packages/01-bound-values-lists.md",
+      "zh": "pi-dev/packages/agent/docs/work-packages/01-bound-values-lists.md",
+      "note": null,
+      "sourceSha256": "2b474f94a6c63c7ec987a9756b04cf8a893aa9ac2a431bb13fe94f5ac32cab4d",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/work-packages/02-atomic-run-acceptance.md",
+      "zh": "pi-dev/packages/agent/docs/work-packages/02-atomic-run-acceptance.md",
+      "note": null,
+      "sourceSha256": "6242c17c03b1beaa141da509e5300c1c81b2968834cddc89e3010cac3de22297",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/work-packages/03-remove-drive-deadlines.md",
+      "zh": "pi-dev/packages/agent/docs/work-packages/03-remove-drive-deadlines.md",
+      "note": null,
+      "sourceSha256": "4e9c8f902af053d6f7e684b115955597e6e2a2ef578dce6753beefc146ac8445",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/work-packages/04-mutation-publication.md",
+      "zh": "pi-dev/packages/agent/docs/work-packages/04-mutation-publication.md",
+      "note": null,
+      "sourceSha256": "151854ee280716009749386f06d317f89552707ca76672716407e9086239cb3c",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/work-packages/05-direct-durable-drive.md",
+      "zh": "pi-dev/packages/agent/docs/work-packages/05-direct-durable-drive.md",
+      "note": null,
+      "sourceSha256": "d774bd5e92d2db41d254b82175432d2a57bf4ea3ad38130f0d0f1ed7895e3dc8",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/work-packages/06-session-branch-lane-separation.md",
+      "zh": "pi-dev/packages/agent/docs/work-packages/06-session-branch-lane-separation.md",
+      "note": null,
+      "sourceSha256": "d8631cadf66ea98761cf85e1795155193a84d3391ebc93cea08a054c411874d7",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/work-packages/07-sqlite-host-ownership-live-forks.md",
+      "zh": "pi-dev/packages/agent/docs/work-packages/07-sqlite-host-ownership-live-forks.md",
+      "note": null,
+      "sourceSha256": "61d8f98e8af1a18dd0ce565ded34677f022b80713d69086dd92ad06890862e0f",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/work-packages/08-named-branch-streaming-forks.md",
+      "zh": "pi-dev/packages/agent/docs/work-packages/08-named-branch-streaming-forks.md",
+      "note": null,
+      "sourceSha256": "d2e403a0451f9a6185deb60cedbee5b413241988bb71918efd3b6f228665362f",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/agent/docs/work-packages/09-lane-snapshot-settled-tools.md",
+      "zh": "pi-dev/packages/agent/docs/work-packages/09-lane-snapshot-settled-tools.md",
+      "note": null,
+      "sourceSha256": "9777172e0d708c357a9eb38fe8739aa1a7364ee90a41d2d241c020cea31ef17b",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/chord/README.md",
+      "zh": "pi-dev/packages/chord/README.md",
+      "note": null,
+      "sourceSha256": "1b23977dc3168901fd9951f3bf03d61c9200b7cb2626b500ca9a9a7b3eafc47c",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/client/README.md",
+      "zh": "pi-dev/packages/client/README.md",
+      "note": null,
+      "sourceSha256": "be336696a8f91c5cb40a240c672926dc96cc8f30e38ab97afc8d2a6885cb7205",
+      "status": "ok"
+    },
+    {
+      "kind": "original",
+      "source": null,
+      "zh": "pi-dev/packages/coding-agent/docs/README.md",
+      "note": "本仓库新增的中文文档，上游没有对应英文文件",
+      "sourceSha256": null,
+      "status": "original"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/compaction.md",
+      "zh": "pi-dev/packages/coding-agent/docs/compaction.md",
+      "note": null,
+      "sourceSha256": "b6aff7cab195cd781714dae7c9246fbfb14c782f8fff7851253d5903c19996e7",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/containerization.md",
+      "zh": "pi-dev/packages/coding-agent/docs/containerization.md",
+      "note": null,
+      "sourceSha256": "08c73601853f124668f311e03cf31e6413512fa08814acb11f5810d31f56c0c2",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/custom-provider.md",
+      "zh": "pi-dev/packages/coding-agent/docs/custom-provider.md",
+      "note": null,
+      "sourceSha256": "b029e062363856ffe62f67861a89415c2f1d5fd2a9d3da858e0a5c4c4cfa293a",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/development.md",
+      "zh": "pi-dev/packages/coding-agent/docs/development.md",
+      "note": null,
+      "sourceSha256": "c8f216425e1fb084fb4323c2d9c68b60e0f1111e37575922a139c64158cc0e5d",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/environment-variables.md",
+      "zh": "pi-dev/packages/coding-agent/docs/environment-variables.md",
+      "note": null,
+      "sourceSha256": "6164737e669bd4438fbe9f352a697b561ff76add89f1308192eb12cf407fb68b",
+      "status": "ok"
+    },
+    {
+      "kind": "original",
+      "source": null,
+      "zh": "pi-dev/packages/coding-agent/docs/extensions-impl.md",
+      "note": "本仓库新增的中文文档，上游没有对应英文文件",
+      "sourceSha256": null,
+      "status": "original"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/extensions.md",
+      "zh": "pi-dev/packages/coding-agent/docs/extensions.md",
+      "note": null,
+      "sourceSha256": "39c54b91faabd76a17ab07f7ae85b274e941f36aacfaa6fe304281f697671faf",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/index.md",
+      "zh": "pi-dev/packages/coding-agent/docs/index.md",
+      "note": null,
+      "sourceSha256": "107d95d5dfba1da71ebd3c0b390199463261f78fe9f438c506a205f33b69f7fe",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/json.md",
+      "zh": "pi-dev/packages/coding-agent/docs/json.md",
+      "note": null,
+      "sourceSha256": "094b8d1b25aebd949334b695b18e8e7e73d934b82337439af12f6936d73aca84",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/keybindings.md",
+      "zh": "pi-dev/packages/coding-agent/docs/keybindings.md",
+      "note": null,
+      "sourceSha256": "2e3167fc89c116009421356ceb666cb5b03a15dbd9518d2e1b1ed52771ebf6b8",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/llama-cpp.md",
+      "zh": "pi-dev/packages/coding-agent/docs/llama-cpp.md",
+      "note": null,
+      "sourceSha256": "28160e03d1a8ccf823c2b2adecde4c1f4f0c72e9b14d710184114df73498ca01",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/models.md",
+      "zh": "pi-dev/packages/coding-agent/docs/models.md",
+      "note": null,
+      "sourceSha256": "63635bffd42ef2b1938892628b0cfac52328bc7b8697616cbb927b300d664044",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/packages.md",
+      "zh": "pi-dev/packages/coding-agent/docs/packages.md",
+      "note": null,
+      "sourceSha256": "1067eae058c5ce980a21b04c51ce6d38e201e51197807037d0a063ac3c769b46",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/prompt-templates.md",
+      "zh": "pi-dev/packages/coding-agent/docs/prompt-templates.md",
+      "note": null,
+      "sourceSha256": "972bc0b5461d9140fd543b837abb9b4984e59be66182cbb4f72de894d916dbcb",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/providers.md",
+      "zh": "pi-dev/packages/coding-agent/docs/providers.md",
+      "note": null,
+      "sourceSha256": "3644ff28ca832b5575595e26120b07c2843a32ca0cee4c66e541b490c2ff3a38",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/quickstart.md",
+      "zh": "pi-dev/packages/coding-agent/docs/quickstart.md",
+      "note": null,
+      "sourceSha256": "487cb6d2a4e47d616c3e6319b6ef4ccccd7382c77adf002f84419f950035ce8d",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/rpc.md",
+      "zh": "pi-dev/packages/coding-agent/docs/rpc.md",
+      "note": null,
+      "sourceSha256": "15fcd26bee72777b373fd5f2edd77091a01cadd4de95e48b08422ced0552a28d",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/sdk.md",
+      "zh": "pi-dev/packages/coding-agent/docs/sdk.md",
+      "note": null,
+      "sourceSha256": "3c575c006043769bdb85d01fdbd9e86468f45160deedc2519db3464387eaffbf",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/security.md",
+      "zh": "pi-dev/packages/coding-agent/docs/security.md",
+      "note": null,
+      "sourceSha256": "5df4b27e7b0db49f50807f0e5d8a77e6dc099c76adab6edf21c5b705ede6efab",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/session-format.md",
+      "zh": "pi-dev/packages/coding-agent/docs/session-format.md",
+      "note": null,
+      "sourceSha256": "c0f25475ab08fb96e244e6bf433aeaa41b69bfb5a52de5c7b01b81c900a84a54",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/sessions.md",
+      "zh": "pi-dev/packages/coding-agent/docs/sessions.md",
+      "note": null,
+      "sourceSha256": "b4ed96521936b5b4ba464496d096bd6c345803f3fa63b5a647674af068cd83b2",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/settings.md",
+      "zh": "pi-dev/packages/coding-agent/docs/settings.md",
+      "note": null,
+      "sourceSha256": "8f144fd53f8ebe0c82ae92262360b469a8652e75da2bd2434d42612d31e97ee1",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/shell-aliases.md",
+      "zh": "pi-dev/packages/coding-agent/docs/shell-aliases.md",
+      "note": null,
+      "sourceSha256": "adead5083689ca9d14fa32f2a3db0bd4d6963a91a1a00d060d5b49c420f257ae",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/skills.md",
+      "zh": "pi-dev/packages/coding-agent/docs/skills.md",
+      "note": null,
+      "sourceSha256": "e44738f2de44436b1ef56ab64231116fdc68a451213b96b27a5338d6296176c7",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/terminal-setup.md",
+      "zh": "pi-dev/packages/coding-agent/docs/terminal-setup.md",
+      "note": null,
+      "sourceSha256": "93084e7e5b5cb28dba4d76704b758a414c93cb91055c765a6336f9df96167d33",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/termux.md",
+      "zh": "pi-dev/packages/coding-agent/docs/termux.md",
+      "note": null,
+      "sourceSha256": "471c4aff3e2004e7de5387737f728ede4c4c6ac1ccf51575ff4ef2fdbd52c3ce",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/themes.md",
+      "zh": "pi-dev/packages/coding-agent/docs/themes.md",
+      "note": null,
+      "sourceSha256": "34a3a36f232ac3bb1a8f9728894064f0220f9164c411c508b0a5c888ff4b88db",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/tmux.md",
+      "zh": "pi-dev/packages/coding-agent/docs/tmux.md",
+      "note": null,
+      "sourceSha256": "1fa5373d65c3fac2e2afe5ba3174d4c265076a6832e2f42a79ac033a42a57030",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/tui.md",
+      "zh": "pi-dev/packages/coding-agent/docs/tui.md",
+      "note": null,
+      "sourceSha256": "2ffe6305b3ce0f1ea9702fb2fa7568e00cc70c80e46f477134bd1ed07f37088c",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/usage.md",
+      "zh": "pi-dev/packages/coding-agent/docs/usage.md",
+      "note": null,
+      "sourceSha256": "588896ba21944ff002d637444edc22698fd24959c59fe25f95010b9707b47d92",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/docs/windows.md",
+      "zh": "pi-dev/packages/coding-agent/docs/windows.md",
+      "note": null,
+      "sourceSha256": "0b35e25f3c137afdb67cc05d4aaf0cf60ff63a1dd41015de2d1a40a3115e2ba6",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/examples/README.md",
+      "zh": "pi-dev/packages/coding-agent/examples/README.md",
+      "note": null,
+      "sourceSha256": "39b377db91be4af6fc377e84f358ed44740087893588dee82c7589c65ca79305",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/examples/extensions/README.md",
+      "zh": "pi-dev/packages/coding-agent/examples/extensions/README.md",
+      "note": null,
+      "sourceSha256": "81e2e6e0a51e4b904979dcbc62fbe1a55613cdf6e10346af71c86be68bcde54a",
+      "status": "ok"
+    },
+    {
+      "kind": "annotated-source",
+      "source": "pi-dev/packages/coding-agent/examples/extensions/hello.ts",
+      "zh": "pi-dev/packages/coding-agent/examples/extensions/hello.ts",
+      "note": "从上游检出后改过的文件（中文注释/说明），已从上游还原；此处保留改过的副本",
+      "sourceSha256": "0aa4e9800c2526914d4c1edb00b2cfa9bd9dd6da5218289994cccd5f5bfa4934",
+      "status": "ok"
+    },
+    {
+      "kind": "annotated-source",
+      "source": "pi-dev/packages/coding-agent/examples/plugins/pi-example-plugin/README.md",
+      "zh": "pi-dev/packages/coding-agent/examples/plugins/pi-example-plugin/README.md",
+      "note": "上游 README 已是中文，另有一份 .zh.md 阅读版；迁出时与改过的 README.md 同路径，保留改过的副本",
+      "sourceSha256": "3adb56978c7476263a32d036f767f106642328043db096047cec862136395b5e",
+      "status": "ok"
+    },
+    {
+      "kind": "annotated-source",
+      "source": "pi-dev/packages/coding-agent/examples/sdk/06-extensions.ts",
+      "zh": "pi-dev/packages/coding-agent/examples/sdk/06-extensions.ts",
+      "note": "从上游检出后改过的文件（中文注释/说明），已从上游还原；此处保留改过的副本",
+      "sourceSha256": "8e01ee409200b6516e9a6a0d9f3b3f61d2ad78aaaa18bd2ef9a8f77820d149b2",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/coding-agent/examples/sdk/README.md",
+      "zh": "pi-dev/packages/coding-agent/examples/sdk/README.md",
+      "note": null,
+      "sourceSha256": "7e23f9ad53831d251a51d0c3ef9182e9b8394cfb59448014dd0dc81a1f4c96e6",
+      "status": "ok"
+    },
+    {
+      "kind": "annotated-source",
+      "source": "pi-dev/packages/coding-agent/src/core/extensions/index.ts",
+      "zh": "pi-dev/packages/coding-agent/src/core/extensions/index.ts",
+      "note": "从上游检出后改过的文件（中文注释/说明），已从上游还原；此处保留改过的副本",
+      "sourceSha256": "3502526cb694e66e79b729a72956dd8be4be4556c8c60c3a0b534ac3bf7ad1ce",
+      "status": "ok"
+    },
+    {
+      "kind": "annotated-source",
+      "source": "pi-dev/packages/coding-agent/src/core/extensions/loader.ts",
+      "zh": "pi-dev/packages/coding-agent/src/core/extensions/loader.ts",
+      "note": "从上游检出后改过的文件（中文注释/说明），已从上游还原；此处保留改过的副本",
+      "sourceSha256": "7e0e3a70994686f592e19fdf93f07bc65e397c3671f64e0faac3ffa061ba9f63",
+      "status": "ok"
+    },
+    {
+      "kind": "annotated-source",
+      "source": "pi-dev/packages/coding-agent/src/core/extensions/runner.ts",
+      "zh": "pi-dev/packages/coding-agent/src/core/extensions/runner.ts",
+      "note": "从上游检出后改过的文件（中文注释/说明），已从上游还原；此处保留改过的副本",
+      "sourceSha256": "6d5101ab0551c2ddd904a8089cc221b3c448fcfe36c27e36da02cdacc869c084",
+      "status": "ok"
+    },
+    {
+      "kind": "annotated-source",
+      "source": "pi-dev/packages/coding-agent/src/core/extensions/types.ts",
+      "zh": "pi-dev/packages/coding-agent/src/core/extensions/types.ts",
+      "note": "从上游检出后改过的文件（中文注释/说明），已从上游还原；此处保留改过的副本",
+      "sourceSha256": "96e20f8038027f0b0172f311b6b9d9ddf42123b2f5b2a018f533af026fd3371e",
+      "status": "ok"
+    },
+    {
+      "kind": "annotated-source",
+      "source": "pi-dev/packages/coding-agent/src/core/extensions/wrapper.ts",
+      "zh": "pi-dev/packages/coding-agent/src/core/extensions/wrapper.ts",
+      "note": "从上游检出后改过的文件（中文注释/说明），已从上游还原；此处保留改过的副本",
+      "sourceSha256": "c89397e268ccf27aa465fa1307fdbe324a3457966803e3fc6ec4d982ae2d379d",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/evals/README.md",
+      "zh": "pi-dev/packages/evals/README.md",
+      "note": null,
+      "sourceSha256": "493c79d93bcb5ce087d3b2a10df3d5a1c58b2cc6c1223b99c1ff329cbc36e034",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/protocol/README.md",
+      "zh": "pi-dev/packages/protocol/README.md",
+      "note": null,
+      "sourceSha256": "0cb30b80c30fe195cf7f22fe3a3934cd13f365d33c10764132540e6b18ca9457",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/server/README.md",
+      "zh": "pi-dev/packages/server/README.md",
+      "note": null,
+      "sourceSha256": "ed0733482685ca26731a64d6898e9360c69c471e16d7e20b545e696413d29c9c",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/session-backends/sqlite-node/README.md",
+      "zh": "pi-dev/packages/session-backends/sqlite-node/README.md",
+      "note": null,
+      "sourceSha256": "95b85510009cf78a821cc2a0a90e3ea9d2a81ecaa03381fa297e6e7ed2932b30",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/telemetry/README.md",
+      "zh": "pi-dev/packages/telemetry/README.md",
+      "note": null,
+      "sourceSha256": "d68b25b6d319c7a02b509c9ccf1bafea2cc1efa7f15af756fb59fa451b2fb4d7",
+      "status": "ok"
+    },
+    {
+      "kind": "translation",
+      "source": "pi-dev/packages/tui/README.md",
+      "zh": "pi-dev/packages/tui/README.md",
+      "note": null,
+      "sourceSha256": "2d5942aca418ea3be98b63c8fe9d358a4ca6db5dabfa40aeff1a6c5008e60ede",
+      "status": "ok"
+    }
+  ]
+}
