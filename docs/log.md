@@ -3,7 +3,7 @@ title: Wiki 日志
 type: log
 status: active
 created: 2026-09-07
-updated: 2026-09-07
+updated: 2026-09-12
 tags:
   - project-wiki
   - log
@@ -12,6 +12,12 @@ tags:
 # Wiki 日志
 
 按时间追加。事件类型：`init`、`ingest`、`query`、`lint`、`sync`、`decision`、`maintenance`、`session`。
+
+## [2026-09-12] maintenance | 同步第三方 submodule 到上游最新分支头
+
+- 来源: `.gitmodules` 中登记的上游仓库与跟踪分支
+- 更新: `pi-dev`、`herdr-pi-extensions`、`pi-context`、`pi-subagents`、`pi-workflows`、`deepseek-harness` 的 gitlink SHA
+- 说明: `agent-tools`、`pi-intercom`、`pi-trace-extension` 已处于对应上游分支最新提交，本次不变。此次仅更新只读 Raw 层的 submodule 引用，不修改上游源码内容。
 
 ## [2026-09-07] session | 把 harness 对照收成独立讲解稿
 
