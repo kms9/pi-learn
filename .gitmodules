@@ -34,3 +34,7 @@
 	path = deepseek-harness
 	url = https://github.com/deepseek-ai/deepseek-harness
 	branch = master
+[submodule "paseo"]
+	path = paseo
+	url = https://github.com/getpaseo/paseo.git
+	branch = main

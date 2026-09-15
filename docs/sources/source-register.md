@@ -3,7 +3,7 @@ title: 来源登记
 type: source
 status: active
 created: 2026-09-07
-updated: 2026-09-07
+updated: 2026-09-16
 tags:
   - project-wiki
   - sources
@@ -22,4 +22,5 @@ tags:
 | agent-tools | git clone | `agent-tools/` | 2026-09-07 | [[learning/怎么学写插件\|怎么学写插件]] | 第三方插件/工具样本。 |
 | Pi agent core / coding-agent | git submodule | `pi-dev/packages/agent/`、`pi-dev/packages/coding-agent/` | 2026-09-07 | [[pi-agent-core\|Pi agent core]] | HEAD `92d8e2d17d4f357788381c49ce2cdb3f4ed1f21c`。产品自称 harness；耐久 `AgentHarness` 在 agent 包。 |
 | DeepSeek Harness | git submodule | `deepseek-harness/` | 2026-09-07 | [[deepseek-harness\|DeepSeek Harness]] | HEAD `d347e703908d0406b7a7ef80e3a0e594d86b2215`。整仓即 harness；LLM 缝含 pi-ai 适配器。 |
+| Paseo | git submodule | `paseo/` | 2026-09-16 | [[paseo\|Paseo]] | HEAD `425157595038614a44e2cbf9c393f2e263270b95`。重点参考 provider registry、AgentClient/AgentSession、Pi RPC 与 Generic ACP adapter。 |
 | X 上 agent harness 讨论 | 网络检索 | X posts 2026-02–09 | 2026-09-07 | [[agent-harness-x-discourse\|X 讨论]] | Jensen 外骨骼、loop/graph/harness 三分、Pi 口碑、Mario 对 v2 范围。 |

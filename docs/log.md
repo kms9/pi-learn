@@ -3,7 +3,7 @@ title: Wiki 日志
 type: log
 status: active
 created: 2026-09-07
-updated: 2026-09-12
+updated: 2026-09-16
 tags:
   - project-wiki
   - log
@@ -12,6 +12,12 @@ tags:
 # Wiki 日志
 
 按时间追加。事件类型：`init`、`ingest`、`query`、`lint`、`sync`、`decision`、`maintenance`、`session`。
+
+## [2026-09-16] session | Paseo、Pi Agent Teams 与 Herdr 多 Harness 协同
+
+- 来源: `getpaseo/paseo`、`tmustier/pi-agent-teams`、`herdrdev/herdr`、`herdr-pi-extensions/packages/pi-herdr/`
+- 更新: `docs/learning/Paseo-Pi-Agent-Teams-Herdr多Harness协同架构.md`、`docs/sources/paseo.md`、`docs/sessions/2026-09-16-paseo-agent-teams-herdr.md`、相关索引；新增 `paseo/` submodule 与 `.gitmodules` 登记
+- 说明: 明确 Role ≠ Harness ≠ TUI；把 `TeammateRpc = Pi RPC process` 视为当前耦合点，后续目标为 `TeamMemberEndpoint + RoleProfile + CanonicalAgentEvent + Herdr presentation binding`。Paseo gitlink 固定到 `425157595038614a44e2cbf9c393f2e263270b95`。
 
 ## [2026-09-12] maintenance | 同步第三方 submodule 到上游最新分支头
 
@@ -47,4 +53,4 @@ tags:
 
 - 来源: 本仓库会话（翻译 pi 文档、迁出 docs-zh、还原 pi-dev、初始化 overlay git、编写 AGENTS.md）
 - 更新: `docs/sessions/2026-09-07-overlay-and-plugin-learning.md` 及上述决策/概念/学习页
-- 说明: 把已发生的仓库决策和学习目标编译进 wiki。
+- 说明: 把已发生的仓库决策和学习目标编译进 wiki，并记入后续维护入口。

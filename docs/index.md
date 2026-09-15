@@ -3,7 +3,7 @@ title: pi_case 知识库索引
 type: index
 status: active
 created: 2026-09-07
-updated: 2026-09-07
+updated: 2026-09-16
 tags:
   - project-wiki
   - index
@@ -30,6 +30,7 @@ tags:
 - [[learning/怎么学写插件|怎么学写插件]] - 阅读顺序、试跑方式、写插件时的硬约束
 - [[learning/harness对照讲解|Harness 对照讲解]] - Pi coding-agent 与 DeepSeek Harness 的独立讲解稿
 - [[learning/harness对照-pi与dsh|Pi 与 DeepSeek Harness 对照]] - 同上的条目提纲
+- [[learning/Paseo-Pi-Agent-Teams-Herdr多Harness协同架构|Paseo、Pi Agent Teams 与 Herdr：多 Harness 协同架构]] - 异构 runtime、角色注入、统一消息与 Herdr TUI 分层
 
 ## 概念
 
@@ -49,6 +50,7 @@ tags:
 ## 会话
 
 - [[sessions/_index|会话索引]]
+- [[sessions/2026-09-16-paseo-agent-teams-herdr|2026-09-16 Paseo、Agent Teams 与 Herdr 多 Harness 协同]]
 - [[sessions/2026-09-07-overlay-and-plugin-learning|2026-09-07 overlay、译文迁移与插件学习]] - 本轮沟通编译
 - [[sessions/2026-09-07-harness-pi-vs-dsh|2026-09-07 对照 Pi 与 DeepSeek 的 harness 实现]]
 
@@ -59,6 +61,7 @@ tags:
 - [[sources/llm-wiki-pattern|LLM Wiki 模式]]
 - [[sources/pi-agent-core|Pi agent core 与 coding-agent]]
 - [[sources/deepseek-harness|DeepSeek Harness]]
+- [[sources/paseo|Paseo]]
 - [[sources/agent-harness-x-discourse|agent harness 的 X 讨论]]
 
 ## 开放问题
