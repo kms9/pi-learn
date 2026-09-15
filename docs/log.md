@@ -13,6 +13,12 @@ tags:
 
 按时间追加。事件类型：`init`、`ingest`、`query`、`lint`、`sync`、`decision`、`maintenance`、`session`。
 
+## [2026-09-16] maintenance | 更新 README 项目定位与源码导航
+
+- 来源: 当前 `.gitmodules`、既有 Wiki 结构与近期 Paseo / Pi Agent Teams / Herdr 研究
+- 更新: `README.md`
+- 说明: 将仓库定位从单纯的 Pi 中文维护层扩展为以 Pi 为核心的 Agent Harness / Runtime / Multi-Agent 源码学习与架构验证仓库；增加当前关注重点、推荐阅读路径，以及所有已跟踪 submodule 和 Herdr / pi-agent-teams 的可点击上游源码链接。
+
 ## [2026-09-16] session | Paseo、Pi Agent Teams 与 Herdr 多 Harness 协同
 
 - 来源: `getpaseo/paseo`、`tmustier/pi-agent-teams`、`herdrdev/herdr`、`herdr-pi-extensions/packages/pi-herdr/`
