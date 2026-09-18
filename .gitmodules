@@ -38,3 +38,7 @@
 	path = paseo
 	url = https://github.com/getpaseo/paseo.git
 	branch = main
+[submodule "pigo"]
+	path = pigo
+	url = https://github.com/smallnest/pigo.git
+	branch = master

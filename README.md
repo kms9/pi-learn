@@ -80,6 +80,7 @@
 | 本地路径 | 上游项目 | 在 pi-learn 中的主要研究用途 |
 |---|---|---|
 | [`pi-dev/`](./pi-dev/) | [`earendil-works/pi`](https://github.com/earendil-works/pi) | Pi 核心源码；Agent、coding-agent、RPC、Session、TUI、Extension、Harness |
+| [`pigo/`](./pigo/) | [`smallnest/pigo`](https://github.com/smallnest/pigo) | Go 语言重实现 Pi；对照 Agent loop、Session、stream-json、权限、Skills/Plugins 与 Runtime 接口 |
 | [`paseo/`](./paseo/) | [`getpaseo/paseo`](https://github.com/getpaseo/paseo) | 多 Harness Provider Adapter、统一 AgentClient / Session / Event、ACP 与 native harness 接入 |
 | [`deepseek-harness/`](./deepseek-harness/) | [`deepseek-ai/deepseek-harness`](https://github.com/deepseek-ai/deepseek-harness) | 独立 Agent Harness 架构，与 Pi 的 loop / plugin / runtime 边界对照 |
 | [`herdr-pi-extensions/`](./herdr-pi-extensions/) | [`ogulcancelik/pi-extensions`](https://github.com/ogulcancelik/pi-extensions) | Pi Extension 实战、Herdr 集成、worktree、handoff、goal 等模式 |
@@ -103,7 +104,8 @@
 
 1. [`pi-dev/packages/agent`](./pi-dev/packages/agent)
 2. [`pi-dev/packages/coding-agent`](./pi-dev/packages/coding-agent)
-3. [`docs/learning/harness对照讲解.md`](docs/learning/harness对照讲解.md)
+3. [`pigo/internal/runtime/loop.go`](./pigo/internal/runtime/loop.go)
+4. [`docs/learning/harness对照讲解.md`](docs/learning/harness对照讲解.md)
 
 ### 想理解多个 Harness 怎么被统一管理
 
@@ -135,6 +137,7 @@ pi-learn/
 ├── raw/                   # Raw 层说明
 ├── scripts/               # submodule / 中文文档同步工具
 ├── pi-dev/                # earendil-works/pi
+├── pigo/                  # smallnest/pigo，Go 语言 Pi 重实现
 ├── paseo/                 # getpaseo/paseo
 ├── deepseek-harness/      # deepseek-ai/deepseek-harness
 ├── herdr-pi-extensions/   # ogulcancelik/pi-extensions

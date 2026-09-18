@@ -3,7 +3,7 @@ title: pi_case 知识库索引
 type: index
 status: active
 created: 2026-09-07
-updated: 2026-09-16
+updated: 2026-09-18
 tags:
   - project-wiki
   - index
@@ -62,6 +62,7 @@ tags:
 - [[sources/pi-agent-core|Pi agent core 与 coding-agent]]
 - [[sources/deepseek-harness|DeepSeek Harness]]
 - [[sources/paseo|Paseo]]
+- [[sources/pigo|Pigo]]
 - [[sources/agent-harness-x-discourse|agent harness 的 X 讨论]]
 
 ## 开放问题

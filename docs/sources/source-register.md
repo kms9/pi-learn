@@ -3,7 +3,7 @@ title: 来源登记
 type: source
 status: active
 created: 2026-09-07
-updated: 2026-09-16
+updated: 2026-09-18
 tags:
   - project-wiki
   - sources
@@ -23,4 +23,5 @@ tags:
 | Pi agent core / coding-agent | git submodule | `pi-dev/packages/agent/`、`pi-dev/packages/coding-agent/` | 2026-09-07 | [[pi-agent-core\|Pi agent core]] | HEAD `92d8e2d17d4f357788381c49ce2cdb3f4ed1f21c`。产品自称 harness；耐久 `AgentHarness` 在 agent 包。 |
 | DeepSeek Harness | git submodule | `deepseek-harness/` | 2026-09-07 | [[deepseek-harness\|DeepSeek Harness]] | HEAD `d347e703908d0406b7a7ef80e3a0e594d86b2215`。整仓即 harness；LLM 缝含 pi-ai 适配器。 |
 | Paseo | git submodule | `paseo/` | 2026-09-16 | [[paseo\|Paseo]] | HEAD `425157595038614a44e2cbf9c393f2e263270b95`。重点参考 provider registry、AgentClient/AgentSession、Pi RPC 与 Generic ACP adapter。 |
+| Pigo | git submodule | `pigo/` | 2026-09-18 | [[pigo\|Pigo]] | HEAD `891d1f372cefa92b5f5a104db20521238ba5a9fe`。Go 语言重实现 Pi；重点对照 Agent loop、Session、stream-json、权限、Skills/Plugins 与 Go Runtime 结构。 |
 | X 上 agent harness 讨论 | 网络检索 | X posts 2026-02–09 | 2026-09-07 | [[agent-harness-x-discourse\|X 讨论]] | Jensen 外骨骼、loop/graph/harness 三分、Pi 口碑、Mario 对 v2 范围。 |

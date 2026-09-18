@@ -3,7 +3,7 @@ title: Wiki 日志
 type: log
 status: active
 created: 2026-09-07
-updated: 2026-09-16
+updated: 2026-09-18
 tags:
   - project-wiki
   - log
@@ -12,6 +12,12 @@ tags:
 # Wiki 日志
 
 按时间追加。事件类型：`init`、`ingest`、`query`、`lint`、`sync`、`decision`、`maintenance`、`session`。
+
+## [2026-09-18] ingest | 加入 Pigo Go Runtime 对照源码
+
+- 来源: `smallnest/pigo`
+- 更新: `.gitmodules`、`pigo/` gitlink、`README.md`、`docs/sources/pigo.md`、来源登记与索引
+- 说明: 将 Pigo 作为 Pi 的 Go 语言重实现纳入 Raw / Evidence 层，固定到 `891d1f372cefa92b5f5a104db20521238ba5a9fe`；后续用于对照 Agent loop、Session、stream-json、权限边界、Skills/Plugins 以及 Go 侧 Runtime / Harness 接入设计。
 
 ## [2026-09-16] maintenance | 更新 README 项目定位与源码导航
 
