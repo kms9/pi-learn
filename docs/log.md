@@ -3,7 +3,7 @@ title: Wiki 日志
 type: log
 status: active
 created: 2026-09-07
-updated: 2026-09-07
+updated: 2026-09-21
 tags:
   - project-wiki
   - log
@@ -12,6 +12,18 @@ tags:
 # Wiki 日志
 
 按时间追加。事件类型：`init`、`ingest`、`query`、`lint`、`sync`、`decision`、`maintenance`、`session`。
+
+## [2026-09-21] query | 如何把仓库更新到最新
+
+- 来源: 用户问当前仓库怎样更新到最新版本
+- 更新: `docs/overlay/仓库结构.md`、`docs/sessions/2026-09-21-how-to-update-repo.md`、索引
+- 说明: 最新 = submodule 登记分支尖 + overlay 钉死 gitlink。命令 `./scripts/sync-submodules.sh`，再 `python3 scripts/sync-zh.py`。本次只写流程，未跑同步。
+
+## [2026-09-10] query | TUI 一次对话是 session
+
+- 来源: 用户问 pi-dev 里 UI 对话对应 session 还是别的概念
+- 更新: `docs/concepts/session.md`、`docs/sessions/2026-09-10-pi-session-conversation.md`、索引与来源交叉链接
+- 说明: 产品对话单位是 session（JSONL 树 + `AgentSession`）。一轮输入是 agent run / turn。`conversation` 不是类型。
 
 ## [2026-09-07] session | 把 harness 对照收成独立讲解稿
 

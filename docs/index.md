@@ -3,7 +3,7 @@ title: pi_case 知识库索引
 type: index
 status: active
 created: 2026-09-07
-updated: 2026-09-07
+updated: 2026-09-21
 tags:
   - project-wiki
   - index
@@ -22,7 +22,7 @@ tags:
 ## Overlay 与仓库
 
 - [[overlay/_index|Overlay 索引]]
-- [[overlay/仓库结构|仓库结构]] - overlay、docs-zh、submodule、GitHub 维护方式
+- [[overlay/仓库结构|仓库结构]] - overlay、docs-zh、submodule；含「更新到最新」步骤
 
 ## 学习写插件
 
@@ -38,6 +38,7 @@ tags:
 - [[concepts/pi-package|Pi package]] - 用 `pi install` 分发的包
 - [[concepts/chord-plugin|Chord plugin / facet]] - 实验性分进程插件
 - [[concepts/harness|Harness]] - agent − model；Pi 产品 / AgentHarness / DSH 三套用法
+- [[concepts/session|Session]] - TUI 上的一次对话；JSONL 树 + 活的 `AgentSession`
 
 ## 决策
 
@@ -49,6 +50,8 @@ tags:
 ## 会话
 
 - [[sessions/_index|会话索引]]
+- [[sessions/2026-09-21-how-to-update-repo|2026-09-21 如何把仓库更新到最新]]
+- [[sessions/2026-09-10-pi-session-conversation|2026-09-10 澄清 UI 对话 = session]]
 - [[sessions/2026-09-07-overlay-and-plugin-learning|2026-09-07 overlay、译文迁移与插件学习]] - 本轮沟通编译
 - [[sessions/2026-09-07-harness-pi-vs-dsh|2026-09-07 对照 Pi 与 DeepSeek 的 harness 实现]]
 

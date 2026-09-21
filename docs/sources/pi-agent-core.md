@@ -3,7 +3,7 @@ title: Pi agent core 与 coding-agent
 type: source
 status: active
 created: 2026-09-07
-updated: 2026-09-07
+updated: 2026-09-10
 source_path: pi-dev/packages/agent
 tags:
   - project-wiki
@@ -40,7 +40,7 @@ Pi 把「最小 coding harness」做成四个包。真正的 loop 在 `packages/
 
 ## 相关页面
 
-- 概念: [[concepts/harness|Harness]]、[[concepts/extension|Extension]]
+- 概念: [[concepts/harness|Harness]]、[[concepts/extension|Extension]]、[[concepts/session|Session]]
 - 学习: [[learning/harness对照讲解|Harness 对照讲解]]、[[learning/怎么学写插件|怎么学写插件]]
 
 ## 证据备注

@@ -3,7 +3,7 @@ title: Harness
 type: concept
 status: active
 created: 2026-09-07
-updated: 2026-09-07
+updated: 2026-09-10
 tags:
   - project-wiki
   - concept
@@ -65,6 +65,6 @@ X 上常见三分法（见来源页）：
 ## 相关页面
 
 - 学习: [[learning/harness对照讲解|Harness 对照讲解]]、[[learning/harness对照-pi与dsh|条目提纲]]
-- 概念: [[extension|Extension]]
+- 概念: [[extension|Extension]]、[[session|Session]]
 - 来源: [[sources/agent-harness-x-discourse|X 讨论]]、[[sources/pi-agent-core|Pi agent core]]、[[sources/deepseek-harness|DeepSeek Harness]]
 ---
