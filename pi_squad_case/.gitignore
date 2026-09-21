@@ -1,0 +1,10 @@
+.local/
+node_modules/
+**/acceptance-runs/
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+.env
+.env.*
+!*.example
