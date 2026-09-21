@@ -51,6 +51,7 @@ tags:
 ## 会话
 
 - [[sessions/_index|会话索引]]
+- [[sessions/2026-09-21-pi-squad-plan|2026-09-21 Pi Squad 本地实验需求确认与六阶段规划]]
 - [[sessions/2026-09-21-how-to-update-repo|2026-09-21 如何把仓库更新到最新]]
 - [[sessions/2026-09-16-paseo-agent-teams-herdr|2026-09-16 Paseo、Agent Teams 与 Herdr 多 Harness 协同]]
 - [[sessions/2026-09-10-pi-session-conversation|2026-09-10 澄清 UI 对话 = session]]
@@ -75,3 +76,9 @@ tags:
 ## 日志
 
 - [[log|Wiki 日志]] - 按时间追加；`grep "^## \[" docs/log.md | tail -5`
+
+## Pi Squad 本地实验（pi_squad_dev 分支）
+
+- [六阶段需求、技术实施与用户验收总索引](../pi_squad_case/README.md) - Go 控制面＋必要 TS Pi 扩展；仅在线 Agent；75 个计划用例，当前未实现/未执行。
+- [固定源码与文件/函数参考](../pi_squad_case/SOURCES.md)
+- [统一验收记录与恢复规范](../pi_squad_case/ACCEPTANCE.md)
