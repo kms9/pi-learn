@@ -10,7 +10,7 @@ updated: 2026-09-21
 
 # Pi Squad 本地实验
 
-**交付范围：六阶段需求与技术实施文档、源码证据索引、统一验收规范。不是已实现的软件。** 文中 `squad` CLI、`/squad` 命令、模型工具、测试工具和拟建源文件均为实施合同，必须实现后才能执行；所有 75 个验收用例当前均为 **NOT RUN**。
+**交付范围：六阶段需求与技术实施文档、源码证据索引、统一验收规范。不是已实现的软件。** 文中 `squad` CLI、`/squad` 命令、模型工具、测试工具和拟建源文件均为实施合同，必须实现后才能执行；所有 85 个验收用例（原75项＋2026-09-21评审新增10项）当前均为 **NOT RUN**。
 
 仓库：`kms9/pi-learn`；实验分支：`pi_squad_dev`；实验根目录：`pi_squad_case/`。分支基于 `main` 的 `2ee5bd7995d1504f73aa5955181f3b9fa5289b8e` 创建。上游 submodule 不修改、不自动升级。
 
@@ -24,7 +24,7 @@ updated: 2026-09-21
 |---|---|
 | 环境 | macOS 优先，单机、同一操作系统用户；Linux 仅保持设计可移植，Windows 不列本轮验收。 |
 | 技术栈 | Go 实现控制面、Directory、Messaging、Invocation、Team、存储、CLI、观察和 Herdr adapter；TS 只做必要的 Pi extension。 |
-| 身份 | 长期 `agent_id`；alias、cwd、PID、Pi session、Herdr 位置都是独立属性；一个身份只允许一个活动实例。 |
+| 身份 | 长期 `agent_id`；alias、cwd、PID、Pi session、Herdr 位置都是独立属性；一个身份只允许一个持有人；失租/断线/daemon重启不释放占用，正常认证退出或用户显式release后才能换持有人。 |
 | 进程 | 只调用在线 Agent；离线明确提示，由用户手动启动后重试。所有阶段都不自动 spawn、restart、adopt 或管理 Pi。 |
 | 会话 | 正式任务默认进入目标现有会话。`/new` 创建新会话，不重启 Pi 进程，不自动继承旧任务。 |
 | 恢复 | 保存记录、标识未知/中断，用户显式关联结果或重试；不承诺任意故障后自动续跑。 |
@@ -40,8 +40,8 @@ updated: 2026-09-21
 
 | 阶段文档 | 验证最终目标的哪一环 | 用户实际完成的闭环 | 用例 |
 |---|---|---|---:|
-| [00 身份与协议](00-identity-protocol/README.md) | 我是谁，是否准确绑定当前 Pi | 创建 reviewer → whoami → `/new` → 退出重开 → 身份不混淆 | 9 |
-| [01 相互发现](01-agent-discovery/README.md) | 还有谁、是否在线 | 三个普通终端互见 → 退出一端显示离线 → 手动重开恢复身份 | 12 |
+| [00 身份与协议](00-identity-protocol/README.md) | 我是谁，是否准确绑定当前 Pi | 创建 reviewer → whoami → `/new` → 退出重开 → 身份不混淆 | 15 |
+| [01 相互发现](01-agent-discovery/README.md) | 还有谁、是否在线 | 三个普通终端互见 → 退出一端显示离线 → 手动重开恢复身份 | 16 |
 | [02 相互通信](02-agent-messaging/README.md) | 指定收件人、对应问答 | 发唯一通知 → 正确收件箱 → 提问 → 自动关联回答 | 12 |
 | [03 相互调用](03-agent-invocation/README.md) | 正式委派、结果、失败及恢复 | 对话派统计任务 → 既有会话执行 → 校验结果 → 取消/故障不假成功 | 15 |
 | [04 组成小队](04-team-orchestration/README.md) | 分工、依赖、互调、审查 | 调用 stats-team → 并行统计 → 汇合报告 → 审查与有界返工 | 14 |
@@ -135,6 +135,7 @@ SQUAD_AGENT_CONFIG="$SQUAD_HOME/agents/operator.json" \
 | 接口（拟实现） | 明确行为 |
 |---|---|
 | `squad init / agent init / agent rename` | 初始化实验空间、身份与配置；不启动 Pi。重复执行要么幂等，要么明确已存在，不覆盖 token/ID。 |
+| `squad agent release <agent_id> --expected-runtime <runtime_id> --expected-binding-epoch <n>` | operator-only事务CAS释放身份，撤销旧runtime；不终止Pi、不证明本地副作用停止。 |
 | `squad doctor` | 实装版本、依赖、权限、socket、配置、阶段能力检查；不得打印密钥。 |
 | `squad policy allow --from X --to Y --actions send,ask,invoke` | 仅 operator CLI 可修改授权；逗号参数按动作集合解析，不给模型注册 policy 写工具。 |
 | `squad events list --trace ID` | 按事件序列返回阶段00起的持久审计，可作为控制面/模型归因证据。 |
@@ -147,8 +148,10 @@ SQUAD_AGENT_CONFIG="$SQUAD_HOME/agents/operator.json" \
 
 ## 7. 验收原则
 
-75 个用例是需求覆盖目标，不是已运行报告。每阶段都要完成用户主流程、异常/恢复流程，并回归前阶段核心行为。单元测试、mock transport 或漂亮 TUI 不能替代真实 Pi 操作；代码未实现、依赖不符或模型未配置要标 BLOCKED，不记 PASS。
+85 个用例是需求覆盖目标，不是已运行报告。每阶段都要完成用户主流程、异常/恢复流程，并回归前阶段核心行为。单元测试、mock transport 或漂亮 TUI 不能替代真实 Pi 操作；代码未实现、依赖不符或模型未配置要标 BLOCKED，不记 PASS。
 
 控制面 2 秒、心跳 2/6/10 秒等是拟定实验门槛；模型 120 秒是单次观察预算，不是 SLA 或已测性能。将传输、adapter、模型、权限、业务正确性分别归因。详细记录、失败复测及安全清理见 [ACCEPTANCE.md](ACCEPTANCE.md)。
 
 最先实施 00 的“一个 Pi 身份闭环”，通过后再做 01 的“三 Pi 互见”。不要提前开发小队 UI、Herdr pane 创建器或跨机器节点服务。
+
+2026-09-21 评审与用户裁决见[三方评审](../docs/sessions/2026-09-21-pi-squad-00-01-review.md)：占用优先；suspect拒绝新投递，online后由调用者重试。新增ID-X01—06、DISC-X01—04，全部NOT_RUN。

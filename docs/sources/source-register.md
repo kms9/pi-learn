@@ -3,7 +3,7 @@ title: 来源登记
 type: source
 status: active
 created: 2026-09-07
-updated: 2026-09-23
+updated: 2026-09-24
 tags:
   - project-wiki
   - sources
@@ -25,4 +25,5 @@ tags:
 | Paseo | git submodule | `paseo/` | 2026-09-16 | [[paseo\|Paseo]] | HEAD `425157595038614a44e2cbf9c393f2e263270b95`。重点参考 provider registry、AgentClient/AgentSession、Pi RPC 与 Generic ACP adapter。 |
 | Pigo | git submodule | `pigo/` | 2026-09-18 | [[pigo\|Pigo]] | HEAD `891d1f372cefa92b5f5a104db20521238ba5a9fe`。Go 语言重实现 Pi；重点对照 Agent loop、Session、stream-json、权限、Skills/Plugins 与 Go Runtime 结构。 |
 | Herdr + Pi Extension 验证方案 | 会话附件 | Notion plan + 源码评估 | 2026-09-23 | [[herdr-pi-extension-plan\|Herdr + Pi Extension 验证方案]] | P0–P7 本地协作协议；第一刀仅 P0 HTTP Registry。全文未检入，摘要见 wiki。 |
+| pi-trace-extension | git submodule | `pi-trace-extension/` | 2026-09-21 | [[pi-trace-extension\|Pi Trace Extension]] | 跨会话 dashboard；本机打开 `~/.pi/agent/traces/index.html`。不改 submodule。 |
 | X 上 agent harness 讨论 | 网络检索 | X posts 2026-02–09 | 2026-09-07 | [[agent-harness-x-discourse\|X 讨论]] | Jensen 外骨骼、loop/graph/harness 三分、Pi 口碑、Mario 对 v2 范围。 |

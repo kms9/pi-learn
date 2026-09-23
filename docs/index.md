@@ -3,7 +3,7 @@ title: pi_case 知识库索引
 type: index
 status: active
 created: 2026-09-07
-updated: 2026-09-23
+updated: 2026-09-24
 tags:
   - project-wiki
   - index
@@ -44,6 +44,8 @@ tags:
 
 ## 决策
 
+- [[decisions/2026-09-21-squad-ownership-and-suspect|2026-09-21 身份占用优先与 suspect 拒绝投递]]
+- [[decisions/2026-09-21-squad-user-intervention|2026-09-21 任务补充继续、用户介入向上反馈未完成]]
 - [[decisions/_index|决策索引]]
 - [[decisions/2026-09-07-overlay-not-fork|2026-09-07 overlay 而不是 fork 上游]]
 - [[decisions/2026-09-07-translations-live-in-docs-zh|2026-09-07 译文放在 docs-zh 并还原 pi-dev]]
@@ -52,6 +54,9 @@ tags:
 
 ## 会话
 
+- [[sessions/2026-09-21-pi-squad-user-journey|2026-09-21 从用户历程审阅 Pi Squad 需求]] - 含“插话后待核实”的范围与示例
+- [[sessions/2026-09-21-pi-squad-00-01-review|2026-09-21 Pi Squad 身份与发现三方评审]] - 含与指定 Grok 再次协商：握手排序、释放重放、活动状态时序
+- [[sessions/2026-09-21-open-trace-dashboard|2026-09-21 打开 Pi Trace dashboard]]
 - [[sessions/_index|会话索引]]
 - [[sessions/2026-09-21-pi-squad-plan|2026-09-21 Pi Squad 本地实验需求确认与六阶段规划]]
 - [[sessions/2026-09-23-p0-identity|2026-09-23 实现 P0 身份注册切片]]
@@ -71,6 +76,7 @@ tags:
 - [[sources/paseo|Paseo]]
 - [[sources/pigo|Pigo]]
 - [[sources/herdr-pi-extension-plan|Herdr + Pi Extension 验证方案]]
+- [[sources/pi-trace-extension|Pi Trace Extension]]
 - [[sources/agent-harness-x-discourse|agent harness 的 X 讨论]]
 
 ## 开放问题
@@ -83,6 +89,6 @@ tags:
 
 ## Pi Squad 本地实验（pi_squad_dev 分支）
 
-- [六阶段需求、技术实施与用户验收总索引](../pi_squad_case/README.md) - Go 控制面＋必要 TS Pi 扩展；仅在线 Agent；75 个计划用例，当前未实现/未执行。
+- [六阶段需求、技术实施与用户验收总索引](../pi_squad_case/README.md) - Go 控制面＋必要 TS Pi 扩展；仅在线 Agent；85 个计划用例（含评审补充10项），当前未实现/未执行。
 - [固定源码与文件/函数参考](../pi_squad_case/SOURCES.md)
 - [统一验收记录与恢复规范](../pi_squad_case/ACCEPTANCE.md)

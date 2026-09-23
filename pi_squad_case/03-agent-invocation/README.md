@@ -69,11 +69,24 @@ Go 至少记录：`task_created`、`dispatch_intent`、`adapter_received`、`inp
 
 Go 执行槽与 TS 本地 gate 双重检查：Go 先保留槽、持久化 dispatch_intent；TS 再校验绑定、最新 idle、pending 和本地槽。校验和调用 Pi 输入之间不得插入新的异步等待。竞争失败返回 BUSY，Go 留在队列，不使用 steer 抢占用户正在执行的工作。
 
-已有正式任务执行时，普通用户输入可能改变模型目标；不能静默把混合结果继续归属给任务。用户 `/squad takeover` 可明确中断任务归属；未通过该命令的用户输入也要被 input hook 识别，将 attempt 标为 `needs_review/manual_interference` 并停止自动报成功，不屏蔽用户对 Pi 的控制。`/new` 始终由用户决定，旧任务标 `interrupted/session_changed`，旧队列不跨 session 自动执行。
+用户输入区分“补充当前任务”和“接管/改变任务”。补充通过明确关联 task_id/attempt_id 的入口提交，记录内容和任务修订版本，在安全执行边界交给当前任务；不扩大既有工具/路径权限、不隐式创建另一项任务。受理、应用和结果对应的修订版本必须可查；补充与完成并发时原子判定，已终结任务拒绝追加，不把旧版本结果当作已满足新补充。
+
+用户 `/squad takeover` 或直接向目标Pi提交未关联为任务补充的普通输入，视为手动介入：原attempt标为 `interrupted/manual_interference`，立即形成“原任务未完成，用户已介入”的失败方向反馈。input hook必须识别普通输入，不要求用户先记住接管命令；不靠模型猜测任意文字是否仍属原任务。只读状态查询、打开观察视图或在其他Pi聊天不触发此规则。用户可继续操控目标Pi，但后续混合输出不能自动完成原attempt。
+
+`/new` 始终由用户决定，旧任务标 `interrupted/session_changed`，旧队列不跨session自动执行。标记interrupted终结的是原attempt的任务归属，不等于Pi进程/模型执行已停止，也不自动回滚文件。新的正式任务仍须满足最新idle/pending与执行槽检查，不能因为上层已收到中断反馈就并发塞入目标Pi。
 
 递归必须通过同一 Go Router：A→B→C 的任务记录 root/parent/depth。第一版拒绝同一责任链中调用自己或祖先 Agent，返回 `CALL_CYCLE`；不同顶层任务仍可分别 A→B、B→A。Go 同时检查等待依赖图，禁止 DAG 环和占用执行槽导致的循环等待。默认最大委派深度 3、每根任务最多 20 个子任务；这是实验配置，不是上游常量。
 
 成员需要父 Agent 决策时可用阶段 02 ask；ask 默认异步，不阻塞对方。如果将 ask 作为当前任务等待条件，同样登记等待关系。明确区分“成员互相可联系”与“允许无界递归”。父任务处于 waiting_dependency 时，可接收同一 root 内的关联澄清问题，并作为 response-only continuation 回答；它不创建第二项正式任务、不释放原任务归属、不能顺便执行无关工作。服务重启或绑定变化后，这类续接也必须先完成对账。
+
+### 用户介入时，上层等待怎样结束
+
+用户已明确要求：上层节点正在监听/等待任务完成时，如果用户手动介入，必须直接反馈任务未完成及介入原因，不能只在子任务上挂“待核实”让上层继续等。
+
+- Go在同一事务内提交attempt中断状态、`task_interrupted`事件和持久通知/outbox；反馈含task_id、attempt_id、parent/root、`reason=manual_interference`及“原任务未完成，用户已介入”。不包含未经确认的“Pi已停止”。
+- 任务监听者与直接调用者收到去重反馈；等待该attempt的上层依赖立即解除“等成功结果”的等待，转为明确的 `needs_review/dependency_interrupted`，停止仅能在成功后执行的下游。嵌套等待沿依赖关系传播明确阻塞原因，不让祖先永久等待，不把此事件当作依赖成功。
+- 上层Pi空闲且绑定有效时，通过安全的任务状态通知/关联续接报告原因；忙时先更新持久记录和可见状态，不steer抢占用户工作；离线时保留通知，重连可查询/接收状态，但不自动重新派任务。即时反馈指控制面状态和通知就绪，不能承诺离线模型立即发言。
+- 旧attempt的晚到结果只进历史，不自动改回completed或推动父任务成功。关联已有证据、重试或改派需显式决定，不因收到介入反馈自动重试。
 
 ## 6. 取消、超时与故障恢复
 
@@ -144,7 +157,7 @@ squad task verify <task-id> --check count-sum --input <numbers.txt的绝对路�
 | INV-06 取消排队 | 取消第二个排队任务。 | 队列移除；第一个任务继续，不对其调用 abort。 |
 | INV-07 取消运行 | 对明确 running attempt 发 cancel。 | cancel_requested 后出现中断证据；未确认时不显示 cancelled；不回滚文件。 |
 | INV-08 `/new` | running/queued 时由用户在目标 `/new`。 | 旧 attempt interrupted；旧队列不进入新会话；agent_id/runtime_id 保持，session_id 更新。 |
-| INV-09 用户插话 | 执行中输入另一条用户需求。 | 有 manual_interference/needs_review，不把混合输出当原任务成功。 |
+| INV-09 用户补充/介入与上层等待 | A委派B并等待；分别测试明确关联补充、接管、普通插话、查询状态；再测试嵌套等待、A忙/离线、晚到结果和通知重复。 | 补充记录版本并继续；介入将B原attempt置interrupted/manual_interference，向上层明确反馈未完成并结束等成功状态；不自动重试，不把晚答判成功；查询不干扰，离线通知可追溯，去重有效。 |
 | INV-10 假完成 | 测试模型只说“完成了”而不提交结果，或仅触发 agent_end。 | 不标 completed；显示 RESULT_MISSING 或继续等待 settled。 |
 | INV-11 结果不合格 | 提交 count=3/sum=999 或错 artifact 摘要。 | schema/验收区分清楚；错误真值 acceptance=rejected，错摘要不通过。 |
 | INV-12 递归调用 | operator→worker→reviewer，worker yield 后汇总。 | root/parent 链完整；reviewer 结果唤醒 worker 原任务；不误归属。 |

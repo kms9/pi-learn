@@ -3,7 +3,7 @@ title: Wiki 日志
 type: log
 status: active
 created: 2026-09-07
-updated: 2026-09-23
+updated: 2026-09-24
 tags:
   - project-wiki
   - log
@@ -90,3 +90,39 @@ tags:
 - 来源: 用户确认的单机、在线Agent、既有会话、显式恢复、Go优先边界；Pi/Intercom/Subagents/Agent Teams/Multica/Herdr固定源码。
 - 更新: 新分支 `pi_squad_dev` 的 `pi_squad_case/` 六阶段文档、总索引、源码清单、验收模板；`docs/sessions/2026-09-21-pi-squad-plan.md`、`docs/index.md`。
 - 说明: 共75个计划验收用例，明确用户操作和通过/失败标准；本次没有实现功能代码或执行运行验收，全部为NOT_RUN；不修改上游submodule，不自动启动Agent。
+
+## [2026-09-21] session | Pi Squad 00/01 三方评审与故障规则裁决
+
+- 来源: 用户指定的 Herdr Grok `w3:p1`、Cursor `w6:p1` 与 Codex 评审；用户两项明确裁决；固定 Pi 源码。
+- 更新: `docs/sessions/2026-09-21-pi-squad-00-01-review.md`、`docs/decisions/2026-09-21-squad-ownership-and-suspect.md`、开放问题及索引；阶段00/01 README、总方案与验收规范。
+- 说明: 三方同意最终实施合同；失租不释放身份占用，用户显式release采用CAS并撤销旧runtime；suspect拒绝新投递，由调用者恢复后重试。澄清快照、watch、reload和跨daemon重连。增加10项补充验收，共85项，全部NOT_RUN；本轮未实现代码，未修改上游submodule。
+
+## [2026-09-21] session | 与 Grok 再审 Pi Squad 并发与重放边界
+
+- 来源: 用户要求再次协商；Herdr Grok `w3:p1` 的 `GROK_FOLLOWUP_R1` 与 `GROK_FOLLOWUP_FINAL`。
+- 更新: `docs/sessions/2026-09-21-pi-squad-00-01-review.md`、既有决策页、索引、阶段00第11节/01第10节。
+- 说明: Codex与Grok同意单飞+持久connect_seq、旧close/timeout隔离、quit统一CAS撤销与安全幂等、prompt_depth及activity即时发布。无新增用户裁决；M0/M1合同可进入实现。扩充原用例子场景，总数85不变，全部NOT_RUN；未实现代码或修改上游。
+
+## [2026-09-21] session | 按用户历程讲解 Pi Squad 产品需求
+
+- 来源: 用户要求从使用过程检查需求；六阶段方案及既有故障处理决定。
+- 更新: `docs/sessions/2026-09-21-pi-squad-user-journey.md`、总索引与会话索引。
+- 说明: 串联准备、发现、通知/问答/委派、用户接管、固定小队、异常恢复与观察；显式区分Pi-only范围、00/01首版和后续能力。等待用户反馈，未新增需求决策、未实现代码。
+
+## [2026-09-21] query | 澄清正式任务执行中插话与待核实
+
+- 来源: 用户追问；阶段03既有会话并发与用户操作合同。
+- 更新: `docs/sessions/2026-09-21-pi-squad-user-journey.md`、索引。
+- 说明: 插话指向执行正式任务的目标Pi注入普通输入；待核实阻止自动归属成功，不代表已停止执行。说明补充任务与改变任务尚未区分的体验代价；任务关联补充入口仅为建议，未修改需求合同。
+
+## [2026-09-21] session | 打开 Pi Trace dashboard
+
+- 来源: 用户要求打开插件 dashboard；`pi-trace-extension` 用法与本机 `trace_to_html.py --dashboard`。
+- 更新: `docs/sessions/2026-09-21-open-trace-dashboard.md`、`docs/sources/pi-trace-extension.md`、来源索引与登记。
+- 说明: 默认指 pi-trace 跨会话 dashboard，不是 Herdr 或 Pi Squad 观察面。未改 submodule。
+
+## [2026-09-21] decision | 区分任务补充与接管，介入直接向上反馈未完成
+
+- 来源: 用户接受补充/接管分离，并明确要求监听或等待中的上层获得未完成与用户介入反馈。
+- 更新: `docs/decisions/2026-09-21-squad-user-intervention.md`、用户历程、索引、阶段03/04。
+- 说明: 补充关联任务版本继续；接管/未关联普通输入使原attempt interrupted/manual_interference，持久通知父节点并结束等成功状态，禁止旧结果冒充完成或自动重派。明确反馈不代表底层Pi停止；细化INV-09/TEAM-13，总85项不变、全部NOT_RUN。

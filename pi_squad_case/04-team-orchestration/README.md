@@ -98,6 +98,8 @@ created → planning → running/waiting_members → reviewing → completed
 任意非终态 → blocked / needs_review / failed / cancelled
 ```
 
+用户介入成员任务：继承阶段03的 `interrupted/manual_interference`，立即向Leader及等待该任务的节点反馈“原任务未完成，用户已介入”。run转为 `needs_review/manual_interference`，停止受影响依赖的自动推进；与该任务无依赖的已运行成员不被此反馈自动abort，但run不能宣告成功。不得把用户介入当普通审查不通过而自动进入返工、重试或替换成员；后续由用户明确决定。关联当前任务的正式补充不按接管处理，仍需记录修订与结果归属。
+
 成员离线：不再给该绑定投递，run 标 blocked/member_offline；手动上线不会立刻恢复整个计划，用户执行 `team run resume` 才推进未执行节点。执行中丢失状态继承阶段 03 needs_review，不自动重执行有副作用的任务。
 
 reviewer 拒绝必须提供结构化发现、证据引用、待修改项；Leader 派返工任务，旧结果保留。超过 2 次返工或其他预算即 failed/needs_human，不无限循环。routine progress 不反复唤醒 Leader；合并触发、记录 no_action，避免消息风暴。
@@ -164,7 +166,7 @@ squad policy allow --from operator --to team:stats-team --actions invoke
 | TEAM-10 文件冲突 | 两任务声明同时写同一个 report.json。 | 只允许一项持有写租约，另一项 blocked_file_conflict；不承诺自动合并。 |
 | TEAM-11 假完成 | Leader 在 review 未完成时调用 complete。 | Go 拒绝，run 保持未完成；模型不能绕过最终 gate。 |
 | TEAM-12 重复触发 | `squad lab team-check --case duplicate-result`。 | 一个结果最多产生一次有效推进；重复决策被 revision/幂等键约束。 |
-| TEAM-13 中途故障 | 运行中手动重启 Go。 | DAG、结果、上下文版本保留，先 needs_review；用户显式恢复后从确认节点推进，不盲重跑。 |
+| TEAM-13 中途故障与用户介入 | 分别测试运行中重启Go，以及Leader等待成员时用户接管成员任务。 | 重启保留DAG/结果/版本、先needs_review；用户介入立即反馈未完成并停止受影响依赖推进，不自动返工/重派，旧结果不能使run成功；恢复由用户明确决定。 |
 | TEAM-14 无逐次确认 | 一次性配置组内允许策略后执行正常流程。 | 控制面不逐次弹审批；Pi 自身仍需的原有权限提示不被绕过。 |
 
 阶段验收不仅看最终报告：必须保存计划、执行时间区间、依赖释放、review/rework 和结果归属。并行是“运行区间存在重叠”，不要求模型调用恰好同时开始。所有预算值是本实验配置目标。

@@ -42,11 +42,11 @@ updated: 2026-09-21
 
 `online` 仅代表受认证连接存活；`working` 等活动状态单独维护。Pi `agent_start` 更新 working；`agent_settled` 且 idle、无 pending 时更新 idle；`ui_prompt_start/end` 能提供明确 blocked 状态。没有足够证据时保留 unknown，不靠屏幕文字猜状态。
 
-每次可见变更生成单调递增 `directory_revision`。客户端可订阅变更，丢失更新或重连后重新拉完整 snapshot。**同一 revision 下名单必须一致；不要求正在变化时不同时间的两次查询字节相同。** 心跳无可见变化时不需要制造大量 revision。
+每次可见变更生成单调递增 `directory_revision`。snapshot/watch 游标使用 `(daemon_epoch, directory_revision)`；原子订阅返回 snapshot+cursor，或用有界日志保证无窗口丢失；缺口、慢消费者溢出或 daemon_epoch 变化时重新拉完整 snapshot。**同一 revision 下名单必须一致；不要求正在变化时不同时间的两次查询字节相同。** `self` 是查询者投影，不参加共享 snapshot 相等比较；比较时筛选条件必须相同。`last_seen_at` 只取本 revision 已发布的真实心跳时间，发布刷新须增加 revision；内部每次心跳更新真实租约，可对快照发布时间节流，不能把发布时间冒充心跳时间。
 
-注册/更新必须校验 agent token、runtime_id、binding_epoch、connection_epoch。旧连接迟到的 heartbeat、旧会话 callback 都不能覆盖新绑定。旧实例失去租约后要停止接受工作；新实例注册前必须获得新代次，不能只依赖 PID 存活检查。
+注册/更新必须校验 agent token、runtime_id、binding_epoch、connection_epoch。旧连接迟到的 heartbeat、旧会话 callback 都不能覆盖新绑定。旧实例失去租约后不得接受新的控制面工作，但身份占用仍保留；不同 runtime 继续拒绝，直到正常认证退出或用户显式释放。原持有人恢复时须重新握手取得新绑定代次，不能只依赖 PID 存活检查，也不能借迟到心跳复活。
 
-Go 单一注册表是在线真相源；SQLite 保存身份、最后可见状态及审计，服务重启时先把原在线记录变为 unknown/offline，收到真实重连才能恢复在线，不从数据库直接“复活在线”。
+Go 单一注册表是在线真相源；SQLite 保存身份、最后可见状态及审计，服务重启时保留身份占用与撤销记录，先把原在线记录变为 offline，收到真实重连才能恢复在线，不从数据库直接“复活在线”。
 
 ## 4. 实施路径（待实现）
 
@@ -100,7 +100,7 @@ SQUAD_AGENT_CONFIG="$SQUAD_HOME/agents/operator.json" \
 | DISC-04 未注册 Pi | 再启动一个不加载实验扩展的普通 Pi。 | 名单不增加；该 Pi 不被接管、重命名或注入。 |
 | DISC-05 正常退出 | 在 reviewer 手动退出 Pi。 | 2 秒内从在线列表移除；`--all` 保留同一身份并显示 offline。 |
 | DISC-06 暂停/异常退出 | 先用 `agents get reviewer` 获取并人工核对 PID；仅暂停或终止该实验 Pi。 | 暂停后 6 秒 suspect、10 秒 offline（容差 2 秒）；恢复后重新校验，不长期假在线。不得用宽泛 pkill。 |
-| DISC-07 手动重开 | reviewer 离线后手动重开同一配置。 | 5 秒内上线，agent_id 不变，runtime_id 更新；审计中不存在自动 spawn。 |
+| DISC-07 手动重开 | reviewer 正常认证 quit，或用户确认后 operator release，再手动重开同一配置。异常离线未释放则新 runtime 仍拒绝。 | 5 秒内上线，agent_id 不变，runtime_id 更新；审计中不存在自动 spawn。 |
 | DISC-08 活动状态 | 在 worker 触发实际模型工作，观察 watch；等待真正结束。 | working 与 idle 有事件证据；若出现 UI 等待则 blocked；不把 idle 当作 completed。 |
 | DISC-09 `/new` | reviewer 输入 `/new`，operator 查询它。 | agent_id/runtime_id 不变，session_id 和 binding_epoch 更新；名单无重复身份。 |
 | DISC-10 Go 重启 | 手动停止/重开服务，三个 Pi 保持。 | 重连后名单恢复，期间显示离线/unknown；没有假在线，也没有新 Pi 进程。 |
@@ -127,3 +127,31 @@ DISC-06 的时间门槛从最后一次有效心跳计算，不从用户看到界
 DISC-01—12 全部通过，阶段 00 用例无回归；保存三个身份快照、watch 记录、异常退出与手动重开的事件时间线。填写 [验收模板](../ACCEPTANCE.md)，标明模型名称、Pi 版本和代码 SHA。当前所有测试 **NOT RUN**。
 
 回退使用本阶段新的 SQUAD_HOME，不删除上一阶段数据；停止实验服务不应影响 Pi 自身。下一阶段复用 Directory，不能把“列表中在线”直接当成“消息已经交付”。
+
+
+## 9. 2026-09-21 用户裁决与补充验收
+
+完整协商见 [三方评审](../../docs/sessions/2026-09-21-pi-squad-00-01-review.md)。本阶段复用 00 的持久 ownership、operator-only CAS release 和撤销机制。
+
+- **失租不释放身份**：暂停 A 至 offline 后启动同身份 B，B 仍被拒绝；A 凭连续性证明恢复可以重绑。用户确认旧实例退出或显式 release 后，B 才能取得身份。未知 socket EOF 和 daemon 重启不改变此规则。
+- **suspect 不可投递**：用户决定暂停新消息/任务并明确报不可联系，恢复 online 后由调用者重试。后续阶段返回 `AGENT_SUSPECT`、`retryable=true`，不隐式排队、自动重试或补发；本阶段仍先按未开放能力返回 `CAPABILITY_UNAVAILABLE`。
+- `list` 默认仅 online，`--all` 含 suspect/offline；`get` 返回指定身份的真实状态；`watch` 默认包含所有 presence 变化，确保能观察 suspect/offline。`self` 独立于共享 snapshot。
+- activity 初始 unknown；UI prompt 结束恢复当前底层活动状态，不能直接变 idle；会话换绑清除旧 activity。idle 不代表任务完成。
+- 正常 close 立即 offline 与超时进入 offline 都只是可联系状态，不能用于自动释放 ownership。macOS 真休眠/恢复要单独验证，不能用 SIGSTOP 代替；恢复后先复核租约，不接受过期连接继续报活。
+
+在原 DISC-01—12 之外增加下列补充用例（均 NOT_RUN），并回归 ID-X01—06：
+
+| 用例 | 必须验证 |
+|---|---|
+| DISC-X01 所有权与在线分离 | 暂停后 online→suspect→offline，B始终拒绝；A恢复或用户release两条路径均有明确断言。 |
+| DISC-X02 canonical 快照 | 同 epoch/revision/筛选条件下 canonical agents 相同，self可不同；last_seen发布改变必升revision。 |
+| DISC-X03 watch竞态 | snapshot与订阅之间的变更不丢；过滤器一致；慢消费者、断档、daemon重启均全量重取。 |
+| DISC-X04 真休眠与恢复 | 记录实际macOS休眠/唤醒、服务端计时依据和重握手；无法执行标BLOCKED，不用暂停进程冒充。 |
+
+
+## 10. Grok 再评审：activity 与快照时序（2026-09-21）
+
+- adapter维护 `prompt_depth` 和底层运行状态；depth>0时保持blocked。prompt_end只递减深度，归零后结合当前 `isIdle()`、`hasPendingMessages()` 与当前运行事件重新判断，不能恢复进入UI之前保存的陈旧working/idle值。未匹配的end或事件缺口降为unknown并重新采样，不伪造idle。
+- activity更新携带当前binding、本地generation及递增事件序号；Go拒绝旧绑定、旧连接和乱序更新。generation切换清旧depth与活动状态；agent_settled不能清掉仍存在的UI等待。不能假定所有权限界面都发出ui_prompt事件，无法观察时保留unknown。
+- presence/activity改变立即生成新directory_revision；只允许对last_seen_at的展示发布节流。已发布last_seen仍是真实服务器收到心跳的时间；内部租约到期判断不受节流影响。
+- DISC-08增加嵌套prompt、settled/end交错、旧会话settled晚到新会话working的子场景；DISC-X02增加密集heartbeat下activity立即发布且同revision快照不变的子场景。均NOT_RUN，仍计入原85项，不增加用例总数。
