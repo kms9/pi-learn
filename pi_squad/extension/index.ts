@@ -1,41 +1,77 @@
 /**
- * Pi Squad P0 extension: register + heartbeat + list_agents.
+ * Pi Squad extension: load a config, register, heartbeat, list_agents.
  *
- * Thin adapter only. Does not implement messaging, tasks, spawn, or
- * depend on pi-agent-teams / pi-intercom.
+ * PI_SQUAD_CONFIG selects a JSON file (role prompt + registration fields).
+ * Without it, PI_SQUAD_AGENT_ID / ROLE / ID still register, with no role prompt.
+ * Does not implement messaging, tasks, spawn, or depend on pi-agent-teams.
  */
 import { Type } from "typebox";
 import { StringEnum } from "@earendil-works/pi-ai";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 import { createControllerClient } from "./controller-client.ts";
+import { isSetupReady, loadSquadSetup } from "./config.ts";
 import { startHeartbeat, type HeartbeatHandle } from "./heartbeat.ts";
-import {
-  isMissingIdentity,
-  readIdentityEnv,
-  readRuntimeSessionId,
-  registerAgent,
-} from "./registration.ts";
+import { readRuntimeSessionId, registerAgent } from "./registration.ts";
 
 export default function (pi: ExtensionAPI) {
-  const envOrMissing = readIdentityEnv();
-  const identityReady = !isMissingIdentity(envOrMissing);
-  const env = identityReady ? envOrMissing : undefined;
+  const setup = loadSquadSetup();
+  const setupError = setup.ok ? undefined : "error" in setup ? setup.error : undefined;
+  const identityReady = isSetupReady(setup);
+  const env = identityReady ? setup.identity : undefined;
+  const rolePrompt = identityReady ? setup.rolePrompt : undefined;
   const client = createControllerClient(env?.controllerUrl ?? "http://127.0.0.1:18741");
 
   let heartbeat: HeartbeatHandle | undefined;
   let generation = 0;
   let runtimeSessionId: string | undefined;
+  let registered = false;
+  let injectedSystemPrompt: string | undefined;
 
   const clearRuntime = () => {
     generation += 1;
+    registered = false;
+    injectedSystemPrompt = undefined;
     heartbeat?.stop();
     heartbeat = undefined;
+  };
+
+  const whoami = () => {
+    if (!setup.ok) {
+      return "error" in setup
+        ? { ok: false as const, error: setup.error }
+        : { ok: false as const, missing: setup.missing };
+    }
+    return {
+      ok: true as const,
+      source: setup.source,
+      config_path: setup.configPath,
+      agent_id: setup.identity.agentId,
+      role: setup.identity.role,
+      squad_id: setup.identity.squadId,
+      controller_url: setup.identity.controllerUrl,
+      space_id: setup.identity.spaceId,
+      pane_id: setup.identity.paneId,
+      role_prompt: setup.rolePrompt ?? "",
+      registered,
+      injected: Boolean(injectedSystemPrompt),
+      role_prompt_in_system_prompt: Boolean(
+        setup.rolePrompt && injectedSystemPrompt?.includes(setup.rolePrompt),
+      ),
+    };
   };
 
   pi.on("session_shutdown", () => {
     clearRuntime();
   });
+
+  if (rolePrompt) {
+    pi.on("before_agent_start", async (event) => {
+      const systemPrompt = `${event.systemPrompt}\n\n## Pi Squad role\n${rolePrompt}`;
+      injectedSystemPrompt = systemPrompt;
+      return { systemPrompt };
+    });
+  }
 
   pi.on("session_start", async (_event, ctx) => {
     clearRuntime();
@@ -43,17 +79,20 @@ export default function (pi: ExtensionAPI) {
 
     runtimeSessionId = readRuntimeSessionId(ctx.sessionManager);
 
+    if (setupError) {
+      ctx.ui.notify(`pi-squad: ${setupError}; register skipped`, "error");
+      return;
+    }
     if (!identityReady || !env) {
-      ctx.ui.notify(
-        `pi-squad: missing ${isMissingIdentity(envOrMissing) ? envOrMissing.missing.join(", ") : "identity"}; register skipped`,
-        "warning",
-      );
+      const missing = !setup.ok && "missing" in setup ? setup.missing.join(", ") : "identity";
+      ctx.ui.notify(`pi-squad: missing ${missing}; register skipped`, "warning");
       return;
     }
 
     try {
       const record = await registerAgent(client, env, runtimeSessionId);
       if (myGen !== generation) return;
+      registered = true;
       ctx.ui.setStatus(
         "pi-squad",
         `${record.agent_id} ${record.status} (${record.role}/${record.squad_id})`,
@@ -72,6 +111,13 @@ export default function (pi: ExtensionAPI) {
       if (myGen !== generation) return;
       ctx.ui.notify(`pi-squad register failed: ${String(err)}`, "error");
     }
+  });
+
+  pi.registerCommand("squad-whoami", {
+    description: "Show the Pi Squad config loaded into this process, and whether its role prompt was appended",
+    handler: async (_args, ctx) => {
+      ctx.ui.notify(JSON.stringify(whoami()), "info");
+    },
   });
 
   pi.registerTool({

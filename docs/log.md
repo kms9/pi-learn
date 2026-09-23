@@ -13,6 +13,24 @@ tags:
 
 按时间追加。事件类型：`init`、`ingest`、`query`、`lint`、`sync`、`decision`、`maintenance`、`session`。
 
+## [2026-09-24] decision | Controller 限定 Go 1.27 与 Gin 栈
+
+- 来源: 用户确认 Gin、Resty、Viper、Cobra、herdr-dashboard 的 Bubble Tea v1，并要求重构 controller
+- 更新: `pi_squad/controller/AGENTS.md`、`pi_squad/controller/`、`docs/decisions/2026-09-24-controller-go-stack.md`、`pi_squad/USAGE.md`
+- 说明: 库只用于 controller。`serve` 写库；`agents` 与 `tui` 用 Resty 只读。旧启动参数仍可用。smoke PASS。
+
+## [2026-09-24] query | 角色提示按进程加载、按用户回合套用
+
+- 来源: 用户问当前配置是按 session 注入还是按每次 LLM turn 注入，以及参考项目
+- 更新: `docs/concepts/pi-squad.md`、`pi_squad/USAGE.md`
+- 说明: `PI_SQUAD_CONFIG` 在 Extension 工厂读一次。`before_agent_start` 返回的 `systemPrompt` 不进 transcript，只覆盖该次用户回合的 agent run。
+
+## [2026-09-24] session | Pi Squad 配置与启动说明
+
+- 来源: 用户要求整理插件的配置、启动文档，并在后续功能落地时继续更新
+- 更新: `pi_squad/USAGE.md`、`AGENTS.md`、`docs/concepts/pi-squad.md`、本页、会话索引
+- 说明: 使用说明只保留一份。给 `pi_squad/` 增加已可用功能时，同一次改动更新 `USAGE.md`。
+
 ## [2026-09-23] session | P0 身份注册与 HTTP Registry
 
 - 来源: Notion P0–P7 方案与源码对照评估（会话附件）
@@ -121,8 +139,20 @@ tags:
 - 更新: `docs/sessions/2026-09-21-open-trace-dashboard.md`、`docs/sources/pi-trace-extension.md`、来源索引与登记。
 - 说明: 默认指 pi-trace 跨会话 dashboard，不是 Herdr 或 Pi Squad 观察面。未改 submodule。
 
+## [2026-09-24] ingest | 同步 Herdr + Pi Extension Cases
+
+- 来源: https://app.notion.com/p/kms9/Herdr-Pi-Extension-Cases-3e4df99ce2a3817d99f5f5c68cba60f9
+- 更新: `docs/sources/herdr-pi-extension-cases.md`、既有摘要页、来源登记与索引
+- 说明: 公开页全文 450 个块落入 wiki，未改写条款。空间里另一篇多智能体研究页不在本页内容树中，未并入。
+
 ## [2026-09-21] decision | 区分任务补充与接管，介入直接向上反馈未完成
 
 - 来源: 用户接受补充/接管分离，并明确要求监听或等待中的上层获得未完成与用户介入反馈。
 - 更新: `docs/decisions/2026-09-21-squad-user-intervention.md`、用户历程、索引、阶段03/04。
 - 说明: 补充关联任务版本继续；接管/未关联普通输入使原attempt interrupted/manual_interference，持久通知父节点并结束等成功状态，禁止旧结果冒充完成或自动重派。明确反馈不代表底层Pi停止；细化INV-09/TEAM-13，总85项不变、全部NOT_RUN。
+
+## [2026-09-24] query | 本地 Squad 安装与注入追踪
+
+- 来源: 本地 Pi 包文档、Squad/Trace 源码、上游 Trace README；本机 `pi --version` 与 `pi list`
+- 更新: `pi_squad/USAGE.md`、`docs/sessions/2026-09-24-local-extension-and-trace.md`、`docs/index.md`
+- 说明: 明确本地入口安装、日常与隔离启动、Trace 请求观察及截断边界。仅写文档，未安装插件、修改全局配置或调用模型。

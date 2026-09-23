@@ -44,40 +44,21 @@ chmod +x pi_squad_case/phase_00_identity/smoke.sh
 
 覆盖：两个 Agent 注册 → 列表均为 online → 停一侧心跳后超时 offline → 重启 Controller 身份仍在 → 同 `agent_id` 再注册不产生 `reviewer-2`。
 
-### 3. 两个 Pi 进程（本机已安装 `pi` 时）
+### 3. 启动 Pi
 
-另开两个终端，**不要**自动 spawn：
+配置文件和交互式启动命令在 [`../../pi_squad/USAGE.md`](../../pi_squad/USAGE.md)。本阶段不自动 spawn。
 
-```bash
-# 终端 A
-export PI_SQUAD_CONTROLLER_URL=http://127.0.0.1:18741
-export PI_SQUAD_AGENT_ID=backend PI_SQUAD_ROLE=backend PI_SQUAD_ID=alpha
-pi --no-extensions -e "$PWD/pi_squad/extension/index.ts"
+期望：两个不同配置的 Pi 在 `GET /agents` 里都是 `online`。停掉其中一个，等待超过 `-heartbeat-timeout` 后，只有它变为 `offline`。
 
-# 终端 B
-export PI_SQUAD_CONTROLLER_URL=http://127.0.0.1:18741
-export PI_SQUAD_AGENT_ID=reviewer PI_SQUAD_ROLE=reviewer PI_SQUAD_ID=alpha
-pi --no-extensions -e "$PWD/pi_squad/extension/index.ts"
-```
+可选 Herdr 对照也由用户在已有 pane 上按该文档启动。Controller **禁止**调用 `herdr agent start`。`space_id` 存的是 `HERDR_WORKSPACE_ID`。`herdr_session_id` 默认空。
 
-第三个终端：
+### 4. 配置加载核对
 
 ```bash
-curl -s http://127.0.0.1:18741/agents | python3 -m json.tool
+node pi_squad_case/phase_00_identity/verify-config-pi.mjs
 ```
 
-应看到两个 `status=online`。停掉 reviewer 的 Pi，等待超过 `-heartbeat-timeout` 后再 `GET /agents`：reviewer 为 `offline`，backend 仍 `online`。
-
-可选 Herdr 对照（用户手工建 pane，**禁止** Controller 调 `herdr agent start`）：
-
-```bash
-# 在已有 pane 上由用户启动
-HERDR_WORKSPACE_ID=... HERDR_PANE_ID=... \
-PI_SQUAD_AGENT_ID=tester PI_SQUAD_ROLE=tester PI_SQUAD_ID=alpha \
-pi --no-extensions -e "$PWD/pi_squad/extension/index.ts"
-```
-
-`space_id` 存的是 `HERDR_WORKSPACE_ID`。`herdr_session_id` 默认空；只有显式注入 `PI_SQUAD_HERDR_SESSION_ID` / `HERDR_SESSION_NAME` / `HERDR_SESSION` 才上报。
+脚本自起临时 Controller 和三个 `pi --mode rpc`。通过条件见 [`../../pi_squad/USAGE.md`](../../pi_squad/USAGE.md) 的「自动核对」。
 
 ## 本阶段未做
 

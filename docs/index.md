@@ -40,7 +40,7 @@ tags:
 - [[concepts/chord-plugin|Chord plugin / facet]] - 实验性分进程插件
 - [[concepts/harness|Harness]] - agent − model；Pi 产品 / AgentHarness / DSH 三套用法
 - [[concepts/session|Session]] - TUI 上的一次对话；JSONL 树 + 活的 `AgentSession`
-- [[concepts/pi-squad|Pi Squad]] - Herdr + 薄 Extension + Go Controller 的本地协作验证；当前只到 P0
+- [[concepts/pi-squad|Pi Squad]] - Herdr + 薄 Extension + Go Controller 的本地协作验证；配置与启动见 `pi_squad/USAGE.md`
 
 ## 决策
 
@@ -50,10 +50,14 @@ tags:
 - [[decisions/2026-09-07-overlay-not-fork|2026-09-07 overlay 而不是 fork 上游]]
 - [[decisions/2026-09-07-translations-live-in-docs-zh|2026-09-07 译文放在 docs-zh 并还原 pi-dev]]
 - [[decisions/2026-09-07-github-clones-as-submodules|2026-09-07 现有 GitHub 仓改为 submodule]]
+- [[decisions/2026-09-24-controller-go-stack|2026-09-24 Controller 使用 Go 1.27 与 Gin 栈]]
 - [[decisions/2026-09-23-p0-identity-fields|2026-09-23 P0 身份字段与 HTTP Registry]]
 
 ## 会话
 
+- [[sessions/2026-09-24-local-extension-and-trace|2026-09-24 本地 Squad 安装与注入追踪]]
+
+- [[sessions/2026-09-24-pi-squad-usage|2026-09-24 整理 Pi Squad 配置与启动说明]]
 - [[sessions/2026-09-21-pi-squad-user-journey|2026-09-21 从用户历程审阅 Pi Squad 需求]] - 含“插话后待核实”的范围与示例
 - [[sessions/2026-09-21-pi-squad-00-01-review|2026-09-21 Pi Squad 身份与发现三方评审]] - 含与指定 Grok 再次协商：握手排序、释放重放、活动状态时序
 - [[sessions/2026-09-21-open-trace-dashboard|2026-09-21 打开 Pi Trace dashboard]]
@@ -76,6 +80,7 @@ tags:
 - [[sources/paseo|Paseo]]
 - [[sources/pigo|Pigo]]
 - [[sources/herdr-pi-extension-plan|Herdr + Pi Extension 验证方案]]
+- [[sources/herdr-pi-extension-cases|Herdr + Pi Extension Cases]] - Notion 验证规范全文
 - [[sources/pi-trace-extension|Pi Trace Extension]]
 - [[sources/agent-harness-x-discourse|agent harness 的 X 讨论]]
 

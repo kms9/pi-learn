@@ -134,3 +134,9 @@ python3 scripts/sync-zh.py --accept <source> --record-head
 - 不要掩盖歧义，记入 `docs/questions/open-questions.md`。
 - 不要引入 RAG、向量库、wiki 搜索服务，除非用户批准且现有 index 不够用。
 - 不要整份粘贴 `extensions.md`。
+
+## Pi Squad 使用说明
+
+`pi_squad/USAGE.md` 是这个插件的配置与启动说明。给 `pi_squad/` 增加已经能用的功能时，同一次改动更新该文件：配置字段、启动命令、会话内命令和工具。不要把还没落地的能力写进去。阶段验收仍以 `pi_squad_case/` 为准，不把使用说明拆成第二份。
+
+Controller 的 Go 版本和库边界在 `pi_squad/controller/AGENTS.md`。Gin、Resty、Viper、Cobra、Bubble Tea 只用于该目录。

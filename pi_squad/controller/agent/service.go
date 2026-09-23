@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	ErrNotFound  = errors.New("agent not found")
-	ErrInvalid   = errors.New("invalid request")
+	ErrNotFound = errors.New("agent not found")
+	ErrInvalid  = errors.New("invalid request")
 )
 
 type Service struct {

@@ -24,6 +24,6 @@ tags:
 | DeepSeek Harness | git submodule | `deepseek-harness/` | 2026-09-07 | [[deepseek-harness\|DeepSeek Harness]] | HEAD `d347e703908d0406b7a7ef80e3a0e594d86b2215`。整仓即 harness；LLM 缝含 pi-ai 适配器。 |
 | Paseo | git submodule | `paseo/` | 2026-09-16 | [[paseo\|Paseo]] | HEAD `425157595038614a44e2cbf9c393f2e263270b95`。重点参考 provider registry、AgentClient/AgentSession、Pi RPC 与 Generic ACP adapter。 |
 | Pigo | git submodule | `pigo/` | 2026-09-18 | [[pigo\|Pigo]] | HEAD `891d1f372cefa92b5f5a104db20521238ba5a9fe`。Go 语言重实现 Pi；重点对照 Agent loop、Session、stream-json、权限、Skills/Plugins 与 Go Runtime 结构。 |
-| Herdr + Pi Extension 验证方案 | 会话附件 | Notion plan + 源码评估 | 2026-09-23 | [[herdr-pi-extension-plan\|Herdr + Pi Extension 验证方案]] | P0–P7 本地协作协议；第一刀仅 P0 HTTP Registry。全文未检入，摘要见 wiki。 |
+| Herdr + Pi Extension 验证方案 | Notion | https://app.notion.com/p/kms9/Herdr-Pi-Extension-Cases-3e4df99ce2a3817d99f5f5c68cba60f9 | 2026-09-24 | [[herdr-pi-extension-cases\|Herdr + Pi Extension Cases]] | 阶段化验证规范全文已同步到 wiki；摘要仍见 [[herdr-pi-extension-plan\|验证方案]]。P0 HTTP Registry 已另有实现。 |
 | pi-trace-extension | git submodule | `pi-trace-extension/` | 2026-09-21 | [[pi-trace-extension\|Pi Trace Extension]] | 跨会话 dashboard；本机打开 `~/.pi/agent/traces/index.html`。不改 submodule。 |
 | X 上 agent harness 讨论 | 网络检索 | X posts 2026-02–09 | 2026-09-07 | [[agent-harness-x-discourse\|X 讨论]] | Jensen 外骨骼、loop/graph/harness 三分、Pi 口碑、Mario 对 v2 范围。 |

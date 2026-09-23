@@ -18,9 +18,9 @@ export type MissingIdentityError = {
 const DEFAULT_CONTROLLER_URL = "http://127.0.0.1:18741";
 const DEFAULT_HEARTBEAT_MS = 5000;
 
-function firstEnv(...keys: string[]): string | undefined {
+function firstEnv(env: NodeJS.ProcessEnv, ...keys: string[]): string | undefined {
   for (const key of keys) {
-    const value = process.env[key]?.trim();
+    const value = env[key]?.trim();
     if (value) return value;
   }
   return undefined;
@@ -32,27 +32,27 @@ function firstEnv(...keys: string[]): string | undefined {
  * pane/workspace when present. herdr_session_id and runtime_session_id
  * stay empty unless a real value is provided — never fabricated.
  */
-export function readIdentityEnv(): IdentityEnv | MissingIdentityError {
+export function readIdentityEnv(env: NodeJS.ProcessEnv = process.env): IdentityEnv | MissingIdentityError {
   const missing: string[] = [];
-  const agentId = firstEnv("PI_SQUAD_AGENT_ID");
-  const role = firstEnv("PI_SQUAD_ROLE");
-  const squadId = firstEnv("PI_SQUAD_ID");
+  const agentId = firstEnv(env, "PI_SQUAD_AGENT_ID");
+  const role = firstEnv(env, "PI_SQUAD_ROLE");
+  const squadId = firstEnv(env, "PI_SQUAD_ID");
   if (!agentId) missing.push("PI_SQUAD_AGENT_ID");
   if (!role) missing.push("PI_SQUAD_ROLE");
   if (!squadId) missing.push("PI_SQUAD_ID");
   if (missing.length > 0) return { missing };
 
-  const intervalRaw = firstEnv("PI_SQUAD_HEARTBEAT_INTERVAL_MS");
+  const intervalRaw = firstEnv(env, "PI_SQUAD_HEARTBEAT_INTERVAL_MS");
   const heartbeatIntervalMs = intervalRaw ? Number(intervalRaw) : DEFAULT_HEARTBEAT_MS;
 
   return {
     agentId,
     role,
     squadId,
-    controllerUrl: firstEnv("PI_SQUAD_CONTROLLER_URL") ?? DEFAULT_CONTROLLER_URL,
-    herdrSessionId: firstEnv("PI_SQUAD_HERDR_SESSION_ID", "HERDR_SESSION_NAME", "HERDR_SESSION"),
-    spaceId: firstEnv("HERDR_WORKSPACE_ID", "PI_SQUAD_SPACE_ID"),
-    paneId: firstEnv("HERDR_PANE_ID", "PI_SQUAD_PANE_ID"),
+    controllerUrl: firstEnv(env, "PI_SQUAD_CONTROLLER_URL") ?? DEFAULT_CONTROLLER_URL,
+    herdrSessionId: firstEnv(env, "PI_SQUAD_HERDR_SESSION_ID", "HERDR_SESSION_NAME", "HERDR_SESSION"),
+    spaceId: firstEnv(env, "HERDR_WORKSPACE_ID", "PI_SQUAD_SPACE_ID"),
+    paneId: firstEnv(env, "HERDR_PANE_ID", "PI_SQUAD_PANE_ID"),
     heartbeatIntervalMs: Number.isFinite(heartbeatIntervalMs) && heartbeatIntervalMs > 0
       ? heartbeatIntervalMs
       : DEFAULT_HEARTBEAT_MS,

@@ -15,4 +15,5 @@ tags:
 - [[2026-09-07-github-clones-as-submodules|2026-09-07 现有 GitHub 仓改为 submodule]]
 - [[2026-09-21-squad-ownership-and-suspect|2026-09-21 Pi Squad 身份占用与 suspect 投递规则]]
 - [[2026-09-21-squad-user-intervention|2026-09-21 任务补充与用户介入向上反馈]]
+- [[2026-09-24-controller-go-stack|2026-09-24 Controller 使用 Go 1.27 与 Gin 栈]]
 - [[2026-09-23-p0-identity-fields|2026-09-23 P0 身份字段与 HTTP Registry]]

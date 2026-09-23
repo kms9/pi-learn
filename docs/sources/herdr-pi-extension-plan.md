@@ -3,7 +3,7 @@ title: Herdr + Pi Extension 多智能体验证方案
 type: source
 status: active
 created: 2026-09-23
-updated: 2026-09-23
+updated: 2026-09-24
 source_path: Notion plan + 源码对照评估
 tags:
   - project-wiki
@@ -15,10 +15,10 @@ tags:
 
 ## 来源
 
-- 本地路径: 用户会话附件 `plan.md`、`herdr-pi-extension-cases-eval.md`
-- 外部 URL: unknown（Notion 源页未在本仓落盘全文）
+- 本地全文: [[herdr-pi-extension-cases|Herdr + Pi Extension Cases]]
+- 外部 URL: https://app.notion.com/p/kms9/Herdr-Pi-Extension-Cases-3e4df99ce2a3817d99f5f5c68cba60f9
 - 来源日期: 2026-09-23
-- Ingest 日期: 2026-09-23
+- Ingest 日期: 2026-09-24
 
 ## 摘要
 

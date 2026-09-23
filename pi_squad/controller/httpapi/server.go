@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/gin-gonic/gin"
+
 	"github.com/kms9/pi-learn/pi_squad/controller/agent"
 )
 
@@ -19,84 +21,82 @@ func New(svc *agent.Service) *Server {
 }
 
 func (s *Server) Handler() http.Handler {
-	mux := http.NewServeMux()
-	mux.HandleFunc("POST /agents/register", s.handleRegister)
-	mux.HandleFunc("POST /agents/heartbeat", s.handleHeartbeat)
-	mux.HandleFunc("GET /agents/{id}", s.handleGet)
-	mux.HandleFunc("GET /agents", s.handleList)
-	mux.HandleFunc("GET /health", s.handleHealth)
-	return mux
+	gin.SetMode(gin.ReleaseMode)
+	r := gin.New()
+	r.Use(gin.Recovery())
+	r.POST("/agents/register", s.handleRegister)
+	r.POST("/agents/heartbeat", s.handleHeartbeat)
+	r.GET("/agents", s.handleList)
+	r.GET("/agents/:id", s.handleGet)
+	r.GET("/health", s.handleHealth)
+	return r
 }
 
-func (s *Server) handleHealth(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+func (s *Server) handleHealth(c *gin.Context) {
+	writeJSON(c.Writer, http.StatusOK, map[string]string{"status": "ok"})
 }
 
-func (s *Server) handleRegister(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleRegister(c *gin.Context) {
 	var req agent.RegisterRequest
-	if err := decodeJSON(r, &req); err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
+	if err := decodeJSON(c.Request, &req); err != nil {
+		writeError(c.Writer, http.StatusBadRequest, err.Error())
 		return
 	}
-	a, err := s.svc.Register(r.Context(), req)
+	a, err := s.svc.Register(c.Request.Context(), req)
 	if err != nil {
-		writeServiceError(w, err)
+		writeServiceError(c.Writer, err)
 		return
 	}
 	log.Printf("register agent_id=%s role=%s squad_id=%s status=%s", a.AgentID, a.Role, a.SquadID, a.Status)
-	writeJSON(w, http.StatusOK, a)
+	writeJSON(c.Writer, http.StatusOK, a)
 }
 
-func (s *Server) handleHeartbeat(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleHeartbeat(c *gin.Context) {
 	var req agent.HeartbeatRequest
-	if err := decodeJSON(r, &req); err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
+	if err := decodeJSON(c.Request, &req); err != nil {
+		writeError(c.Writer, http.StatusBadRequest, err.Error())
 		return
 	}
-	a, err := s.svc.Heartbeat(r.Context(), req)
+	a, err := s.svc.Heartbeat(c.Request.Context(), req)
 	if err != nil {
-		writeServiceError(w, err)
+		writeServiceError(c.Writer, err)
 		return
 	}
 	log.Printf("heartbeat agent_id=%s status=%s", a.AgentID, a.Status)
-	writeJSON(w, http.StatusOK, a)
+	writeJSON(c.Writer, http.StatusOK, a)
 }
 
-func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
-	a, err := s.svc.Get(r.Context(), id)
+func (s *Server) handleGet(c *gin.Context) {
+	a, err := s.svc.Get(c.Request.Context(), c.Param("id"))
 	if err != nil {
-		writeServiceError(w, err)
+		writeServiceError(c.Writer, err)
 		return
 	}
-	writeJSON(w, http.StatusOK, a)
+	writeJSON(c.Writer, http.StatusOK, a)
 }
 
-func (s *Server) handleList(w http.ResponseWriter, r *http.Request) {
-	q := r.URL.Query()
-	agents, err := s.svc.List(r.Context(), agent.ListFilter{
+func (s *Server) handleList(c *gin.Context) {
+	q := c.Request.URL.Query()
+	agents, err := s.svc.List(c.Request.Context(), agent.ListFilter{
 		AgentID: q.Get("agent_id"),
 		Role:    q.Get("role"),
 		SquadID: q.Get("squad_id"),
 		Status:  q.Get("status"),
 	})
 	if err != nil {
-		writeServiceError(w, err)
+		writeServiceError(c.Writer, err)
 		return
 	}
 	if agents == nil {
 		agents = []agent.Agent{}
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"agents": agents})
+	writeJSON(c.Writer, http.StatusOK, map[string]any{"agents": agents})
 }
 
 func decodeJSON(r *http.Request, dest any) error {
 	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
-	if err := dec.Decode(dest); err != nil {
-		return err
-	}
-	return nil
+	return dec.Decode(dest)
 }
 
 func writeServiceError(w http.ResponseWriter, err error) {
