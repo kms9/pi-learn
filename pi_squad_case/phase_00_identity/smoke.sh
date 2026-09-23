@@ -85,8 +85,11 @@ print("PASS list both online")
 '
 
 echo "== heartbeat only backend, wait for reviewer timeout"
-heartbeat backend
-sleep 2.4
+# Keep backend alive across the offline window; reviewer is silent.
+for _ in $(seq 1 6); do
+  heartbeat backend >/dev/null
+  sleep 0.4
+done
 
 echo "== list after timeout (reviewer offline, backend online)"
 LIST2="$(curl -sf "$BASE/agents")"
