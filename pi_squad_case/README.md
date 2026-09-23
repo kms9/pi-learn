@@ -14,6 +14,8 @@ updated: 2026-09-21
 
 仓库：`kms9/pi-learn`；实验分支：`pi_squad_dev`；实验根目录：`pi_squad_case/`。分支基于 `main` 的 `2ee5bd7995d1504f73aa5955181f3b9fa5289b8e` 创建。上游 submodule 不修改、不自动升级。
 
+> **2026-09-23 实施轨道**：Notion P0–P7（Herdr + 薄 Extension + HTTP Go Controller）的第一刀在 [`phase_00_identity/`](phase_00_identity/README.md) 与共享模块 [`../pi_squad/`](../pi_squad/README.md)。下面第 2 节的 `00-*`～`05-*` 仍是 2026-09-21 UDS / `squad` CLI 规划稿，**尚未按那份合同实现**，不要和 P0 HTTP Registry 混跑。
+
 ## 1. 最终目标和已确认边界
 
 用户手动启动多个 Pi；在任一已授权 Pi 中通过对话发现、联系和调用其他在线 Agent，或者调用固定成员的小队。目标 Agent 沿用自己的既有会话；消息、任务、结果及小队记录可追溯，故障可识别，由用户明确决定续跑。最后可选接入 Herdr，只增强终端位置与观察。

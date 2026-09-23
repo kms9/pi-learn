@@ -3,7 +3,7 @@ title: pi_case 知识库索引
 type: index
 status: active
 created: 2026-09-07
-updated: 2026-09-21
+updated: 2026-09-23
 tags:
   - project-wiki
   - index
@@ -40,6 +40,7 @@ tags:
 - [[concepts/chord-plugin|Chord plugin / facet]] - 实验性分进程插件
 - [[concepts/harness|Harness]] - agent − model；Pi 产品 / AgentHarness / DSH 三套用法
 - [[concepts/session|Session]] - TUI 上的一次对话；JSONL 树 + 活的 `AgentSession`
+- [[concepts/pi-squad|Pi Squad]] - Herdr + 薄 Extension + Go Controller 的本地协作验证；当前只到 P0
 
 ## 决策
 
@@ -47,11 +48,13 @@ tags:
 - [[decisions/2026-09-07-overlay-not-fork|2026-09-07 overlay 而不是 fork 上游]]
 - [[decisions/2026-09-07-translations-live-in-docs-zh|2026-09-07 译文放在 docs-zh 并还原 pi-dev]]
 - [[decisions/2026-09-07-github-clones-as-submodules|2026-09-07 现有 GitHub 仓改为 submodule]]
+- [[decisions/2026-09-23-p0-identity-fields|2026-09-23 P0 身份字段与 HTTP Registry]]
 
 ## 会话
 
 - [[sessions/_index|会话索引]]
 - [[sessions/2026-09-21-pi-squad-plan|2026-09-21 Pi Squad 本地实验需求确认与六阶段规划]]
+- [[sessions/2026-09-23-p0-identity|2026-09-23 实现 P0 身份注册切片]]
 - [[sessions/2026-09-21-how-to-update-repo|2026-09-21 如何把仓库更新到最新]]
 - [[sessions/2026-09-16-paseo-agent-teams-herdr|2026-09-16 Paseo、Agent Teams 与 Herdr 多 Harness 协同]]
 - [[sessions/2026-09-10-pi-session-conversation|2026-09-10 澄清 UI 对话 = session]]
@@ -67,6 +70,7 @@ tags:
 - [[sources/deepseek-harness|DeepSeek Harness]]
 - [[sources/paseo|Paseo]]
 - [[sources/pigo|Pigo]]
+- [[sources/herdr-pi-extension-plan|Herdr + Pi Extension 验证方案]]
 - [[sources/agent-harness-x-discourse|agent harness 的 X 讨论]]
 
 ## 开放问题

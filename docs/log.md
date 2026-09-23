@@ -3,7 +3,7 @@ title: Wiki 日志
 type: log
 status: active
 created: 2026-09-07
-updated: 2026-09-21
+updated: 2026-09-23
 tags:
   - project-wiki
   - log
@@ -12,6 +12,12 @@ tags:
 # Wiki 日志
 
 按时间追加。事件类型：`init`、`ingest`、`query`、`lint`、`sync`、`decision`、`maintenance`、`session`。
+
+## [2026-09-23] session | P0 身份注册与 HTTP Registry
+
+- 来源: Notion P0–P7 方案与源码对照评估（会话附件）
+- 更新: `pi_squad/`、`pi_squad_case/phase_00_identity/`、`docs/concepts/pi-squad.md`、`docs/decisions/2026-09-23-p0-identity-fields.md`、`docs/sources/herdr-pi-extension-plan.md`、`docs/sessions/2026-09-23-p0-identity.md`、索引
+- 说明: 落地 register/heartbeat/list；不实现 P1+ 消息与任务。Pi 三进程 Case 在本环境 NOT RUN。
 
 ## [2026-09-21] query | 如何把仓库更新到最新
 

@@ -7,3 +7,9 @@ node_modules/
 .python-version
 .venv/
 venv/
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+pi_squad/controller/controller
+pi_squad/controller/bin/
