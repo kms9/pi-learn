@@ -89,3 +89,14 @@ func (c *Client) Get(ctx context.Context, agentID string) (agent.Agent, error) {
 func httpError(resp *resty.Response) error {
 	return fmt.Errorf("controller HTTP %d: %s", resp.StatusCode(), strings.TrimSpace(resp.String()))
 }
+
+func (c *Client) Release(ctx context.Context, req agent.ReleaseRequest) error {
+	resp, err := c.http.R().SetContext(ctx).SetBody(req).Post("/agents/release")
+	if err != nil {
+		return err
+	}
+	if resp.IsError() {
+		return httpError(resp)
+	}
+	return nil
+}

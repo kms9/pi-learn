@@ -45,6 +45,7 @@ type agentsMsg struct {
 type refreshMsg struct{}
 
 type tuiModel struct {
+	agents []agent.Agent
 	client *client.Client
 	url    string
 	table  table.Model
@@ -90,6 +91,7 @@ func (m tuiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case agentsMsg:
 		m.err = msg.err
 		if msg.err == nil {
+			m.agents = msg.agents
 			m.table.SetRows(agentRows(msg.agents))
 		}
 		return m, tea.Tick(tuiRefresh, func(time.Time) tea.Msg {
@@ -109,7 +111,15 @@ func (m tuiModel) View() string {
 	} else {
 		status = fmt.Sprintf("%s    q quit    r refresh", m.url)
 	}
-	return strings.Join([]string{title, "", m.table.View(), "", status}, "\n")
+	detail := ""
+	if i := m.table.Cursor(); i >= 0 && i < len(m.agents) {
+		a := m.agents[i]
+		detail = fmt.Sprintf("cwd: %s\nruntime_id: %s\n%s", a.Cwd, a.RuntimeID, a.RoleDescription)
+		if m.width > 0 {
+			detail = lipgloss.NewStyle().Width(m.width).Render(detail)
+		}
+	}
+	return strings.Join([]string{title, "", m.table.View(), detail, "", status}, "\n")
 }
 
 func (m *tuiModel) resize() {
@@ -117,7 +127,7 @@ func (m *tuiModel) resize() {
 	if width < 40 {
 		width = 80
 	}
-	height := m.height - 6
+	height := m.height - 10
 	if height < 3 {
 		height = 3
 	}

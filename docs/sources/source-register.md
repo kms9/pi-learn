@@ -27,3 +27,9 @@ tags:
 | Herdr + Pi Extension 验证方案 | Notion | https://app.notion.com/p/kms9/Herdr-Pi-Extension-Cases-3e4df99ce2a3817d99f5f5c68cba60f9 | 2026-09-24 | [[herdr-pi-extension-cases\|Herdr + Pi Extension Cases]] | 阶段化验证规范全文已同步到 wiki；摘要仍见 [[herdr-pi-extension-plan\|验证方案]]。P0 HTTP Registry 已另有实现。 |
 | pi-trace-extension | git submodule | `pi-trace-extension/` | 2026-09-21 | [[pi-trace-extension\|Pi Trace Extension]] | 跨会话 dashboard；本机打开 `~/.pi/agent/traces/index.html`。不改 submodule。 |
 | X 上 agent harness 讨论 | 网络检索 | X posts 2026-02–09 | 2026-09-07 | [[agent-harness-x-discourse\|X 讨论]] | Jensen 外骨骼、loop/graph/harness 三分、Pi 口碑、Mario 对 v2 范围。 |
+
+| Agent 角色配置参考 | 官方文档与本地参考 | Claude Agent Teams/subagents、OpenClaw multi-agent/SOUL、Multica 固定提交文档、`pi-subagents/docs/agents.md`、Herdr `w7:p1` 调研 | 2026-09-24 | [[agent-role-config-references\|Agent 角色配置参考]] | 区分角色定义与运行态；采用 Markdown + YAML frontmatter，字段建议另见决策。 |
+
+| pi-intercom | git submodule | `pi-intercom/` | 2026-09-24 | [[pi-intercom\|Pi Intercom 消息流程]] | 固定 HEAD `199279ae861bf53ce014809fb2a03337538ae13e`；消息关联、收据、生命周期、去重和边界用例；未运行上游测试。 |
+
+| WHATWG SSE | 官方规范 | https://html.spec.whatwg.org/multipage/server-sent-events.html | 2026-09-24 | [[sse-standard\|SSE 标准与应用边界]] | text/event-stream；本项目采用 fetch + inbox 唤醒，不提供事件游标重放。 |

@@ -12,6 +12,8 @@ tags:
 
 实质性沟通写到这里，文件名 `YYYY-MM-DD-短标题.md`。
 
+- [[2026-09-24-squad-role-dir-check|2026-09-24 角色目录与发现链路可见验收]]
+- [[2026-09-24-squad-herdr-check|2026-09-24 Pi Squad 检查必须新开 space]]
 - [[2026-09-24-pi-squad-usage|2026-09-24 整理 Pi Squad 配置与启动说明]]
 - [[2026-09-23-p0-identity|2026-09-23 实现 P0 身份注册切片]]
 - [[2026-09-21-pi-squad-00-01-review|2026-09-21 Pi Squad 身份与发现三方评审]]

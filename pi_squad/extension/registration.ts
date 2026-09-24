@@ -1,6 +1,11 @@
 import type { ControllerClient, RegisterPayload } from "./controller-client.ts";
 
 export type IdentityEnv = {
+  cwd?: string;
+  runtimeId?: string;
+  runtimeToken?: string;
+  previousSessionId?: string;
+  roleDescription?: string;
   agentId: string;
   role: string;
   squadId: string;
@@ -40,7 +45,7 @@ export function readIdentityEnv(env: NodeJS.ProcessEnv = process.env): IdentityE
   if (!agentId) missing.push("PI_SQUAD_AGENT_ID");
   if (!role) missing.push("PI_SQUAD_ROLE");
   if (!squadId) missing.push("PI_SQUAD_ID");
-  if (missing.length > 0) return { missing };
+  if (!agentId || !role || !squadId) return { missing };
 
   const intervalRaw = firstEnv(env, "PI_SQUAD_HEARTBEAT_INTERVAL_MS");
   const heartbeatIntervalMs = intervalRaw ? Number(intervalRaw) : DEFAULT_HEARTBEAT_MS;
@@ -80,6 +85,11 @@ export function readRuntimeSessionId(sessionManager: { getSessionId?: () => stri
 export function buildRegisterPayload(env: IdentityEnv, runtimeSessionId?: string): RegisterPayload {
   return {
     agent_id: env.agentId,
+    cwd: env.cwd,
+    runtime_id: env.runtimeId,
+    runtime_token: env.runtimeToken,
+    previous_session_id: env.previousSessionId,
+    role_description: env.roleDescription,
     role: env.role,
     squad_id: env.squadId,
     runtime_type: "pi",

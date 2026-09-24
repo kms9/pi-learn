@@ -3,7 +3,7 @@ title: P0 技术方案
 type: process
 status: active
 created: 2026-09-23
-updated: 2026-09-23
+updated: 2026-09-24
 tags:
   - pi-squad
   - phase-00
@@ -52,7 +52,7 @@ Herdr 只提供可选 pane env；Controller **不**调用 Herdr CLI。
 
 ### `POST /agents/register`
 
-按 `agent_id` upsert。必填：`agent_id`、`role`、`squad_id`。可选：`runtime_type`（默认 `pi`）、`herdr_session_id`、`space_id`、`pane_id`、`runtime_session_id`。成功后 `status=online`，`last_seen=now`。
+按 `agent_id` upsert。必填：`agent_id`、`role`、`squad_id`。可选：`cwd`（绝对路径）、`runtime_id`（UUID v4）、`role_description`、`runtime_type`（默认 `pi`）、`herdr_session_id`、`space_id`、`pane_id`、`runtime_session_id`。成功后 `status=online`，`last_seen=now`。
 
 ### `POST /agents/heartbeat`
 
@@ -70,9 +70,9 @@ Herdr 只提供可选 pane env；Controller **不**调用 Herdr CLI。
 
 ## Extension 生命周期
 
-1. 工厂读取 env；缺三件套则警告并跳过注册，仍暴露 `list_agents`。
+1. 首次初始化缓存 cwd、runtime_id 和配置。按 PI_SQUAD_ROLE_ID 从 cwd 的 `.agents/roles/*/role.md` 选择 name，正文作角色提示，description 只展示与上报。缺选择器安静停用；显式选择但配置/身份无效则告警；旧 PI_SQUAD_CONFIG 给迁移错误。
 2. `session_start`：停掉旧 timer（generation++），读 `getSessionId()`（失败则空），`register`，再 `setInterval` 心跳。
-3. `session_shutdown`：同样停 timer。`/new` 走 shutdown → 新实例 `session_start`，`agent_id` 不变。
+3. `session_shutdown`：同样停 timer。`/new` 走 shutdown → 新实例 `session_start`；进程级缓存使 agent_id、角色正文、cwd、runtime_id 不变，runtime_session_id 更新。扩展 reload 同样保留启动快照，修改角色文件需重启 Pi。
 4. `list_agents` 只打 Controller，不扫 Herdr pane。
 
 心跳 interval 默认 5s（`PI_SQUAD_HEARTBEAT_INTERVAL_MS`）；Controller 超时默认 15s（`-heartbeat-timeout` / `PI_SQUAD_HEARTBEAT_TIMEOUT`）。smoke 用 2s 超时。
@@ -80,3 +80,7 @@ Herdr 只提供可选 pane env；Controller **不**调用 Herdr CLI。
 ## 明确不做的接口
 
 扩展与 Controller 均无 `send_message`、`poll_messages`、`delegate_task`、`resume_task`。无 mailbox 目录协议。
+
+## 数据迁移
+
+启动时在事务内检查 agents 表列，按需新增 cwd、runtime_id、role_description（TEXT，可空）。旧数据保持原样；只有新版客户端注册时写入真实值。主键仍为 agent_id，UUID 不承担新的租约或历史管理职责。

@@ -4,13 +4,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path/filepath"
+	"regexp"
 	"strings"
 )
 
 var (
+	ErrConflict = errors.New("binding conflict")
+	ErrOffline  = errors.New("agent offline")
 	ErrNotFound = errors.New("agent not found")
 	ErrInvalid  = errors.New("invalid request")
 )
+
+var runtimeIDPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$`)
 
 type Service struct {
 	reg *Registry
@@ -21,6 +27,14 @@ func NewService(reg *Registry) *Service {
 }
 
 func (s *Service) Register(ctx context.Context, req RegisterRequest) (Agent, error) {
+	req.RuntimeID = strings.TrimSpace(req.RuntimeID)
+	req.RoleDescription = strings.TrimSpace(req.RoleDescription)
+	if req.Cwd != "" && !filepath.IsAbs(req.Cwd) {
+		return Agent{}, fmt.Errorf("%w: cwd must be an absolute path", ErrInvalid)
+	}
+	if !runtimeIDPattern.MatchString(req.RuntimeID) {
+		return Agent{}, fmt.Errorf("%w: runtime_id must be a UUID v4", ErrInvalid)
+	}
 	req.AgentID = strings.TrimSpace(req.AgentID)
 	req.Role = strings.TrimSpace(req.Role)
 	req.SquadID = strings.TrimSpace(req.SquadID)
@@ -35,6 +49,9 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (Agent, err
 	}
 	if req.RuntimeType == "" {
 		req.RuntimeType = RuntimePi
+	}
+	if len(req.RuntimeToken) < 32 || req.RuntimeSessionID == "" {
+		return Agent{}, fmt.Errorf("%w: runtime_token (at least 32 chars) and runtime_session_id required", ErrInvalid)
 	}
 	return s.reg.Upsert(ctx, req)
 }

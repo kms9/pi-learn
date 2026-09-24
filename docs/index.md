@@ -44,6 +44,10 @@ tags:
 
 ## 决策
 
+- [[decisions/2026-09-24-squad-role-directories|2026-09-24 一角色一目录]]
+
+- [[decisions/2026-09-24-squad-role-frontmatter|2026-09-24 Squad 角色格式与首版范围]]
+
 - [[decisions/2026-09-21-squad-ownership-and-suspect|2026-09-21 身份占用优先与 suspect 拒绝投递]]
 - [[decisions/2026-09-21-squad-user-intervention|2026-09-21 任务补充继续、用户介入向上反馈未完成]]
 - [[decisions/_index|决策索引]]
@@ -54,6 +58,28 @@ tags:
 - [[decisions/2026-09-23-p0-identity-fields|2026-09-23 P0 身份字段与 HTTP Registry]]
 
 ## 会话
+
+- [[sessions/2026-09-24-squad-sse-delivery|2026-09-24 SSE 下发与边界验收]]
+
+- [[sessions/2026-09-24-squad-intercom-assessment|2026-09-24 Pi Intercom 借鉴评估]]
+
+- [[sessions/2026-09-24-squad-http-messaging|2026-09-24 运行实例校验与 HTTP 消息开发]]
+
+- [[sessions/2026-09-24-squad-role-dir-check|2026-09-24 角色目录与发现链路可见验收]]
+- [[sessions/2026-09-24-squad-herdr-check|2026-09-24 Pi Squad 检查必须新开 space]]
+- [[sessions/2026-09-24-squad-role-directories|2026-09-24 角色目录迁移]]
+
+- [[sessions/2026-09-24-controller-heartbeat-dashboard|2026-09-24 心跳日志与 Dashboard 分工]]
+
+- [[sessions/2026-09-24-squad-get-agent-development|2026-09-24 get_agent 开发与验收交接]]
+
+- [[sessions/2026-09-24-squad-messaging-readiness|2026-09-24 通信验证就绪评估与最小下一步]]
+
+- [[sessions/2026-09-24-squad-frontmatter-runtime-implementation|2026-09-24 实现 Markdown 角色、cwd 与运行 UUID]]
+
+- [[sessions/2026-09-24-squad-role-frontmatter|2026-09-24 Squad 角色文件内容建议]]
+
+- [[sessions/2026-09-24-squad-agents-yaml-feasibility|2026-09-24 Squad 本地角色 YAML 发现可行性]] - 评估草案，未实施
 
 - [[sessions/2026-09-24-local-extension-and-trace|2026-09-24 本地 Squad 安装与注入追踪]]
 
@@ -71,6 +97,12 @@ tags:
 - [[sessions/2026-09-07-harness-pi-vs-dsh|2026-09-07 对照 Pi 与 DeepSeek 的 harness 实现]]
 
 ## 来源
+
+- [[sources/sse-standard|SSE 标准与应用边界]]
+
+- [[sources/pi-intercom|Pi Intercom 消息流程源码参考]]
+
+- [[sources/agent-role-config-references|Agent 角色配置参考]]
 
 - [[sources/_index|来源索引]]
 - [[sources/source-register|来源登记]]

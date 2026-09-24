@@ -17,3 +17,5 @@ tags:
 - [[2026-09-21-squad-user-intervention|2026-09-21 任务补充与用户介入向上反馈]]
 - [[2026-09-24-controller-go-stack|2026-09-24 Controller 使用 Go 1.27 与 Gin 栈]]
 - [[2026-09-23-p0-identity-fields|2026-09-23 P0 身份字段与 HTTP Registry]]
+- [[2026-09-24-squad-role-frontmatter|2026-09-24 Squad 角色格式与首版范围]]
+- [[2026-09-24-squad-role-directories|2026-09-24 Squad 一角色一目录]]

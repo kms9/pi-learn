@@ -41,6 +41,7 @@ func serve(cmd *cobra.Command, _ []string) error {
 
 	addr := httpapi.SplitHostPortDefault(cfg.Listen)
 	log.Printf("pi-squad controller listening on http://%s db=%s heartbeat-timeout=%s", addr, absDB, cfg.HeartbeatTimeout)
+	log.Printf("dashboard is a separate read-only client: controller tui --url http://%s", addr)
 	if err := http.ListenAndServe(addr, httpapi.New(agent.NewService(reg)).Handler()); err != nil {
 		return fail(err)
 	}

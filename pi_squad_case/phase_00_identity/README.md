@@ -3,7 +3,7 @@ title: P0｜身份、注册与在线状态
 type: process
 status: active
 created: 2026-09-23
-updated: 2026-09-23
+updated: 2026-09-24
 tags:
   - pi-squad
   - phase-00
@@ -42,6 +42,8 @@ chmod +x pi_squad_case/phase_00_identity/smoke.sh
 ./pi_squad_case/phase_00_identity/smoke.sh
 ```
 
+脚本编译并直接管理独立 Controller 子进程，使用临时数据库和独立空闲端口，不继承现有服务地址。
+
 覆盖：两个 Agent 注册 → 列表均为 online → 停一侧心跳后超时 offline → 重启 Controller 身份仍在 → 同 `agent_id` 再注册不产生 `reviewer-2`。
 
 ### 3. 启动 Pi
@@ -62,8 +64,11 @@ node pi_squad_case/phase_00_identity/verify-config-pi.mjs
 
 ## 本阶段未做
 
-- P1 的 `get_agent` 工具（Controller 已有 `GET /agents/{id}`，扩展未注册该工具）
 - P2+ `send_message` / poll / reply
 - P3+ `delegate_task` 与任务状态机
 - 自动启动或恢复 Pi / Herdr
 - ACP、通用 Agent Session、第二 Runtime
+
+## 发现能力后续开发
+
+2026-09-24 Extension 已加入 `get_agent`，配合 `list_agents` 完成按角色发现、按 agent_id 精确查询。用户指定 Herdr `w7:p1` 的 Claude Code 负责后续验收，开发完成不等于验收通过。用法见 `pi_squad/USAGE.md`。

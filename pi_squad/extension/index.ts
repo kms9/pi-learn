@@ -1,27 +1,33 @@
-/**
- * Pi Squad extension: load a config, register, heartbeat, list_agents.
- *
- * PI_SQUAD_CONFIG selects a JSON file (role prompt + registration fields).
- * Without it, PI_SQUAD_AGENT_ID / ROLE / ID still register, with no role prompt.
- * Does not implement messaging, tasks, spawn, or depend on pi-agent-teams.
- */
+/** Markdown role discovery, process identity, registration and heartbeat. */
+import { createConnectionNotices } from "./connection-notices.ts";
+import { installMessaging } from "./messaging.ts";
 import { Type } from "typebox";
 import { StringEnum } from "@earendil-works/pi-ai";
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { truncateHead, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
-import { createControllerClient } from "./controller-client.ts";
-import { isSetupReady, loadSquadSetup } from "./config.ts";
+import { ControllerError, createControllerClient } from "./controller-client.ts";
+import { isSetupReady } from "./config.ts";
+import { getProcessSetup } from "./runtime.ts";
 import { startHeartbeat, type HeartbeatHandle } from "./heartbeat.ts";
 import { readRuntimeSessionId, registerAgent } from "./registration.ts";
 
+function discoveryText(value: unknown): string {
+  const output = truncateHead(JSON.stringify(value, null, 2));
+  return output.content + (output.truncated
+    ? "\n[Output truncated. Narrow list_agents with role/squad_id/status, then use get_agent with an exact agent_id.]"
+    : "");
+}
+
 export default function (pi: ExtensionAPI) {
-  const setup = loadSquadSetup();
+  const processSetup = getProcessSetup();
+  const { setup, cwd, runtimeId, runtimeToken } = processSetup;
   const setupError = setup.ok ? undefined : "error" in setup ? setup.error : undefined;
   const identityReady = isSetupReady(setup);
-  const env = identityReady ? setup.identity : undefined;
+  const env = identityReady ? { ...setup.identity, cwd, runtimeId, runtimeToken, roleDescription: setup.roleDescription } : undefined;
   const rolePrompt = identityReady ? setup.rolePrompt : undefined;
-  const client = createControllerClient(env?.controllerUrl ?? "http://127.0.0.1:18741");
+  const client = createControllerClient(env?.controllerUrl ?? (process.env.PI_SQUAD_CONTROLLER_URL?.trim() || "http://127.0.0.1:18741"));
 
+  const connectionNotices = createConnectionNotices();
   let heartbeat: HeartbeatHandle | undefined;
   let generation = 0;
   let runtimeSessionId: string | undefined;
@@ -40,12 +46,21 @@ export default function (pi: ExtensionAPI) {
     if (!setup.ok) {
       return "error" in setup
         ? { ok: false as const, error: setup.error }
-        : { ok: false as const, missing: setup.missing };
+        : "missing" in setup
+          ? { ok: false as const, missing: setup.missing, cwd, runtime_id: runtimeId }
+          : { ok: false as const, disabled: true, cwd, runtime_id: runtimeId };
     }
     return {
       ok: true as const,
       source: setup.source,
       config_path: setup.configPath,
+      role_dir: setup.roleDir,
+      roles_root: setup.rolesRoot,
+      role_id: setup.identity.role,
+      role_description: setup.roleDescription,
+      cwd,
+      runtime_id: runtimeId,
+      runtime_session_id: runtimeSessionId,
       agent_id: setup.identity.agentId,
       role: setup.identity.role,
       squad_id: setup.identity.squadId,
@@ -75,6 +90,7 @@ export default function (pi: ExtensionAPI) {
 
   pi.on("session_start", async (_event, ctx) => {
     clearRuntime();
+    connectionNotices.reset((text, level) => ctx.ui.notify(text, level));
     const myGen = generation;
 
     runtimeSessionId = readRuntimeSessionId(ctx.sessionManager);
@@ -83,6 +99,7 @@ export default function (pi: ExtensionAPI) {
       ctx.ui.notify(`pi-squad: ${setupError}; register skipped`, "error");
       return;
     }
+    if (!setup.ok && "disabled" in setup) return;
     if (!identityReady || !env) {
       const missing = !setup.ok && "missing" in setup ? setup.missing.join(", ") : "identity";
       ctx.ui.notify(`pi-squad: missing ${missing}; register skipped`, "warning");
@@ -90,8 +107,9 @@ export default function (pi: ExtensionAPI) {
     }
 
     try {
-      const record = await registerAgent(client, env, runtimeSessionId);
+      const record = await registerAgent(client, { ...env, previousSessionId: processSetup.sessionId }, runtimeSessionId);
       if (myGen !== generation) return;
+      processSetup.sessionId = runtimeSessionId;
       registered = true;
       ctx.ui.setStatus(
         "pi-squad",
@@ -104,14 +122,23 @@ export default function (pi: ExtensionAPI) {
         () => runtimeSessionId,
         (err) => {
           if (myGen !== generation) return;
-          ctx.ui.notify(`pi-squad heartbeat failed: ${String(err)}`, "warning");
+          if (err instanceof ControllerError && (err.status === 409 || err.status === 404)) { registered = false; heartbeat?.stop(); }
+          connectionNotices.failed("heartbeat", err);
         },
+        runtimeId,
+        runtimeToken,
+        () => { if (myGen === generation) connectionNotices.healthy("heartbeat"); },
       );
     } catch (err) {
       if (myGen !== generation) return;
       ctx.ui.notify(`pi-squad register failed: ${String(err)}`, "error");
     }
   });
+
+  installMessaging(pi, client, () => {
+    if (!registered || !env || !runtimeSessionId) throw new Error("pi-squad: no registered runtime binding");
+    return { agent_id: env.agentId, runtime_id: runtimeId, runtime_session_id: runtimeSessionId, runtime_token: runtimeToken };
+  }, processSetup.deliveries, connectionNotices);
 
   pi.registerCommand("squad-whoami", {
     description: "Show the Pi Squad config loaded into this process, and whether its role prompt was appended",
@@ -124,7 +151,7 @@ export default function (pi: ExtensionAPI) {
     name: "list_agents",
     label: "List Agents",
     description:
-      "List logical agents in the Pi Squad controller registry. Offline agents remain visible with status=offline. Registry role is a routing label, not a system prompt.",
+      "Discover agents through the controller. Filter by role, squad_id and status=online to find candidates; role may match multiple agents. Use the returned agent_id with get_agent for an exact lookup. No filters lists all records, including self and offline agents. Discovery does not send messages.",
     parameters: Type.Object({
       agent_id: Type.Optional(Type.String({ description: "Exact agent_id" })),
       role: Type.Optional(Type.String({ description: "Registry role label" })),
@@ -139,9 +166,34 @@ export default function (pi: ExtensionAPI) {
         status: params.status,
       });
       return {
-        content: [{ type: "text" as const, text: JSON.stringify({ agents }, null, 2) }],
+        content: [{ type: "text" as const, text: discoveryText({ agents }) }],
         details: { agents },
       };
     },
   });
+
+  pi.registerTool({
+    name: "get_agent",
+    label: "Get Agent",
+    description:
+      "Look up one agent by its exact agent_id from list_agents. Returns current registry metadata including role, squad_id, online/offline status, cwd, runtime_id and Pi session id when available. Offline records remain queryable; unknown IDs are errors. Does not select by role, send messages, or reserve the target runtime.",
+    parameters: Type.Object({
+      agent_id: Type.String({ minLength: 1, description: "Exact agent_id returned by list_agents; not a role name or Herdr pane ID" }),
+    }),
+    async execute(_toolCallId, params, signal) {
+      try {
+        const agent = await client.getAgent(params.agent_id, signal);
+        return {
+          content: [{ type: "text" as const, text: discoveryText({ agent }) }],
+          details: { agent },
+        };
+      } catch (err) {
+        if (err instanceof ControllerError && err.status === 404) {
+          throw new Error(`Agent not found: ${params.agent_id.trim()}. Use list_agents to discover available agent_id values.`);
+        }
+        throw err;
+      }
+    },
+  });
+
 }

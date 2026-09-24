@@ -29,6 +29,12 @@ func (s *Server) Handler() http.Handler {
 	r.GET("/agents", s.handleList)
 	r.GET("/agents/:id", s.handleGet)
 	r.GET("/health", s.handleHealth)
+	r.POST("/agents/release", s.handleRelease)
+	r.GET("/messages/events", s.handleMessageEvents)
+	r.POST("/messages/send", s.handleSendMessage)
+	r.POST("/messages/inbox", s.handleInbox)
+	r.POST("/messages/get", s.handleMessageGet)
+	r.POST("/messages/receipt", s.handleReceipt)
 	return r
 }
 
@@ -62,7 +68,7 @@ func (s *Server) handleHeartbeat(c *gin.Context) {
 		writeServiceError(c.Writer, err)
 		return
 	}
-	log.Printf("heartbeat agent_id=%s status=%s", a.AgentID, a.Status)
+	// Successful heartbeats are routine traffic, not operator-facing events.
 	writeJSON(c.Writer, http.StatusOK, a)
 }
 
@@ -94,13 +100,17 @@ func (s *Server) handleList(c *gin.Context) {
 }
 
 func decodeJSON(r *http.Request, dest any) error {
-	dec := json.NewDecoder(r.Body)
+	dec := json.NewDecoder(http.MaxBytesReader(nil, r.Body, 1024*1024))
 	dec.DisallowUnknownFields()
 	return dec.Decode(dest)
 }
 
 func writeServiceError(w http.ResponseWriter, err error) {
 	switch {
+	case errors.Is(err, agent.ErrConflict):
+		writeError(w, http.StatusConflict, err.Error())
+	case errors.Is(err, agent.ErrOffline):
+		writeError(w, http.StatusConflict, err.Error())
 	case errors.Is(err, agent.ErrInvalid):
 		writeError(w, http.StatusBadRequest, err.Error())
 	case errors.Is(err, agent.ErrNotFound):

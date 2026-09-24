@@ -3,8 +3,10 @@ package agent
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	_ "modernc.org/sqlite"
@@ -14,9 +16,11 @@ import (
 // plus the configured heartbeat timeout so a process restart cannot leave
 // stale "online" rows without a new heartbeat.
 type Registry struct {
-	db      *sql.DB
-	timeout time.Duration
-	now     func() time.Time
+	mu       sync.Mutex
+	watchers map[string]*InboxWatch
+	db       *sql.DB
+	timeout  time.Duration
+	now      func() time.Time
 }
 
 func OpenRegistry(dbPath string, timeout time.Duration) (*Registry, error) {
@@ -41,32 +45,116 @@ func OpenRegistry(dbPath string, timeout time.Duration) (*Registry, error) {
 }
 
 func (r *Registry) Close() error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for id := range r.watchers {
+		r.closeWatchLocked(id)
+	}
 	return r.db.Close()
 }
 
 func (r *Registry) migrate() error {
-	_, err := r.db.Exec(`
-CREATE TABLE IF NOT EXISTS agents (
-  agent_id TEXT PRIMARY KEY,
-  role TEXT NOT NULL,
-  squad_id TEXT NOT NULL,
-  runtime_type TEXT NOT NULL,
-  herdr_session_id TEXT,
-  space_id TEXT,
-  pane_id TEXT,
-  runtime_session_id TEXT,
-  last_seen TEXT NOT NULL
-);
-`)
-	return err
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if _, err = tx.Exec(`CREATE TABLE IF NOT EXISTS agents (
+ agent_id TEXT PRIMARY KEY, role TEXT NOT NULL, squad_id TEXT NOT NULL,
+ runtime_type TEXT NOT NULL, herdr_session_id TEXT, space_id TEXT, pane_id TEXT,
+ runtime_session_id TEXT, last_seen TEXT NOT NULL
+ )`); err != nil {
+		return err
+	}
+	rows, err := tx.Query(`PRAGMA table_info(agents)`)
+	if err != nil {
+		return err
+	}
+	columns := map[string]bool{}
+	for rows.Next() {
+		var cid, notNull, pk int
+		var name, kind string
+		var defaultValue sql.NullString
+		if err := rows.Scan(&cid, &name, &kind, &notNull, &defaultValue, &pk); err != nil {
+			rows.Close()
+			return err
+		}
+		columns[name] = true
+	}
+	scanErr := rows.Err()
+	rows.Close()
+	if scanErr != nil {
+		return scanErr
+	}
+	// Additive migration preserves existing identities; missing historical data stays NULL.
+	for _, name := range []string{"cwd", "runtime_id", "role_description"} {
+		if !columns[name] {
+			if _, err := tx.Exec("ALTER TABLE agents ADD COLUMN " + name + " TEXT"); err != nil {
+				return err
+			}
+		}
+	}
+	for _, statement := range []string{
+		`CREATE TABLE IF NOT EXISTS owners (agent_id TEXT PRIMARY KEY, token_hash TEXT NOT NULL)`,
+		`CREATE TABLE IF NOT EXISTS revoked_runtimes (runtime_id TEXT PRIMARY KEY)`,
+		`CREATE TABLE IF NOT EXISTS messages (message_id TEXT PRIMARY KEY, request_key TEXT UNIQUE NOT NULL, request_body TEXT NOT NULL, envelope TEXT NOT NULL, status TEXT NOT NULL)`,
+	} {
+		if _, err := tx.Exec(statement); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }
 
 func (r *Registry) Upsert(ctx context.Context, req RegisterRequest) (Agent, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	var revoked int
+	if err := r.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM revoked_runtimes WHERE runtime_id = ?", req.RuntimeID).Scan(&revoked); err != nil {
+		return Agent{}, err
+	}
+	if revoked != 0 {
+		return Agent{}, fmt.Errorf("%w: runtime revoked", ErrConflict)
+	}
+	existing, err := r.getRaw(ctx, req.AgentID)
+	if err != nil && !errors.Is(err, ErrNotFound) {
+		return Agent{}, err
+	}
+	if err == nil {
+		if existing.RuntimeID != req.RuntimeID {
+			return Agent{}, fmt.Errorf("%w: agent_id already owned; explicit release required", ErrConflict)
+		}
+		if err := r.checkToken(ctx, req.AgentID, req.RuntimeToken); err != nil {
+			return Agent{}, err
+		}
+		if existing.RuntimeSessionID != req.RuntimeSessionID && existing.RuntimeSessionID != req.PreviousSessionID {
+			return Agent{}, fmt.Errorf("%w: previous session does not match", ErrConflict)
+		}
+	}
+	if err == nil {
+		if existing.RuntimeSessionID != req.RuntimeSessionID {
+			if err := r.invalidatePending(ctx, existing, "session_changed"); err != nil {
+				return Agent{}, err
+			}
+		} else if r.withStatus(existing).Status == StatusOffline {
+			if err := r.invalidatePending(ctx, existing, "offline"); err != nil {
+				return Agent{}, err
+			}
+		}
+	}
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return Agent{}, err
+	}
+	defer tx.Rollback()
+	if _, err := tx.ExecContext(ctx, "INSERT INTO owners(agent_id, token_hash) VALUES(?,?) ON CONFLICT(agent_id) DO NOTHING", req.AgentID, tokenHash(req.RuntimeToken)); err != nil {
+		return Agent{}, err
+	}
 	now := r.now()
-	_, err := r.db.ExecContext(ctx, `
+	_, err = tx.ExecContext(ctx, `
 INSERT INTO agents (
-  agent_id, role, squad_id, runtime_type, herdr_session_id, space_id, pane_id, runtime_session_id, last_seen
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  agent_id, role, squad_id, runtime_type, herdr_session_id, space_id, pane_id, runtime_session_id, cwd, runtime_id, role_description, last_seen
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT(agent_id) DO UPDATE SET
   role = excluded.role,
   squad_id = excluded.squad_id,
@@ -75,29 +163,40 @@ ON CONFLICT(agent_id) DO UPDATE SET
   space_id = excluded.space_id,
   pane_id = excluded.pane_id,
   runtime_session_id = excluded.runtime_session_id,
+  cwd = excluded.cwd,
+  runtime_id = excluded.runtime_id,
+  role_description = excluded.role_description,
   last_seen = excluded.last_seen
 `, req.AgentID, req.Role, req.SquadID, req.RuntimeType, nullIfEmpty(req.HerdrSessionID),
 		nullIfEmpty(req.SpaceID), nullIfEmpty(req.PaneID), nullIfEmpty(req.RuntimeSessionID),
+		nullIfEmpty(req.Cwd), nullIfEmpty(req.RuntimeID), nullIfEmpty(req.RoleDescription),
 		now.Format(time.RFC3339Nano))
 	if err != nil {
 		return Agent{}, err
+	}
+	if err := tx.Commit(); err != nil {
+		return Agent{}, err
+	}
+	if existing.RuntimeSessionID != req.RuntimeSessionID {
+		r.closeWatchLocked(req.AgentID)
 	}
 	return r.Get(ctx, req.AgentID)
 }
 
 func (r *Registry) Heartbeat(ctx context.Context, req HeartbeatRequest) (Agent, error) {
-	existing, err := r.getRaw(ctx, req.AgentID)
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	binding := Binding{AgentID: req.AgentID, RuntimeID: req.RuntimeID, RuntimeSessionID: req.RuntimeSessionID, RuntimeToken: req.RuntimeToken}
+	a, err := r.checkBinding(ctx, binding, false)
 	if err != nil {
 		return Agent{}, err
 	}
-	now := r.now()
-	sessionID := existing.RuntimeSessionID
-	if strings.TrimSpace(req.RuntimeSessionID) != "" {
-		sessionID = strings.TrimSpace(req.RuntimeSessionID)
+	if a.Status == StatusOffline {
+		if err := r.invalidatePending(ctx, a, "offline"); err != nil {
+			return Agent{}, err
+		}
 	}
-	_, err = r.db.ExecContext(ctx, `
-UPDATE agents SET last_seen = ?, runtime_session_id = ? WHERE agent_id = ?
-`, now.Format(time.RFC3339Nano), nullIfEmpty(sessionID), req.AgentID)
+	_, err = r.db.ExecContext(ctx, "UPDATE agents SET last_seen = ? WHERE agent_id = ?", r.now().Format(time.RFC3339Nano), req.AgentID)
 	if err != nil {
 		return Agent{}, err
 	}
@@ -114,7 +213,7 @@ func (r *Registry) Get(ctx context.Context, agentID string) (Agent, error) {
 
 func (r *Registry) List(ctx context.Context, filter ListFilter) ([]Agent, error) {
 	rows, err := r.db.QueryContext(ctx, `
-SELECT agent_id, role, squad_id, runtime_type, herdr_session_id, space_id, pane_id, runtime_session_id, last_seen
+SELECT agent_id, role, squad_id, runtime_type, herdr_session_id, space_id, pane_id, runtime_session_id, cwd, runtime_id, role_description, last_seen
 FROM agents
 ORDER BY agent_id
 `)
@@ -140,7 +239,7 @@ ORDER BY agent_id
 
 func (r *Registry) getRaw(ctx context.Context, agentID string) (Agent, error) {
 	row := r.db.QueryRowContext(ctx, `
-SELECT agent_id, role, squad_id, runtime_type, herdr_session_id, space_id, pane_id, runtime_session_id, last_seen
+SELECT agent_id, role, squad_id, runtime_type, herdr_session_id, space_id, pane_id, runtime_session_id, cwd, runtime_id, role_description, last_seen
 FROM agents WHERE agent_id = ?
 `, agentID)
 	a, err := scanAgent(row)
@@ -181,12 +280,12 @@ type rowScanner interface {
 
 func scanAgent(row rowScanner) (Agent, error) {
 	var (
-		a                                        Agent
-		herdr, space, pane, runtimeSession, seen sql.NullString
+		a                                                                     Agent
+		herdr, space, pane, runtimeSession, cwd, runtimeID, description, seen sql.NullString
 	)
 	err := row.Scan(
 		&a.AgentID, &a.Role, &a.SquadID, &a.RuntimeType,
-		&herdr, &space, &pane, &runtimeSession, &seen,
+		&herdr, &space, &pane, &runtimeSession, &cwd, &runtimeID, &description, &seen,
 	)
 	if err != nil {
 		return Agent{}, err
@@ -195,6 +294,9 @@ func scanAgent(row rowScanner) (Agent, error) {
 	a.SpaceID = space.String
 	a.PaneID = pane.String
 	a.RuntimeSessionID = runtimeSession.String
+	a.Cwd = cwd.String
+	a.RuntimeID = runtimeID.String
+	a.RoleDescription = description.String
 	if seen.Valid {
 		t, parseErr := time.Parse(time.RFC3339Nano, seen.String)
 		if parseErr != nil {

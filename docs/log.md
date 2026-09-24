@@ -13,6 +13,48 @@ tags:
 
 按时间追加。事件类型：`init`、`ingest`、`query`、`lint`、`sync`、`decision`、`maintenance`、`session`。
 
+## [2026-09-24] session | SSE 验收未收口
+
+- 来源: 用户要求用真实 Pi 收口第二阶段，并迁移旧凭据测试
+- 更新: `pi_squad_case/phase_02_http_messaging/RESULT.md`、`controller/agent/registry_test.go`、`controller/httpapi/server_test.go`
+- 说明: 关闭测试 space `wE`，新开 `wF` / `127.0.0.1:18801`。三角色 `mode=sse`，两个 ask 分别回复 41 和 73。传输毫秒数未单独测出。SSE-02—06、offline、/new、幂等仍 NOT_RUN。未改实现。
+
+## [2026-09-24] session | HTTP 消息可见验收未完成
+
+- 来源: 用户授权验收运行实例校验与相互通信
+- 更新: `pi_squad_case/phase_02_http_messaging/RESULT.md`、`README.md`
+- 说明: 新 space `wE` / `127.0.0.1:18791`。notice、关联回复、在线同 ID 冲突、错误 release 拒绝有可见证据。ask 受限轮、offline、/new、幂等和 fixture 迁移未跑。未改实现，未碰 `wD`。
+
+## [2026-09-24] session | 从项目目录重开 Pi Squad 检查
+
+- 来源: 用户要求开始新一轮测试；上次测试 space 已不在
+- 更新: `pi_squad_case/role_dir_check/RESULT.md`、`.agents/roles/scribe/role.md`
+- 说明: 新 space `wD`，三个角色 cwd 为仓库根，Dashboard 连 `127.0.0.1:18781`。旧平铺负例在单独临时目录。未关用户 workspace。
+
+## [2026-09-24] decision | 新检查前先关遗留测试 space
+
+- 来源: 用户要求每次新开始检查前关闭之前留下的测试 space
+- 更新: `AGENTS.md`、`pi_squad/AGENTS.md`、`pi_squad/USAGE.md`
+- 说明: 只关测试 workspace，不关正在写代码或已有服务所在的 space。然后新开测试 space。
+
+## [2026-09-24] decision | Pi Squad 检查从当前项目目录启动
+
+- 来源: 用户要求后续启动放在当前 cwd，以便检查该目录 `.agents/roles`
+- 更新: `AGENTS.md`、`pi_squad/AGENTS.md`、`pi_squad/USAGE.md`
+- 说明: 正常角色 Pi 不再复制到 `/tmp`。Controller 仍可独立端口和临时库。旧平铺负例单独临时目录并标明预期拒绝。
+
+## [2026-09-24] session | 角色目录与发现链路可见验收
+
+- 来源: 用户要求按新 workspace 规范重测，并分开标注旧平铺负例
+- 更新: `docs/sessions/2026-09-24-squad-role-dir-check.md`、`pi_squad_case/role_dir_check/RESULT.md`
+- 说明: `wC` / `127.0.0.1:18771` 上目录角色加载、whoami、旁路文件未改写、list_agents 后 get_agent 均 PASS。`wC:p5` 的 flat role 报错是预期拒绝。未改实现，未碰 `wA`。发现通过不是通信通过。
+
+## [2026-09-24] session | Pi Squad 检查必须新开 space
+
+- 来源: 用户要求记住检查开法，并写入可加载规范
+- 更新: `AGENTS.md`、`pi_squad/AGENTS.md`、`pi_squad/USAGE.md`、`docs/sessions/2026-09-24-squad-herdr-check.md`
+- 说明: 当前 Herdr 会话新开 workspace，至少三个不同角色的 Pi，并打开对应该 Controller 的 Dashboard。不往 serve stdin 输入 `tui`。
+
 ## [2026-09-24] decision | Controller 限定 Go 1.27 与 Gin 栈
 
 - 来源: 用户确认 Gin、Resty、Viper、Cobra、herdr-dashboard 的 Bubble Tea v1，并要求重构 controller
@@ -156,3 +198,129 @@ tags:
 - 来源: 本地 Pi 包文档、Squad/Trace 源码、上游 Trace README；本机 `pi --version` 与 `pi list`
 - 更新: `pi_squad/USAGE.md`、`docs/sessions/2026-09-24-local-extension-and-trace.md`、`docs/index.md`
 - 说明: 明确本地入口安装、日常与隔离启动、Trace 请求观察及截断边界。仅写文档，未安装插件、修改全局配置或调用模型。
+
+## [2026-09-24] query | Squad cwd 角色 YAML 发现可行性
+
+- 来源: Herdr `w7:p1` Claude 最后回答、现有 Squad 源码与配置验证脚本、pi-subagents 文档、Claude/OpenClaw 官方文档
+- 更新: `docs/sessions/2026-09-24-squad-agents-yaml-feasibility.md`、`docs/sources/agent-role-config-references.md`、来源登记、Pi Squad 概念、开放问题、主索引
+- 说明: 评估可行；区分角色选择、逻辑身份、在线发现；建议 cwd 专用目录纯 YAML，未实施。未发送 agent 消息、运行测试或修改插件与 submodule。
+
+## [2026-09-24] decision | Squad 采用 Markdown 角色文件并收缩首版范围
+
+- 来源: 用户确认；Claude/pi-subagents 文档、Multica 固定提交 agents.mdx、OpenClaw SOUL 模板
+- 更新: `docs/decisions/2026-09-24-squad-role-frontmatter.md`、同名会话页、前序评估、来源摘要/登记、Pi Squad 概念、开放问题及索引
+- 说明: 格式确定为 Markdown + YAML frontmatter；不考虑 tools/model/skills、历史和状态。建议 name/description/正文，身份配置留在启动侧；字段与迁移规则尚未实施。未改插件代码。
+
+## [2026-09-24] maintenance | 实现 Squad Markdown 角色与运行元数据
+
+- 来源: 用户实施授权与 cwd/UUID 要求、现有 Pi 生命周期 API、YAML 官方 API 文档
+- 更新: `.agents/roles/`、`pi_squad/extension/`、Controller 模型/存储/校验/TUI、包清单/依赖、`USAGE.md`、P0 验证和阶段文档、wiki 会话/概念/决策/开放问题/索引
+- 说明: TS 6 项、Go 全套、真实 Pi RPC（含 new/reload）及隔离 Controller smoke 通过。UUID 为每进程 runtime_id，保留 Pi runtime_session_id。原 smoke 首次误连已有 18741 服务并写入 backend/reviewer，已告知用户并修复测试隔离；未猜测性还原。未修改上游 submodule、未部署或重启用户进程。
+
+## [2026-09-24] query | 评估是否进入相互通信验证
+
+- 来源: 当前实现、P0 验收记录、Notion P1/P2 契约与旧身份/消息决策
+- 更新: `docs/sessions/2026-09-24-squad-messaging-readiness.md`、索引、开放问题
+- 说明: 建议下一轮先补 P0/P1 真实 Pi 验收，再做 HTTP 纯文本往返。识别 UUID 尚未参与持有者校验、旧消息合同与 HTTP 路线差异；本轮未发送消息、实施通信或运行新测试。
+
+## [2026-09-24] maintenance | 开发 get_agent 并准备移交 Claude Code 验收
+
+- 来源: 用户明确开发/验收分工；已有 Controller 查询接口、Pi 工具与截断 API
+- 更新: `pi_squad/extension/index.ts`、`controller-client.ts`、`USAGE.md`、阶段入口、wiki 会话/概念/索引
+- 说明: 完成角色发现到精确 agent_id 查询；只做开发静态检查，未自行执行验收。消息发送与持有者校验不在本轮实现；验收移交指定 Herdr w7:p1。
+
+## [2026-09-24] session | 已向指定 Claude Code 发送发现能力验收交接
+
+- 来源: 用户授权的 Herdr 验收分工；herdr agent prompt w7:p1 返回 agent_prompted
+- 更新: 本日志；交接内容见 `docs/sessions/2026-09-24-squad-get-agent-development.md`
+- 说明: 已提交验收任务，明确仅修改测试/报告、隔离端口/数据库、保留其他人的改动。开发者只执行 node --check 与 git diff --check，均通过；未声称验收完成。
+
+## [2026-09-24] maintenance | Controller 心跳日志降噪与 Dashboard 入口提示
+
+- 来源: 用户反馈；Herdr w7:p3 只读进程与终端快照
+- 更新: `pi_squad/controller/httpapi/server.go`、`cli/serve.go`、USAGE/Controller README、会话与索引
+- 说明: 确认当前是 18751 的 serve 进程而非 tui，移除成功心跳日志并提示独立面板入口。未改变现有服务/pane，运行验收由指定 Claude Code 负责。
+
+## [2026-09-24] maintenance | 将角色配置改为每角色独立目录
+
+- 来源: 用户要求为后续动态信息预留同目录空间
+- 更新: `.agents/roles/<name>/role.md`、Extension 加载器/whoami、配置测试与原验证 fixture、USAGE、阶段契约、wiki 决策/会话/概念/索引
+- 说明: 只读取 role.md，其它内容不参与注入；旧布局明确报迁移提示。本助手仅开发与静态检查，验收继续交指定 Claude Code，未重启现有服务或 Pi。
+
+- 验收交接补充: 原 w7:p1 经 Herdr 确认为 wB:p1（同一 terminal），已提交角色目录迁移验收任务，尚未声称通过。
+
+## [2026-09-24] query | 发现验收后复核通信开发条件
+
+- 来源: Claude wB:p1 最新回答、`pi_squad_case/role_dir_check/RESULT.md`（wD / 18781）、Extension 与 Controller 源码
+- 更新: `docs/sessions/2026-09-24-squad-messaging-readiness.md`（主索引已有入口）
+- 说明: 三角色加载注册及角色发现到精确查询已有可见证据，可以开始通信开发；消息接口仍缺失，实例持有者校验需与通信一起补齐。不宣称完整 P0/P1 或通信已验收，未启动新测试或改运行服务。
+
+## [2026-09-24] maintenance | 运行实例校验与 HTTP 纯文本通信
+
+- 来源: 用户要求先补 UUID 校验再开发通信，验收交 Claude；已有身份占用决策与 Pi Extension API 译文
+- 更新: Controller ownership/revocation/message HTTP/SQLite、Extension 心跳/消息适配、USAGE、HTTP 通信验收清单、会话与索引
+- 说明: 实现 notice/ask/reply、精确绑定和凭据校验，显式释放撤销旧 UUID。开发者只做 Go 编译与 TypeScript 类型/语法静态检查；真实 Pi 验收未执行，交指定 Claude。旧协议 fixture 需适配，不沿用旧 PASS。
+
+- 交接: 已通过 herdr agent prompt 向 wB:p1 的 Claude 提交 UUID/HTTP 通信检查清单；确认工作状态后由其独立验收，尚无本轮验收结论。
+
+## [2026-09-24] query | HTTP 第二阶段仍为部分验收
+
+- 来源: Claude wB:p1 最新回答与 `pi_squad_case/phase_02_http_messaging/RESULT.md`
+- 更新: `docs/sessions/2026-09-24-squad-http-messaging.md`（主索引已有入口）
+- 说明: notice/关联回复已打通；ask、忙时排队、实例/会话故障边界、去重及旧测试迁移未完成。保持 partial，不以没有发现缺陷等同阶段完成。
+
+## [2026-09-24] query | 评估 Intercom 对第二阶段的借鉴价值
+
+- 来源: pi-intercom 固定 HEAD `199279ae861bf53ce014809fb2a03337538ae13e` 的消息/回复/生命周期源码与部分测试，当前 HTTP 通信实现及 partial 报告
+- 更新: Intercom 来源摘要/登记、评估会话、主索引
+- 说明: 优先借鉴关联上下文、迟到回调隔离、分层收据、幂等和边界测试；保持异步 ask、忙时排队、离线不补投。不改插件实现或上游，不启动测试，不将上游测试存在视为本项目通过。
+
+## [2026-09-24] maintenance | SSE 下发与 Intercom 边界验收准备
+
+- 来源: 用户要求优化下发并借鉴 Intercom 用例；WHATWG SSE 标准、当前 HTTP 实现
+- 更新: Controller SSE/订阅唤醒、Extension fetch 流与收件调度、绑定/解析测试、USAGE、SSE/FLOW 验收清单、来源/会话/索引
+- 说明: 保留异步 ask、忙时排队、显式回复/重试。仅开发静态检查，运行验收仍交 Claude；实际延迟及故障窗口未宣称通过。
+
+- 交接: 已通过 herdr 向 wB:p1 Claude 提交本轮完整 SSE/FLOW 与旧未完成项验收，状态已为 working；开发侧最终编译/类型检查通过。实际测试及延迟结果待其产出。
+
+## [2026-09-24] session | 验收结果回传到派发者 pane
+
+- 来源: 用户要求检查 Claude 结果并配置主动回传；Herdr 当前 pane w4:p2、Claude wB:p1、SSE RESULT.md
+- 更新: 根 AGENTS.md、pi_squad/AGENTS.md、阶段 HANDOFF.md、SSE 会话页（主索引已有入口）
+- 说明: 每次交接动态附 pane/terminal/handoff_id，完成后主动提交验收结果，核对身份且不阻塞等待。当前 SSE ask/reply 已有证据，阶段仍 partial。
+
+## [2026-09-24] session | 已收到 Claude 的 SSE 验收回传
+
+- 来源: acceptance_result，handoff_id=squad-sse-review-20260924-01
+- 更新: `pi_squad_case/phase_02_http_messaging/HANDOFF.md` 的 receiver_status=received、receiver_conclusion=partial
+- 说明: 确认回传已被开发者读取，不覆盖发送方 submitted 含义。保持阶段 partial；MSG-08 只有正文不执行及正常回复证据，不视作完整工具限制通过。未循环回执或启动新测试。
+
+## [2026-09-24] session | 继续补齐 SSE 第二阶段验收
+
+- 来源: 用户收到 partial 回传后授权继续
+- 更新: HTTP 通信阶段 HANDOFF.md；旧交接归档保留
+- 说明: 新 handoff_id=squad-sse-review-20260924-02，动态核对回传 pane w4:p2 与 terminal；Claude 补边界测试，开发者修实现，阶段未宣称通过。
+
+## [2026-09-24] session | 第二轮部分结果后继续补测试夹具
+
+- 来源: acceptance_result squad-sse-review-20260924-02 与 wG RESULT.md
+- 更新: 阶段 HANDOFF.md receiver_status=received_partial，追加继续要求
+- 说明: 协议校验、幂等及P0 smoke已有证据；缺harness不是外部阻塞，继续补busy/工具拦截/SSE恢复。MSG-06整行PASS不能代替尚缺的超时/满队列子项。
+
+## [2026-09-24] session | 收到 SSE harness 与恢复补测
+
+- 来源: squad-sse-review-20260924-02 followup 和 RESULT.md
+- 更新: 阶段 HANDOFF.md
+- 说明: busy/deferred/工具拦截、SSE协议、过期/满队列及真实/new和同DB重启有新增证据；继续补慢读、静默、404及逐项核对其余恢复子项。915.125µs仅为一次send返回后观察SSE事件的时长，不是commit到received延迟或性能保证。
+
+## [2026-09-24] session | SSE 第三次补测与收口边界
+
+- 来源: squad-sse-review-20260924-02 followup、合并RESULT与events_test源码
+- 更新: 阶段 HANDOFF.md
+- 说明: 接受确定性阻塞writer作为写deadline分支证据，需另证发送不被阻塞；不强求TCP缓冲区压满。继续补替换连接cleanup与真实Pi消息恢复，协议微秒样本不等同Pi端到端延迟。
+
+## [2026-09-24] maintenance | 合并 Controller 断线期间的重复警告
+
+- 来源: 用户重复报告 terminated/fetch failed；heartbeat与inbox/SSE提示源码，18811只读health正常
+- 更新: connection-notices及测试、heartbeat成功回调、index/messaging提示、USAGE、SSE会话页
+- 说明: 同次网络故障只提示一次，失败通道恢复后通知一次；协议身份错误不掩盖。类型/语法/diff检查通过，真实重启回归交Claude，未自行重启用户进程。

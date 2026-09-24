@@ -14,6 +14,8 @@ import (
 	"github.com/kms9/pi-learn/pi_squad/controller/httpapi"
 )
 
+const testToken = "test-private-credential-at-least-32-chars"
+
 func setup(t *testing.T, timeout time.Duration) *httptest.Server {
 	t.Helper()
 	reg, err := agent.OpenRegistry(filepath.Join(t.TempDir(), "agents.sqlite"), timeout)
@@ -57,20 +59,27 @@ func TestRegisterHeartbeatListAndTimeout(t *testing.T) {
 		"space_id":           "ws-1",
 		"pane_id":            "pane-1",
 		"runtime_session_id": "sess-a",
+		"runtime_token":      testToken,
+		"cwd":                "/tmp/pi-case",
+		"runtime_id":         "26bcde84-55f1-43a3-8cd8-3cc040113119",
+		"role_description":   "Backend implementation",
 	})
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("register status %d", resp.StatusCode)
 	}
 	var backend agent.Agent
 	decode(t, resp, &backend)
-	if backend.Status != agent.StatusOnline || backend.AgentID != "backend" {
+	if backend.Status != agent.StatusOnline || backend.AgentID != "backend" || backend.Cwd != "/tmp/pi-case" || backend.RuntimeID != "26bcde84-55f1-43a3-8cd8-3cc040113119" || backend.RoleDescription != "Backend implementation" {
 		t.Fatalf("register body: %+v", backend)
 	}
 
 	resp = postJSON(t, srv.URL+"/agents/register", map[string]string{
-		"agent_id": "reviewer",
-		"role":     "reviewer",
-		"squad_id": "alpha",
+		"agent_id":           "reviewer",
+		"role":               "reviewer",
+		"squad_id":           "alpha",
+		"runtime_id":         "09935896-61d9-4c6f-b2e9-533e4ac46651",
+		"runtime_session_id": "sess-r",
+		"runtime_token":      "reviewer-private-credential-at-least-32",
 	})
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("register reviewer %d", resp.StatusCode)
@@ -95,7 +104,12 @@ func TestRegisterHeartbeatListAndTimeout(t *testing.T) {
 	}
 
 	time.Sleep(250 * time.Millisecond)
-	resp = postJSON(t, srv.URL+"/agents/heartbeat", map[string]string{"agent_id": "backend"})
+	resp = postJSON(t, srv.URL+"/agents/heartbeat", map[string]string{
+		"agent_id":           "backend",
+		"runtime_id":         "26bcde84-55f1-43a3-8cd8-3cc040113119",
+		"runtime_session_id": "sess-a",
+		"runtime_token":      testToken,
+	})
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("heartbeat %d", resp.StatusCode)
 	}
@@ -126,22 +140,42 @@ func TestUpsertSameIdentity(t *testing.T) {
 	defer srv.Close()
 
 	postJSON(t, srv.URL+"/agents/register", map[string]string{
-		"agent_id": "reviewer",
-		"role":     "reviewer",
-		"squad_id": "alpha",
-		"pane_id":  "old",
+		"agent_id":           "reviewer",
+		"role":               "reviewer",
+		"squad_id":           "alpha",
+		"runtime_id":         "26bcde84-55f1-43a3-8cd8-3cc040113119",
+		"runtime_session_id": "sess-a",
+		"runtime_token":      testToken,
+		"pane_id":            "old",
 	}).Body.Close()
 
+	conflict := postJSON(t, srv.URL+"/agents/register", map[string]string{
+		"agent_id":           "reviewer",
+		"role":               "reviewer",
+		"squad_id":           "alpha",
+		"runtime_id":         "09935896-61d9-4c6f-b2e9-533e4ac46651",
+		"runtime_session_id": "sess-a",
+		"runtime_token":      "another-private-credential-at-least-32b",
+		"pane_id":            "new-pane",
+	})
+	if conflict.StatusCode != http.StatusConflict {
+		t.Fatalf("different UUID must conflict, got %d", conflict.StatusCode)
+	}
+	conflict.Body.Close()
+
 	resp := postJSON(t, srv.URL+"/agents/register", map[string]string{
-		"agent_id": "reviewer",
-		"role":     "reviewer",
-		"squad_id": "alpha",
-		"pane_id":  "new-pane",
+		"agent_id":           "reviewer",
+		"role":               "reviewer",
+		"squad_id":           "alpha",
+		"runtime_id":         "26bcde84-55f1-43a3-8cd8-3cc040113119",
+		"runtime_session_id": "sess-a",
+		"runtime_token":      testToken,
+		"pane_id":            "new-pane",
 	})
 	var a agent.Agent
 	decode(t, resp, &a)
 	if a.PaneID != "new-pane" {
-		t.Fatalf("upsert should update pane: %+v", a)
+		t.Fatalf("same owner should update pane: %+v", a)
 	}
 
 	resp, err := http.Get(srv.URL + "/agents")
@@ -166,9 +200,12 @@ func TestPersistAcrossReopen(t *testing.T) {
 	}
 	svc := agent.NewService(reg)
 	if _, err := svc.Register(context.Background(), agent.RegisterRequest{
-		AgentID: "tester",
-		Role:    "tester",
-		SquadID: "alpha",
+		AgentID:          "tester",
+		Role:             "tester",
+		SquadID:          "alpha",
+		RuntimeID:        "26bcde84-55f1-43a3-8cd8-3cc040113119",
+		RuntimeSessionID: "sess-a",
+		RuntimeToken:     testToken,
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -183,7 +220,7 @@ func TestPersistAcrossReopen(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got.AgentID != "tester" || got.Role != "tester" {
+	if got.AgentID != "tester" || got.Role != "tester" || got.RuntimeID != "26bcde84-55f1-43a3-8cd8-3cc040113119" {
 		t.Fatalf("persist: %+v", got)
 	}
 }
@@ -196,4 +233,21 @@ func TestRegisterValidation(t *testing.T) {
 		t.Fatalf("want 400, got %d", resp.StatusCode)
 	}
 	resp.Body.Close()
+}
+
+func TestRuntimeMetadataValidation(t *testing.T) {
+	srv := setup(t, time.Second)
+	defer srv.Close()
+	for _, extra := range []map[string]string{{"cwd": "relative"}, {"runtime_id": "not-a-uuid"}} {
+		extra["agent_id"] = "reviewer"
+		extra["role"] = "reviewer"
+		extra["squad_id"] = "alpha"
+		extra["runtime_session_id"] = "sess-a"
+		extra["runtime_token"] = testToken
+		resp := postJSON(t, srv.URL+"/agents/register", extra)
+		resp.Body.Close()
+		if resp.StatusCode != http.StatusBadRequest {
+			t.Fatalf("want 400: %v, got %d", extra, resp.StatusCode)
+		}
+	}
 }

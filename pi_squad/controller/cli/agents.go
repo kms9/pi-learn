@@ -17,7 +17,7 @@ func newAgentsCommand() *cobra.Command {
 		Use:   "agents",
 		Short: "Read the running controller",
 	}
-	cmd.AddCommand(newAgentsListCommand(), newAgentsGetCommand())
+	cmd.AddCommand(newAgentsListCommand(), newAgentsGetCommand(), newAgentsReleaseCommand())
 	return cmd
 }
 
@@ -76,4 +76,18 @@ func newAgentsGetCommand() *cobra.Command {
 			return nil
 		},
 	}
+}
+
+func newAgentsReleaseCommand() *cobra.Command {
+	cmd := &cobra.Command{Use: "release <agent-id>", Short: "Explicitly revoke an expected runtime (does not stop Pi)", Args: cobra.ExactArgs(1), RunE: func(cmd *cobra.Command, args []string) error {
+		cfg, err := config.Load(cmd)
+		if err != nil {
+			return err
+		}
+		expected, _ := cmd.Flags().GetString("expected-runtime-id")
+		return client.New(cfg.URL).Release(cmd.Context(), agent.ReleaseRequest{AgentID: args[0], ExpectedRuntimeID: expected})
+	}}
+	cmd.Flags().String("expected-runtime-id", "", "exact current UUID; empty only for legacy rows")
+	_ = cmd.MarkFlagRequired("expected-runtime-id")
+	return cmd
 }

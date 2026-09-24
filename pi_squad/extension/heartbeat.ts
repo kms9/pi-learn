@@ -14,13 +14,18 @@ export function startHeartbeat(
   intervalMs: number,
   getRuntimeSessionId: () => string | undefined,
   onError?: (err: unknown) => void,
+  runtimeId?: string,
+  runtimeToken?: string,
+  onSuccess?: () => void,
 ): HeartbeatHandle {
   let stopped = false;
+  let pending = false;
   const tick = () => {
-    if (stopped) return;
-    void client.heartbeat(agentId, getRuntimeSessionId()).catch((err) => {
+    if (stopped || pending) return;
+    pending = true;
+    void client.heartbeat(agentId, getRuntimeSessionId(), runtimeId, runtimeToken).then(() => { if (!stopped) onSuccess?.(); }).catch((err) => {
       if (!stopped) onError?.(err);
-    });
+    }).finally(() => { pending = false; });
   };
   tick();
   const timer = setInterval(tick, intervalMs);

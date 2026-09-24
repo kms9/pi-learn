@@ -3,7 +3,7 @@ title: P0 验收标准
 type: process
 status: active
 created: 2026-09-23
-updated: 2026-09-23
+updated: 2026-09-24
 tags:
   - pi-squad
   - phase-00
@@ -24,6 +24,14 @@ tags:
 | A5 | 保留同一 SQLite 文件重启 Controller：身份行仍在；超时后为 `offline`，新心跳后为 `online`。 |
 | A6 | 未提供的 `herdr_session_id` / `runtime_session_id` 为空，实现不得填随机 UUID。 |
 | A7 | `space_id` 若出现，来自 `HERDR_WORKSPACE_ID`（或测试显式写入），不是 pane 名。 |
+
+## 本轮角色文件与运行元数据补充验收
+
+- Markdown frontmatter 的 name 选择正确；正文注入且每轮仅一次，description 不进入本 Agent 系统提示。
+- 无选择器不注册；非法/重复配置拒绝；旧 JSON 入口给迁移错误。
+- Controller 的注册/查询/持久化包含 cwd、runtime_id、role_description；旧库可自动迁移。
+- 不同 Pi 进程 runtime_id 不同，/new 和扩展 reload 保持 UUID 与启动配置；runtime_session_id 仍取真实 Pi 会话。
+- 验证脚本使用独立端口与临时数据库；本地测试 provider 不发送模型 HTTP 请求。
 
 ## 证据要求
 

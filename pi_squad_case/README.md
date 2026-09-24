@@ -155,3 +155,7 @@ SQUAD_AGENT_CONFIG="$SQUAD_HOME/agents/operator.json" \
 最先实施 00 的“一个 Pi 身份闭环”，通过后再做 01 的“三 Pi 互见”。不要提前开发小队 UI、Herdr pane 创建器或跨机器节点服务。
 
 2026-09-21 评审与用户裁决见[三方评审](../docs/sessions/2026-09-21-pi-squad-00-01-review.md)：占用优先；suspect拒绝新投递，online后由调用者重试。新增ID-X01—06、DISC-X01—04，全部NOT_RUN。
+
+## 当前 HTTP 通信开发切片
+
+[UUID 运行实例与纯文本消息验收](phase_02_http_messaging/README.md)：已实现，待 Claude 验收；不等于旧 UDS 阶段 02 全部通过。

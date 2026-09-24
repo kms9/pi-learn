@@ -22,3 +22,6 @@ tags:
 | Q7 | 2026-09-21 UDS/`squad` 规划是否废弃 | open | 与 2026-09-23 HTTP P0 并存；当前实现只跟 Notion P0。未删 `00-identity-protocol`。 |
 | Q8 | 旧 Pi 失租但进程尚在时，新 runtime 是否可取得相同 agent_id？ | closed | 2026-09-21 评审中曾称 Q6。用户决定占用优先：拒绝新实例，直到确认旧实例退出或显式释放。见 [[decisions/2026-09-21-squad-ownership-and-suspect]]。 |
 | Q9 | suspect 时是否拒绝新的 send/ask/invoke？ | closed | 2026-09-21 评审中曾称 Q7。用户决定拒绝并报不可联系；恢复 online 后由调用者重试，不自动排队/补发。见 [[decisions/2026-09-21-squad-ownership-and-suspect]]。 |
+| Q10 | Squad 角色源格式如何选择？ | closed | 用户已选择 Markdown + YAML frontmatter；暂不考虑 tools/model/skills、历史与状态。见 [[decisions/2026-09-24-squad-role-frontmatter]]。 |
+| Q11 | Squad 新角色入口如何衔接启动身份、迁移旧 JSON？ | closed | 已落地：name/description/正文，agent_id/squad_id 必须由环境提供；非空 PI_SQUAD_CONFIG 明确报迁移错误。见 [[sessions/2026-09-24-squad-frontmatter-runtime-implementation]]。 |
+| Q12 | HTTP P2 如何衔接旧 ownership 决策、runtime 绑定校验及离线消息语义？ | open | 当前 UUID 只是属性；建议拒绝旧实例、离线留失败记录且不自动补投，需在 HTTP P2 合同中明确。见 [[sessions/2026-09-24-squad-messaging-readiness]]。 |
