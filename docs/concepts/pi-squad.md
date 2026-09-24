@@ -3,7 +3,7 @@ title: Pi Squad
 type: concept
 status: active
 created: 2026-09-23
-updated: 2026-09-24
+updated: 2026-09-25
 tags:
   - project-wiki
   - concept
@@ -67,3 +67,9 @@ cwd 为首次加载时 process.cwd()，runtime_id 为每进程 UUID v4；/new/re
 ## 2026-09-24 HTTP 通信切片
 
 当前新增 UUID/私有凭据校验、显式释放撤销及 notice/ask/reply；同 ID 不再跨进程覆盖。开发完成待 Claude 验收，旧文的“尚无消息”和 upsert 描述仅适用于前序版本。使用以 `pi_squad/USAGE.md` 为准，开发记录见 [[sessions/2026-09-24-squad-http-messaging]]。
+
+## Team Runtime 目标修订（2026-09-25，待实现）
+
+配置和状态目标统一为 `.agents/pisquad`，普通 Role 与 Leader 在启动时区分。RoleDefinition 可复用，Agent 的成员关系可跨 Team，但当前执行上下文来自 Task，不能从成员列表反推。Controller 统一租约限制 Agent/Team/项目容量；过期但执行未知时隔离，不自动复用槽。角色 `agents.md` 是可更新工作规则，稳定职责仍在 `role.md`；本版建议在 attempt 开始固定规则快照。
+
+这是目标设计，未替换上文的当前实现。见 [[decisions/2026-09-25-squad-team-runtime-scope]]、[[sources/multica-team-runtime]]、[需求与验收](../../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_REQUIREMENTS.md)、[技术契约](../../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_DESIGN.md)。

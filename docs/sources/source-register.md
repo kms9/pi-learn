@@ -3,7 +3,7 @@ title: 来源登记
 type: source
 status: active
 created: 2026-09-07
-updated: 2026-09-24
+updated: 2026-09-25
 tags:
   - project-wiki
   - sources
@@ -33,3 +33,5 @@ tags:
 | pi-intercom | git submodule | `pi-intercom/` | 2026-09-24 | [[pi-intercom\|Pi Intercom 消息流程]] | 固定 HEAD `199279ae861bf53ce014809fb2a03337538ae13e`；消息关联、收据、生命周期、去重和边界用例；未运行上游测试。 |
 
 | WHATWG SSE | 官方规范 | https://html.spec.whatwg.org/multipage/server-sent-events.html | 2026-09-24 | [[sse-standard\|SSE 标准与应用边界]] | text/event-stream；本项目采用 fetch + inbox 唤醒，不提供事件游标重放。 |
+
+| Multica Team Runtime | 官方固定源码 | https://github.com/multica-ai/multica/tree/1c908ea52c19f193d301ca9460fc1d7d100a1b3d | 2026-09-25 | [[multica-team-runtime\|Multica Team Runtime]] | membership、task squad_id、Leader 协议字段、briefing 与事务 claim；只读核查，未运行上游。 |

@@ -1,13 +1,15 @@
 ---
 title: Pi Squad Team Runtime 后续需求与架构规划
-status: proposed
-type: requirements-design
+status: superseded
+type: process
 branch: pi_squad_dev
 baseline_commit: 800cbf596e19697dc50d35da16d09bbd19c46899
-updated: 2026-09-24
+updated: 2026-09-25
 ---
 
 # Pi Squad Team Runtime 后续需求与架构规划
+
+> 2026-09-25：本文保留为历史方案。当前修订目标见 [需求文档](TEAM_RUNTIME_REQUIREMENTS.md) 与 [技术文档](TEAM_RUNTIME_DESIGN.md)，其中包含本方案评估、五项补充与 Multica 固定源码证据。本文的旧目录、基线、Leader 策略和实施顺序不再作为新实施依据；不代表新方案已实现。
 
 ## 1. 文档目的
 

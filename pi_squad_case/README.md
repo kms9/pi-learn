@@ -16,6 +16,8 @@ updated: 2026-09-21
 
 > **2026-09-23 实施轨道**：Notion P0–P7（Herdr + 薄 Extension + HTTP Go Controller）的第一刀在 [`phase_00_identity/`](phase_00_identity/README.md) 与共享模块 [`../pi_squad/`](../pi_squad/README.md)。下面第 2 节的 `00-*`～`05-*` 仍是 2026-09-21 UDS / `squad` CLI 规划稿，**尚未按那份合同实现**，不要和 P0 HTTP Registry 混跑。
 
+> 2026-09-25：按本次用户要求，Team Runtime 单独输出 [需求文档](04-team-orchestration/TEAM_RUNTIME_REQUIREMENTS.md) 和 [技术文档](04-team-orchestration/TEAM_RUNTIME_DESIGN.md)，共享需求/验收 ID；这是下文“每阶段合并文档”约定的明确例外。新稿均待实现。
+
 ## 1. 最终目标和已确认边界
 
 用户手动启动多个 Pi；在任一已授权 Pi 中通过对话发现、联系和调用其他在线 Agent，或者调用固定成员的小队。目标 Agent 沿用自己的既有会话；消息、任务、结果及小队记录可追溯，故障可识别，由用户明确决定续跑。最后可选接入 Herdr，只增强终端位置与观察。

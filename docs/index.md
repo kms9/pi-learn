@@ -3,7 +3,7 @@ title: pi_case 知识库索引
 type: index
 status: active
 created: 2026-09-07
-updated: 2026-09-24
+updated: 2026-09-25
 tags:
   - project-wiki
   - index
@@ -44,6 +44,8 @@ tags:
 
 ## 决策
 
+- [[decisions/2026-09-25-squad-team-runtime-scope|2026-09-25 Squad 专属目录与启动身份]]
+
 - [[decisions/2026-09-24-squad-role-directories|2026-09-24 一角色一目录]]
 
 - [[decisions/2026-09-24-squad-role-frontmatter|2026-09-24 Squad 角色格式与首版范围]]
@@ -58,6 +60,8 @@ tags:
 - [[decisions/2026-09-23-p0-identity-fields|2026-09-23 P0 身份字段与 HTTP Registry]]
 
 ## 会话
+
+- [[sessions/2026-09-25-squad-team-runtime-design|2026-09-25 Team Runtime 评估与需求技术文档]]
 
 - [[sessions/2026-09-24-squad-sse-delivery|2026-09-24 SSE 下发与边界验收]]
 
@@ -98,6 +102,8 @@ tags:
 
 ## 来源
 
+- [[sources/multica-team-runtime|Multica Team Runtime 固定源码参考]]
+
 - [[sources/sse-standard|SSE 标准与应用边界]]
 
 - [[sources/pi-intercom|Pi Intercom 消息流程源码参考]]
@@ -129,3 +135,5 @@ tags:
 - [六阶段需求、技术实施与用户验收总索引](../pi_squad_case/README.md) - Go 控制面＋必要 TS Pi 扩展；仅在线 Agent；85 个计划用例（含评审补充10项），当前未实现/未执行。
 - [固定源码与文件/函数参考](../pi_squad_case/SOURCES.md)
 - [统一验收记录与恢复规范](../pi_squad_case/ACCEPTANCE.md)
+
+- [Team Runtime 需求文档](../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_REQUIREMENTS.md) / [技术设计](../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_DESIGN.md) - 2026-09-25 修订，待实现。

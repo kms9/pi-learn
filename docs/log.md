@@ -324,3 +324,9 @@ tags:
 - 来源: 用户重复报告 terminated/fetch failed；heartbeat与inbox/SSE提示源码，18811只读health正常
 - 更新: connection-notices及测试、heartbeat成功回调、index/messaging提示、USAGE、SSE会话页
 - 说明: 同次网络故障只提示一次，失败通道恢复后通知一次；协议身份错误不掩盖。类型/语法/diff检查通过，真实重启回归交Claude，未自行重启用户进程。
+
+## [2026-09-25] session | Team Runtime 评估与需求技术文档
+
+- 来源: 用户五项补充；本仓 HEAD `23caab1105f71e3cb0ff67671eb63a9c7f85160a`；Multica 固定 SHA `1c908ea52c19f193d301ca9460fc1d7d100a1b3d` 官方源码
+- 更新: `pi_squad_case/04-team-orchestration/TEAM_RUNTIME_REQUIREMENTS.md`、`TEAM_RUNTIME_DESIGN.md`、原方案/阶段入口；来源、决策、概念、会话、开放问题与索引
+- 说明: 分开共享模板/成员关系/执行上下文；统一 .agents/pisquad、启动 mode、agents.md 快照、任务与审查租约及消息授权迁移。旧稿标历史；仅文档与静态一致性检查，未改实现、未迁移配置、未启动或派发运行验收。

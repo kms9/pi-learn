@@ -3,7 +3,7 @@ title: 开放问题
 type: question-log
 status: active
 created: 2026-09-07
-updated: 2026-09-24
+updated: 2026-09-25
 tags:
   - project-wiki
   - questions
@@ -25,3 +25,7 @@ tags:
 | Q10 | Squad 角色源格式如何选择？ | closed | 用户已选择 Markdown + YAML frontmatter；暂不考虑 tools/model/skills、历史与状态。见 [[decisions/2026-09-24-squad-role-frontmatter]]。 |
 | Q11 | Squad 新角色入口如何衔接启动身份、迁移旧 JSON？ | closed | 已落地：name/description/正文，agent_id/squad_id 必须由环境提供；非空 PI_SQUAD_CONFIG 明确报迁移错误。见 [[sessions/2026-09-24-squad-frontmatter-runtime-implementation]]。 |
 | Q12 | HTTP P2 如何衔接旧 ownership 决策、runtime 绑定校验及离线消息语义？ | open | 当前 UUID 只是属性；建议拒绝旧实例、离线留失败记录且不自动补投，需在 HTTP P2 合同中明确。见 [[sessions/2026-09-24-squad-messaging-readiness]]。 |
+
+| Q13 | Role 的 agents.md 何时生效？ | open | 2026-09-25 技术稿建议 attempt 开始读取并固定 hash，执行中不变；用户未逐项确认此刷新策略。见 [[sessions/2026-09-25-squad-team-runtime-design]]。 |
+| Q14 | Leader 是否复用普通 Role、是否运行中切换 Team？ | open | 首版提案固定 mode=leader 与 team_id，只加载 Team 配置；未来组合 leader.role_ref / 跨 Team 切换另议，不能冒称 Multica 也是启动固定身份。 |
+| Q15 | 任务/质量锁的参数与受管 session 迁移怎么定？ | open | 将“质量”解释为质量审查；建议 TTL 30s/续约10s、项目8槽/2活跃Team，失租隔离；session 用 Pi --session-dir 定位 .runtime 下并验证，不自动搬旧 JSONL。参数与校验实施待确认。 |
