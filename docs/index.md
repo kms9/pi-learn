@@ -34,6 +34,8 @@ tags:
 
 ## 概念
 
+- [[concepts/squad-role-instance-lease|Squad 角色复用、当前 Team 与任务租约]] - 双 Team 共用 reviewer 的通俗解释
+
 - [[concepts/_index|概念索引]]
 - [[concepts/extension|Extension]] - 本仓库默认的「插件」
 - [[concepts/pi-package|Pi package]] - 用 `pi install` 分发的包
@@ -60,6 +62,8 @@ tags:
 - [[decisions/2026-09-23-p0-identity-fields|2026-09-23 P0 身份字段与 HTTP Registry]]
 
 ## 会话
+
+- [[sessions/2026-09-25-squad-role-lease-explanation|2026-09-25 澄清角色实例与执行租约]]
 
 - [[sessions/2026-09-25-squad-team-runtime-design|2026-09-25 Team Runtime 评估与需求技术文档]]
 

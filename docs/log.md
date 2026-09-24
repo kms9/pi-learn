@@ -330,3 +330,9 @@ tags:
 - 来源: 用户五项补充；本仓 HEAD `23caab1105f71e3cb0ff67671eb63a9c7f85160a`；Multica 固定 SHA `1c908ea52c19f193d301ca9460fc1d7d100a1b3d` 官方源码
 - 更新: `pi_squad_case/04-team-orchestration/TEAM_RUNTIME_REQUIREMENTS.md`、`TEAM_RUNTIME_DESIGN.md`、原方案/阶段入口；来源、决策、概念、会话、开放问题与索引
 - 说明: 分开共享模板/成员关系/执行上下文；统一 .agents/pisquad、启动 mode、agents.md 快照、任务与审查租约及消息授权迁移。旧稿标历史；仅文档与静态一致性检查，未改实现、未迁移配置、未启动或派发运行验收。
+
+## [2026-09-25] query | 解释共享角色实例与任务租约
+
+- 来源: 用户追问；Team Runtime 需求与技术提案
+- 更新: `docs/concepts/squad-role-instance-lease.md`、解释会话、主索引
+- 说明: 用双 Team 共用 reviewer 说明模板/实例/当前任务的区别；说明正常自动释放与失租状态不明隔离的差异、续约由 Extension 承担。仅概念澄清，不改实现或将提案记为已确认。
