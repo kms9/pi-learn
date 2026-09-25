@@ -10,6 +10,25 @@ updated: 2026-09-25
 
 # 阶段 04｜组成小队：对话驱动分工、交接、审查与返工
 
+## 0. 当前权威调度规则与文档优先级
+
+2026-09-25 已确认第四阶段 V1 调度边界，后续实现、评审和验收均以以下规则为准：
+
+1. **一个 Team 一个 Leader**：同一 `team_id` 同时只允许一个有效 Leader Runtime；重复启动返回 `TEAM_LEADER_ALREADY_ACTIVE` 并退出第二个 Leader 模式。
+2. **一个 Role 一个 Primary**：同一 `role_id` 只有第一个成功取得调度身份的稳定 `agent_id` 作为 Team-schedulable Primary；后续同 Role 实例为 Secondary，可正常独立工作但不参与 Team 调度。
+3. **一个 Role 一个 Action Team / SquadRun**：多个 Team 可同时运行，但共享 Role 同时只能被一个 SquadRun 占有；冲突 Team 进入 `waiting_role`，等待 `role_available` 后由 Leader 重新评估。
+4. **一个 Agent 一个 Active Attempt**：Role ownership 不能代替实际执行租约；Primary Agent 同时最多执行一个正式 Attempt。
+5. **普通 Team member 按 `role_ref` 配置**：Controller 运行时解析 `role_ref -> RolePrimaryBinding -> primary_agent_id`；Secondary 不作为候选。
+6. **Primary 不自动故障转移**：Primary offline 时 Role 不可调度，不自动提升 Secondary；切换必须显式 release/promote 并完成旧执行对账。
+
+文档优先级：
+
+- `TEAM_RUNTIME_REQUIREMENTS.md`：当前规范性需求。
+- `TEAM_RUNTIME_DESIGN.md`：当前技术实现契约。
+- 本 `README.md`：阶段目标与验收摘要。
+- `TEAM_RUNTIME_PLAN.md`：仅历史方案，`status: superseded`，不得作为新实施依据。
+
+
 > 2026-09-25 调度模型修订：第四阶段采用 Multi-Team + Single Leader per Team + Single Primary per Role + Single Action Team per Role。详细契约见 TEAM_RUNTIME_REQUIREMENTS.md 与 TEAM_RUNTIME_DESIGN.md。本页只保留阶段目标、主流程和验收门。
 
 ## 1. 本阶段目标

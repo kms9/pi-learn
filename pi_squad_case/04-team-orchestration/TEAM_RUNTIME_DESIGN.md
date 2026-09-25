@@ -6,11 +6,16 @@ created: 2026-09-25
 updated: 2026-09-25
 implementation_status: not_implemented
 acceptance_status: not_run
+decision_status: confirmed
 baseline_commit: b8da2f23a191d206d03ec306a597cbdd17a9a724
 tags: [pi-squad, team-runtime, design]
 ---
 
 # Pi Squad Team Runtime 技术设计
+
+> **Decision status: confirmed（2026-09-25）**  
+> 本设计是阶段四当前实现契约。核心调度链固定为 `Team -> role_id -> RolePrimaryBinding -> primary_agent_id -> TaskAttempt`；`RoleActionOwnership` 负责跨 Team 的 Role 独占，`ExecutionLease` 负责 Primary Agent 的单 Attempt 执行。历史 PLAN 不再参与技术裁决。
+
 
 需求编号见 TEAM_RUNTIME_REQUIREMENTS.md。本文件定义第四阶段最新调度模型，替代此前“普通 Team member 固定 agent_ref、仅靠 agent execution lease 解决跨 Team 共享”的方案。
 

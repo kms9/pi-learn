@@ -6,10 +6,15 @@ created: 2026-09-25
 updated: 2026-09-25
 implementation_status: not_implemented
 acceptance_status: not_run
+decision_status: confirmed
 tags: [pi-squad, team-runtime, requirements]
 ---
 
 # Pi Squad Team Runtime 需求文档
+
+> **Decision status: confirmed（2026-09-25）**  
+> 当前 V1 调度决策已经确认：Team Leader 单实例、Role Primary 单实例、Role Action Team/SquadRun 单占用、Agent Attempt 单执行。后续若与 `TEAM_RUNTIME_PLAN.md` 历史方案冲突，以本文和 `TEAM_RUNTIME_DESIGN.md` 为准。
+
 
 本文定义第四阶段 Team Runtime 的当前 V1 需求。原 TEAM_RUNTIME_PLAN.md 作为历史方案参考；本文件和 TEAM_RUNTIME_DESIGN.md 是当前实施依据。本文描述的新能力均待实现。
 
