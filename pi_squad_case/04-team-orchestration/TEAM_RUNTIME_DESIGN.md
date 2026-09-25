@@ -224,6 +224,9 @@ TeamMembership 是配置的实例引用，不把 RoleDefinition 和 AgentInstanc
 
 ## 7. 上下文拼装与规则更新
 
+> 详细的 Prompt 分层、Pi `AGENTS.md` 保留策略、`systemPromptOptions.sections` 实现方式及 CTX 验收矩阵见 [Context Assembly 设计](CONTEXT_ASSEMBLY_DESIGN.md)。本节保留 Team Runtime 的数据/生命周期契约，具体组装以该文档为准。
+
+
 ```text
 Pi 当前基础 system prompt（含正常通用项目规则）
   + Role 稳定正文 + agents.md 快照              [mode=role]

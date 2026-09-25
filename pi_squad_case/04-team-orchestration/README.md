@@ -10,7 +10,7 @@ updated: 2026-09-21
 
 # 阶段 04｜组成小队：对话驱动分工、交接、审查与返工
 
-> 2026-09-25 Team Runtime 修订：先读 [需求文档](TEAM_RUNTIME_REQUIREMENTS.md) 与 [技术文档](TEAM_RUNTIME_DESIGN.md)。新稿规定 `.agents/pisquad`、启动身份、多 Team 上下文及执行租约；本页仍保留编排验收场景，旧路径/命令示例须在实施时同步，不能当作已可运行命令。
+> 2026-09-25 Team Runtime 修订：先读 [需求文档](TEAM_RUNTIME_REQUIREMENTS.md)、[技术文档](TEAM_RUNTIME_DESIGN.md) 与 [上下文拼装设计](CONTEXT_ASSEMBLY_DESIGN.md)。新稿规定 `.agents/pisquad`、启动身份、多 Team 上下文及执行租约；本页仍保留编排验收场景，旧路径/命令示例须在实施时同步，不能当作已可运行命令。
 
 ## 1. 最终目标与本阶段验证点
 
