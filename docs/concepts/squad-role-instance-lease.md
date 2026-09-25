@@ -1,5 +1,5 @@
 ---
-title: Squad 角色复用、当前 Team 与任务租约
+title: Squad Role Primary、Action Team 与任务租约
 type: concept
 status: active
 created: 2026-09-25
@@ -7,40 +7,108 @@ updated: 2026-09-25
 tags: [project-wiki, concept, pi-squad]
 ---
 
-# Squad 角色复用、当前 Team 与任务租约
+# Squad Role Primary、Action Team 与任务租约
 
 ## 是什么
 
-这是 Team Runtime 技术提案的通俗解释，不代表功能已实现或新增设计已获用户确认。
+第四阶段 V1 把“Role 配置复用”和“谁能被 Team 调度”明确拆开。
 
-RoleDefinition 是岗位说明书，例如 `roles/reviewer/role.md` 及其工作规则 `agents.md`。AgentInstance 是实际启动的 Pi 进程及当前 session。同一模板可以启动两个不同 agent_id 的 Pi，两者可以并行；两个 Team 也可引用同一个在线 Pi，但这个实例同一时刻只接一个正式执行单元。
+RoleDefinition 是岗位模板，例如 reviewer。可以启动多个 reviewer Pi，但一个 Project 中只有一个 reviewer Agent 是 Team Scheduler 的 Primary。
 
-例：Team A 和 Team B 共用 reviewer-1。成员关系同时含 A/B；执行 A 的审查时，当前任务明确带 team_id=A、run/task/attempt ID、审查目标和结果接收方。完成并释放后才能接 B。空闲时没有唯一当前 Team；不能从角色名或成员列表第一项猜测。共享 session 的历史不会因换 team_id 自动清除。
+例如：
 
-任务租约是 Controller 发给某次执行尝试的、有有效期的许可。Agent、Team 和项目有空余容量只是领取条件；授予时还检查依赖、身份及写文件冲突。Extension 自动处理协议，模型不必记住定时续约，用户不必逐项批准。
+    reviewer-1 = Primary, schedulable
+    reviewer-2 = Secondary, standalone
+    reviewer-3 = Secondary, standalone
 
-- 原子获取：检查和占用在一个不可被其它领取请求插入的短事务内完成。A/B 同时争 reviewer-1，只有一方取得全部必要资源，不会都看到空闲并一起开工。
-- 续约：执行中定期延长有效期；例如 30 秒许可、每 10 秒续约只是建议。任务可持续数分钟，租约并不限制总时长。Agent 在线心跳与当前 attempt 续约不是同一件事。
-- 实例绑定：许可绑定 agent_id、runtime_id、runtime_session_id 和 attempt；同名 Pi 重启或 `/new` 后不能继承旧许可。
-- 旧结果拒绝：旧 attempt/失效许可返回结果不能覆盖新结果或推进依赖；可留作待核实证据，不等于删除产物。
-- 失租隔离：没能续约只说明 Controller 无法继续确认许可，不证明 Pi 或其子进程已停止。把该 Agent 和冲突写资源标为不可再次分配。
-- 显式恢复：先确认旧执行停止及产物归属，再记录释放、接纳已核实结果或新建 attempt。正常完成自动释放；只有状态不明的故障路径需要对账，不能仅看到重新 online 就自动重跑。
+Secondary 可以正常手工对话、使用工具和完成独立工作，只是不接受 Team 的 execute、review、team ask 或 peer invoke。
 
-执行与审查都消耗实际 Pi 的模型循环和容量，所以都需许可。数据库中检查“审查是否已通过”这种纯状态判断不需要再开一个模型任务。只读审查虽无写文件副作用，也可能占着 Pi 或产生迟到的错误归属结果；初版统一协议，未来可单独优化。
+Primary 绑定稳定 agent_id，不绑定单次 runtime。Primary 暂时 offline 时不会自动把 Secondary 提升，避免旧进程仍执行导致双写；切换需要显式 release / promote。
+
+## Action Team
+
+多个 Team 可以同时引用 reviewer，但 reviewer 同时只能服务一个 SquadRun。
+
+例如：
+
+    coding-team   owns reviewer
+    research-team waits reviewer
+
+RoleActionOwnership 保存：
+
+    role_id = reviewer
+    primary_agent_id = reviewer-1
+    action_team_id = coding-team
+    action_run_id = run-a
+
+research-team 再请求 reviewer 时得到 ROLE_BUSY，自己的 Run 进入 waiting_role。它仍可继续执行不冲突的其它 Role。
+
+Action ownership 是 Run scoped。即使 reviewer 的某一个 Task 已完成，只要 coding-team 的该 SquadRun 仍需保持 reviewer 的协作连续性，就不释放给其它 Team。Run 安全结束后释放并触发 role_available，等待的 Leader 再重新竞争。
+
+## 为什么还要 ExecutionLease
+
+RoleActionOwnership 只解决“哪个 Team 当前拥有这个 Role”。
+
+ExecutionLease 解决“Primary Agent 当前是否可以执行这一个 Attempt”。
+
+所以顺序是：
+
+    Team
+      -> role_id
+      -> Action Team ownership
+      -> Primary Agent
+      -> ExecutionLease
+      -> TaskAttempt
+
+Agent 在线心跳、Role Primary、Action ownership 和 Task lease 是不同状态，不能互相替代。
+
+## Leader
+
+一个 Team 同时只有一个有效 Leader Runtime。
+
+同 Team 第二个 Leader 启动时：
+
+    TEAM_LEADER_ALREADY_ACTIVE
+
+通知用户后退出 Leader 模式。
+
+不同 Team 的 Leader 可以同时运行。
+
+Leader briefing 会看到 Role 状态：
+
+- available
+- working_here
+- busy_other_team
+- offline
+- quarantined
+
+但最终 dispatch 仍由 Controller 原子校验，避免两个 Leader 同时看到 free 后双占用。
 
 ## 不是什么
 
-- “加入 Team”不等于“正在执行该 Team 的任务”，也不等于永久给角色文件写上 Team ID。
-- 任务租约不等于 Controller 单实例文件锁，也不等于 agent_id 身份占用。
-- 租约过期不是杀进程信号，fencing token 也不能直接阻止已启动 shell 写普通文件。
-- 隔离不是关整个 Team/项目；不冲突且还有容量的其它 Agent 可继续。若隔离资源占满项目限额，则新任务也会等待。
-- “最终会过期”不保证故障后自动恢复可用。这里选择先避免重复执行；人工确认旧进程停止的能力是恢复方案的一部分。
+- Primary 不是“唯一允许启动的 Role Pi”；Secondary 完全可以正常使用。
+- Secondary 不是热备自动接管者；V1 不自动 failover。
+- Action Team 不是全 Project 唯一 Active Team；不同 Team 可以并行使用不同 Role。
+- Role ownership 不是 Task lease；Run 中 Role 暂时 idle 也可以继续被当前 Action Team 持有。
+- Task lease 过期不等于 Pi 已停止；状态不明时仍需 quarantine / 对账。
+- Role ID 不是 Agent ID；Team 普通成员通过 role_ref 找 Primary，不固定 worker agent_ref。
+
+## 一句话
+
+V1 的调度边界是：
+
+    一个 Team -> 一个 Leader
+    一个 Role -> 一个 Primary Agent
+    一个 Role -> 同时一个 Action Team / SquadRun
+    一个 Agent -> 同时一个正式 Attempt
+
+这套限制用于先验证稳定的 Team 协作闭环；Role 多容量、自动 Secondary 选举和自动故障转移以后再增加。
 
 ## 证据
 
-- [需求文档 TR-03/04](../../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_REQUIREMENTS.md)
-- [技术文档第 6–8 节](../../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_DESIGN.md)
-- 用户 2026-09-25 请求解释上述设计，不构成开始实施授权。
+- 需求：../../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_REQUIREMENTS.md
+- 技术设计：../../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_DESIGN.md
+- 阶段合同：../../pi_squad_case/04-team-orchestration/README.md
 
 ## 相关页面
 

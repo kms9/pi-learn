@@ -11,140 +11,263 @@ tags: [pi-squad, team-runtime, requirements]
 
 # Pi Squad Team Runtime 需求文档
 
-本文将 [原方案](TEAM_RUNTIME_PLAN.md) 与 2026-09-25 用户的五项补充合并为下一阶段需求。技术契约见 [技术文档](TEAM_RUNTIME_DESIGN.md)。本文的新目录、参数、接口均待实现；当前可用行为仍以 [USAGE](../../pi_squad/USAGE.md) 为准。
+本文定义第四阶段 Team Runtime 的当前 V1 需求。原 TEAM_RUNTIME_PLAN.md 作为历史方案参考；本文件和 TEAM_RUNTIME_DESIGN.md 是当前实施依据。本文描述的新能力均待实现。
 
-## 1. 评估结论
+## 1. V1 调度结论
 
-原方案的 Project Scope、Role/Agent/Team 分层、统一 Task Router、Leader 动态简报和 Acceptance Gate 可以保留，不能直接按原文实施：
+V1 允许同一 Project 配置并启动多个 Team，但主动限制调度拓扑，避免同时引入自动选 Agent、Role 多容量、跨 Team 抢占和自动故障转移。
 
-| 问题 | 评估与修订 |
+四个核心唯一性约束：
+
+| 资源 | V1 约束 |
 |---|---|
-| 原第 2、3、6、8、16、21、25 节使用 `.agents/roles`、`.agents/teams`、`.agents/.runtime` | 全部归入 `.agents/pisquad/`；仅 `.agents` 存在不能证明是 Squad 项目。 |
-| 原基线称 Messaging 未落地、支持 `PI_SQUAD_CONFIG` | 已过时。当前已有 HTTP/SSE 通信，旧 JSON 配置被拒绝；复用现有通信，不重建它。实际验收结论仍看各阶段报告。 |
-| `role.json + prompt.md` 示例 | 与现有 Markdown frontmatter 决策冲突，继续使用 `roles/<id>/role.md`。 |
-| “一个 Role / Agent 同时属于多个 Team” | 拆成模板复用、成员关系、当前执行上下文三个概念；成员关系不意味着同时执行。 |
-| 原第 10 节将 Leader 启动绑定视为临时方案 | 按本次需求，首版明确以启动身份区分 Leader / Role；进程内动态换 Team 或换身份不在本版。 |
-| 只写 Agent capacity=1 和短事务 | 必须补原子获取、续约、实例绑定、旧结果拒绝、失租隔离与显式恢复。 |
-| 原第 24 节建议在 Messaging 前改模型 | Messaging 已存在且按 squad_id 授权；迁移必须包含通信授权和旧数据兼容，不能只删数据库字段。 |
+| team_id | 同时最多一个有效 Leader Runtime |
+| role_id | 同时最多一个 Team-schedulable Primary Agent |
+| role_id | 同时最多一个 Action Team / SquadRun |
+| agent_id | 同时最多一个正式 Active Attempt |
 
-结论：有条件可行。先补命名空间、启动契约与成员/授权模型，再实现任务租约和 Team 编排。目录隔离能避免本项目的配置与状态文件撞名，但不能保证外部 Claude Code 不改相同业务文件。
+文件写入另外受 WriteReservation 控制。
 
-## 2. 术语与边界
+因此 V1 是：
+
+    Multi-Team
+      + Single Leader per Team
+      + Single Primary per Role
+      + Single Action Team per Role
+      + Single Attempt per Agent
+
+不是全 Project 单 Active Team，也不是同 Role 多 Agent 自动负载均衡。
+
+## 2. 术语
 
 | 术语 | 定义 |
 |---|---|
-| RoleDefinition | 可复用的职责模板，来源 `role.md`；不是运行中的 Pi。 |
-| Role working instructions | 同角色目录的 `agents.md`，可较频繁更新的工作约定；不是队列、锁或任务历史。 |
-| AgentInstance | 已注册的 Pi 运行实例，用 agent_id、runtime_id、runtime_session_id 精确定位。 |
-| TeamDefinition | 独立的 Leader、成员引用、成员职责、团队说明和策略配置。 |
-| TeamMembership | Agent 与 Team 的多对多拓扑；不占执行槽，不自动授权任意操作。 |
-| SquadRun | 一次 Team 请求及其 DAG、快照、结果；本文不另造 TeamRun 实体。 |
-| Task / Attempt | 正式执行单位及一次执行尝试；执行、质量审查、返工、Leader 决策轮均受统一调度约束。 |
-| ExecutionLease | Controller 授予某一 attempt 的执行租约；不是 controller.lock，也不是 Agent 身份占用。 |
+| RoleDefinition | 可复用职责模板，来源 roles/<role_id>/role.md |
+| Role working instructions | 同 Role 的 agents.md 工作规则 |
+| AgentInstance | 一个已注册 Pi 的稳定 agent_id 与当前 runtime/session |
+| RolePrimaryBinding | role_id 到唯一可参与 Team Scheduler 的 primary_agent_id 绑定 |
+| Secondary Agent | 同 role_id 的额外 AgentInstance；可正常独立使用，但 team_schedulable=false |
+| TeamDefinition | 一个 Team 的 Leader、role roster、instructions、policy |
+| SquadRun | 一次 Team 请求及其 DAG、上下文和结果 |
+| RoleActionOwnership | 某 role_id 当前由哪个 team_id / squad_run_id 独占使用 |
+| Action Team | 当前持有某 role_id 的 Team |
+| ExecutionLease | 某 Primary Agent 对某 Task Attempt 的实际执行许可 |
+| WriteReservation | 对声明文件路径的写入互斥 |
 
-继续沿用：用户手动启动 Pi，Controller 不 spawn/restart；仅向当前在线绑定投递；不自动重放状态不明的副作用任务；保留 DAG、责任树、最多 2 次返工和文件写租约。只读 Dashboard 不负责调度。
+RolePrimaryBinding 回答“这个 Role 由哪个 Pi 代表参加 Team 调度”；RoleActionOwnership 回答“这个 Role 当前为哪个 Team/Run 工作”。两者不能合并。
 
 ## 3. 需求
 
-### TR-01 专属命名空间与项目发现
+### TR-01 Project Scoped Controller
 
-- 声明配置放 `.agents/pisquad/roles/<role_id>/` 和 `.agents/pisquad/teams/<team_id>/`。用户第 1 条的单数 role/team 按第 4 条明确路径统一为复数，不同时支持两套拼写。
-- Squad 自有 Controller 锁、服务发现、数据库、运行快照、session 关联、日志及租约状态均位于 `.agents/pisquad/.runtime/`。
-- Squad 管理的 Pi 启动约定将原生 session 存储指向该运行目录；普通未启用 Squad 的 Pi 不迁移。不能靠 Extension 加载后复制 JSONL 冒充修改 session 存储。
-- 从 cwd 向上查找最近的 `.agents/pisquad`，真实路径的父项目作为 project_root；不因 `.agents/roles` 或 Claude 配置存在而激活。
-- 配置可进 Git，`.runtime/` 不进 Git；不读写 Claude Code 的 Team/session 配置，不自动搬迁或删除未知文件。
-- 每项目最多一个 Controller，多个项目动态分配 loopback 端口，连接时校验项目、Controller 实例和协议。
+- 声明配置统一位于 .agents/pisquad/roles 和 .agents/pisquad/teams。
+- 运行状态统一位于 .agents/pisquad/.runtime。
+- 从 cwd 向上找到最近的 .agents/pisquad 作为 Project Scope。
+- 一个 Project 同时最多一个 Controller。
+- Controller 使用 loopback 动态端口并发布 controller.json。
+- 未发现合法 Controller 时未选择 Squad 身份的 Pi 完全 no-op；显式选择 Squad 身份则显示不可用。
+- Controller 不自动 spawn / restart Pi。
 
-### TR-02 启动即确定身份和配置入口
+### TR-02 Team Leader 单实例
 
-- `mode=role`：必须给 role_id，加载对应 `role.md` 与 `agents.md`；不要求 team_id，不加载全部 Team 配置。
-- `mode=leader`：必须给 team_id，加载对应 `team.json` 与 `instructions.md`；普通 role_id 不可同时传入，不根据提示词含有 leader 自动提升身份。
-- Leader 的共同工作协议由 Extension/Controller 管理，团队具体协调规则写在 Team instructions 中。首版不依赖另一个普通 Role 文件才能启动 Leader。
-- 支持环境变量及对应启动参数，显式参数优先；组合错误、未知 ID、配置错误明确拒绝 Squad 激活，不悄悄切换为另一角色。
-- 一个 Leader 进程绑定一个 Team，可以串行处理该 Team 的多个 Run。普通 Role 实例可以加入多个 Team。
-- 没选 Squad 身份时完全不激活；已显式选择身份却没有合法 Controller 时清楚显示不可用，不注册、不执行 Squad 任务。
+- mode=leader 必须显式指定 team_id 与稳定 agent_id。
+- 一个 Leader 进程只绑定一个 Team；进程生命周期内不动态换 Team。
+- 同一 team_id 同时只允许一个有效 Leader Runtime。
+- 第二个相同 Team Leader 注册时，Controller 返回 TEAM_LEADER_ALREADY_ACTIVE，包含现有 agent/runtime/session/last_seen 摘要；Extension 通知用户并退出 Leader 模式。
+- 不同 Team 的 Leader 可以同时在线、同时处理各自 Run。
+- /new 只更新同一 Runtime 的 session，不算重复 Leader。
+- 同一稳定 Leader agent_id 退出后重启可重新绑定新 runtime_id；旧 runtime 的迟到写入受 epoch/fencing 拒绝。
 
-### TR-03 多 Team 与“我当前属于哪个 Team”
+### TR-03 Role Primary 单实例
 
-**普通 Role 执行 Team 任务时必须知道当前 team_id，但不必知道全部 Team 配置。**
+- mode=role 必须显式指定 role_id 与稳定 agent_id。
+- 同一 Project 的每个 role_id 同时只有一个 Team-schedulable Primary Agent。
+- 第一个成功原子占用 role_id 调度身份的稳定 agent_id 成为 Primary。
+- 同 role_id 后续启动的 AgentInstance 仍正常注册、正常手工对话、正常独立工作，但标记 secondary、team_schedulable=false。
+- Secondary 不进入 Team roster 的可执行候选，不接受 scope=team Task、review、rework、team ask 或 peer invoke。
+- Primary 绑定到 agent_id，不绑定单次 runtime_id；Primary 重启不因此失去身份。
+- Primary offline 时 Role 变为 primary_offline / unavailable，不自动提升 Secondary。
+- V1 只允许用户显式 release Primary 或 promote 某 Secondary；切换前必须确认旧执行状态，避免双执行。
+- Team Scheduler 不在多个同 Role Agent 中做负载均衡。
 
-- 同一个 reviewer Role 可以用于多个 Pi 实例；同一个 reviewer Agent 可以被两个 Team 引用，Registry 仍只有一个实例记录。
-- 空闲普通 Role 没有唯一 current_team_id；可查询 membership 列表。不能选列表第一个 Team 作为默认执行上下文。
-- 每次正式 Team Task 带 team_id、squad_run_id、task_id、attempt_id、职责和必要约束，Controller 验证其成员资格及授权。
-- 同一个实例同一时间最多执行一个模型工作单元；Team A 完成并释放后，才执行 Team B。结果按 task/attempt 归属，不按“最近联系的 Team”归属。
-- 独立 Agent 任务允许 team_id 为空，由显式 direct 授权控制。
-- 共享现有 Pi session 会保留历史，清除当前注入块不等于擦除历史。需要上下文隔离时用户启动两个不同 agent_id 的 Pi，共用 RoleDefinition，各自存储 session。
+### TR-04 多 Team 与 Role Action Team
 
-### TR-04 执行或质量审查前获取任务租约
+- 多个 Team 可以同时存在、同时运行。
+- TeamDefinition 的普通成员以 role_ref 表达；运行时由 Controller 解析 role_ref -> RolePrimaryBinding -> primary_agent_id。
+- 一个 role_id 可以出现在多个 Team 的配置中，但任一时刻只能有一个 RoleActionOwnership。
+- RoleActionOwnership 采用 lazy acquire：只有 Leader 第一次真正 dispatch 该 Role 时才申请，不在 Run 创建时预占全部 roster。
+- Action ownership 采用 run scoped release。获取成功后 role_id 的 action_team_id 与 action_run_id 固定到当前 SquadRun，直到 Run 终止且执行状态安全确认。
+- 同一 Run 内该 Role 暂时 idle 时不释放，避免 Primary 的 Pi Session 在多个 Team 上下文之间按 Task 来回切换。
+- 其它 Team 对已被占用 Role 的请求返回 ROLE_BUSY，并进入 waiting_role，不失败整个 SquadRun。
+- ROLE_BUSY 至少返回 role_id、primary_agent_id、action_team_id、action_run_id。
+- Role 释放时 Controller 发布 role_available，重新唤醒等待该 Role 的 Team Leader。
+- 不冲突的 Role 可以被其它 Team 正常并行调度。
 
-将用户“执行任务/质量之前”按“执行与质量审查均需获取”解释；此解释及工程参数见开放问题。
+### TR-05 Leader 对 Role 状态的发现与最终裁决
 
-- 必须由 Controller 在实际执行前原子授予租约；模型不能靠承诺“已拿锁”执行。
-- 同时检查 Task 可领取性、依赖、授权、实例在线/空闲、Agent 槽、Team 配额、项目总配额和 write_set。
-- 配额不足留在队列并显示具体原因，不持有半套资源等待其它资源。
-- 审查不享有绕过并发的特权；Leader 的规划/决策轮也占 Agent 和项目/Team 执行配额。Leader 等待成员时释放执行槽。
-- 区分“同时执行的工作单元数量”与“同时活跃的 Team 数量”，分别配置；纯等待不占执行容量。
-- 正常完成/失败释放资源；取消申请、断线、失租不代表 Pi 已停。旧执行状态未知时隔离槽位，确认停止或人工对账后才允许复用。
-- Controller 重启后对账，旧 lease 不直接继续执行；禁止因锁超时自动重跑可能有副作用的任务。
+Leader briefing 对本 Team roster 的 Role 状态统一为：
 
-### TR-05 Role 的专属 agents.md
+- available
+- working_here
+- busy_other_team
+- offline
+- quarantined
 
-- 规范文件名为小写 `agents.md`，由 Squad 显式加载，不依赖 Pi 自动向下发现。拒绝同时出现 `agents.md`/`AGENTS.md` 的歧义配置，大小写不敏感文件系统也需校验目录条目。
-- `role.md` 保持 name、description、稳定职责正文；`agents.md` 保存当前工作约定、经验、验证要求，允许普通 Markdown，空文件合法。
-- 迁移时给每个角色补空文件；目标格式要求文件存在，缺失或不可读时不接新任务。每次任务开始读取内容并记录 hash，整个 attempt（包括多个模型轮）固定此快照；下一项任务采用新内容。
-- 普通手工输入按一轮快照加载；`role.md` 仍在进程启动读取，更改需重启，首版不暗示 `/reload` 会替换现有进程缓存。
-- 项目/祖先通用 `AGENTS.md` 保留其正常作用。角色文件补充细节，不越过用户指令、项目约束或工具权限；冲突明确暴露。
-- 同一个 role_id 的 `agents.md` 被该角色全部实例共享。Team 专用规则放 Team instructions，当前任务事实放 TaskContract；不能自动写回角色文件造成跨 Team 污染。
-- 用户可编辑；Agent 只有在任务授权且声明该文件 write_set 时才可修改，遵守现有文件写队列和租约。角色文件不是模型自动持久记忆入口。
+Leader 可以根据 briefing 提前避免无效派发，但 briefing 不是锁。Controller 在 dispatch/acquire 时必须再次进行原子校验，解决两个 Leader 同时看到 free 的竞态。
 
-### TR-06 Team 配置与 Controller 展示
+遇到 busy_other_team：
 
-- 按 team_id 精确选择目录，配置包含独立 ID、显示名、版本、Leader agent_ref、成员 agent_ref/role_ref、职责描述、指令与策略。
-- 一个 Team 一个 Leader，Leader 自动计入 roster；显示名不能用作路由 ID。首版成员固定引用实际 agent_id，缺成员 blocked，不根据相同 role 自动换人。
-- Dashboard/查询区分 `mode=leader/role`、角色 ID、Leader 绑定 Team、所有成员关系、当前执行 Team/Run/Task、在线状态、占用/排队原因和规则版本。
-- Team View 可以重复引用同一 Agent，但不能把它显示成两个独立空闲槽。
+- 当前 Run 标 waiting_role，并记录 blocked_on_role_id。
+- Leader 只通知一次当前等待原因并结束本轮。
+- Leader 不轮询 Role，不持续占模型执行槽。
+- role_available 事件到达后才重新形成 leader_step。
 
-### TR-07 保留编排与质量门
+### TR-06 Task ExecutionLease
 
-Workflow 只生成已有 Task DAG；不建立独立执行引擎。Leader 通过结构化决定派发、等待、完成，不能直接运行普通实施工具。审查是独立 Task，使用自己的租约，引用待审 artifact 的 hash；规定需要独立 reviewer 时不能由产出者自审。最终 complete 由 Controller 检查依赖、审查、返工、未决状态与结果版本。
+RoleActionOwnership 不替代 Task ExecutionLease。
 
-## 4. Multica 参考结论
+实际执行前 Controller 仍需原子检查：
 
-核对固定提交 `1c908ea52c19f193d301ca9460fc1d7d100a1b3d`，详细证据与字段映射见技术文档及 [来源摘要](../../docs/sources/multica-team-runtime.md)。
+- Task 可领取性和依赖
+- Team/Run 授权
+- role_id 的 Action Team 是否为当前 Run
+- target agent 是否为该 Role 当前 Primary
+- Primary runtime/session 在线且空闲
+- agent_id 无其它 Active Attempt
+- Project / Team task capacity
+- write_set 无冲突
 
-Multica 的成员表允许同一成员属于多个 Squad，任务携带 squad_id，Leader briefing 在领取时组装；现代协议明确传递本次任务的 Leader 身份。这支持“多成员关系＋明确当前任务上下文”。其 Team 是服务端数据，不是 `.agents/pisquad/teams/<id>` 的本地目录规范；本文目录、team.json 和启动模式是 Pi Squad 的设计，不冒称上游标准。
+成功后创建 TaskAttempt、ExecutionLease 和必要 ResourceReservation。执行中续约、旧结果 fencing、失租隔离、Controller 重启对账继续沿用。
 
-与 Multica 不同，首版 Pi Squad 固定 Leader 启动身份，用结构化工具而非评论 @mention 派发，固定在线 Pi 串行执行，不照搬其进程启动、数据库或恢复策略。
+一个 agent_id 同时最多一个正式 Attempt。
 
-## 5. 验收矩阵（全部待执行）
+### TR-07 Team ask / peer invoke 不得绕过 Role 调度
+
+会触发目标 Role 新模型轮的 Team 行为都受 RolePrimaryBinding 和 RoleActionOwnership 约束：
+
+- execute
+- review
+- rework
+- team ask
+- peer invoke
+
+notice、status query、read existing result 不获取 Role Action Ownership。
+
+Secondary 即使在线也不能通过 ask 或 peer invoke 被 Team 间接调用。
+
+### TR-08 Role 配置与 agents.md
+
+- RoleDefinition 使用 roles/<role_id>/role.md。
+- 同目录 agents.md 保存较频繁变化的工作规则。
+- Primary 和 Secondary 可以共享同一 RoleDefinition；Primary 身份不写进 role.md。
+- agents.md 的变更以 Attempt 快照为边界；进行中的 Attempt 固定 hash。
+- Team 专属规则写 Team instructions，当前执行事实写 TaskContract，不能自动回写 Role 文件形成跨 Team 污染。
+- 项目/祖先 AGENTS.md 继续按 Pi 原生规则生效，Role 配置不能提升工具权限。
+
+### TR-09 Team 配置
+
+Team 配置示例语义：
+
+    team_id: coding-team
+    leader.agent_ref: coding-lead
+    members:
+      - role_ref: backend
+        responsibility: 实现
+      - role_ref: reviewer
+        responsibility: 独立审查
+
+要求：
+
+- leader.agent_ref 为 Team 专属稳定身份。
+- 普通 member V1 只需要 role_ref，不固定 worker agent_ref。
+- 同一 Team 不重复 role_ref。
+- Controller 校验 role_ref 存在，并在运行时解析 Primary。
+- config_version 与内容 hash 固定到 SquadRun。
+- V1 不支持按 role_ref 自动创建/启动 Pi，也不自动选择 Secondary。
+
+### TR-10 Dashboard 与控制面
+
+Dashboard 至少展示：
+
+Team View：
+- team_id
+- leader agent/runtime/session
+- Leader 是否单实例有效
+- SquadRun 状态
+- roster 中各 role 的 Primary、Action Team、Role 状态和等待原因
+
+Role View：
+- role_id
+- primary_agent_id
+- primary 在线状态
+- secondary agent 列表
+- team_schedulable
+- action_team_id / action_run_id
+- free / owned / primary_offline / quarantined
+
+Agent View：
+- agent_id
+- role_id
+- primary / secondary
+- runtime/session
+- team_schedulable
+- current Team/Run/Task/Attempt
+
+Secondary 必须明确显示 standalone，不能被用户误解为额外 Team capacity。
+
+### TR-11 Workflow、审查与最终 Gate
+
+- Workflow 只 materialize 为现有 Task DAG，不建立第二套执行引擎。
+- Leader 通过结构化 decision 派发、等待、完成；不直接运行普通实施工具。
+- 审查是独立 Task，同样需要对应 Role 的 Action ownership 和 Primary Agent ExecutionLease。
+- required review 未通过、waiting_role 未解除、quarantined 未处理、依赖未完成时 complete 必须拒绝。
+- review/rework 可以在同一 SquadRun 内继续使用已经持有的 RoleActionOwnership。
+
+## 4. Multica 参考与本项目收缩
+
+Multica 支持一个 Workspace 多个 Squad，每个 Squad 一个 leader_id，成员可以加入多个 Squad；其成员 role 是 roster 描述，并不是全局可锁 RoleDefinition。Multica 也不自动因为 Squad 提升并发。
+
+Pi Squad V1 借鉴其“一个 Squad 一个 Leader、Leader 获取 roster/instructions、Task 明确携带 Squad 上下文”的思路，但额外增加两项复杂度控制：
+
+1. role_id 只有一个 Team-schedulable Primary Agent。
+2. role_id 同时只有一个 Action Team / SquadRun。
+
+这两项是本项目约束，不冒称为 Multica 行为。
+
+## 5. 验收矩阵
 
 | ID | 场景 | 通过标准 |
 |---|---|---|
-| TR-A01 | 项目同时有 Claude 配置、旧 roles 和新 pisquad | 只按新目录加载；不写其它产品目录；仅旧目录时提示迁移。 |
-| TR-A02 | 子目录启动、嵌套 Squad 项目、两项目 Controller | 选择最近合法项目；端口独立；跨项目发现拒绝。 |
-| TR-A03 | 同项目双启动/陈旧 discovery | 文件锁确保唯一；PID 重用不导致误删锁；health 身份不符拒绝。 |
-| TR-A04 | Role/Leader 环境或参数启动 | 各加载唯一对应目录；混合选择器/未知 ID 拒绝；Dashboard 正确区分。 |
-| TR-A05 | 裸 Pi / 缺 Controller / Controller 断线 | 裸 Pi no-op；显式选择显示不可用；断线暂停，不回退另一服务。 |
-| TR-A06 | 两 Team 共享 reviewer 实例 | 两 roster 一条 Registry；每次任务正确 team_id；第二项排队，无并发注入。 |
-| TR-A07 | 两实例共享 reviewer 模板 | agent_id、session、执行槽独立；role 配置可复用。 |
-| TR-A08 | 执行与审查争抢容量 | 均须租约；项目/Team/Agent/活跃 Team 上限同时满足；无部分持锁。 |
-| TR-A09 | 重复 acquire、投递丢失、迟到结果 | 幂等取得相同 attempt；重复通知不重复执行；旧 epoch/attempt 结果拒绝。 |
-| TR-A10 | 失租、取消、重启但旧 Pi 尚忙 | needs_review/quarantined，不自动释放复用或重跑；人工对账可追溯。 |
-| TR-A11 | 修改 agents.md | 运行中 attempt 保持旧 hash；下一项使用新 hash；缺失/大小写冲突明确报错。 |
-| TR-A12 | agents.md 和通用 AGENTS.md 冲突 | 不覆盖全局规则；文件不能改变注册身份/提升工具权限。 |
-| TR-A13 | Leader 声称完成或尝试直接写文件 | 权限层阻止实施；缺审查或存在不明结果时 complete 被拒绝。 |
-| TR-A14 | 两 Team 消息授权与 session 变化 | 明确 team_id/关联任务；不能借任一共同 Team 越权；旧绑定不能接新任务。 |
-| TR-A15 | 用户输入/ask 与任务竞争、成员互调 | 同一 Pi 无双执行；中断向 Leader 报未完成；等待子任务不持槽死锁。 |
-| TR-A16 | 所有运行文件位置 | DB/WAL/SHM、发现、锁、快照、日志及受管 session 均在 .runtime；配置不被运行数据覆盖。 |
-| TR-A17 | 配置修改与队列公平 | 活跃 run 固定 config；新 run 用新版本；被忙 Agent 阻塞的队首不堵塞其它可执行任务。 |
+| TR-A01 | 同 Project 启两个 coding-team Leader | 第二个返回 TEAM_LEADER_ALREADY_ACTIVE，通知后退出；第一个继续正常 |
+| TR-A02 | 同时启动 coding-team 与 research-team Leader | 两个都在线，可并行处理不冲突 Role |
+| TR-A03 | 第一个 reviewer Role 启动 | 成为 Primary，team_schedulable=true |
+| TR-A04 | 第二个 reviewer Role 启动 | 正常注册为 Secondary；手工对话正常；Team Scheduler 不选择它 |
+| TR-A05 | Primary reviewer offline，Secondary online | Role 显示 primary_offline；不自动提升，不自动接 Team 任务 |
+| TR-A06 | 显式 promote Secondary | 旧 Primary 安全释放后新 Primary 生效；binding epoch 更新 |
+| TR-A07 | Team A 首次 dispatch reviewer | lazy acquire 成功，Action Team=A、Action Run=A1 |
+| TR-A08 | Team B 同时 dispatch reviewer | 返回 ROLE_BUSY，Run B=waiting_role；不创建 reviewer Attempt |
+| TR-A09 | Team B 同时 dispatch researcher | researcher 不冲突，可继续运行 |
+| TR-A10 | Team A reviewer Task 完成但 Run 未结束 | reviewer 仍归 Team A，不被 Team B 插队 |
+| TR-A11 | Team A Run 安全结束 | reviewer ownership 释放并产生 role_available；Team B Leader 被重新唤醒 |
+| TR-A12 | 两 Leader 同时看到 reviewer free 后竞争 | Controller CAS 只允许一个 Team 获取 ownership |
+| TR-A13 | Team B 用 ask/peer invoke 绕过 reviewer busy | 同样返回 ROLE_BUSY，不触发 Secondary |
+| TR-A14 | 同一 Primary 同时收到两个本 Team Task | 一个 Active Attempt，另一个排队 |
+| TR-A15 | Primary /new | session 更新，不变更 Primary identity 或 Action Team |
+| TR-A16 | Primary 重启 | 同 agent_id 可重绑定新 runtime；旧 runtime 迟到写被拒绝 |
+| TR-A17 | Dashboard | 能从 Team/Role/Agent 三个视图解释 Leader、Primary、Action Team、waiting_role |
+| TR-A18 | review/rework | 复用同一 Run 的 Role ownership，Acceptance Gate 保持有效 |
+| TR-A19 | 失租/Controller 重启 | Role/Agent/write 资源进入可解释隔离，不因 Secondary 在线自动恢复 |
+| TR-A20 | 独立 Pi 使用 | Secondary 正常独立使用，不受 Team Scheduler 禁止 |
 
-运行验收按 `pi_squad/AGENTS.md`：新测试 workspace，至少三个不同 Role Pi、另启 Leader 和对应 Dashboard；所有 Pi cwd 为项目目录，使用隔离 Controller。两 Team 用例启动两个不同 Team Leader。本文编写不代表运行验收。
+原有项目发现、配置快照、文件写冲突、人工介入、DAG、幂等、迟到结果验收继续执行。
 
-## 6. 实施顺序与未决
+## 6. 实施顺序
 
-1. 命名空间、启动选择器、project discovery、受管 session 目录及配置解析。
-2. Registry / TeamMembership / 消息授权一起迁移，Controller 展示新身份。
-3. Invocation 的执行租约与恢复协议，再加审查和 Leader 决策轮。
-4. 固定 roster Team Runtime、DAG、验收门；最后增加 Workflow 与成语接龙演示。
-
-首版建议值、agents.md 自动生效边界、活跃 Team 计数口径属于本文工程提案，尚非用户逐项确认。未决统一记录在 [开放问题](../../docs/questions/open-questions.md)，不阻碍本轮文档交付。实现新能力时同步 USAGE 和原阶段验收合同；本轮不修改已可用命令说明。
+1. Project discovery 与 Leader 单实例绑定。
+2. RolePrimaryBinding：Primary / Secondary 注册和 Dashboard。
+3. Team roster 改为 role_ref，Controller 解析 Primary。
+4. RoleActionOwnership：lazy acquire、waiting_role、role_available 唤醒。
+5. ExecutionLease 与 Role ownership 原子组合校验。
+6. Team ask / peer invoke 接入同一 Role Gate。
+7. DAG、review/rework、Acceptance Gate 全链路验收。
+8. 最后再考虑 Role capacity > 1、自动 Secondary promotion 或更复杂的跨 Team 调度；这些不属于 V1。
