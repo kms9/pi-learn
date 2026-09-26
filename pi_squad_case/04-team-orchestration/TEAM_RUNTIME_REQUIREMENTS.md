@@ -3,7 +3,7 @@ title: Pi Squad Team Runtime 需求文档
 type: process
 status: draft
 created: 2026-09-25
-updated: 2026-09-25
+updated: 2026-09-26
 implementation_status: not_implemented
 acceptance_status: not_run
 decision_status: confirmed
@@ -241,6 +241,14 @@ Pi Squad V1 借鉴其“一个 Squad 一个 Leader、Leader 获取 roster/instru
 
 ## 5. 验收矩阵
 
+阶段 04 的验收不只证明“能派发”，而要证明三个闭环同时成立：
+
+1. **协作闭环**：Leader 分工 → 成员执行 → 依赖交接 → 独立 review → rework → 最终 Acceptance Gate。
+2. **调度闭环**：Primary、Action ownership、ExecutionLease、WriteReservation 在单 Team 和多 Team 竞争下均不串、不抢、不重复。
+3. **恢复闭环**：离线、/new、取消、Controller 重启、迟到结果和循环等待都不会产生假成功、提前释放或隐式重执行。
+
+每个关键用例至少保存三类证据：真实 Pi 工具/对话轨迹、Controller 状态/事件、结果或确定性检查器结论。模型自述“已完成”不能替代任一类证据。
+
 | ID | 场景 | 通过标准 |
 |---|---|---|
 | TR-A01 | 同 Project 启两个 coding-team Leader | 第二个返回 TEAM_LEADER_ALREADY_ACTIVE，通知后退出；第一个继续正常 |
@@ -256,15 +264,55 @@ Pi Squad V1 借鉴其“一个 Squad 一个 Leader、Leader 获取 roster/instru
 | TR-A11 | Team A Run 安全结束 | reviewer ownership 释放并产生 role_available；Team B Leader 被重新唤醒 |
 | TR-A12 | 两 Leader 同时看到 reviewer free 后竞争 | Controller CAS 只允许一个 Team 获取 ownership |
 | TR-A13 | Team B 用 ask/peer invoke 绕过 reviewer busy | 同样返回 ROLE_BUSY，不触发 Secondary |
-| TR-A14 | 同一 Primary 同时收到两个本 Team Task | 一个 Active Attempt，另一个排队 |
-| TR-A15 | Primary /new | session 更新，不变更 Primary identity 或 Action Team |
+| TR-A14 | 同一 Primary 同时收到两个本 Team Task | 一个 Active Attempt，另一个排队；Pi 本地也不得出现两个正式模型工作轮重入 |
+| TR-A15 | Primary /new（空闲时） | session 更新，不变更 Primary identity 或 Action Team |
 | TR-A16 | Primary 重启 | 同 agent_id 可重绑定新 runtime；旧 runtime 迟到写被拒绝 |
-| TR-A17 | Dashboard | 能从 Team/Role/Agent 三个视图解释 Leader、Primary、Action Team、waiting_role |
+| TR-A17 | Dashboard | 能从 Team/Role/Agent 三个视图解释 Leader、Primary、Action Team、waiting_role 和当前 Attempt |
 | TR-A18 | review/rework | 复用同一 Run 的 Role ownership，Acceptance Gate 保持有效 |
-| TR-A19 | 失租/Controller 重启 | Role/Agent/write 资源进入可解释隔离，不因 Secondary 在线自动恢复 |
+| TR-A19 | 失租/Controller 重启 | 进入 reconciliation/needs_review 或 quarantined；不因 lease TTL、Secondary 在线或 Controller 重启自动释放 Role/Agent/write 资源或自动重执行 |
 | TR-A20 | 独立 Pi 使用 | Secondary 正常独立使用，不受 Team Scheduler 禁止 |
+| TR-A21 | 真实 Team 完整闭环 | 至少两个真实成员完成不同 Task；后序 Task 使用前序结果；独立 reviewer 审查；最终 Gate 只在当前 DAG 满足后通过 |
+| TR-A22 | 强制 review 失败与返工 | 准备确定性错误结果，reviewer 必须拒绝；Leader 创建 rework；修复后重新 review，旧拒绝记录保留且不能被覆盖 |
+| TR-A23 | 最终 Gate 拒绝不完整 Run | required review 未通过、依赖未完成、waiting_role 未解除或 quarantined 未对账时，Leader 的 complete 请求被 Controller 拒绝 |
+| TR-A24 | 多分支等待时继续推进 | 某 Task 等 reviewer、另一 Task 等 researcher 时，已就绪且不冲突的第三分支仍可执行；一个 role_available 不得误清其它等待条件 |
+| TR-A25 | role_available 幂等与竞争唤醒 | 重复/迟到 role_available 不造成重复派发；多个等待 Team 同时被唤醒时仍只有一个 CAS 获取 ownership |
+| TR-A26 | 跨 Team 循环等待 | A 持有 backend 等 reviewer、B 持有 reviewer 等 backend 时，系统识别等待环并展示完整阻塞链；不忙轮询、不自动抢占；用户显式终止/恢复其中一方并完成对账后另一方可继续 |
+| TR-A27 | peer invoke 父子续接 | 父 Task 调用子 Agent 后使用 yield/waiting_dependency 结束当前模型轮；子结果到达后只恢复正确父 Task continuation，不用长期阻塞调用占住 Agent 执行槽 |
+| TR-A28 | 递归调用与依赖环 | 同一责任链调用自己/祖先或形成等待 DAG 环时明确拒绝；不创建无法完成的 Active Attempt，不形成静默死锁 |
+| TR-A29 | 执行中 /new | 当前 Attempt 标 interrupted/session_changed；旧任务不迁移进新 session；旧会话晚到结果只入历史，不能完成新 Attempt |
+| TR-A30 | 实际 LLM 上下文归属 | 验收证据能证明当前模型轮包含正确 role_id/primary_agent_id/team_id/run_id/task_id/attempt_id、TaskContract 与配置 hash；上一 Attempt 的动态 Task 块不继续作为当前有效指令 |
+| TR-A31 | ExecutionLease 与 WriteReservation 独立生效 | 同 Agent 两个正式 Attempt 不并发；不同 Agent 写不同资源可并行；声明相同 write_set 时不能同时持有写权限 |
+| TR-A32 | review 覆盖当前结果版本 | review 通过后若被审查结果或 artifact 发生变更，旧 review 不能继续满足最终 Gate；必须对当前有效结果版本重新审查 |
+| TR-A33 | 同 Team 第二个 Run 的隔离 | 无论最终选择 queue/reject/parallel admission，第二个 Run 都不能覆盖第一个 Run、混用 TaskContract/session 动态上下文，或因 team_id 相同绕过 RoleActionOwnership；实际采用的 admission policy 必须在验收记录中明确 |
 
-原有项目发现、配置快照、文件写冲突、人工介入、DAG、幂等、迟到结果验收继续执行。
+原有项目发现、配置快照、文件写冲突、人工介入、DAG、幂等、迟到结果验收继续执行。TR-A21—A33 是对第四阶段完整协作、等待恢复和上下文正确性的补充，不改变 V1 的四个核心唯一性约束。
+
+### 5.1 阶段 04 主验收路径
+
+为了避免模型质量、业务复杂度与调度协议混在一起，主流程固定使用可确定性验证的小任务：
+
+    numbers.txt = 10 / 20 / 30
+    count = 3
+    sum = 60
+
+按三轮执行：
+
+1. **单 Team 闭环**：并行计算 count/sum → 合并 → reviewer 审查；再注入一次确定性错误结果，验证 reject → rework → re-review → final gate。
+2. **多 Team 竞争**：Team A 持有 reviewer，Team B 请求 reviewer 进入 waiting_role，但 Team B 其它 Role 继续；A 安全释放后 B 由事件唤醒并重新 acquire。
+3. **故障注入**：在同一流程固定位置依次验证 duplicate dispatch、Primary offline、执行中 /new、cancel、Controller 重启和迟到结果。
+
+无模型测试可高频验证 CAS、fencing、revision、幂等和故障窗口，但不能替代真实 Pi 主流程。
+
+### 5.2 状态解释要求
+
+任何非终态 Run，用户至少能从 Controller/Dashboard 回答：
+
+- 当前 Team Leader 是谁、Leader runtime/session/binding epoch 是什么；
+- 每个 role 的 Primary/Secondary、online/activity、team_schedulable；
+- role 当前由哪个 Team/Run 持有，若 waiting_role 则阻塞于哪个 role/team/run；
+- 当前 Task/Attempt、依赖、review/rework 与 acceptance 状态；
+- 是否处于 offline、quarantined、needs_review、outcome_unknown 或人工恢复等待；
+- 下一步是自动事件唤醒、Leader 重新决策，还是需要用户显式操作。
 
 ## 6. 实施顺序
 
