@@ -3,7 +3,7 @@ title: Wiki 日志
 type: log
 status: active
 created: 2026-09-07
-updated: 2026-09-24
+updated: 2026-09-27
 tags:
   - project-wiki
   - log
@@ -136,7 +136,7 @@ tags:
 ## [2026-09-07] init | 按 LLM Wiki 规范初始化 docs/
 
 - 来源: Karpathy LLM Wiki gist、`project_wiki/AGENTS.md`、本仓库既有 overlay 与对话
-- 更新: `AGENTS.md`、`raw/README.md`、`docs/index.md`、`docs/log.md`、`docs/templates/`、`docs/sources/`、`docs/overlay/`、`docs/learning/`、`docs/concepts/`、`docs/decisions/`、`docs/sessions/`、`docs/questions/`
+- 更新: `AGENTS.md`、`raw/README.md`、`docs/index.md`、`docs/log.md`、`docs/templates/`、`docs/sources/`、`docs/overlay/`、`docs/learning/`、`docs/concepts/`、`docs/decisions/`、`docs/questions/`
 - 说明: `docs/` 成为编译知识层。后续沟通默认写回对应目录，不把可复用结论只留在聊天里。
 
 ## [2026-09-07] session | overlay、译文迁移与插件学习
@@ -336,3 +336,9 @@ tags:
 - 来源: 用户追问；Team Runtime 需求与技术提案
 - 更新: `docs/concepts/squad-role-instance-lease.md`、解释会话、主索引
 - 说明: 用双 Team 共用 reviewer 说明模板/实例/当前任务的区别；说明正常自动释放与失租状态不明隔离的差异、续约由 Extension 承担。仅概念澄清，不改实现或将提案记为已确认。
+
+## [2026-09-27] session | 阶段 04 冲突审查与统一需求技术文档
+
+- 来源: 用户授权全面检查、补全、合并并推送；基线 `cdae80379685ff5c79621117712ce9f53ddefe1c` 的五文件、阶段03、现有扩展及固定Pi关键API。
+- 更新: `pi_squad_case/04-team-orchestration/` 两份权威文档和导航README；全局验收与索引；`docs/sessions/2026-09-27-pi-squad-phase04-consolidation.md`、`docs/index.md`。
+- 说明: 记录20处冲突/歧义及处理，保留49项用例并补40项，P4共89项、总索引160项；实施按M0—M8。明确FIFO、Task级blockers、affinity/segment分离、显式Run和输入分类等本轮默认。仅文档审查与整合，未实现或运行P4；不重置既有结果，不改submodule，不自动合并PR #3。

@@ -3,7 +3,7 @@ title: pi_case 知识库索引
 type: index
 status: active
 created: 2026-09-07
-updated: 2026-09-25
+updated: 2026-09-27
 tags:
   - project-wiki
   - index
@@ -62,6 +62,8 @@ tags:
 - [[decisions/2026-09-23-p0-identity-fields|2026-09-23 P0 身份字段与 HTTP Registry]]
 
 ## 会话
+
+- [[sessions/2026-09-27-pi-squad-phase04-consolidation|2026-09-27 阶段 04 冲突审查、实施顺序与文档统一]]
 
 - [[sessions/2026-09-25-squad-role-lease-explanation|2026-09-25 澄清角色实例与执行租约]]
 
@@ -136,8 +138,8 @@ tags:
 
 ## Pi Squad 本地实验（pi_squad_dev 分支）
 
-- [六阶段需求、技术实施与用户验收总索引](../pi_squad_case/README.md) - Go 控制面＋必要 TS Pi 扩展；仅在线 Agent；85 个计划用例（含评审补充10项），当前未实现/未执行。
+- [六阶段需求、技术实施与用户验收总索引](../pi_squad_case/README.md) - Go 控制面＋必要 TS Pi 扩展；仅在线 Agent；当前登记 160 个计划用例，测试结果以各阶段实际记录为准。
 - [固定源码与文件/函数参考](../pi_squad_case/SOURCES.md)
 - [统一验收记录与恢复规范](../pi_squad_case/ACCEPTANCE.md)
 
-- [Team Runtime 需求文档](../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_REQUIREMENTS.md) / [技术设计](../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_DESIGN.md) - 2026-09-25 修订，待实现。
+- [阶段 04 统一需求与 89 项验收](../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_REQUIREMENTS.md) / [技术设计、冲突裁决、实施顺序与来源](../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_DESIGN.md) - 2026-09-27 合并；新能力待实现，89 项 NOT_RUN；既有切片结果不被重置。
