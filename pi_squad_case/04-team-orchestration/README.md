@@ -5,7 +5,7 @@ type: process
 requirements: confirmed
 implementation_status: not_implemented
 acceptance_status: not_run
-updated: 2026-09-25
+updated: 2026-09-26
 ---
 
 # 阶段 04｜组成小队：对话驱动分工、交接、审查与返工
@@ -210,20 +210,37 @@ waiting_role 不占目标 Role 的 ExecutionLease，不让 Leader 忙等；Role 
 
 ## 11. 验收重点
 
-阶段 04 新增以下必须验收的调度场景：
+阶段 04 不再只验收“能否派发”，而按三条闭环组织：
 
-- TEAM-LEADER-01：同一个 Team 的第二个 Leader 启动被拒绝并退出；不同 Team Leader 可同时在线。
-- ROLE-PRIMARY-01：第一个 reviewer agent 成为 Primary；后续 reviewer 实例为 secondary，正常手工使用但不可 Team 调度。
-- ROLE-PRIMARY-02：Primary offline 不自动切换到 secondary；显式 promote/release 才改变绑定。
-- ROLE-ACTION-01：Team A 获取 reviewer 后，Team B 对 reviewer 的派发进入 waiting_role。
-- ROLE-ACTION-02：Team B 的其它不冲突 Role 仍可继续工作，不因 reviewer 忙而冻结整个 Team。
-- ROLE-ACTION-03：Team A 的 Run 结束并安全释放 reviewer 后，Controller 唤醒 Team B Leader。
-- ROLE-ACTION-04：Leader briefing 的 busy_other_team 与 dispatch 时 Controller 最终校验一致，竞态不能形成双占用。
-- ROLE-ACTION-05：Team ask / peer invoke 不能绕过 RoleActionOwnership。
-- AGENT-LEASE-01：Primary Agent 同时最多一个正式 Attempt；迟到旧 Attempt 不能推进新 Run。
-- DASHBOARD-01：能直接看出 Team Leader 单实例、Role Primary/Secondary、Action Team、waiting_role 和当前 Attempt。
+### 11.1 协作闭环
 
-原有 DAG、review/rework、Acceptance Gate、write_set、人工介入与 Controller 重启验收继续保留。
+- 真实 Leader 形成结构化决策，至少两个真实成员执行不同 Task，并通过 DAG 发生结果依赖。
+- reviewer 必须是独立 Task；至少主动制造一次确定性 review 失败，验证 reject → rework → re-review。
+- required review、依赖、waiting_role、quarantined 任一未满足时，最终 complete / Acceptance Gate 必须拒绝。
+- review 只覆盖其审查的当前结果版本；被审查产物变更后必须重新 review。
+
+### 11.2 调度闭环
+
+- TEAM-LEADER：同 Team 第二个 Leader 被拒绝，不同 Team Leader 可并存。
+- ROLE-PRIMARY：同 Role 只有一个 Team-schedulable Primary；Secondary 可独立使用但不能通过 Task/ask/peer invoke 被 Team 调度。
+- ROLE-ACTION：共享 Role 同时只属于一个 Team/Run；其它 Team waiting_role，不冲突 Role 继续运行。
+- AGENT-LEASE：同 Agent 同时最多一个正式 Attempt；ExecutionLease 与 WriteReservation 分别验证。
+- ROLE-WAKEUP：role_available 幂等；多个等待 Team 被唤醒后仍以 Controller CAS 决定下一持有者。
+- WAIT-CYCLE：跨 Team 形成 ownership 等待环时必须可检测、可解释，不忙轮询、不自动抢占；由用户显式终止/恢复后继续。
+- RUN-ISOLATION：同 Team 第二个 Run 无论最终 admission policy 为 queue/reject/parallel，都不得覆盖旧 Run、混用 TaskContract 或绕过 Role ownership。
+
+### 11.3 恢复闭环
+
+- Primary offline 不自动切换 Secondary；显式 promote/release 前必须对账旧执行。
+- 执行中 /new 终结当前 Attempt 的任务归属，旧任务不迁移进新 session，晚到结果不能完成新 Attempt。
+- Controller 重启、失租、取消、迟到结果进入明确 reconciliation/needs_review/quarantined/outcome_unknown 语义，不自动重执行，不因 TTL 直接释放有副作用的资源。
+- peer invoke 使用异步 task + yield/waiting_dependency + continuation；父子依赖和递归环可追踪，不能用长期阻塞调用占住 Agent。
+
+### 11.4 上下文与可观测性
+
+- 每个正式模型轮必须能证明实际收到正确的 role/team/run/task/attempt、TaskContract 和配置 hash；上一 Attempt 的动态任务块不得继续成为当前有效指令。
+- Dashboard 至少从 Team/Role/Agent 三个视图解释 Leader、Primary/Secondary、Action Team/Run、waiting_role、Task/Attempt、review/rework、acceptance 和故障状态。
+- 详细用例以 TEAM_RUNTIME_REQUIREMENTS.md 的 TR-A01—TR-A33 为准；原 DAG、幂等、文件冲突、人工介入、Controller 重启验收继续保留。
 
 ## 12. 阶段退出门槛
 
