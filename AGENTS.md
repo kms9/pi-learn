@@ -134,3 +134,16 @@ python3 scripts/sync-zh.py --accept <source> --record-head
 - 不要掩盖歧义，记入 `docs/questions/open-questions.md`。
 - 不要引入 RAG、向量库、wiki 搜索服务，除非用户批准且现有 index 不够用。
 - 不要整份粘贴 `extensions.md`。
+
+## Pi Squad 使用说明
+
+`pi_squad/USAGE.md` 是这个插件的配置与启动说明。给 `pi_squad/` 增加已经能用的功能时，同一次改动更新该文件：配置字段、启动命令、会话内命令和工具。不要把还没落地的能力写进去。阶段验收仍以 `pi_squad_case/` 为准，不把使用说明拆成第二份。
+
+Controller 的 Go 版本和库边界在 `pi_squad/controller/AGENTS.md`。Gin、Resty、Viper、Cobra、Bubble Tea 只用于该目录。
+
+检查 `pi_squad` 插件时先读 `pi_squad/AGENTS.md`。新检查前先关掉上次留下的测试 workspace，再新开 workspace。至少启动三个不同角色的 Pi，启动 cwd 用当前项目目录以检查其中的 `.agents/roles`，并打开对应该 Controller 的 Dashboard。不要用外部 tmux，也不要用一堆脚本代替看 pane。
+
+
+## Herdr 验收交接与结果回传
+
+给 Claude 等验收 Agent 派发任务时，必须传递本次发起者的当前 pane ID，不能只给测试要求。发送前用 `herdr pane current --current` 获取实时 pane_id 和 terminal_id；规则详见 `pi_squad/AGENTS.md` 的「验收回传」。每次交接记录 handoff_id、callback_pane_id、callback_terminal_id、报告路径。验收完成或因明确阻塞结束时，验收方必须主动回传结果，而不是只在自己的 pane 留下回答。此规则由用户明确授权；结果通知不等于自动批准下一阶段。
