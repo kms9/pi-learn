@@ -1,0 +1,1 @@
+roster只有auditor，与stats-team和share-team均不相交。按count工作流读取指定文件，Leader无可执行动作时squad_decide wait并立即结束回合。

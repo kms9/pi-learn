@@ -3,7 +3,7 @@ title: 2026-09-25 Squad 专属目录与启动身份
 type: decision
 status: active
 created: 2026-09-25
-updated: 2026-09-25
+updated: 2026-09-27
 decision_date: 2026-09-25
 tags: [project-wiki, decision, pi-squad]
 ---
@@ -14,7 +14,7 @@ tags: [project-wiki, decision, pi-squad]
 
 用户明确要求的目标：配置和运行状态集中到 `.agents/pisquad`；按启动参数/环境区分 Team Leader 与普通 Role；Controller 展示该身份；执行及质量审查前尝试获取 Controller 任务锁；每角色有独立、可更新的 `agents.md`，与稳定 `role.md` 分开。
 
-目录采用用户第 4 条明确的复数 `roles` / `teams`。任务锁采用租约、规则在 attempt 边界热读、Leader 首版只加载 Team 的具体机制是技术提案，不视为用户已逐项批准。
+目录采用用户第 4 条明确的复数 `roles` / `teams`。任务锁采用租约、规则在 attempt 边界热读、Leader 首版只加载 Team 的具体机制是技术提案，不视为用户已逐项批准。2026-09-27 起以阶段 04 统一需求为准：agents.md 按新 Attempt 固定快照，Leader 启动固定 `mode=leader` + `team_id`，Role 在 Team 激活时整体占用，见 [[decisions/2026-09-27-squad-phase04-activation-and-split]]。
 
 ## 背景
 

@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "workflow_id": "stats",
+  "steps": [
+    {
+      "id": "count",
+      "role_ref": "counter",
+      "kind": "execute",
+      "goal": "Read pi_squad_case/04-team-orchestration/integration/fixtures/numbers.txt and return count=3 from actual data Copy the managed read artifact (path, sha256, length) into agent_task_complete.artifacts. Do not calculate the hash with bash.",
+      "depends_on": []
+    },
+    {
+      "id": "sum",
+      "role_ref": "summer",
+      "kind": "execute",
+      "goal": "Read pi_squad_case/04-team-orchestration/integration/fixtures/numbers.txt and return the actual sum Copy the managed read artifact (path, sha256, length) into agent_task_complete.artifacts. Do not calculate the hash with bash.",
+      "depends_on": []
+    },
+    {
+      "id": "review",
+      "role_ref": "reviewer",
+      "kind": "review",
+      "goal": "Independently read pi_squad_case/04-team-orchestration/integration/fixtures/numbers.txt; accept only count=3 and sum=60 Copy the managed read artifact (path, sha256, length) into agent_task_complete.artifacts. Do not calculate the hash with bash.",
+      "depends_on": [
+        {
+          "step": "count",
+          "condition": "execution_completed"
+        },
+        {
+          "step": "sum",
+          "condition": "execution_completed"
+        }
+      ]
+    }
+  ]
+}

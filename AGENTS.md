@@ -141,7 +141,7 @@ python3 scripts/sync-zh.py --accept <source> --record-head
 
 Controller 的 Go 版本和库边界在 `pi_squad/controller/AGENTS.md`。Gin、Resty、Viper、Cobra、Bubble Tea 只用于该目录。
 
-检查 `pi_squad` 插件时先读 `pi_squad/AGENTS.md`。新检查前先关掉上次留下的测试 workspace，再新开 workspace。至少启动三个不同角色的 Pi，启动 cwd 用当前项目目录以检查其中的 `.agents/roles`，并打开对应该 Controller 的 Dashboard。不要用外部 tmux，也不要用一堆脚本代替看 pane。
+检查 `pi_squad` 插件时先读 `pi_squad/AGENTS.md`。新检查前先关掉上次留下的测试 workspace，再新开 workspace。至少启动三个不同角色的 Pi，启动 cwd 用当前项目目录以检查其中的 `.agents/roles`（阶段 04 落地后为 `.agents/pisquad/roles`），并打开对应该 Controller 的 Dashboard。不要用外部 tmux，也不要用一堆脚本代替看 pane。
 
 
 ## Herdr 验收交接与结果回传

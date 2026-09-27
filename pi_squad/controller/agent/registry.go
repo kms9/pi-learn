@@ -131,22 +131,22 @@ func (r *Registry) Upsert(ctx context.Context, req RegisterRequest) (Agent, erro
 			return Agent{}, fmt.Errorf("%w: previous session does not match", ErrConflict)
 		}
 	}
-	if err == nil {
-		if existing.RuntimeSessionID != req.RuntimeSessionID {
-			if err := r.invalidatePending(ctx, existing, "session_changed"); err != nil {
-				return Agent{}, err
-			}
-		} else if r.withStatus(existing).Status == StatusOffline {
-			if err := r.invalidatePending(ctx, existing, "offline"); err != nil {
-				return Agent{}, err
-			}
-		}
-	}
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return Agent{}, err
 	}
 	defer tx.Rollback()
+	if err == nil {
+		if existing.RuntimeSessionID != req.RuntimeSessionID {
+			if err := invalidatePendingWith(ctx, tx, existing, "session_changed"); err != nil {
+				return Agent{}, err
+			}
+		} else if r.withStatus(existing).Status == StatusOffline {
+			if err := invalidatePendingWith(ctx, tx, existing, "offline"); err != nil {
+				return Agent{}, err
+			}
+		}
+	}
 	if _, err := tx.ExecContext(ctx, "INSERT INTO owners(agent_id, token_hash) VALUES(?,?) ON CONFLICT(agent_id) DO NOTHING", req.AgentID, tokenHash(req.RuntimeToken)); err != nil {
 		return Agent{}, err
 	}
@@ -191,13 +191,21 @@ func (r *Registry) Heartbeat(ctx context.Context, req HeartbeatRequest) (Agent, 
 	if err != nil {
 		return Agent{}, err
 	}
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return Agent{}, err
+	}
+	defer tx.Rollback()
 	if a.Status == StatusOffline {
-		if err := r.invalidatePending(ctx, a, "offline"); err != nil {
+		if err := invalidatePendingWith(ctx, tx, a, "offline"); err != nil {
 			return Agent{}, err
 		}
 	}
-	_, err = r.db.ExecContext(ctx, "UPDATE agents SET last_seen = ? WHERE agent_id = ?", r.now().Format(time.RFC3339Nano), req.AgentID)
+	_, err = tx.ExecContext(ctx, "UPDATE agents SET last_seen = ? WHERE agent_id = ?", r.now().Format(time.RFC3339Nano), req.AgentID)
 	if err != nil {
+		return Agent{}, err
+	}
+	if err := tx.Commit(); err != nil {
 		return Agent{}, err
 	}
 	return r.Get(ctx, req.AgentID)

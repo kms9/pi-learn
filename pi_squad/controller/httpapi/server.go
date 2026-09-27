@@ -10,10 +10,14 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/kms9/pi-learn/pi_squad/controller/agent"
+	"github.com/kms9/pi-learn/pi_squad/controller/project"
+	"github.com/kms9/pi-learn/pi_squad/controller/scheduler"
 )
 
 type Server struct {
-	svc *agent.Service
+	svc       *agent.Service
+	team      *scheduler.Service
+	discovery *project.Discovery
 }
 
 func New(svc *agent.Service) *Server {
@@ -24,6 +28,9 @@ func (s *Server) Handler() http.Handler {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 	r.Use(gin.Recovery())
+	if s.team != nil {
+		s.teamRoutes(r)
+	}
 	r.POST("/agents/register", s.handleRegister)
 	r.POST("/agents/heartbeat", s.handleHeartbeat)
 	r.GET("/agents", s.handleList)
@@ -39,6 +46,10 @@ func (s *Server) Handler() http.Handler {
 }
 
 func (s *Server) handleHealth(c *gin.Context) {
+	if s.discovery != nil {
+		c.JSON(http.StatusOK, s.discovery)
+		return
+	}
 	writeJSON(c.Writer, http.StatusOK, map[string]string{"status": "ok"})
 }
 
@@ -73,6 +84,10 @@ func (s *Server) handleHeartbeat(c *gin.Context) {
 }
 
 func (s *Server) handleGet(c *gin.Context) {
+	if s.team != nil {
+		s.handleTeamAgents(c)
+		return
+	}
 	a, err := s.svc.Get(c.Request.Context(), c.Param("id"))
 	if err != nil {
 		writeServiceError(c.Writer, err)
@@ -82,6 +97,10 @@ func (s *Server) handleGet(c *gin.Context) {
 }
 
 func (s *Server) handleList(c *gin.Context) {
+	if s.team != nil {
+		s.handleTeamAgents(c)
+		return
+	}
 	q := c.Request.URL.Query()
 	agents, err := s.svc.List(c.Request.Context(), agent.ListFilter{
 		AgentID: q.Get("agent_id"),

@@ -3,7 +3,7 @@ title: 开放问题
 type: question-log
 status: active
 created: 2026-09-07
-updated: 2026-09-25
+updated: 2026-09-27
 tags:
   - project-wiki
   - questions
@@ -26,6 +26,12 @@ tags:
 | Q11 | Squad 新角色入口如何衔接启动身份、迁移旧 JSON？ | closed | 已落地：name/description/正文，agent_id/squad_id 必须由环境提供；非空 PI_SQUAD_CONFIG 明确报迁移错误。见 [[sessions/2026-09-24-squad-frontmatter-runtime-implementation]]。 |
 | Q12 | HTTP P2 如何衔接旧 ownership 决策、runtime 绑定校验及离线消息语义？ | open | 当前 UUID 只是属性；建议拒绝旧实例、离线留失败记录且不自动补投，需在 HTTP P2 合同中明确。见 [[sessions/2026-09-24-squad-messaging-readiness]]。 |
 
-| Q13 | Role 的 agents.md 何时生效？ | open | 2026-09-25 技术稿建议 attempt 开始读取并固定 hash，执行中不变；用户未逐项确认此刷新策略。见 [[sessions/2026-09-25-squad-team-runtime-design]]。 |
-| Q14 | Leader 是否复用普通 Role、是否运行中切换 Team？ | open | 首版提案固定 mode=leader 与 team_id，只加载 Team 配置；未来组合 leader.role_ref / 跨 Team 切换另议，不能冒称 Multica 也是启动固定身份。 |
-| Q15 | 任务/质量锁的参数与受管 session 迁移怎么定？ | open | 将“质量”解释为质量审查；建议 TTL 30s/续约10s、项目8槽/2活跃Team，失租隔离；session 用 Pi --session-dir 定位 .runtime 下并验证，不自动搬旧 JSONL。参数与校验实施待确认。 |
+| Q13 | Role 的 agents.md 何时生效？ | closed | 以阶段 04 统一需求 TR-08 为准：每个新 Attempt 读取并固定快照，continuation 不热换。见 [[decisions/2026-09-27-squad-phase04-activation-and-split]]。 |
+| Q14 | Leader 是否复用普通 Role、是否运行中切换 Team？ | closed | 以 TR-02 为准：启动固定 `mode=leader` + `team_id`，一个进程只绑定一个 Team，不在进程内切换。见 [[decisions/2026-09-27-squad-phase04-activation-and-split]]。 |
+| Q15 | 任务/质量锁的参数与受管 session 迁移怎么定？ | superseded | 阶段 04 统一需求改为沿用目标既有会话（不另建受管 session 目录）；容量写在 team.json policy；Role 在 Team 激活时整体占用。ExecutionLease 的具体 TTL/续约值未在需求中规定，实施 M2 时记录实际值，不沿用旧稿 30s/8 槽。见 [[decisions/2026-09-27-squad-phase04-activation-and-split]]。 |
+| Q16 | 阶段 03 未实现，P4 的 M2/M3 是否吸收 INV-01—15？ | closed | 用户确认：阶段 03 能力由 4a 交付，阶段 03 文档只删除冲突点，INV 判据并入需求 2.6 映射用例。见 [[decisions/2026-09-27-squad-phase04-activation-and-split]]。 |
+| Q17 | P4 是否拆为单 Team 与多 Team 两段；跨 Team Role ownership 检测死锁还是预防？ | closed | 用户确认：拆为 4a（71 项）/4b（18 项）；Team 激活时原子占用 roster 全部 Role，任一被占则整体排队，结构上预防跨 Team 互占。见 [[decisions/2026-09-27-squad-phase04-activation-and-split]]。 |
+| Q18 | 失联进程无停止回报时如何解除隔离？ | closed | 用户确认：允许显式人工停止声明并保留精确绑定/原因/证据审计。见 [[decisions/2026-09-27-squad-recovery-guidance-acceptance]]。 |
+| Q19 | Leader 活动 Run 期间普通输入是什么语义？ | closed | 用户确认：作为 run_guidance，在安全边界应用。见 [[decisions/2026-09-27-squad-recovery-guidance-acceptance]]。 |
+| Q20 | Project 管理操作由谁授权？ | closed | 用户确认：Project 管理员与独立 operator 凭据；runtime 模型凭据不可管理。见 [[decisions/2026-09-27-squad-recovery-guidance-acceptance]]。 |
+| Q21 | Task 默认由谁验收，父子/review 如何避免自锁？ | closed | 用户确认：声明 checker 或独立 reviewer；standalone 无 reviewer 人工验收；版本化父覆盖、控制节点不递归。见 [[decisions/2026-09-27-squad-recovery-guidance-acceptance]]。 |

@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "team_id": "cross-a",
+  "config_version": 1,
+  "leader": {
+    "agent_ref": "cross-a-lead"
+  },
+  "members": [
+    {
+      "role_ref": "backend",
+      "responsibility": "a-backend"
+    },
+    {
+      "role_ref": "reviewer",
+      "responsibility": "a-review"
+    }
+  ],
+  "instructions_file": "instructions.md",
+  "policy": {
+    "run_admission": "fifo_single_active",
+    "max_parallel_tasks": 2,
+    "max_delegate_depth": 1,
+    "max_total_tasks": 4,
+    "max_attempts_per_task": 1,
+    "allowed_tools": [
+      "read"
+    ],
+    "writable_roots": [],
+    "acceptance_policy": {
+      "mode": "checker",
+      "checker_ref": "numbers-count",
+      "child_policy": "separate"
+    }
+  }
+}

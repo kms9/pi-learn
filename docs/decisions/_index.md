@@ -3,7 +3,7 @@ title: 决策索引
 type: index
 status: active
 created: 2026-09-07
-updated: 2026-09-24
+updated: 2026-09-27
 tags:
   - project-wiki
 ---
@@ -19,3 +19,6 @@ tags:
 - [[2026-09-23-p0-identity-fields|2026-09-23 P0 身份字段与 HTTP Registry]]
 - [[2026-09-24-squad-role-frontmatter|2026-09-24 Squad 角色格式与首版范围]]
 - [[2026-09-24-squad-role-directories|2026-09-24 Squad 一角色一目录]]
+- [[2026-09-25-squad-team-runtime-scope|2026-09-25 Squad 专属目录与启动身份]]
+- [[2026-09-27-squad-phase04-activation-and-split|2026-09-27 阶段 04 激活占用、阶段 03 并入与 4a/4b 分段]]
+- [[2026-09-27-squad-recovery-guidance-acceptance|2026-09-27 恢复、Leader 输入、授权与验收]]

@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "workflow_id": "three-layer",
+  "steps": [
+    {
+      "id": "layer1",
+      "role_ref": "counter",
+      "kind": "execute",
+      "goal": "You are layer 1. Do not read files and do not submit a layer 1 result in this segment. Call agent_invoke for role summer with this exact goal: \"You are layer 2. Do not read files, do not clarify, and do not submit a layer 2 result in this segment. Call agent_invoke for role reviewer with this exact goal: 'You are layer 3. Read pi_squad_case/04-team-orchestration/integration/fixtures/numbers.txt and submit count=3 from that file. Do not call another role.' After that agent_invoke returns a child id, call agent_task_yield.\" After that agent_invoke returns a child id, call agent_task_yield.",
+      "depends_on": []
+    }
+  ]
+}

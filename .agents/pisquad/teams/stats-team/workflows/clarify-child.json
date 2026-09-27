@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "workflow_id": "clarify-child",
+  "steps": [
+    {
+      "id": "parent-ask",
+      "role_ref": "counter",
+      "kind": "execute",
+      "goal": "Invoke role summer to sum two addends, but do not put the numbers in the invoke. The child must agent_clarify and then agent_task_yield. Answer only in your response-only continuation with 10 and 20. Do not guess the sum yourself before the child asks.",
+      "depends_on": []
+    }
+  ]
+}

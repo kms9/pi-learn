@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "workflow_id": "depth-boundary",
+  "steps": [
+    {
+      "id": "root",
+      "role_ref": "counter",
+      "kind": "execute",
+      "goal": "In this segment do not read files, do not clarify, and do not submit a result. Call agent_invoke target=summer kind=execute with the following exact child goal: \"In this segment do not read files, do not clarify, and do not submit a result. Call agent_invoke target=reviewer kind=execute with the following exact child goal: \\\"In this segment do not read files, do not clarify, and do not submit a result. Call agent_invoke target=backend kind=execute with the following exact child goal: \\\\\\\"Read pi_squad_case/04-team-orchestration/integration/fixtures/numbers.txt with managed read. Submit count=3,sum=60 and its exact artifact using agent_task_complete. Do not call other roles and do not write files.\\\\\\\". After the child id is returned, immediately call agent_task_yield and end this turn. Only after child completion resumes this original Attempt, submit count=3,sum=60 with exact child refs and copy its artifact. Never poll or do child work yourself.\\\". After the child id is returned, immediately call agent_task_yield and end this turn. Only after child completion resumes this original Attempt, submit count=3,sum=60 with exact child refs and copy its artifact. Never poll or do child work yourself.\". After the child id is returned, immediately call agent_task_yield and end this turn. Only after child completion resumes this original Attempt, submit count=3,sum=60 with exact child refs and copy its artifact. Never poll or do child work yourself.",
+      "depends_on": []
+    }
+  ]
+}

@@ -1,0 +1,2930 @@
+{
+  "schema_version": 1,
+  "change": "pi-squad-team-orchestration",
+  "execution_order": "all-development-before-integration",
+  "cases": [
+    {
+      "id": "TR-A01",
+      "status": "PARTIAL",
+      "criteria": "同时启动同 Team 两 Leader；第二个拒绝并退出 Leader 模式，第一个及普通 Pi 不受影响；补查 LeaderStep 与Worker共用gate，complete意图须自身settled后通过Gate，未知注入不得重新触发Leader | U/E",
+      "evidence": [
+        "CLI/HTTP/SQLite sub-item only; see integration/CODEX-BOUNDARIES.md. Not a parent PASS. codex-http-boundary first same-key mismatch was a harness expected-code typo; later REQUEST_ID_CONFLICT retest. r10 ROLE_NOT_SCHEDULABLE kept; r11 retry success is separate.",
+        "real Pi: stats-lead-2 INVALID_LEADER and not registered; stats-lead stayed leader. Leader-mode exit UI not separately captured.",
+        "same agent id second process IDENTITY_ALREADY_OWNED; original runtime unchanged; rejected Pi kept only squad_run_create and agent_task_get",
+        "after reload, dup-lead disabled_reason set, active_tools restored to read/write/edit/grep/find, management rejected LEADER_MODE_DISABLED, ordinary chat did not touch the original run"
+      ],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "TR-A02",
+      "status": "PASS",
+      "criteria": "启动 roster 不相交的两个 Team Leader；两个 Run 同时 active 并各自调度 | U/E",
+      "evidence": [
+        "audit-team run-15114d45 and stats-team run-a675bb9a both admitted; auditor owned only by audit-team"
+      ],
+      "runs": [],
+      "phase": "4b"
+    },
+    {
+      "id": "TR-A03",
+      "status": "PASS",
+      "criteria": "启第一个 reviewer；成为唯一 Primary | U/E",
+      "evidence": [
+        "reviewer-primary became the only primary; secondary_agent_ids empty"
+      ],
+      "runs": [
+        {
+          "run_id": "r2-stats-20260927-1",
+          "started_at": "2026-09-26T21:31:28.98788Z",
+          "versions": {
+            "controller": "/tmp/pi-squad-phase04-controller-r2",
+            "epoch": 1
+          },
+          "handoff_id": "squad-p4-integration-20260927-01",
+          "workspace_id": "wJ",
+          "entity_ids": {
+            "run_id": "run-5b6fdcd4109fed9f1afebd808fe1dfc0f7733c18231440fdf5a178d0c923c5be",
+            "counter_task": "task-2c051875c74f6ba165087184e244df051c0b53382a0839f49496bba348a9b019",
+            "summer_task": "task-a4a5885ebf3c9aa89588c12b915e4425aa45d7e5e9f7d98334577b0a13e2ca76",
+            "review_task": "task-963337a5626261b54e80ae872b153df866e79b8c9625d4fd8f5e64d07af8e12d"
+          },
+          "artifact_hashes": {
+            "counter": "3c2a654e6c48e02cefbf4cada0982610f13e8e6ca30171fa862ff4f94cb785da",
+            "summer": "15756df9c7dfb739d1ec238fb68df46b47b5d112905ecf44b8161f35baf75ee3",
+            "review": "0186bff173c182a612125c2cbff5b2e4030a87cdf71f41163f4813dec4c65f0a",
+            "review_refs": []
+          },
+          "event_range": "1-195",
+          "status": "PASS",
+          "failure": "review result refs empty; acceptance/release events precede settled events",
+          "subcriteria": "reviewer-primary became the only primary; secondary_agent_ids empty"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "TR-A04",
+      "status": "PASS",
+      "criteria": "再启同 Role；成为 Secondary，正常对话但不被 Team 选择 | U/E",
+      "evidence": [
+        "reviewer-secondary online as secondary; primary remained reviewer-primary"
+      ],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "TR-A05",
+      "status": "PASS",
+      "criteria": "Primary offline、Secondary online；明确不可调度，无自动提升 | U/E",
+      "evidence": [
+        "primary process exit left primary_agent_id=reviewer-primary, secondary stayed reviewer-secondary, presence offline, no promotion"
+      ],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "TR-A06",
+      "status": "PARTIAL",
+      "criteria": "显式 promote；先对账并解除旧占用，再更新 epoch，旧写入失效；补查role release仅解绑Primary、无Primary tombstone及显式promote，旧ownership和历史不被删除 | U/E/F",
+      "evidence": [
+        "release left no primary and both agents secondary at epoch 2; explicit promote to reviewer-secondary epoch 3; restored reviewer-primary epoch 4"
+      ],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "TR-A07",
+      "status": "PASS",
+      "criteria": "A Run 准入；同一事务占用 roster 全部 Role（owner=A/Run A），roster 外 Role 不被占用 | U/E",
+      "evidence": [
+        "all three roster roles owned by run-5b6fdcd4 and released together at seq 193; no out-of-roster role existed",
+        "r20 multi-Team evidence: PASS: A snapshot holds counter/summer/reviewer as one roster; researcher/auditor not owned by A. See evidence/r20/multiteam-round1.json; retain B wait failure and r21 guidance recovery."
+      ],
+      "runs": [
+        {
+          "run_id": "r2-stats-20260927-1",
+          "started_at": "2026-09-26T21:31:28.98788Z",
+          "versions": {
+            "controller": "/tmp/pi-squad-phase04-controller-r2",
+            "epoch": 1
+          },
+          "handoff_id": "squad-p4-integration-20260927-01",
+          "workspace_id": "wJ",
+          "entity_ids": {
+            "run_id": "run-5b6fdcd4109fed9f1afebd808fe1dfc0f7733c18231440fdf5a178d0c923c5be",
+            "counter_task": "task-2c051875c74f6ba165087184e244df051c0b53382a0839f49496bba348a9b019",
+            "summer_task": "task-a4a5885ebf3c9aa89588c12b915e4425aa45d7e5e9f7d98334577b0a13e2ca76",
+            "review_task": "task-963337a5626261b54e80ae872b153df866e79b8c9625d4fd8f5e64d07af8e12d"
+          },
+          "artifact_hashes": {
+            "counter": "3c2a654e6c48e02cefbf4cada0982610f13e8e6ca30171fa862ff4f94cb785da",
+            "summer": "15756df9c7dfb739d1ec238fb68df46b47b5d112905ecf44b8161f35baf75ee3",
+            "review": "0186bff173c182a612125c2cbff5b2e4030a87cdf71f41163f4813dec4c65f0a",
+            "review_refs": []
+          },
+          "event_range": "1-195",
+          "status": "PARTIAL",
+          "failure": "review result refs empty; acceptance/release events precede settled events",
+          "subcriteria": "all three roster roles owned by run-5b6fdcd4 and released together at seq 193; no out-of-roster role existed"
+        },
+        {
+          "run_id": "codex-r20-multiteam-round1",
+          "workspace_id": "wM",
+          "controller_epoch": 3,
+          "project_capacity": 4,
+          "team_capacity": {
+            "stats-team": 4,
+            "share-team": 2,
+            "audit-team": 2
+          },
+          "status": "PARTIAL",
+          "entity_ids": {
+            "codex-r20-multi-a": "run-db0093ea58d3205e54db1a27e7bbe9f32071cc3479575c591a34ea79dab332c0",
+            "codex-r20-multi-b": "run-5eb66a3a4ef1fcc9c30f14a404dfaea5d52817216db982f3d783dc0389b2ae86",
+            "codex-r20-multi-c": "run-41f1481a80cc713e0d573145c22dbcca77c97535a1651c6c0a8d3cd18b613aae",
+            "codex-r20-multi-b-cancel": "run-df92ef4ccf1e79b2c23563df90d421ef3f534c0b8f31d0154a6a324e45d56b81"
+          },
+          "subcriteria": {
+            "TR-A07": "PASS: A snapshot holds counter/summer/reviewer as one roster; researcher/auditor not owned by A.",
+            "TR-A09": "PASS: B queued with researcher unowned and zero Attempts; disjoint C admitted2493 and released2589 before A released2675.",
+            "TR-A10": "PASS: A reviewer settled2619, A kept reviewer until release2675; B admitted2677 only.",
+            "TR-A11": "PASS: A release2675 has persisted outbox row; B admitted2677 exactly once and LeaderStep2678 notified share-lead. Source cleanup and EventTx use same SQL transaction.",
+            "TR-A20": "PASS: reviewer-secondary ordinary 2+2 conversation; working heartbeat2697, no Attempt or execution lease; remained Secondary.",
+            "P4-A34": "PARTIAL: queued cancel released2602, never admitted after A release. Explicit unconfirmed-cleanup termination case remains."
+          },
+          "failure": "B Leader refreshed bare Run revision but relied on stale briefing task state; wait after worker accepted left B planning. Preserved stalled snapshot/transcript. TS run query fixed, B completed after explicit guidance; this is not automatic completion PASS.",
+          "evidence": [
+            "evidence/r20/codex-r20-multi-a-submitted.json",
+            "evidence/r20/codex-r20-multi-b-submitted.json",
+            "evidence/r20/codex-r20-multi-c-submitted.json",
+            "evidence/r20/multiteam-active-*.json",
+            "evidence/r20/multiteam-events.json",
+            "evidence/r20/multiteam-outbox.json",
+            "evidence/r20/multiteam-stalled.json",
+            "evidence/r20/multiteam-share-leader-stalled.txt",
+            "evidence/r20/multiteam-completed.json",
+            "evidence/r20/multiteam-final-wM-pC.txt",
+            "evidence/r21/multiteam-final-wM-p8.txt"
+          ],
+          "versions": "Controller r20 unchanged; extension r20 for baseline, only share-lead reloaded r21 before explicit guidance recovery."
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "TR-A08",
+      "status": "PASS",
+      "criteria": "roster 含 A 已占 reviewer 的 B Run 提交；B 整体 queued，记录 waiting_roles 与 owner，不持有任何 Role、不创建 Attempt 或半资源 | U/E",
+      "evidence": [
+        "share-team run-2da43258 queued_run, admitted false, no role owned; owner is in blockers.role_busy, waiting_roles field absent",
+        "r7 retest: waiting_roles persisted with role_id/owner_team_id/owner_run_id/ownership_revision; cleared on release; share admitted at seq 1625 after roles_released seq 1623"
+      ],
+      "runs": [],
+      "phase": "4b"
+    },
+    {
+      "id": "TR-A09",
+      "status": "PASS",
+      "criteria": "B queued 期间，其 roster 中空闲的 researcher 不被部分占用；roster 与 A 不相交的 C Run 可准入并执行 | U/E",
+      "evidence": [
+        "r20 multi-Team evidence: PASS: B queued with researcher unowned and zero Attempts; disjoint C admitted2493 and released2589 before A released2675. See evidence/r20/multiteam-round1.json; retain B wait failure and r21 guidance recovery."
+      ],
+      "runs": [
+        {
+          "run_id": "codex-r20-multiteam-round1",
+          "workspace_id": "wM",
+          "controller_epoch": 3,
+          "project_capacity": 4,
+          "team_capacity": {
+            "stats-team": 4,
+            "share-team": 2,
+            "audit-team": 2
+          },
+          "status": "PARTIAL",
+          "entity_ids": {
+            "codex-r20-multi-a": "run-db0093ea58d3205e54db1a27e7bbe9f32071cc3479575c591a34ea79dab332c0",
+            "codex-r20-multi-b": "run-5eb66a3a4ef1fcc9c30f14a404dfaea5d52817216db982f3d783dc0389b2ae86",
+            "codex-r20-multi-c": "run-41f1481a80cc713e0d573145c22dbcca77c97535a1651c6c0a8d3cd18b613aae",
+            "codex-r20-multi-b-cancel": "run-df92ef4ccf1e79b2c23563df90d421ef3f534c0b8f31d0154a6a324e45d56b81"
+          },
+          "subcriteria": {
+            "TR-A07": "PASS: A snapshot holds counter/summer/reviewer as one roster; researcher/auditor not owned by A.",
+            "TR-A09": "PASS: B queued with researcher unowned and zero Attempts; disjoint C admitted2493 and released2589 before A released2675.",
+            "TR-A10": "PASS: A reviewer settled2619, A kept reviewer until release2675; B admitted2677 only.",
+            "TR-A11": "PASS: A release2675 has persisted outbox row; B admitted2677 exactly once and LeaderStep2678 notified share-lead. Source cleanup and EventTx use same SQL transaction.",
+            "TR-A20": "PASS: reviewer-secondary ordinary 2+2 conversation; working heartbeat2697, no Attempt or execution lease; remained Secondary.",
+            "P4-A34": "PARTIAL: queued cancel released2602, never admitted after A release. Explicit unconfirmed-cleanup termination case remains."
+          },
+          "failure": "B Leader refreshed bare Run revision but relied on stale briefing task state; wait after worker accepted left B planning. Preserved stalled snapshot/transcript. TS run query fixed, B completed after explicit guidance; this is not automatic completion PASS.",
+          "evidence": [
+            "evidence/r20/codex-r20-multi-a-submitted.json",
+            "evidence/r20/codex-r20-multi-b-submitted.json",
+            "evidence/r20/codex-r20-multi-c-submitted.json",
+            "evidence/r20/multiteam-active-*.json",
+            "evidence/r20/multiteam-events.json",
+            "evidence/r20/multiteam-outbox.json",
+            "evidence/r20/multiteam-stalled.json",
+            "evidence/r20/multiteam-share-leader-stalled.txt",
+            "evidence/r20/multiteam-completed.json",
+            "evidence/r20/multiteam-final-wM-pC.txt",
+            "evidence/r21/multiteam-final-wM-p8.txt"
+          ],
+          "versions": "Controller r20 unchanged; extension r20 for baseline, only share-lead reloaded r21 before explicit guidance recovery."
+        }
+      ],
+      "phase": "4b"
+    },
+    {
+      "id": "TR-A10",
+      "status": "PASS",
+      "criteria": "A reviewer Task 完成但 Run 未结束；B 不能准入 | U/E",
+      "evidence": [
+        "r20 multi-Team evidence: PASS: A reviewer settled2619, A kept reviewer until release2675; B admitted2677 only. See evidence/r20/multiteam-round1.json; retain B wait failure and r21 guidance recovery."
+      ],
+      "runs": [
+        {
+          "run_id": "codex-r20-multiteam-round1",
+          "workspace_id": "wM",
+          "controller_epoch": 3,
+          "project_capacity": 4,
+          "team_capacity": {
+            "stats-team": 4,
+            "share-team": 2,
+            "audit-team": 2
+          },
+          "status": "PARTIAL",
+          "entity_ids": {
+            "codex-r20-multi-a": "run-db0093ea58d3205e54db1a27e7bbe9f32071cc3479575c591a34ea79dab332c0",
+            "codex-r20-multi-b": "run-5eb66a3a4ef1fcc9c30f14a404dfaea5d52817216db982f3d783dc0389b2ae86",
+            "codex-r20-multi-c": "run-41f1481a80cc713e0d573145c22dbcca77c97535a1651c6c0a8d3cd18b613aae",
+            "codex-r20-multi-b-cancel": "run-df92ef4ccf1e79b2c23563df90d421ef3f534c0b8f31d0154a6a324e45d56b81"
+          },
+          "subcriteria": {
+            "TR-A07": "PASS: A snapshot holds counter/summer/reviewer as one roster; researcher/auditor not owned by A.",
+            "TR-A09": "PASS: B queued with researcher unowned and zero Attempts; disjoint C admitted2493 and released2589 before A released2675.",
+            "TR-A10": "PASS: A reviewer settled2619, A kept reviewer until release2675; B admitted2677 only.",
+            "TR-A11": "PASS: A release2675 has persisted outbox row; B admitted2677 exactly once and LeaderStep2678 notified share-lead. Source cleanup and EventTx use same SQL transaction.",
+            "TR-A20": "PASS: reviewer-secondary ordinary 2+2 conversation; working heartbeat2697, no Attempt or execution lease; remained Secondary.",
+            "P4-A34": "PARTIAL: queued cancel released2602, never admitted after A release. Explicit unconfirmed-cleanup termination case remains."
+          },
+          "failure": "B Leader refreshed bare Run revision but relied on stale briefing task state; wait after worker accepted left B planning. Preserved stalled snapshot/transcript. TS run query fixed, B completed after explicit guidance; this is not automatic completion PASS.",
+          "evidence": [
+            "evidence/r20/codex-r20-multi-a-submitted.json",
+            "evidence/r20/codex-r20-multi-b-submitted.json",
+            "evidence/r20/codex-r20-multi-c-submitted.json",
+            "evidence/r20/multiteam-active-*.json",
+            "evidence/r20/multiteam-events.json",
+            "evidence/r20/multiteam-outbox.json",
+            "evidence/r20/multiteam-stalled.json",
+            "evidence/r20/multiteam-share-leader-stalled.txt",
+            "evidence/r20/multiteam-completed.json",
+            "evidence/r20/multiteam-final-wM-pC.txt",
+            "evidence/r21/multiteam-final-wM-p8.txt"
+          ],
+          "versions": "Controller r20 unchanged; extension r20 for baseline, only share-lead reloaded r21 before explicit guidance recovery."
+        }
+      ],
+      "phase": "4b"
+    },
+    {
+      "id": "TR-A11",
+      "status": "PASS",
+      "criteria": "A Run 安全收尾；整体释放与事件同事务持久，B 按准入顺序原子准入并通知 B Leader | U/E",
+      "evidence": [
+        "r20 multi-Team evidence: PASS: A release2675 has persisted outbox row; B admitted2677 exactly once and LeaderStep2678 notified share-lead. Source cleanup and EventTx use same SQL transaction. See evidence/r20/multiteam-round1.json; retain B wait failure and r21 guidance recovery."
+      ],
+      "runs": [
+        {
+          "run_id": "codex-r20-multiteam-round1",
+          "workspace_id": "wM",
+          "controller_epoch": 3,
+          "project_capacity": 4,
+          "team_capacity": {
+            "stats-team": 4,
+            "share-team": 2,
+            "audit-team": 2
+          },
+          "status": "PARTIAL",
+          "entity_ids": {
+            "codex-r20-multi-a": "run-db0093ea58d3205e54db1a27e7bbe9f32071cc3479575c591a34ea79dab332c0",
+            "codex-r20-multi-b": "run-5eb66a3a4ef1fcc9c30f14a404dfaea5d52817216db982f3d783dc0389b2ae86",
+            "codex-r20-multi-c": "run-41f1481a80cc713e0d573145c22dbcca77c97535a1651c6c0a8d3cd18b613aae",
+            "codex-r20-multi-b-cancel": "run-df92ef4ccf1e79b2c23563df90d421ef3f534c0b8f31d0154a6a324e45d56b81"
+          },
+          "subcriteria": {
+            "TR-A07": "PASS: A snapshot holds counter/summer/reviewer as one roster; researcher/auditor not owned by A.",
+            "TR-A09": "PASS: B queued with researcher unowned and zero Attempts; disjoint C admitted2493 and released2589 before A released2675.",
+            "TR-A10": "PASS: A reviewer settled2619, A kept reviewer until release2675; B admitted2677 only.",
+            "TR-A11": "PASS: A release2675 has persisted outbox row; B admitted2677 exactly once and LeaderStep2678 notified share-lead. Source cleanup and EventTx use same SQL transaction.",
+            "TR-A20": "PASS: reviewer-secondary ordinary 2+2 conversation; working heartbeat2697, no Attempt or execution lease; remained Secondary.",
+            "P4-A34": "PARTIAL: queued cancel released2602, never admitted after A release. Explicit unconfirmed-cleanup termination case remains."
+          },
+          "failure": "B Leader refreshed bare Run revision but relied on stale briefing task state; wait after worker accepted left B planning. Preserved stalled snapshot/transcript. TS run query fixed, B completed after explicit guidance; this is not automatic completion PASS.",
+          "evidence": [
+            "evidence/r20/codex-r20-multi-a-submitted.json",
+            "evidence/r20/codex-r20-multi-b-submitted.json",
+            "evidence/r20/codex-r20-multi-c-submitted.json",
+            "evidence/r20/multiteam-active-*.json",
+            "evidence/r20/multiteam-events.json",
+            "evidence/r20/multiteam-outbox.json",
+            "evidence/r20/multiteam-stalled.json",
+            "evidence/r20/multiteam-share-leader-stalled.txt",
+            "evidence/r20/multiteam-completed.json",
+            "evidence/r20/multiteam-final-wM-pC.txt",
+            "evidence/r21/multiteam-final-wM-p8.txt"
+          ],
+          "versions": "Controller r20 unchanged; extension r20 for baseline, only share-lead reloaded r21 before explicit guidance recovery."
+        }
+      ],
+      "phase": "4b"
+    },
+    {
+      "id": "TR-A12",
+      "status": "PASS",
+      "criteria": "两个 roster 相交的 Run 同时准入；只有一个占用成功，另一个整体 queued，无部分占用 | F/E",
+      "evidence": [
+        "evidence/r25/TR-A12.json"
+      ],
+      "runs": [
+        {
+          "status": "PASS",
+          "evidence": "evidence/r25/TR-A12.json"
+        }
+      ],
+      "phase": "4b"
+    },
+    {
+      "id": "TR-A13",
+      "status": "PARTIAL",
+      "criteria": "他队或 standalone 用 ask/peer invoke/direct 请求被 active Run 占用的 Role/Primary；返回 ROLE_BUSY，不创建目标 Attempt，不能改选 Secondary | U/E",
+      "evidence": [
+        "operator standalone /squad ask agent:reviewer-primary hit ROLE_BUSY request_id=18706c90-9ea7-4515-a31c-ff9b51396300 while stats-team owned reviewer; model direct source not tested"
+      ],
+      "runs": [],
+      "phase": "4b"
+    },
+    {
+      "id": "TR-A14",
+      "status": "PASS",
+      "criteria": "同 Primary 两正式任务；一个 Attempt/执行片段，其余排队，Pi 无重入 ；另填满默认 32 项等待队列，下一请求明确拒绝，不产生 Task/Attempt 半记录| U/E/F",
+      "evidence": [
+        "CLI/HTTP/SQLite sub-item only; see integration/CODEX-BOUNDARIES.md. Not a parent PASS. codex-http-boundary first same-key mismatch was a harness expected-code typo; later REQUEST_ID_CONFLICT retest. r10 ROLE_NOT_SCHEDULABLE kept; r11 retry success is separate.",
+        "evidence/r24/TR-A14-queue.json"
+      ],
+      "runs": [
+        {
+          "status": "PASS",
+          "evidence": "evidence/r24/TR-A14-queue.json",
+          "note": "TR-A14覆盖32队列上限与同Primary串行；P4-A10仅取消自己的wait子项，P4-A16仅queued Task取消子项，其它条件待验。"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "TR-A15",
+      "status": "PASS",
+      "criteria": "空闲 Primary /new；agent/Primary/ownership 不变，session 更新 | U/E",
+      "evidence": [
+        "counter /new kept runtime 8cbf0577-4999-4377-bf5c-72e3c74612a6 and changed session to 01a0dfdb-021a-7793-9193-6dea9ddf8b9c. /tree and /resume cancel kept session; actual resume changed session to 01a0dfaf-1286-753c-a991-7b1da817ad16.",
+        "idle counter /new kept runtime 8cbf0577-4999-4377-bf5c-72e3c74612a6, changed session, remained primary"
+      ],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "TR-A16",
+      "status": "PARTIAL",
+      "criteria": "同身份重启；按连续性或显式 release 重绑，旧 runtime/epoch 写入拒绝；补查Leader显式释放/重绑、旧runtime拒绝及历史保留 | U/E/F",
+      "evidence": [
+        "evidence/r25/context-missing-process.json"
+      ],
+      "runs": [
+        {
+          "status": "PARTIAL",
+          "note": "确认旧Pi已退出后显式release并启动同session，新runtime/binding_epoch2，历史保留；旧凭据写入和Leader重绑仍待验。",
+          "evidence": "evidence/r25/context-restored-progress.json"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "TR-A17",
+      "status": "PASS",
+      "criteria": "检查 Team/Role/Agent 视图；Leader、Primary/Secondary、owner、blockers、Attempt 可解释 | U/E",
+      "evidence": [
+        "evidence/r26/TR-A17.json"
+      ],
+      "runs": [
+        {
+          "status": "PASS",
+          "evidence": "evidence/r26/TR-A17.json"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "TR-A18",
+      "status": "PASS",
+      "criteria": "同 Run review/rework；复用 ownership，仍独立 lease 和最终 Gate | U/E/R",
+      "evidence": [
+        "Codex r20: evidence/r20/TR-A18-TR-A22.json; actual sum50 rejected, new sum60 accepted by independent rereview, stable ownership and distinct leases; history retained."
+      ],
+      "runs": [
+        {
+          "run_id": "codex-r20-wrong-sum-1",
+          "started_at": "2026-09-27T01:24:54.47726Z",
+          "versions": {
+            "go": "go version go1.27.0 darwin/arm64",
+            "node": "v24.16.0",
+            "pi": "0.87.1"
+          },
+          "workspace_id": "wM",
+          "acceptor": "Codex",
+          "handoff_id": null,
+          "callback_pane_id": "w4:p2",
+          "callback_terminal_id": "term_65c321016b8f18",
+          "entity_ids": {
+            "run_id": "run-1d62327928e656a463a8f5dc90c37e55af89f7e3c950f5a4bd416160ef68a65f",
+            "tasks": [
+              "task-0c78b660b2438849e062afb7181cabf480a7bbd57a401af301759c4e39bc850e",
+              "task-3e9e5741e769e174007bbb478e3bde9ea543f9d85402075aa59551d680b8ee8b",
+              "task-40b8b0902fa334964d53f2d749dcba5bfe8252f0df7418131f32eba45ee48372",
+              "task-1d136811bde2eef59c1377414d84ba4c6aa00a6042eaf2fbac5232d898f17f9b"
+            ],
+            "attempts": [
+              "attempt-d5df1ec7817f3995ea098cc035e8c78b593474b565f6adb471715b4bf1fde912",
+              "attempt-6cdb80a9e34257e910838bd7b0e19c7c8264d3a80f56273e05452544c5f3c18d",
+              "attempt-1c7bbd4f139ac0affe73181212463357d02cd44b391cb66cc1347a45623a3a8a",
+              "attempt-81da64209c0d09d747fb77e24a55e6b9fa42a7694da71aeebe1f30cd0e6b181d",
+              "attempt-09f2214878fd6cce10d888e9041275bd22bb1b9a159511edca452fdc71bdbc53",
+              "attempt-b941f3d4da5f5d23e99c5545bf74efdf8eacc313508b99f7f9eebbc911f51fcb",
+              "attempt-4fbf0f3d5d02cbbe84debe56901f27477bf87163961752b1acdd9cd6542f089d",
+              "attempt-63e498a7fd09e500f46ad933490c7d6529ca21deb3b20cf5760a703378c8afc5"
+            ]
+          },
+          "event_range": "232-384",
+          "artifact_hashes": {
+            "numbers": "a1852ec81c3b20981618e10c24edce1a85ba43ef5f09aaf13bd44d6a715ed5b5"
+          },
+          "inputs": [
+            "controller run stats-team <goal> --workflow wrong-sum --request-id codex-r20-wrong-sum-1"
+          ],
+          "subcriteria": {
+            "rejected": "sum=50 retained; reviewer settled297 then acceptance_rejected298",
+            "rework": "distinct rework_of Task produced count3/sum60; review settled353 then acceptance_accepted354; old superseded_by links exact new Task",
+            "ownership": "start and progress snapshots retain all roster owners on same Run/revision1; exactly one run_admitted232 and roles_released383",
+            "leases": "eight distinct Attempts/fences5..12 including four LeaderSteps; all settled/released; capacity empty after completion",
+            "gate": "complete381, Leader settled382, roles_released383; no resource release during rejection/rework"
+          },
+          "status": "PASS",
+          "failure": null,
+          "retest_of": null,
+          "evidence_dir": "evidence/r20"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "TR-A19",
+      "status": "PARTIAL",
+      "criteria": "失租/Controller 重启；执行状态待核实，不自动重派或按 TTL 释放资源；补查无Task的queued Run在重启后可显式resume、未知执行时resume拒绝，干净重启仍不自动派发 | U/E/F",
+      "evidence": [
+        "CLI/HTTP/SQLite sub-item only; see integration/CODEX-BOUNDARIES.md. Not a parent PASS. codex-http-boundary first same-key mismatch was a harness expected-code typo; later REQUEST_ID_CONFLICT retest. r10 ROLE_NOT_SCHEDULABLE kept; r11 retry success is separate.",
+        "HTTP only: evidence/codex-presence-lease-http.json suspect does not expire lease, late heartbeat does not revive lease. Not a real Pi PASS."
+      ],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "TR-A20",
+      "status": "PASS",
+      "criteria": "Secondary 普通独立工作；不受 Team 禁用，但不形成 Team capacity | U/E",
+      "evidence": [
+        "r20 multi-Team evidence: PASS: reviewer-secondary ordinary 2+2 conversation; working heartbeat2697, no Attempt or execution lease; remained Secondary. See evidence/r20/multiteam-round1.json; retain B wait failure and r21 guidance recovery."
+      ],
+      "runs": [
+        {
+          "run_id": "codex-r20-multiteam-round1",
+          "workspace_id": "wM",
+          "controller_epoch": 3,
+          "project_capacity": 4,
+          "team_capacity": {
+            "stats-team": 4,
+            "share-team": 2,
+            "audit-team": 2
+          },
+          "status": "PARTIAL",
+          "entity_ids": {
+            "codex-r20-multi-a": "run-db0093ea58d3205e54db1a27e7bbe9f32071cc3479575c591a34ea79dab332c0",
+            "codex-r20-multi-b": "run-5eb66a3a4ef1fcc9c30f14a404dfaea5d52817216db982f3d783dc0389b2ae86",
+            "codex-r20-multi-c": "run-41f1481a80cc713e0d573145c22dbcca77c97535a1651c6c0a8d3cd18b613aae",
+            "codex-r20-multi-b-cancel": "run-df92ef4ccf1e79b2c23563df90d421ef3f534c0b8f31d0154a6a324e45d56b81"
+          },
+          "subcriteria": {
+            "TR-A07": "PASS: A snapshot holds counter/summer/reviewer as one roster; researcher/auditor not owned by A.",
+            "TR-A09": "PASS: B queued with researcher unowned and zero Attempts; disjoint C admitted2493 and released2589 before A released2675.",
+            "TR-A10": "PASS: A reviewer settled2619, A kept reviewer until release2675; B admitted2677 only.",
+            "TR-A11": "PASS: A release2675 has persisted outbox row; B admitted2677 exactly once and LeaderStep2678 notified share-lead. Source cleanup and EventTx use same SQL transaction.",
+            "TR-A20": "PASS: reviewer-secondary ordinary 2+2 conversation; working heartbeat2697, no Attempt or execution lease; remained Secondary.",
+            "P4-A34": "PARTIAL: queued cancel released2602, never admitted after A release. Explicit unconfirmed-cleanup termination case remains."
+          },
+          "failure": "B Leader refreshed bare Run revision but relied on stale briefing task state; wait after worker accepted left B planning. Preserved stalled snapshot/transcript. TS run query fixed, B completed after explicit guidance; this is not automatic completion PASS.",
+          "evidence": [
+            "evidence/r20/codex-r20-multi-a-submitted.json",
+            "evidence/r20/codex-r20-multi-b-submitted.json",
+            "evidence/r20/codex-r20-multi-c-submitted.json",
+            "evidence/r20/multiteam-active-*.json",
+            "evidence/r20/multiteam-events.json",
+            "evidence/r20/multiteam-outbox.json",
+            "evidence/r20/multiteam-stalled.json",
+            "evidence/r20/multiteam-share-leader-stalled.txt",
+            "evidence/r20/multiteam-completed.json",
+            "evidence/r20/multiteam-final-wM-pC.txt",
+            "evidence/r21/multiteam-final-wM-p8.txt"
+          ],
+          "versions": "Controller r20 unchanged; extension r20 for baseline, only share-lead reloaded r21 before explicit guidance recovery."
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "TR-A21",
+      "status": "PASS",
+      "criteria": "两成员真实并行、结果依赖、独立 review、最终 Gate，不能模拟团队讨论 | U/E/R",
+      "evidence": [
+        "counter and summer both completed from the file with count=3/sum=60, reviewer read the file and accepted; gate/release event order is before LeaderStep settled, so final Gate sub-item is not passed",
+        "r20 Codex retest: evidence/r20/TR-A21.json; preserves r2 failure; real overlapping workers, independent review and Leader settled seq119 before role release seq120."
+      ],
+      "runs": [
+        {
+          "run_id": "r2-stats-20260927-1",
+          "started_at": "2026-09-26T21:31:28.98788Z",
+          "versions": {
+            "controller": "/tmp/pi-squad-phase04-controller-r2",
+            "epoch": 1
+          },
+          "handoff_id": "squad-p4-integration-20260927-01",
+          "workspace_id": "wJ",
+          "entity_ids": {
+            "run_id": "run-5b6fdcd4109fed9f1afebd808fe1dfc0f7733c18231440fdf5a178d0c923c5be",
+            "counter_task": "task-2c051875c74f6ba165087184e244df051c0b53382a0839f49496bba348a9b019",
+            "summer_task": "task-a4a5885ebf3c9aa89588c12b915e4425aa45d7e5e9f7d98334577b0a13e2ca76",
+            "review_task": "task-963337a5626261b54e80ae872b153df866e79b8c9625d4fd8f5e64d07af8e12d"
+          },
+          "artifact_hashes": {
+            "counter": "3c2a654e6c48e02cefbf4cada0982610f13e8e6ca30171fa862ff4f94cb785da",
+            "summer": "15756df9c7dfb739d1ec238fb68df46b47b5d112905ecf44b8161f35baf75ee3",
+            "review": "0186bff173c182a612125c2cbff5b2e4030a87cdf71f41163f4813dec4c65f0a",
+            "review_refs": []
+          },
+          "event_range": "1-195",
+          "status": "PARTIAL",
+          "failure": "review result refs empty; acceptance/release events precede settled events",
+          "subcriteria": "counter and summer both completed from the file with count=3/sum=60, reviewer read the file and accepted; gate/release event order is before LeaderStep settled, so final Gate sub-item is not passed"
+        },
+        {
+          "run_id": "codex-r20-stats-1",
+          "started_at": "2026-09-27T01:21:51.985051Z",
+          "versions": {
+            "go": "go version go1.27.0 darwin/arm64",
+            "node": "v24.16.0",
+            "pi": "0.87.1"
+          },
+          "handoff_id": null,
+          "acceptor": "Codex",
+          "callback_pane_id": "w4:p2",
+          "callback_terminal_id": "term_65c321016b8f18",
+          "workspace_id": "wM",
+          "inputs": [
+            "/squad run stats-team 按已配置stats工作流读取numbers.txt，独立统计count和sum并由reviewer审查。预期count=3、sum=60；不要重复创建已有工作流任务。所有结果验收通过后再完成Run。"
+          ],
+          "entity_ids": {
+            "run_id": "run-5c41fee124273ff07a5c181f30a032e177f19f6788b4d93e6b3f335300163292",
+            "counter": "task-4f30629774828ada8453233879ee8e3228aaeb0c599fc2af4a260220948801de",
+            "summer": "task-3cc90aaeda427e216a51a096029a21f5d868ee913fee563ba0d6d1aa4f4ee7ed",
+            "reviewer": "task-5155fd2abb251aa2749c321b4beaa109c7b6b5860de066d81008a7fd80396d95",
+            "leader": "task-36fc7fbcc498de2d835522901d97ffb358562053da491dd6348619605bffc3c2"
+          },
+          "event_range": "48-121",
+          "artifact_hashes": {
+            "numbers": "a1852ec81c3b20981618e10c24edce1a85ba43ef5f09aaf13bd44d6a715ed5b5"
+          },
+          "subcriteria": {
+            "parallel": "summer input seq48, counter input seq50; counter settled64, summer settled70; intervals overlap",
+            "independent_review": "reviewer input75 after both settled, result95, settled101; acceptance102/103 pins exact result refs",
+            "final_gate": "leader complete113, leader settled119, roles_released120; Run completed/released; no role owners or live attempts remain"
+          },
+          "status": "PASS",
+          "failure": null,
+          "retest_of": "r2-stats-20260927-1",
+          "evidence_dir": "evidence/r20"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "TR-A22",
+      "status": "PASS",
+      "criteria": "提供确定性错误结果；review 拒绝，返工、复审通过，失败历史保留 | U/E/R",
+      "evidence": [
+        "FAIL_CHAIN: summer submitted sum=60 against wrong-sum goal; review attempt-26639f64 lease_expired at dispatch_intent; rework not started",
+        "r9 run-9bf7a88fcbf4: sum=50 rejected, rework sum=60 accepted, run completed cleanup released, prior failure history kept",
+        "Codex r20: evidence/r20/TR-A18-TR-A22.json; actual sum50 rejected, new sum60 accepted by independent rereview, stable ownership and distinct leases; history retained."
+      ],
+      "runs": [
+        {
+          "run_id": "codex-r20-wrong-sum-1",
+          "started_at": "2026-09-27T01:24:54.47726Z",
+          "versions": {
+            "go": "go version go1.27.0 darwin/arm64",
+            "node": "v24.16.0",
+            "pi": "0.87.1"
+          },
+          "workspace_id": "wM",
+          "acceptor": "Codex",
+          "handoff_id": null,
+          "callback_pane_id": "w4:p2",
+          "callback_terminal_id": "term_65c321016b8f18",
+          "entity_ids": {
+            "run_id": "run-1d62327928e656a463a8f5dc90c37e55af89f7e3c950f5a4bd416160ef68a65f",
+            "tasks": [
+              "task-0c78b660b2438849e062afb7181cabf480a7bbd57a401af301759c4e39bc850e",
+              "task-3e9e5741e769e174007bbb478e3bde9ea543f9d85402075aa59551d680b8ee8b",
+              "task-40b8b0902fa334964d53f2d749dcba5bfe8252f0df7418131f32eba45ee48372",
+              "task-1d136811bde2eef59c1377414d84ba4c6aa00a6042eaf2fbac5232d898f17f9b"
+            ],
+            "attempts": [
+              "attempt-d5df1ec7817f3995ea098cc035e8c78b593474b565f6adb471715b4bf1fde912",
+              "attempt-6cdb80a9e34257e910838bd7b0e19c7c8264d3a80f56273e05452544c5f3c18d",
+              "attempt-1c7bbd4f139ac0affe73181212463357d02cd44b391cb66cc1347a45623a3a8a",
+              "attempt-81da64209c0d09d747fb77e24a55e6b9fa42a7694da71aeebe1f30cd0e6b181d",
+              "attempt-09f2214878fd6cce10d888e9041275bd22bb1b9a159511edca452fdc71bdbc53",
+              "attempt-b941f3d4da5f5d23e99c5545bf74efdf8eacc313508b99f7f9eebbc911f51fcb",
+              "attempt-4fbf0f3d5d02cbbe84debe56901f27477bf87163961752b1acdd9cd6542f089d",
+              "attempt-63e498a7fd09e500f46ad933490c7d6529ca21deb3b20cf5760a703378c8afc5"
+            ]
+          },
+          "event_range": "232-384",
+          "artifact_hashes": {
+            "numbers": "a1852ec81c3b20981618e10c24edce1a85ba43ef5f09aaf13bd44d6a715ed5b5"
+          },
+          "inputs": [
+            "controller run stats-team <goal> --workflow wrong-sum --request-id codex-r20-wrong-sum-1"
+          ],
+          "subcriteria": {
+            "rejected": "sum=50 retained; reviewer settled297 then acceptance_rejected298",
+            "rework": "distinct rework_of Task produced count3/sum60; review settled353 then acceptance_accepted354; old superseded_by links exact new Task",
+            "ownership": "start and progress snapshots retain all roster owners on same Run/revision1; exactly one run_admitted232 and roles_released383",
+            "leases": "eight distinct Attempts/fences5..12 including four LeaderSteps; all settled/released; capacity empty after completion",
+            "gate": "complete381, Leader settled382, roles_released383; no resource release during rejection/rework"
+          },
+          "status": "PASS",
+          "failure": null,
+          "retest_of": null,
+          "evidence_dir": "evidence/r20"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "TR-A23",
+      "status": "PARTIAL",
+      "criteria": "未完成依赖/review/隔离/blocker 时 complete；Controller 拒绝 | E/F",
+      "evidence": [
+        "CLI/HTTP/SQLite sub-item only; see integration/CODEX-BOUNDARIES.md. Not a parent PASS. codex-http-boundary first same-key mismatch was a harness expected-code typo; later REQUEST_ID_CONFLICT retest. r10 ROLE_NOT_SCHEDULABLE kept; r11 retry success is separate."
+      ],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "TR-A24",
+      "status": "PASS",
+      "criteria": "同 Run 内两 Task 分别被 Agent 占用与写冲突阻塞，第三分支就绪；第三执行，解除一个 blocker 不清另一个 | U/E",
+      "evidence": [
+        "evidence/r23/write-cases.json"
+      ],
+      "runs": [
+        {
+          "run_id": "run-f32e337a5fc58a8e3bb5ed011e486bc0f96ead65b0676ad0eb6f82d4595b77a4",
+          "status": "PASS",
+          "evidence": "evidence/r23/write-cases.json"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "TR-A25",
+      "status": "NOT_RUN",
+      "criteria": "重复、迟到 role_available；不重复准入或派发，多个排队 Run 按准入顺序原子竞争 | E/F",
+      "evidence": [],
+      "runs": [],
+      "phase": "4b"
+    },
+    {
+      "id": "TR-A26",
+      "status": "PASS",
+      "criteria": "A（backend+reviewer）与 B（reviewer+backend）交叉 roster 先后提交；后者整体排队，不出现互占环，排队链可见；A 收尾后 B 准入 | U/E/F",
+      "evidence": [
+        "integration/evidence/r28/cross-roster.json"
+      ],
+      "runs": [
+        {
+          "run_id": "r28-cross-roster",
+          "started_at": "2026-09-27T06:19:51Z",
+          "status": "PASS",
+          "workspace_id": "wP",
+          "controller_epoch": 3,
+          "entity_ids": {
+            "a": "run-c91a6a3d344ff979cd32a359bfb667dc9136d78368283da4709df69e2a0a8699",
+            "b": "run-6da4344c104726ddd23fce47b46eacb9a323ef488e981b0c7ce8fcdfac29497f"
+          },
+          "subcriteria": {
+            "A_admitted_both_roles": "PASS",
+            "B_queued_both_waiting_roles": "PASS",
+            "no_partial_ownership": "PASS",
+            "A_cleanup_then_B_admitted_once": "PASS"
+          },
+          "evidence": "integration/evidence/r28/cross-roster.json",
+          "note": "Real cross-a-lead model turn waited; operator created A then B. A owned backend+reviewer. B queued_run with both waiting_roles and no ownership. Cancel A released; B admitted and owned both. Then B cancelled after evidence."
+        }
+      ],
+      "phase": "4b"
+    },
+    {
+      "id": "TR-A27",
+      "status": "PASS",
+      "criteria": "父 invoke child 后 yield；释放执行额度而保留 affinity，结果只续接正确父任务；另跑无Team的standalone root→child→continuation，team_id/run_id=null且scope不逃逸 | U/E",
+      "evidence": [
+        "r11 capacity=1: parent task-14d9536209c invoked summer child task-5e44d66aa78, continuation_ready seq 5076, parent segment 2 completed; no clarify/response-only observed",
+        "CLI/HTTP/SQLite sub-item only; see integration/CODEX-BOUNDARIES.md. Not a parent PASS. codex-http-boundary first same-key mismatch was a harness expected-code typo; later REQUEST_ID_CONFLICT retest. r10 ROLE_NOT_SCHEDULABLE kept; r11 retry success is separate.",
+        "r20 capacity1 Team parent→summer→same-Attempt segment2 passed; evidence/r20/capacity1-yield.json. Remaining subcriteria explicitly listed, not a parent PASS.",
+        "r22 real standalone root→child→same-Attempt segment2 PASS with null Team/Run and explicit human parent coverage; evidence/r22/TR-A27-standalone.json. Prefix-fixture rejection preserved. Other P4-A28 subcriteria unchanged."
+      ],
+      "runs": [
+        {
+          "run_id": "codex-r20-capacity1-yield",
+          "workspace_id": "wM",
+          "started_at": "2026-09-27T01:28:31.211037Z",
+          "controller_epoch": 2,
+          "project_capacity": 1,
+          "team_capacity": 4,
+          "entity_ids": {
+            "run": "run-27d3d5b990eabe316ff4e2db9059bfecd160499841aa411f03f3a2a6394e08e6",
+            "tasks": [
+              "task-da66e7ace53919388cd0b3f1507e153e0c116f1ae66f9e901711a1920bde665f",
+              "task-13a1efa21f0577d10b63e360a67832b9ac03957f0852ab68f8f37dda2c31d415",
+              "task-c737a858e3b5d9ea1e003c0a7a8608775e7fa7b099f3935a4bacac40bd7dc71b",
+              "task-82a77ea1d90f74e15aded5533bb9c26b8dd2499cfa8567301dcbc8857d3f87c6",
+              "task-ff37f81878c29eec2c091176150577dc91add4bfef89e376d2d4ad95ba032a85",
+              "task-ab4926d706e325c3842379ccb76e0f4649513c8d113679ebe4789e406613bd9f"
+            ],
+            "attempts": [
+              "attempt-88e62c181e460e09d80a4798456fef088585a41a486095c6aa49db39174d2151",
+              "attempt-7fcd5cf5fb37f10a4fee73315d5773378c951b930f3892c821d09ae5e556164b",
+              "attempt-5d423f5e58b2a06a45567bbac02bfe6a41a99c41ac8b6e1c83e067f3cc075ca4",
+              "attempt-1d5a84016f1e5019e200396b16dfb9ea0e714e27d09febaf598279d4873f770f",
+              "attempt-5d7300d749f4ceda7292b7f1ddc75d8962172f05fb11796051b5990c064ae3a7",
+              "attempt-dbe5c5bae0432cac676f296e87af7c69690de4cce326e1b2eaa38cc021c04459"
+            ]
+          },
+          "status": "PARTIAL",
+          "subcriteria": {
+            "team_yield": "PASS: original parent Attempt resumes segment2 after child settled; inherited child acceptance mode=parent after parent review",
+            "resource_release": "PASS: final Run completed/released, capacity empty",
+            "pending": [
+              "standalone null-scope continuation",
+              "reviewer as directly invoked child",
+              "Team policy capacity1 with unrelated parent-Agent task",
+              "child clarification/response-only cycle"
+            ]
+          },
+          "evidence": [
+            "yield-completed.json",
+            "yield-events.json",
+            "yield-progress-*.json",
+            "yield-wM-p*.txt"
+          ],
+          "failure": null
+        },
+        {
+          "run_id": "codex-r22-standalone-child",
+          "workspace_id": "wM",
+          "controller_epoch": 3,
+          "status": "PASS",
+          "entity_ids": {
+            "root_task": "task-cfabf1874f4ee06422d9e8d714340a17b10aa117d925c5697f3f3743c63c5a1c",
+            "tasks": [
+              "task-cfabf1874f4ee06422d9e8d714340a17b10aa117d925c5697f3f3743c63c5a1c",
+              "task-16d3fa00b6bec428782731b53251c35e9e28e9ce2088557dc1c0487022b188bf"
+            ],
+            "attempts": [
+              "attempt-cebd9ea224306ab1ab452b6d9201d823158994063fc8ac00745cc4d32c556572",
+              "attempt-a87d84953960d40103de8a5ccca5ab1c693ac81f72cedc6970b2f39e48dd221c"
+            ]
+          },
+          "subcriteria": {
+            "scope": "Both standalone, team_id/run_id null; no new Run",
+            "continuation": "one parent Attempt segment2 after child settled; child uses distinct Attempt",
+            "acceptance": "independent artifact sum60/hash verified; explicit human parent accept covers exact child result",
+            "cleanup": "both Attempts released; no execution lease"
+          },
+          "retest_of": "r21/standalone-prefix-failed.json (Codex fixture incorrectly used CLI-only agent: prefix)",
+          "evidence": [
+            "evidence/r22/standalone-before.json",
+            "evidence/r22/standalone-completed.json",
+            "evidence/r22/standalone-events.json",
+            "evidence/r22/standalone-counter.txt",
+            "evidence/r22/standalone-summer.txt",
+            "evidence/r22/standalone-independent-artifact.json"
+          ],
+          "limits": "TR-A27 also uses r20 capacity1-yield Team evidence; other standalone authorization/cycle/budget subcriteria are separate."
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "TR-A28",
+      "status": "PASS",
+      "criteria": "self/ancestor/dependency cycle 及超 max_depth；返回 CALL_CYCLE/DEPTH_LIMIT，不遗留无法完成的 Attempt；分别覆盖Team与standalone预算/环，超max_attempts的retry拒绝且保留cancel收尾入口 | E/F",
+      "evidence": [
+        "evidence/r25/TR-A28-progress.json",
+        "evidence/r25/team-cycle-write.json: Team self/dependency CALL_CYCLE, max_total_tasks=20 overflow rejection with durable raw responses. Ancestor/depth/retry and standalone raw response recapture remain pending.",
+        "evidence/r25/team-depth-boundary.json",
+        "evidence/r25/standalone-attempt-budget.json",
+        "evidence/r25/TR-A28.json"
+      ],
+      "runs": [
+        {
+          "status": "PARTIAL",
+          "evidence": "evidence/r25/TR-A28-progress.json"
+        },
+        {
+          "status": "PARTIAL",
+          "evidence": "evidence/r25/team-cycle-write.json"
+        },
+        {
+          "status": "PARTIAL",
+          "evidence": "evidence/r25/team-depth-boundary.json"
+        },
+        {
+          "status": "PARTIAL",
+          "evidence": "evidence/r25/standalone-attempt-budget.json"
+        },
+        {
+          "status": "PASS",
+          "evidence": "evidence/r25/TR-A28.json"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "TR-A29",
+      "status": "PASS",
+      "criteria": "执行中 /new；旧 Attempt interrupted，旧任务不入新会话，晚结果不推进 | U/E/F",
+      "evidence": [
+        "run-97fee8c18fd753d98e7bfcbd3f0c068b3acfa9c2b9b39d99edb2d4054c82bce7 reviewer attempt-d03b8348 result_proposed then settled seq 14402; /new registered seq 14404 after settle. No attempt_interrupted, no ancestor dependency_interrupted. Not a /new pass.",
+        "run-fa422e1dcced reviewer attempt-4637f81b interrupted seq 15790 session_changed before registered seq 15792. summer task-0dfa4de2 and counter task-a08ddfd3 dependency_interrupted owner=session_changed. new session 01a0e027 has no current_task. prior run-97fee8c failure kept."
+      ],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "TR-A30",
+      "status": "PASS",
+      "criteria": "核对实际模型请求的 Role/Team/Run/Task/Attempt 和 hashes；动态块不串任务 | U/E/R",
+      "evidence": [
+        "evidence/r25/TR-A30-payload-checks.json"
+      ],
+      "runs": [
+        {
+          "status": "PASS",
+          "evidence": "evidence/r25/TR-A30-payload-checks.json",
+          "note": "仅模型动态上下文隔离；sum业务checker拒绝保留。"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "TR-A31",
+      "status": "PASS",
+      "criteria": "同 Agent串行、不同文件并行、相同写资源互斥；分别观察 lease/write reservation | U/E/F",
+      "evidence": [
+        "evidence/r23/write-cases.json",
+        "evidence/r23/reservation-live.json",
+        "evidence/r23/reservation-events.json",
+        "evidence/r23/reservation-final-tables.json"
+      ],
+      "runs": [
+        {
+          "run_id": "run-f32e337a5fc58a8e3bb5ed011e486bc0f96ead65b0676ad0eb6f82d4595b77a4",
+          "status": "PARTIAL",
+          "evidence": "evidence/r23/write-cases.json"
+        },
+        {
+          "run_id": "run-bb4b6ea392213edbc3245a52c999ac432d05289f2348dc299e43a020ec033a5a",
+          "status": "PASS",
+          "evidence": "evidence/r23/reservation-completed.json",
+          "note": "结合write-check/write-locks及边界拒绝证据；保留此前PARTIAL记录。"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "TR-A32",
+      "status": "PARTIAL",
+      "criteria": "review 后改变候选产物；旧 review 失效，当前版本需重审；补查同稳定Agent换session仍不能自审，父验收覆盖随child或goal版本变化失效 | U/E/R",
+      "evidence": [
+        "CLI/HTTP/SQLite sub-item only; see integration/CODEX-BOUNDARIES.md. Not a parent PASS. codex-http-boundary first same-key mismatch was a harness expected-code typo; later REQUEST_ID_CONFLICT retest. r10 ROLE_NOT_SCHEDULABLE kept; r11 retry success is separate."
+      ],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "TR-A33",
+      "status": "PASS",
+      "criteria": "同 Team 第二个 Run；FIFO queued，不覆盖旧 Run或持有其资源，安全收尾后准入 | U/E",
+      "evidence": [
+        "evidence/r24/fifo-cases.json"
+      ],
+      "runs": [
+        {
+          "status": "PASS",
+          "evidence": "evidence/r24/fifo-cases.json",
+          "note": "P4-A08重复request与FIFO通过；Leader离线/换绑定排队子项尚待验证。"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "CMD-A01",
+      "status": "PASS",
+      "criteria": "当前 Run 输入 @；出现 roster Role/Primary/state，不列 Secondary capacity | U/E",
+      "evidence": [
+        "r23 real Pi UI: PASS: @re suggestions list current roster reviewer/researcher, Primary, online/idle and owner; no Secondary role capacity. See evidence/r23/ui-cases.json."
+      ],
+      "runs": [
+        {
+          "run_id": "codex-r23-pi-ui",
+          "workspace_id": "wM",
+          "status": "PARTIAL",
+          "controller_epoch": 3,
+          "run_ids": [
+            "run-671da47e762b7e43ad99494a909f839c1e0169b806578897c66e5ac964b494b1",
+            "run-b1c125aeb78e607ac9e85509e03d9e3b3533ddc6a6f29b26329e165234930ce7"
+          ],
+          "subcriteria": {
+            "CMD-A01": "PASS: @re suggestions list current roster reviewer/researcher, Primary, online/idle and owner; no Secondary role capacity.",
+            "CMD-A02": "PASS: native @README.md and @src/foo.ts completions retained. src/foo.ts temporary fixture removed.",
+            "CMD-A03": "PASS after r23 fix: /pisquad-use selects reviewer, fills @reviewer without submission; sending draft routes through normal mention handler. r22 explicit-prefix mismatch preserved.",
+            "CMD-A04": "PASS: successful handoff returned Task; original secondary session assistant/user counts stayed1/1. Direct occupied-role rejection displayed request_id and ROLE_BUSY; no model fallback.",
+            "CMD-A05": "PASS: Primary and Secondary online, mention resolved reviewer-main; caller reviewer-secondary got no formal Attempt.",
+            "CMD-A13": "PASS: new explicit Squad-enabled role session with no Run rejected @role:reviewer with NO_ACTIVE_TEAM_CONTEXT, no Run/Task creation or model turn observed.",
+            "CMD-A14": "PASS: exact @reviewer @backend prefix rejected MULTI_TARGET_NOT_SUPPORTED, business tasks unchanged, draft restored.",
+            "CMD-A15": "PASS: completion obtained under old Run; old Run cancelled, new Run owned reviewer; submitting preserved old draft returned RUN_TERMINAL, no business Task in new Run.",
+            "CMD-A16": "PASS: source user_command@pi, input/request28381dbb-c2eb-44f2-aaf7-78994cc9b366, selected Run/role/Primary/Task/Attempt bindings, revisions, artifact hashes and events correlated; /squad request returned same Task.",
+            "P4-A21": "PASS: root reviewer file causes TARGET_AMBIGUOUS, unknown explicit role ROLE_NOT_IN_TEAM, @role:reviewer routes Primary, @./reviewer read native local file with no formal Task. Fixture removed.",
+            "P4-A23": "PARTIAL: empty-draft Picker cancel preserved state, no task. Existing draft, rapid Run switch and slow autocomplete response remain."
+          },
+          "source_trace": {
+            "task_id": "task-b24de0e9d1bdf85e22c69edbd5f11d8d42361570cc089d334054a8508c6fbdf0",
+            "attempt_id": "attempt-f5971335600851797852e6fbb1f33d8e3482536af010c9bf1f55027e000e48a0",
+            "request_id": "28381dbb-c2eb-44f2-aaf7-78994cc9b366",
+            "source": {
+              "binding": {
+                "agent_id": "reviewer-secondary",
+                "binding_epoch": 1,
+                "primary_epoch": 0,
+                "runtime_id": "ba5f9635-9a46-45ca-930b-f96558dfae46",
+                "session_id": "01a0e091-7e62-7072-8ca1-d08837d1ee5f"
+              },
+              "input_id": "28381dbb-c2eb-44f2-aaf7-78994cc9b366",
+              "origin": "user_command@pi"
+            },
+            "target": {
+              "agent_id": "reviewer-main",
+              "binding_epoch": 1,
+              "primary_epoch": 1,
+              "runtime_id": "d3ba7b04-90b0-4db3-8ef8-56ee13c2f6c4",
+              "session_id": "01a0e073-e0ce-7381-bdf5-9d6e7d9c29f8"
+            },
+            "result_hash": "14ea8fc25a43bdb6242a04d20d32df317e6f309deee3c63302a2df3a925407a4"
+          },
+          "cleanup": "Both UI Runs explicitly cancelled/released; no leases. Temporary reviewer and src/foo.ts removed. Test pane zoom restored and caller tab focused.",
+          "evidence": [
+            "../r22/ui-role-autocomplete.txt",
+            "../r22/ui-file-autocomplete-readme.txt",
+            "../r22/ui-file-autocomplete-src.txt",
+            "picker-selected.txt",
+            "handoff-before.json",
+            "handoff-progress.json",
+            "handoff-source-count-before.json",
+            "handoff-source-count-after.json",
+            "handoff-request-trace.txt",
+            "direct-owned-role-rejected.txt",
+            "direct-owned-role-after.json",
+            "multi-target-exact-rejected.txt",
+            "multi-target-exact-after.json",
+            "stale-draft-before-cancel.txt",
+            "stale-draft-new-owner.json",
+            "stale-draft-rejected.txt",
+            "stale-draft-after.json",
+            "role-file-ambiguous.txt",
+            "unknown-explicit-role.txt",
+            "explicit-role-routed.json",
+            "explicit-file-before.json",
+            "explicit-file-after.json",
+            "explicit-file-native.txt",
+            "no-run-before.json",
+            "no-run-after.json",
+            "no-run-rejected.txt",
+            "no-run-native-session.json",
+            "picker-cancelled.json",
+            "ui-events.json",
+            "ui-final.json"
+          ]
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "CMD-A02",
+      "status": "PASS",
+      "criteria": "输入 @README.md 和 @src/foo.ts；无 Role 冲突时原文件补全保留 | U",
+      "evidence": [
+        "r23 real Pi UI: PASS: native @README.md and @src/foo.ts completions retained. src/foo.ts temporary fixture removed. See evidence/r23/ui-cases.json."
+      ],
+      "runs": [
+        {
+          "run_id": "codex-r23-pi-ui",
+          "workspace_id": "wM",
+          "status": "PARTIAL",
+          "controller_epoch": 3,
+          "run_ids": [
+            "run-671da47e762b7e43ad99494a909f839c1e0169b806578897c66e5ac964b494b1",
+            "run-b1c125aeb78e607ac9e85509e03d9e3b3533ddc6a6f29b26329e165234930ce7"
+          ],
+          "subcriteria": {
+            "CMD-A01": "PASS: @re suggestions list current roster reviewer/researcher, Primary, online/idle and owner; no Secondary role capacity.",
+            "CMD-A02": "PASS: native @README.md and @src/foo.ts completions retained. src/foo.ts temporary fixture removed.",
+            "CMD-A03": "PASS after r23 fix: /pisquad-use selects reviewer, fills @reviewer without submission; sending draft routes through normal mention handler. r22 explicit-prefix mismatch preserved.",
+            "CMD-A04": "PASS: successful handoff returned Task; original secondary session assistant/user counts stayed1/1. Direct occupied-role rejection displayed request_id and ROLE_BUSY; no model fallback.",
+            "CMD-A05": "PASS: Primary and Secondary online, mention resolved reviewer-main; caller reviewer-secondary got no formal Attempt.",
+            "CMD-A13": "PASS: new explicit Squad-enabled role session with no Run rejected @role:reviewer with NO_ACTIVE_TEAM_CONTEXT, no Run/Task creation or model turn observed.",
+            "CMD-A14": "PASS: exact @reviewer @backend prefix rejected MULTI_TARGET_NOT_SUPPORTED, business tasks unchanged, draft restored.",
+            "CMD-A15": "PASS: completion obtained under old Run; old Run cancelled, new Run owned reviewer; submitting preserved old draft returned RUN_TERMINAL, no business Task in new Run.",
+            "CMD-A16": "PASS: source user_command@pi, input/request28381dbb-c2eb-44f2-aaf7-78994cc9b366, selected Run/role/Primary/Task/Attempt bindings, revisions, artifact hashes and events correlated; /squad request returned same Task.",
+            "P4-A21": "PASS: root reviewer file causes TARGET_AMBIGUOUS, unknown explicit role ROLE_NOT_IN_TEAM, @role:reviewer routes Primary, @./reviewer read native local file with no formal Task. Fixture removed.",
+            "P4-A23": "PARTIAL: empty-draft Picker cancel preserved state, no task. Existing draft, rapid Run switch and slow autocomplete response remain."
+          },
+          "source_trace": {
+            "task_id": "task-b24de0e9d1bdf85e22c69edbd5f11d8d42361570cc089d334054a8508c6fbdf0",
+            "attempt_id": "attempt-f5971335600851797852e6fbb1f33d8e3482536af010c9bf1f55027e000e48a0",
+            "request_id": "28381dbb-c2eb-44f2-aaf7-78994cc9b366",
+            "source": {
+              "binding": {
+                "agent_id": "reviewer-secondary",
+                "binding_epoch": 1,
+                "primary_epoch": 0,
+                "runtime_id": "ba5f9635-9a46-45ca-930b-f96558dfae46",
+                "session_id": "01a0e091-7e62-7072-8ca1-d08837d1ee5f"
+              },
+              "input_id": "28381dbb-c2eb-44f2-aaf7-78994cc9b366",
+              "origin": "user_command@pi"
+            },
+            "target": {
+              "agent_id": "reviewer-main",
+              "binding_epoch": 1,
+              "primary_epoch": 1,
+              "runtime_id": "d3ba7b04-90b0-4db3-8ef8-56ee13c2f6c4",
+              "session_id": "01a0e073-e0ce-7381-bdf5-9d6e7d9c29f8"
+            },
+            "result_hash": "14ea8fc25a43bdb6242a04d20d32df317e6f309deee3c63302a2df3a925407a4"
+          },
+          "cleanup": "Both UI Runs explicitly cancelled/released; no leases. Temporary reviewer and src/foo.ts removed. Test pane zoom restored and caller tab focused.",
+          "evidence": [
+            "../r22/ui-role-autocomplete.txt",
+            "../r22/ui-file-autocomplete-readme.txt",
+            "../r22/ui-file-autocomplete-src.txt",
+            "picker-selected.txt",
+            "handoff-before.json",
+            "handoff-progress.json",
+            "handoff-source-count-before.json",
+            "handoff-source-count-after.json",
+            "handoff-request-trace.txt",
+            "direct-owned-role-rejected.txt",
+            "direct-owned-role-after.json",
+            "multi-target-exact-rejected.txt",
+            "multi-target-exact-after.json",
+            "stale-draft-before-cancel.txt",
+            "stale-draft-new-owner.json",
+            "stale-draft-rejected.txt",
+            "stale-draft-after.json",
+            "role-file-ambiguous.txt",
+            "unknown-explicit-role.txt",
+            "explicit-role-routed.json",
+            "explicit-file-before.json",
+            "explicit-file-after.json",
+            "explicit-file-native.txt",
+            "no-run-before.json",
+            "no-run-after.json",
+            "no-run-rejected.txt",
+            "no-run-native-session.json",
+            "picker-cancelled.json",
+            "ui-events.json",
+            "ui-final.json"
+          ]
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "CMD-A03",
+      "status": "PASS",
+      "criteria": "/pisquad-use 选择 reviewer；编辑器填 @reviewer，不再手输 Role，与 mention 共用 handler | U/E",
+      "evidence": [
+        "r23 real Pi UI: PASS after r23 fix: /pisquad-use selects reviewer, fills @reviewer without submission; sending draft routes through normal mention handler. r22 explicit-prefix mismatch preserved. See evidence/r23/ui-cases.json."
+      ],
+      "runs": [
+        {
+          "run_id": "codex-r23-pi-ui",
+          "workspace_id": "wM",
+          "status": "PARTIAL",
+          "controller_epoch": 3,
+          "run_ids": [
+            "run-671da47e762b7e43ad99494a909f839c1e0169b806578897c66e5ac964b494b1",
+            "run-b1c125aeb78e607ac9e85509e03d9e3b3533ddc6a6f29b26329e165234930ce7"
+          ],
+          "subcriteria": {
+            "CMD-A01": "PASS: @re suggestions list current roster reviewer/researcher, Primary, online/idle and owner; no Secondary role capacity.",
+            "CMD-A02": "PASS: native @README.md and @src/foo.ts completions retained. src/foo.ts temporary fixture removed.",
+            "CMD-A03": "PASS after r23 fix: /pisquad-use selects reviewer, fills @reviewer without submission; sending draft routes through normal mention handler. r22 explicit-prefix mismatch preserved.",
+            "CMD-A04": "PASS: successful handoff returned Task; original secondary session assistant/user counts stayed1/1. Direct occupied-role rejection displayed request_id and ROLE_BUSY; no model fallback.",
+            "CMD-A05": "PASS: Primary and Secondary online, mention resolved reviewer-main; caller reviewer-secondary got no formal Attempt.",
+            "CMD-A13": "PASS: new explicit Squad-enabled role session with no Run rejected @role:reviewer with NO_ACTIVE_TEAM_CONTEXT, no Run/Task creation or model turn observed.",
+            "CMD-A14": "PASS: exact @reviewer @backend prefix rejected MULTI_TARGET_NOT_SUPPORTED, business tasks unchanged, draft restored.",
+            "CMD-A15": "PASS: completion obtained under old Run; old Run cancelled, new Run owned reviewer; submitting preserved old draft returned RUN_TERMINAL, no business Task in new Run.",
+            "CMD-A16": "PASS: source user_command@pi, input/request28381dbb-c2eb-44f2-aaf7-78994cc9b366, selected Run/role/Primary/Task/Attempt bindings, revisions, artifact hashes and events correlated; /squad request returned same Task.",
+            "P4-A21": "PASS: root reviewer file causes TARGET_AMBIGUOUS, unknown explicit role ROLE_NOT_IN_TEAM, @role:reviewer routes Primary, @./reviewer read native local file with no formal Task. Fixture removed.",
+            "P4-A23": "PARTIAL: empty-draft Picker cancel preserved state, no task. Existing draft, rapid Run switch and slow autocomplete response remain."
+          },
+          "source_trace": {
+            "task_id": "task-b24de0e9d1bdf85e22c69edbd5f11d8d42361570cc089d334054a8508c6fbdf0",
+            "attempt_id": "attempt-f5971335600851797852e6fbb1f33d8e3482536af010c9bf1f55027e000e48a0",
+            "request_id": "28381dbb-c2eb-44f2-aaf7-78994cc9b366",
+            "source": {
+              "binding": {
+                "agent_id": "reviewer-secondary",
+                "binding_epoch": 1,
+                "primary_epoch": 0,
+                "runtime_id": "ba5f9635-9a46-45ca-930b-f96558dfae46",
+                "session_id": "01a0e091-7e62-7072-8ca1-d08837d1ee5f"
+              },
+              "input_id": "28381dbb-c2eb-44f2-aaf7-78994cc9b366",
+              "origin": "user_command@pi"
+            },
+            "target": {
+              "agent_id": "reviewer-main",
+              "binding_epoch": 1,
+              "primary_epoch": 1,
+              "runtime_id": "d3ba7b04-90b0-4db3-8ef8-56ee13c2f6c4",
+              "session_id": "01a0e073-e0ce-7381-bdf5-9d6e7d9c29f8"
+            },
+            "result_hash": "14ea8fc25a43bdb6242a04d20d32df317e6f309deee3c63302a2df3a925407a4"
+          },
+          "cleanup": "Both UI Runs explicitly cancelled/released; no leases. Temporary reviewer and src/foo.ts removed. Test pane zoom restored and caller tab focused.",
+          "evidence": [
+            "../r22/ui-role-autocomplete.txt",
+            "../r22/ui-file-autocomplete-readme.txt",
+            "../r22/ui-file-autocomplete-src.txt",
+            "picker-selected.txt",
+            "handoff-before.json",
+            "handoff-progress.json",
+            "handoff-source-count-before.json",
+            "handoff-source-count-after.json",
+            "handoff-request-trace.txt",
+            "direct-owned-role-rejected.txt",
+            "direct-owned-role-after.json",
+            "multi-target-exact-rejected.txt",
+            "multi-target-exact-after.json",
+            "stale-draft-before-cancel.txt",
+            "stale-draft-new-owner.json",
+            "stale-draft-rejected.txt",
+            "stale-draft-after.json",
+            "role-file-ambiguous.txt",
+            "unknown-explicit-role.txt",
+            "explicit-role-routed.json",
+            "explicit-file-before.json",
+            "explicit-file-after.json",
+            "explicit-file-native.txt",
+            "no-run-before.json",
+            "no-run-after.json",
+            "no-run-rejected.txt",
+            "no-run-native-session.json",
+            "picker-cancelled.json",
+            "ui-events.json",
+            "ui-final.json"
+          ]
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "CMD-A04",
+      "status": "PASS",
+      "criteria": "显式 handoff；输入 handled，当前 LLM 不自己执行，成功或拒绝均可追踪 | U/E",
+      "evidence": [
+        "r23 real Pi UI: PASS: successful handoff returned Task; original secondary session assistant/user counts stayed1/1. Direct occupied-role rejection displayed request_id and ROLE_BUSY; no model fallback. See evidence/r23/ui-cases.json."
+      ],
+      "runs": [
+        {
+          "run_id": "codex-r23-pi-ui",
+          "workspace_id": "wM",
+          "status": "PARTIAL",
+          "controller_epoch": 3,
+          "run_ids": [
+            "run-671da47e762b7e43ad99494a909f839c1e0169b806578897c66e5ac964b494b1",
+            "run-b1c125aeb78e607ac9e85509e03d9e3b3533ddc6a6f29b26329e165234930ce7"
+          ],
+          "subcriteria": {
+            "CMD-A01": "PASS: @re suggestions list current roster reviewer/researcher, Primary, online/idle and owner; no Secondary role capacity.",
+            "CMD-A02": "PASS: native @README.md and @src/foo.ts completions retained. src/foo.ts temporary fixture removed.",
+            "CMD-A03": "PASS after r23 fix: /pisquad-use selects reviewer, fills @reviewer without submission; sending draft routes through normal mention handler. r22 explicit-prefix mismatch preserved.",
+            "CMD-A04": "PASS: successful handoff returned Task; original secondary session assistant/user counts stayed1/1. Direct occupied-role rejection displayed request_id and ROLE_BUSY; no model fallback.",
+            "CMD-A05": "PASS: Primary and Secondary online, mention resolved reviewer-main; caller reviewer-secondary got no formal Attempt.",
+            "CMD-A13": "PASS: new explicit Squad-enabled role session with no Run rejected @role:reviewer with NO_ACTIVE_TEAM_CONTEXT, no Run/Task creation or model turn observed.",
+            "CMD-A14": "PASS: exact @reviewer @backend prefix rejected MULTI_TARGET_NOT_SUPPORTED, business tasks unchanged, draft restored.",
+            "CMD-A15": "PASS: completion obtained under old Run; old Run cancelled, new Run owned reviewer; submitting preserved old draft returned RUN_TERMINAL, no business Task in new Run.",
+            "CMD-A16": "PASS: source user_command@pi, input/request28381dbb-c2eb-44f2-aaf7-78994cc9b366, selected Run/role/Primary/Task/Attempt bindings, revisions, artifact hashes and events correlated; /squad request returned same Task.",
+            "P4-A21": "PASS: root reviewer file causes TARGET_AMBIGUOUS, unknown explicit role ROLE_NOT_IN_TEAM, @role:reviewer routes Primary, @./reviewer read native local file with no formal Task. Fixture removed.",
+            "P4-A23": "PARTIAL: empty-draft Picker cancel preserved state, no task. Existing draft, rapid Run switch and slow autocomplete response remain."
+          },
+          "source_trace": {
+            "task_id": "task-b24de0e9d1bdf85e22c69edbd5f11d8d42361570cc089d334054a8508c6fbdf0",
+            "attempt_id": "attempt-f5971335600851797852e6fbb1f33d8e3482536af010c9bf1f55027e000e48a0",
+            "request_id": "28381dbb-c2eb-44f2-aaf7-78994cc9b366",
+            "source": {
+              "binding": {
+                "agent_id": "reviewer-secondary",
+                "binding_epoch": 1,
+                "primary_epoch": 0,
+                "runtime_id": "ba5f9635-9a46-45ca-930b-f96558dfae46",
+                "session_id": "01a0e091-7e62-7072-8ca1-d08837d1ee5f"
+              },
+              "input_id": "28381dbb-c2eb-44f2-aaf7-78994cc9b366",
+              "origin": "user_command@pi"
+            },
+            "target": {
+              "agent_id": "reviewer-main",
+              "binding_epoch": 1,
+              "primary_epoch": 1,
+              "runtime_id": "d3ba7b04-90b0-4db3-8ef8-56ee13c2f6c4",
+              "session_id": "01a0e073-e0ce-7381-bdf5-9d6e7d9c29f8"
+            },
+            "result_hash": "14ea8fc25a43bdb6242a04d20d32df317e6f309deee3c63302a2df3a925407a4"
+          },
+          "cleanup": "Both UI Runs explicitly cancelled/released; no leases. Temporary reviewer and src/foo.ts removed. Test pane zoom restored and caller tab focused.",
+          "evidence": [
+            "../r22/ui-role-autocomplete.txt",
+            "../r22/ui-file-autocomplete-readme.txt",
+            "../r22/ui-file-autocomplete-src.txt",
+            "picker-selected.txt",
+            "handoff-before.json",
+            "handoff-progress.json",
+            "handoff-source-count-before.json",
+            "handoff-source-count-after.json",
+            "handoff-request-trace.txt",
+            "direct-owned-role-rejected.txt",
+            "direct-owned-role-after.json",
+            "multi-target-exact-rejected.txt",
+            "multi-target-exact-after.json",
+            "stale-draft-before-cancel.txt",
+            "stale-draft-new-owner.json",
+            "stale-draft-rejected.txt",
+            "stale-draft-after.json",
+            "role-file-ambiguous.txt",
+            "unknown-explicit-role.txt",
+            "explicit-role-routed.json",
+            "explicit-file-before.json",
+            "explicit-file-after.json",
+            "explicit-file-native.txt",
+            "no-run-before.json",
+            "no-run-after.json",
+            "no-run-rejected.txt",
+            "no-run-native-session.json",
+            "picker-cancelled.json",
+            "ui-events.json",
+            "ui-final.json"
+          ]
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "CMD-A05",
+      "status": "PASS",
+      "criteria": "Primary/Secondary 都在线；@role 只解析 Primary | U/E",
+      "evidence": [
+        "r23 real Pi UI: PASS: Primary and Secondary online, mention resolved reviewer-main; caller reviewer-secondary got no formal Attempt. See evidence/r23/ui-cases.json."
+      ],
+      "runs": [
+        {
+          "run_id": "codex-r23-pi-ui",
+          "workspace_id": "wM",
+          "status": "PARTIAL",
+          "controller_epoch": 3,
+          "run_ids": [
+            "run-671da47e762b7e43ad99494a909f839c1e0169b806578897c66e5ac964b494b1",
+            "run-b1c125aeb78e607ac9e85509e03d9e3b3533ddc6a6f29b26329e165234930ce7"
+          ],
+          "subcriteria": {
+            "CMD-A01": "PASS: @re suggestions list current roster reviewer/researcher, Primary, online/idle and owner; no Secondary role capacity.",
+            "CMD-A02": "PASS: native @README.md and @src/foo.ts completions retained. src/foo.ts temporary fixture removed.",
+            "CMD-A03": "PASS after r23 fix: /pisquad-use selects reviewer, fills @reviewer without submission; sending draft routes through normal mention handler. r22 explicit-prefix mismatch preserved.",
+            "CMD-A04": "PASS: successful handoff returned Task; original secondary session assistant/user counts stayed1/1. Direct occupied-role rejection displayed request_id and ROLE_BUSY; no model fallback.",
+            "CMD-A05": "PASS: Primary and Secondary online, mention resolved reviewer-main; caller reviewer-secondary got no formal Attempt.",
+            "CMD-A13": "PASS: new explicit Squad-enabled role session with no Run rejected @role:reviewer with NO_ACTIVE_TEAM_CONTEXT, no Run/Task creation or model turn observed.",
+            "CMD-A14": "PASS: exact @reviewer @backend prefix rejected MULTI_TARGET_NOT_SUPPORTED, business tasks unchanged, draft restored.",
+            "CMD-A15": "PASS: completion obtained under old Run; old Run cancelled, new Run owned reviewer; submitting preserved old draft returned RUN_TERMINAL, no business Task in new Run.",
+            "CMD-A16": "PASS: source user_command@pi, input/request28381dbb-c2eb-44f2-aaf7-78994cc9b366, selected Run/role/Primary/Task/Attempt bindings, revisions, artifact hashes and events correlated; /squad request returned same Task.",
+            "P4-A21": "PASS: root reviewer file causes TARGET_AMBIGUOUS, unknown explicit role ROLE_NOT_IN_TEAM, @role:reviewer routes Primary, @./reviewer read native local file with no formal Task. Fixture removed.",
+            "P4-A23": "PARTIAL: empty-draft Picker cancel preserved state, no task. Existing draft, rapid Run switch and slow autocomplete response remain."
+          },
+          "source_trace": {
+            "task_id": "task-b24de0e9d1bdf85e22c69edbd5f11d8d42361570cc089d334054a8508c6fbdf0",
+            "attempt_id": "attempt-f5971335600851797852e6fbb1f33d8e3482536af010c9bf1f55027e000e48a0",
+            "request_id": "28381dbb-c2eb-44f2-aaf7-78994cc9b366",
+            "source": {
+              "binding": {
+                "agent_id": "reviewer-secondary",
+                "binding_epoch": 1,
+                "primary_epoch": 0,
+                "runtime_id": "ba5f9635-9a46-45ca-930b-f96558dfae46",
+                "session_id": "01a0e091-7e62-7072-8ca1-d08837d1ee5f"
+              },
+              "input_id": "28381dbb-c2eb-44f2-aaf7-78994cc9b366",
+              "origin": "user_command@pi"
+            },
+            "target": {
+              "agent_id": "reviewer-main",
+              "binding_epoch": 1,
+              "primary_epoch": 1,
+              "runtime_id": "d3ba7b04-90b0-4db3-8ef8-56ee13c2f6c4",
+              "session_id": "01a0e073-e0ce-7381-bdf5-9d6e7d9c29f8"
+            },
+            "result_hash": "14ea8fc25a43bdb6242a04d20d32df317e6f309deee3c63302a2df3a925407a4"
+          },
+          "cleanup": "Both UI Runs explicitly cancelled/released; no leases. Temporary reviewer and src/foo.ts removed. Test pane zoom restored and caller tab focused.",
+          "evidence": [
+            "../r22/ui-role-autocomplete.txt",
+            "../r22/ui-file-autocomplete-readme.txt",
+            "../r22/ui-file-autocomplete-src.txt",
+            "picker-selected.txt",
+            "handoff-before.json",
+            "handoff-progress.json",
+            "handoff-source-count-before.json",
+            "handoff-source-count-after.json",
+            "handoff-request-trace.txt",
+            "direct-owned-role-rejected.txt",
+            "direct-owned-role-after.json",
+            "multi-target-exact-rejected.txt",
+            "multi-target-exact-after.json",
+            "stale-draft-before-cancel.txt",
+            "stale-draft-new-owner.json",
+            "stale-draft-rejected.txt",
+            "stale-draft-after.json",
+            "role-file-ambiguous.txt",
+            "unknown-explicit-role.txt",
+            "explicit-role-routed.json",
+            "explicit-file-before.json",
+            "explicit-file-after.json",
+            "explicit-file-native.txt",
+            "no-run-before.json",
+            "no-run-after.json",
+            "no-run-rejected.txt",
+            "no-run-native-session.json",
+            "picker-cancelled.json",
+            "ui-events.json",
+            "ui-final.json"
+          ]
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "CMD-A06",
+      "status": "PASS",
+      "criteria": "Primary offline；错误明确，不投给 Secondary | U/E",
+      "evidence": [
+        "evidence/r25/CMD-A06.json"
+      ],
+      "runs": [
+        {
+          "status": "PASS",
+          "evidence": "evidence/r25/CMD-A06.json"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "CMD-A07",
+      "status": "PASS",
+      "criteria": "当前 Run 因 roster 与他队 active Run 相交而 queued 时 @role；Task 记为等待 Run 准入，不创建目标 Attempt 或绕过 Gate | U/E",
+      "evidence": [
+        "evidence/r24/fifo-cases.json"
+      ],
+      "runs": [
+        {
+          "status": "PASS",
+          "evidence": "evidence/r24/fifo-cases.json",
+          "note": "P4-A08重复request与FIFO通过；Leader离线/换绑定排队子项尚待验证。"
+        }
+      ],
+      "phase": "4b"
+    },
+    {
+      "id": "CMD-A08",
+      "status": "PASS",
+      "criteria": "working_here 再派发；复用 ownership，但仍遵守 Agent/capacity | U/E",
+      "evidence": [
+        "evidence/r25/working-here-cases.json"
+      ],
+      "runs": [
+        {
+          "status": "PASS",
+          "run_id": "run-961348efca77f7d770cdec6a3205874ad1838e99825ebf3cdb0735409c826d52",
+          "evidence": "evidence/r25/working-here-cases.json"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "CMD-A09",
+      "status": "PASS",
+      "criteria": "用已声明 write_set 的正式 backend Task 修改 fixture；不以 Messaging ask 代替，工具权限正确 | U/E/R",
+      "evidence": [
+        "evidence/r23/write-cases.json",
+        "evidence/r23/CMD-A09-write.json"
+      ],
+      "runs": [
+        {
+          "run_id": "run-f32e337a5fc58a8e3bb5ed011e486bc0f96ead65b0676ad0eb6f82d4595b77a4",
+          "status": "PARTIAL",
+          "evidence": "evidence/r23/write-cases.json"
+        },
+        {
+          "run_id": "run-bb4b6ea392213edbc3245a52c999ac432d05289f2348dc299e43a020ec033a5a",
+          "status": "PASS",
+          "evidence": "evidence/r23/reservation-completed.json",
+          "note": "结合write-check/write-locks及边界拒绝证据；保留此前PARTIAL记录。"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "CMD-A10",
+      "status": "PASS",
+      "criteria": "Leader 真正调用成员；使用 structured decision，文本 mention 不执行 | U/E",
+      "evidence": [
+        "evidence/r25/working-here-cases.json"
+      ],
+      "runs": [
+        {
+          "status": "PASS",
+          "run_id": "run-961348efca77f7d770cdec6a3205874ad1838e99825ebf3cdb0735409c826d52",
+          "evidence": "evidence/r25/working-here-cases.json"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "CMD-A11",
+      "status": "PASS",
+      "criteria": "Worker 调 reviewer child；父 yield、安全续接，无阻塞 Promise 或第二项正式工作 | U/E",
+      "evidence": [
+        "r11 capacity=1: parent task-14d9536209c invoked summer child task-5e44d66aa78, continuation_ready seq 5076, parent segment 2 completed; no clarify/response-only observed",
+        "CLI/HTTP/SQLite sub-item only; see integration/CODEX-BOUNDARIES.md. Not a parent PASS. codex-http-boundary first same-key mismatch was a harness expected-code typo; later REQUEST_ID_CONFLICT retest. r10 ROLE_NOT_SCHEDULABLE kept; r11 retry success is separate.",
+        "r20 capacity1 Team parent→summer→same-Attempt segment2 passed; evidence/r20/capacity1-yield.json. Remaining subcriteria explicitly listed, not a parent PASS.",
+        "r22 real counter→reviewer child→same Attempt segment2, then independent parent review and final release. See evidence/r22/CMD-A11.json."
+      ],
+      "runs": [
+        {
+          "run_id": "codex-r20-capacity1-yield",
+          "workspace_id": "wM",
+          "started_at": "2026-09-27T01:28:31.211037Z",
+          "controller_epoch": 2,
+          "project_capacity": 1,
+          "team_capacity": 4,
+          "entity_ids": {
+            "run": "run-27d3d5b990eabe316ff4e2db9059bfecd160499841aa411f03f3a2a6394e08e6",
+            "tasks": [
+              "task-da66e7ace53919388cd0b3f1507e153e0c116f1ae66f9e901711a1920bde665f",
+              "task-13a1efa21f0577d10b63e360a67832b9ac03957f0852ab68f8f37dda2c31d415",
+              "task-c737a858e3b5d9ea1e003c0a7a8608775e7fa7b099f3935a4bacac40bd7dc71b",
+              "task-82a77ea1d90f74e15aded5533bb9c26b8dd2499cfa8567301dcbc8857d3f87c6",
+              "task-ff37f81878c29eec2c091176150577dc91add4bfef89e376d2d4ad95ba032a85",
+              "task-ab4926d706e325c3842379ccb76e0f4649513c8d113679ebe4789e406613bd9f"
+            ],
+            "attempts": [
+              "attempt-88e62c181e460e09d80a4798456fef088585a41a486095c6aa49db39174d2151",
+              "attempt-7fcd5cf5fb37f10a4fee73315d5773378c951b930f3892c821d09ae5e556164b",
+              "attempt-5d423f5e58b2a06a45567bbac02bfe6a41a99c41ac8b6e1c83e067f3cc075ca4",
+              "attempt-1d5a84016f1e5019e200396b16dfb9ea0e714e27d09febaf598279d4873f770f",
+              "attempt-5d7300d749f4ceda7292b7f1ddc75d8962172f05fb11796051b5990c064ae3a7",
+              "attempt-dbe5c5bae0432cac676f296e87af7c69690de4cce326e1b2eaa38cc021c04459"
+            ]
+          },
+          "status": "PARTIAL",
+          "subcriteria": {
+            "team_yield": "PASS: original parent Attempt resumes segment2 after child settled; inherited child acceptance mode=parent after parent review",
+            "resource_release": "PASS: final Run completed/released, capacity empty",
+            "pending": [
+              "standalone null-scope continuation",
+              "reviewer as directly invoked child",
+              "Team policy capacity1 with unrelated parent-Agent task",
+              "child clarification/response-only cycle"
+            ]
+          },
+          "evidence": [
+            "yield-completed.json",
+            "yield-events.json",
+            "yield-progress-*.json",
+            "yield-wM-p*.txt"
+          ],
+          "failure": null
+        },
+        {
+          "run_id": "codex-r22-reviewer-child",
+          "workspace_id": "wM",
+          "status": "PASS",
+          "entity_ids": {
+            "run": "run-70fc1f8584978cb1da646b9c4fae6d1fa562564b5c138714ec829bf0f49eb975",
+            "parent": "task-fd154136a55cc9a9eb846e320d4ce3a21fdce27aa2cc84e03185bc43a949be7f",
+            "child": "task-898f059d25a367eae104b18597a53b4b2b735204fa0c396bd57d0b4103e162a9",
+            "parent_attempt": "attempt-30e17fb40947e9f4d7b338529deb637546a97bb0debeb0bd86d109372c8aabac"
+          },
+          "subcriteria": "Worker counter asynchronously called reviewer child(kind=execute, file verification), yielded and resumed original Attempt segment2. Child distinct task; no second parent Task or blocked Promise. Independent review of parent followed; complete/released.",
+          "evidence": [
+            "evidence/r22/review-child-events.json",
+            "evidence/r22/review-child-completed.json",
+            "evidence/r22/review-child-wM-p3.txt",
+            "evidence/r22/review-child-wM-p6.txt"
+          ]
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "CMD-A12",
+      "status": "PASS",
+      "criteria": "未加载 Squad Skill 仍可路由；目标可按需使用自己的 Skill | U/E",
+      "evidence": [
+        "evidence/r25/working-here-cases.json"
+      ],
+      "runs": [
+        {
+          "status": "PASS",
+          "run_id": "run-961348efca77f7d770cdec6a3205874ad1838e99825ebf3cdb0735409c826d52",
+          "evidence": "evidence/r25/working-here-cases.json"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "CMD-A13",
+      "status": "PASS",
+      "criteria": "显式启用 Squad 的 standalone Pi 无 Run 时提交 role handoff；报无上下文，不隐式创建 Run或回落 LLM | U/E",
+      "evidence": [
+        "r23 real Pi UI: PASS: new explicit Squad-enabled role session with no Run rejected @role:reviewer with NO_ACTIVE_TEAM_CONTEXT, no Run/Task creation or model turn observed. See evidence/r23/ui-cases.json."
+      ],
+      "runs": [
+        {
+          "run_id": "codex-r23-pi-ui",
+          "workspace_id": "wM",
+          "status": "PARTIAL",
+          "controller_epoch": 3,
+          "run_ids": [
+            "run-671da47e762b7e43ad99494a909f839c1e0169b806578897c66e5ac964b494b1",
+            "run-b1c125aeb78e607ac9e85509e03d9e3b3533ddc6a6f29b26329e165234930ce7"
+          ],
+          "subcriteria": {
+            "CMD-A01": "PASS: @re suggestions list current roster reviewer/researcher, Primary, online/idle and owner; no Secondary role capacity.",
+            "CMD-A02": "PASS: native @README.md and @src/foo.ts completions retained. src/foo.ts temporary fixture removed.",
+            "CMD-A03": "PASS after r23 fix: /pisquad-use selects reviewer, fills @reviewer without submission; sending draft routes through normal mention handler. r22 explicit-prefix mismatch preserved.",
+            "CMD-A04": "PASS: successful handoff returned Task; original secondary session assistant/user counts stayed1/1. Direct occupied-role rejection displayed request_id and ROLE_BUSY; no model fallback.",
+            "CMD-A05": "PASS: Primary and Secondary online, mention resolved reviewer-main; caller reviewer-secondary got no formal Attempt.",
+            "CMD-A13": "PASS: new explicit Squad-enabled role session with no Run rejected @role:reviewer with NO_ACTIVE_TEAM_CONTEXT, no Run/Task creation or model turn observed.",
+            "CMD-A14": "PASS: exact @reviewer @backend prefix rejected MULTI_TARGET_NOT_SUPPORTED, business tasks unchanged, draft restored.",
+            "CMD-A15": "PASS: completion obtained under old Run; old Run cancelled, new Run owned reviewer; submitting preserved old draft returned RUN_TERMINAL, no business Task in new Run.",
+            "CMD-A16": "PASS: source user_command@pi, input/request28381dbb-c2eb-44f2-aaf7-78994cc9b366, selected Run/role/Primary/Task/Attempt bindings, revisions, artifact hashes and events correlated; /squad request returned same Task.",
+            "P4-A21": "PASS: root reviewer file causes TARGET_AMBIGUOUS, unknown explicit role ROLE_NOT_IN_TEAM, @role:reviewer routes Primary, @./reviewer read native local file with no formal Task. Fixture removed.",
+            "P4-A23": "PARTIAL: empty-draft Picker cancel preserved state, no task. Existing draft, rapid Run switch and slow autocomplete response remain."
+          },
+          "source_trace": {
+            "task_id": "task-b24de0e9d1bdf85e22c69edbd5f11d8d42361570cc089d334054a8508c6fbdf0",
+            "attempt_id": "attempt-f5971335600851797852e6fbb1f33d8e3482536af010c9bf1f55027e000e48a0",
+            "request_id": "28381dbb-c2eb-44f2-aaf7-78994cc9b366",
+            "source": {
+              "binding": {
+                "agent_id": "reviewer-secondary",
+                "binding_epoch": 1,
+                "primary_epoch": 0,
+                "runtime_id": "ba5f9635-9a46-45ca-930b-f96558dfae46",
+                "session_id": "01a0e091-7e62-7072-8ca1-d08837d1ee5f"
+              },
+              "input_id": "28381dbb-c2eb-44f2-aaf7-78994cc9b366",
+              "origin": "user_command@pi"
+            },
+            "target": {
+              "agent_id": "reviewer-main",
+              "binding_epoch": 1,
+              "primary_epoch": 1,
+              "runtime_id": "d3ba7b04-90b0-4db3-8ef8-56ee13c2f6c4",
+              "session_id": "01a0e073-e0ce-7381-bdf5-9d6e7d9c29f8"
+            },
+            "result_hash": "14ea8fc25a43bdb6242a04d20d32df317e6f309deee3c63302a2df3a925407a4"
+          },
+          "cleanup": "Both UI Runs explicitly cancelled/released; no leases. Temporary reviewer and src/foo.ts removed. Test pane zoom restored and caller tab focused.",
+          "evidence": [
+            "../r22/ui-role-autocomplete.txt",
+            "../r22/ui-file-autocomplete-readme.txt",
+            "../r22/ui-file-autocomplete-src.txt",
+            "picker-selected.txt",
+            "handoff-before.json",
+            "handoff-progress.json",
+            "handoff-source-count-before.json",
+            "handoff-source-count-after.json",
+            "handoff-request-trace.txt",
+            "direct-owned-role-rejected.txt",
+            "direct-owned-role-after.json",
+            "multi-target-exact-rejected.txt",
+            "multi-target-exact-after.json",
+            "stale-draft-before-cancel.txt",
+            "stale-draft-new-owner.json",
+            "stale-draft-rejected.txt",
+            "stale-draft-after.json",
+            "role-file-ambiguous.txt",
+            "unknown-explicit-role.txt",
+            "explicit-role-routed.json",
+            "explicit-file-before.json",
+            "explicit-file-after.json",
+            "explicit-file-native.txt",
+            "no-run-before.json",
+            "no-run-after.json",
+            "no-run-rejected.txt",
+            "no-run-native-session.json",
+            "picker-cancelled.json",
+            "ui-events.json",
+            "ui-final.json"
+          ]
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "CMD-A14",
+      "status": "PASS",
+      "criteria": "连续 @reviewer @backend 执行前缀；拒绝多目标，无部分 Task | U/E",
+      "evidence": [
+        "MULTI_TARGET_NOT_SUPPORTED, no model turn",
+        "r23 real Pi UI: PASS: exact @reviewer @backend prefix rejected MULTI_TARGET_NOT_SUPPORTED, business tasks unchanged, draft restored. See evidence/r23/ui-cases.json."
+      ],
+      "runs": [
+        {
+          "run_id": "codex-r23-pi-ui",
+          "workspace_id": "wM",
+          "status": "PARTIAL",
+          "controller_epoch": 3,
+          "run_ids": [
+            "run-671da47e762b7e43ad99494a909f839c1e0169b806578897c66e5ac964b494b1",
+            "run-b1c125aeb78e607ac9e85509e03d9e3b3533ddc6a6f29b26329e165234930ce7"
+          ],
+          "subcriteria": {
+            "CMD-A01": "PASS: @re suggestions list current roster reviewer/researcher, Primary, online/idle and owner; no Secondary role capacity.",
+            "CMD-A02": "PASS: native @README.md and @src/foo.ts completions retained. src/foo.ts temporary fixture removed.",
+            "CMD-A03": "PASS after r23 fix: /pisquad-use selects reviewer, fills @reviewer without submission; sending draft routes through normal mention handler. r22 explicit-prefix mismatch preserved.",
+            "CMD-A04": "PASS: successful handoff returned Task; original secondary session assistant/user counts stayed1/1. Direct occupied-role rejection displayed request_id and ROLE_BUSY; no model fallback.",
+            "CMD-A05": "PASS: Primary and Secondary online, mention resolved reviewer-main; caller reviewer-secondary got no formal Attempt.",
+            "CMD-A13": "PASS: new explicit Squad-enabled role session with no Run rejected @role:reviewer with NO_ACTIVE_TEAM_CONTEXT, no Run/Task creation or model turn observed.",
+            "CMD-A14": "PASS: exact @reviewer @backend prefix rejected MULTI_TARGET_NOT_SUPPORTED, business tasks unchanged, draft restored.",
+            "CMD-A15": "PASS: completion obtained under old Run; old Run cancelled, new Run owned reviewer; submitting preserved old draft returned RUN_TERMINAL, no business Task in new Run.",
+            "CMD-A16": "PASS: source user_command@pi, input/request28381dbb-c2eb-44f2-aaf7-78994cc9b366, selected Run/role/Primary/Task/Attempt bindings, revisions, artifact hashes and events correlated; /squad request returned same Task.",
+            "P4-A21": "PASS: root reviewer file causes TARGET_AMBIGUOUS, unknown explicit role ROLE_NOT_IN_TEAM, @role:reviewer routes Primary, @./reviewer read native local file with no formal Task. Fixture removed.",
+            "P4-A23": "PARTIAL: empty-draft Picker cancel preserved state, no task. Existing draft, rapid Run switch and slow autocomplete response remain."
+          },
+          "source_trace": {
+            "task_id": "task-b24de0e9d1bdf85e22c69edbd5f11d8d42361570cc089d334054a8508c6fbdf0",
+            "attempt_id": "attempt-f5971335600851797852e6fbb1f33d8e3482536af010c9bf1f55027e000e48a0",
+            "request_id": "28381dbb-c2eb-44f2-aaf7-78994cc9b366",
+            "source": {
+              "binding": {
+                "agent_id": "reviewer-secondary",
+                "binding_epoch": 1,
+                "primary_epoch": 0,
+                "runtime_id": "ba5f9635-9a46-45ca-930b-f96558dfae46",
+                "session_id": "01a0e091-7e62-7072-8ca1-d08837d1ee5f"
+              },
+              "input_id": "28381dbb-c2eb-44f2-aaf7-78994cc9b366",
+              "origin": "user_command@pi"
+            },
+            "target": {
+              "agent_id": "reviewer-main",
+              "binding_epoch": 1,
+              "primary_epoch": 1,
+              "runtime_id": "d3ba7b04-90b0-4db3-8ef8-56ee13c2f6c4",
+              "session_id": "01a0e073-e0ce-7381-bdf5-9d6e7d9c29f8"
+            },
+            "result_hash": "14ea8fc25a43bdb6242a04d20d32df317e6f309deee3c63302a2df3a925407a4"
+          },
+          "cleanup": "Both UI Runs explicitly cancelled/released; no leases. Temporary reviewer and src/foo.ts removed. Test pane zoom restored and caller tab focused.",
+          "evidence": [
+            "../r22/ui-role-autocomplete.txt",
+            "../r22/ui-file-autocomplete-readme.txt",
+            "../r22/ui-file-autocomplete-src.txt",
+            "picker-selected.txt",
+            "handoff-before.json",
+            "handoff-progress.json",
+            "handoff-source-count-before.json",
+            "handoff-source-count-after.json",
+            "handoff-request-trace.txt",
+            "direct-owned-role-rejected.txt",
+            "direct-owned-role-after.json",
+            "multi-target-exact-rejected.txt",
+            "multi-target-exact-after.json",
+            "stale-draft-before-cancel.txt",
+            "stale-draft-new-owner.json",
+            "stale-draft-rejected.txt",
+            "stale-draft-after.json",
+            "role-file-ambiguous.txt",
+            "unknown-explicit-role.txt",
+            "explicit-role-routed.json",
+            "explicit-file-before.json",
+            "explicit-file-after.json",
+            "explicit-file-native.txt",
+            "no-run-before.json",
+            "no-run-after.json",
+            "no-run-rejected.txt",
+            "no-run-native-session.json",
+            "picker-cancelled.json",
+            "ui-events.json",
+            "ui-final.json"
+          ]
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "CMD-A15",
+      "status": "PASS",
+      "criteria": "补全后当前 Run 终结且 Role 被另一 Run 准入占用；提交时重新裁决（Run 失效或 ROLE_BUSY），不信旧缓存 | U/E/F",
+      "evidence": [
+        "r23 real Pi UI: PASS: completion obtained under old Run; old Run cancelled, new Run owned reviewer; submitting preserved old draft returned RUN_TERMINAL, no business Task in new Run. See evidence/r23/ui-cases.json."
+      ],
+      "runs": [
+        {
+          "run_id": "codex-r23-pi-ui",
+          "workspace_id": "wM",
+          "status": "PARTIAL",
+          "controller_epoch": 3,
+          "run_ids": [
+            "run-671da47e762b7e43ad99494a909f839c1e0169b806578897c66e5ac964b494b1",
+            "run-b1c125aeb78e607ac9e85509e03d9e3b3533ddc6a6f29b26329e165234930ce7"
+          ],
+          "subcriteria": {
+            "CMD-A01": "PASS: @re suggestions list current roster reviewer/researcher, Primary, online/idle and owner; no Secondary role capacity.",
+            "CMD-A02": "PASS: native @README.md and @src/foo.ts completions retained. src/foo.ts temporary fixture removed.",
+            "CMD-A03": "PASS after r23 fix: /pisquad-use selects reviewer, fills @reviewer without submission; sending draft routes through normal mention handler. r22 explicit-prefix mismatch preserved.",
+            "CMD-A04": "PASS: successful handoff returned Task; original secondary session assistant/user counts stayed1/1. Direct occupied-role rejection displayed request_id and ROLE_BUSY; no model fallback.",
+            "CMD-A05": "PASS: Primary and Secondary online, mention resolved reviewer-main; caller reviewer-secondary got no formal Attempt.",
+            "CMD-A13": "PASS: new explicit Squad-enabled role session with no Run rejected @role:reviewer with NO_ACTIVE_TEAM_CONTEXT, no Run/Task creation or model turn observed.",
+            "CMD-A14": "PASS: exact @reviewer @backend prefix rejected MULTI_TARGET_NOT_SUPPORTED, business tasks unchanged, draft restored.",
+            "CMD-A15": "PASS: completion obtained under old Run; old Run cancelled, new Run owned reviewer; submitting preserved old draft returned RUN_TERMINAL, no business Task in new Run.",
+            "CMD-A16": "PASS: source user_command@pi, input/request28381dbb-c2eb-44f2-aaf7-78994cc9b366, selected Run/role/Primary/Task/Attempt bindings, revisions, artifact hashes and events correlated; /squad request returned same Task.",
+            "P4-A21": "PASS: root reviewer file causes TARGET_AMBIGUOUS, unknown explicit role ROLE_NOT_IN_TEAM, @role:reviewer routes Primary, @./reviewer read native local file with no formal Task. Fixture removed.",
+            "P4-A23": "PARTIAL: empty-draft Picker cancel preserved state, no task. Existing draft, rapid Run switch and slow autocomplete response remain."
+          },
+          "source_trace": {
+            "task_id": "task-b24de0e9d1bdf85e22c69edbd5f11d8d42361570cc089d334054a8508c6fbdf0",
+            "attempt_id": "attempt-f5971335600851797852e6fbb1f33d8e3482536af010c9bf1f55027e000e48a0",
+            "request_id": "28381dbb-c2eb-44f2-aaf7-78994cc9b366",
+            "source": {
+              "binding": {
+                "agent_id": "reviewer-secondary",
+                "binding_epoch": 1,
+                "primary_epoch": 0,
+                "runtime_id": "ba5f9635-9a46-45ca-930b-f96558dfae46",
+                "session_id": "01a0e091-7e62-7072-8ca1-d08837d1ee5f"
+              },
+              "input_id": "28381dbb-c2eb-44f2-aaf7-78994cc9b366",
+              "origin": "user_command@pi"
+            },
+            "target": {
+              "agent_id": "reviewer-main",
+              "binding_epoch": 1,
+              "primary_epoch": 1,
+              "runtime_id": "d3ba7b04-90b0-4db3-8ef8-56ee13c2f6c4",
+              "session_id": "01a0e073-e0ce-7381-bdf5-9d6e7d9c29f8"
+            },
+            "result_hash": "14ea8fc25a43bdb6242a04d20d32df317e6f309deee3c63302a2df3a925407a4"
+          },
+          "cleanup": "Both UI Runs explicitly cancelled/released; no leases. Temporary reviewer and src/foo.ts removed. Test pane zoom restored and caller tab focused.",
+          "evidence": [
+            "../r22/ui-role-autocomplete.txt",
+            "../r22/ui-file-autocomplete-readme.txt",
+            "../r22/ui-file-autocomplete-src.txt",
+            "picker-selected.txt",
+            "handoff-before.json",
+            "handoff-progress.json",
+            "handoff-source-count-before.json",
+            "handoff-source-count-after.json",
+            "handoff-request-trace.txt",
+            "direct-owned-role-rejected.txt",
+            "direct-owned-role-after.json",
+            "multi-target-exact-rejected.txt",
+            "multi-target-exact-after.json",
+            "stale-draft-before-cancel.txt",
+            "stale-draft-new-owner.json",
+            "stale-draft-rejected.txt",
+            "stale-draft-after.json",
+            "role-file-ambiguous.txt",
+            "unknown-explicit-role.txt",
+            "explicit-role-routed.json",
+            "explicit-file-before.json",
+            "explicit-file-after.json",
+            "explicit-file-native.txt",
+            "no-run-before.json",
+            "no-run-after.json",
+            "no-run-rejected.txt",
+            "no-run-native-session.json",
+            "picker-cancelled.json",
+            "ui-events.json",
+            "ui-final.json"
+          ]
+        }
+      ],
+      "phase": "4b"
+    },
+    {
+      "id": "CMD-A16",
+      "status": "PASS",
+      "criteria": "关联 source input、request、team/run/role/Primary、Task、执行后的Attempt、revision和事件 | U/E/R",
+      "evidence": [
+        "r23 real Pi UI: PASS: source user_command@pi, input/request28381dbb-c2eb-44f2-aaf7-78994cc9b366, selected Run/role/Primary/Task/Attempt bindings, revisions, artifact hashes and events correlated; /squad request returned same Task. See evidence/r23/ui-cases.json."
+      ],
+      "runs": [
+        {
+          "run_id": "codex-r23-pi-ui",
+          "workspace_id": "wM",
+          "status": "PARTIAL",
+          "controller_epoch": 3,
+          "run_ids": [
+            "run-671da47e762b7e43ad99494a909f839c1e0169b806578897c66e5ac964b494b1",
+            "run-b1c125aeb78e607ac9e85509e03d9e3b3533ddc6a6f29b26329e165234930ce7"
+          ],
+          "subcriteria": {
+            "CMD-A01": "PASS: @re suggestions list current roster reviewer/researcher, Primary, online/idle and owner; no Secondary role capacity.",
+            "CMD-A02": "PASS: native @README.md and @src/foo.ts completions retained. src/foo.ts temporary fixture removed.",
+            "CMD-A03": "PASS after r23 fix: /pisquad-use selects reviewer, fills @reviewer without submission; sending draft routes through normal mention handler. r22 explicit-prefix mismatch preserved.",
+            "CMD-A04": "PASS: successful handoff returned Task; original secondary session assistant/user counts stayed1/1. Direct occupied-role rejection displayed request_id and ROLE_BUSY; no model fallback.",
+            "CMD-A05": "PASS: Primary and Secondary online, mention resolved reviewer-main; caller reviewer-secondary got no formal Attempt.",
+            "CMD-A13": "PASS: new explicit Squad-enabled role session with no Run rejected @role:reviewer with NO_ACTIVE_TEAM_CONTEXT, no Run/Task creation or model turn observed.",
+            "CMD-A14": "PASS: exact @reviewer @backend prefix rejected MULTI_TARGET_NOT_SUPPORTED, business tasks unchanged, draft restored.",
+            "CMD-A15": "PASS: completion obtained under old Run; old Run cancelled, new Run owned reviewer; submitting preserved old draft returned RUN_TERMINAL, no business Task in new Run.",
+            "CMD-A16": "PASS: source user_command@pi, input/request28381dbb-c2eb-44f2-aaf7-78994cc9b366, selected Run/role/Primary/Task/Attempt bindings, revisions, artifact hashes and events correlated; /squad request returned same Task.",
+            "P4-A21": "PASS: root reviewer file causes TARGET_AMBIGUOUS, unknown explicit role ROLE_NOT_IN_TEAM, @role:reviewer routes Primary, @./reviewer read native local file with no formal Task. Fixture removed.",
+            "P4-A23": "PARTIAL: empty-draft Picker cancel preserved state, no task. Existing draft, rapid Run switch and slow autocomplete response remain."
+          },
+          "source_trace": {
+            "task_id": "task-b24de0e9d1bdf85e22c69edbd5f11d8d42361570cc089d334054a8508c6fbdf0",
+            "attempt_id": "attempt-f5971335600851797852e6fbb1f33d8e3482536af010c9bf1f55027e000e48a0",
+            "request_id": "28381dbb-c2eb-44f2-aaf7-78994cc9b366",
+            "source": {
+              "binding": {
+                "agent_id": "reviewer-secondary",
+                "binding_epoch": 1,
+                "primary_epoch": 0,
+                "runtime_id": "ba5f9635-9a46-45ca-930b-f96558dfae46",
+                "session_id": "01a0e091-7e62-7072-8ca1-d08837d1ee5f"
+              },
+              "input_id": "28381dbb-c2eb-44f2-aaf7-78994cc9b366",
+              "origin": "user_command@pi"
+            },
+            "target": {
+              "agent_id": "reviewer-main",
+              "binding_epoch": 1,
+              "primary_epoch": 1,
+              "runtime_id": "d3ba7b04-90b0-4db3-8ef8-56ee13c2f6c4",
+              "session_id": "01a0e073-e0ce-7381-bdf5-9d6e7d9c29f8"
+            },
+            "result_hash": "14ea8fc25a43bdb6242a04d20d32df317e6f309deee3c63302a2df3a925407a4"
+          },
+          "cleanup": "Both UI Runs explicitly cancelled/released; no leases. Temporary reviewer and src/foo.ts removed. Test pane zoom restored and caller tab focused.",
+          "evidence": [
+            "../r22/ui-role-autocomplete.txt",
+            "../r22/ui-file-autocomplete-readme.txt",
+            "../r22/ui-file-autocomplete-src.txt",
+            "picker-selected.txt",
+            "handoff-before.json",
+            "handoff-progress.json",
+            "handoff-source-count-before.json",
+            "handoff-source-count-after.json",
+            "handoff-request-trace.txt",
+            "direct-owned-role-rejected.txt",
+            "direct-owned-role-after.json",
+            "multi-target-exact-rejected.txt",
+            "multi-target-exact-after.json",
+            "stale-draft-before-cancel.txt",
+            "stale-draft-new-owner.json",
+            "stale-draft-rejected.txt",
+            "stale-draft-after.json",
+            "role-file-ambiguous.txt",
+            "unknown-explicit-role.txt",
+            "explicit-role-routed.json",
+            "explicit-file-before.json",
+            "explicit-file-after.json",
+            "explicit-file-native.txt",
+            "no-run-before.json",
+            "no-run-after.json",
+            "no-run-rejected.txt",
+            "no-run-native-session.json",
+            "picker-cancelled.json",
+            "ui-events.json",
+            "ui-final.json"
+          ]
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A01",
+      "status": "PASS",
+      "criteria": "两 Project、嵌套根、同一路径别名启动/发现 | canonical 身份唯一，最近根正确，不跨 Project | F/E/D",
+      "evidence": [
+        "F/E/D covered by evidence/codex-discovery-clients-r15.json: canonical, alias, nested root, second project mismatch. Go and TS clients matched. Failed fixture setup was not counted. No U required."
+      ],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A02",
+      "status": "PASS",
+      "criteria": "动态端口、过期 controller.json、错误 project/protocol、端口被复用 | 无固定端口回落，不连接错误 Controller | F/E",
+      "evidence": [
+        "sub-item only: codex-exclusive-controller.json second serve rejected, discovery hash unchanged",
+        "CLI/HTTP/SQLite sub-item only; see integration/CODEX-BOUNDARIES.md. Not a parent PASS. codex-http-boundary first same-key mismatch was a harness expected-code typo; later REQUEST_ID_CONFLICT retest. r10 ROLE_NOT_SCHEDULABLE kept; r11 retry success is separate.",
+        "F/E covered by discovery clients plus codex-exclusive-controller.json: wrong project/protocol/controller/epoch, stale endpoint no fixed-port fallback, unrelated service on reused port rejected at health, second controller lock. No U required."
+      ],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A03",
+      "status": "PASS",
+      "criteria": "不选身份、选身份但服务不可用分别启动 | 前者完全 no-op，后者明确不可用，无重复告警/模型工作 | U/E",
+      "evidence": [
+        "real Pi: no identity is no-op; explicit identity plus unreachable URL disables once, restores ordinary tools, ordinary input works, no repeated warning; role command returns SQUAD_MODE_DISABLED"
+      ],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A04",
+      "status": "PASS",
+      "criteria": "缺文件、重复 Role/Team、非法 JSON/YAML、目录ID不符、agents.md 大小写、workflow环 | loader 精确报错，拒绝部分配置激活，旁路文件不读写；补查acceptance_policy模式/引用、direct授权名单和正整数Project容量校验 | F/D",
+      "evidence": [
+        "r5 doctor isolated fixtures 15/15 matched; Go CLI only, not Pi/TS, not full PASS",
+        "CLI/HTTP/SQLite sub-item only; see integration/CODEX-BOUNDARIES.md. Not a parent PASS. codex-http-boundary first same-key mismatch was a harness expected-code typo; later REQUEST_ID_CONFLICT retest. r10 ROLE_NOT_SCHEDULABLE kept; r11 retry success is separate.",
+        "F/D sub-item: evidence/codex-config-capacity-integer.json r16 rejects non-integer project capacity; r15 accepted 1.5. Not a full P4-A04 PASS by itself.",
+        "F/D closed from the five CLI evidence files: missing files, duplicate role/team, bad JSON/YAML, directory ID mismatch, agents.md case, workflow cycle, acceptance refs, direct allow-list, positive integer capacity, sidecars unread and unwritten",
+        "evidence/r25/config-version-conflict.json: reused frozen config_version 25 with different content returns HTTP 409 CONFIG_VERSION_CONFLICT; Run/Task/Attempt/resources/counters and immutable config snapshots unchanged; config 26 restored byte-for-byte."
+      ],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A05",
+      "status": "PASS",
+      "criteria": "运行/排队时改 Role/agents.md/Team instructions，随后 continuation及新Run | 快照边界正确、hash可追溯，不静默热换当前Attempt | U/E/R",
+      "evidence": [
+        "evidence/r25/P4-A05.json"
+      ],
+      "runs": [
+        {
+          "status": "PASS",
+          "evidence": "evidence/r25/P4-A05.json"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A06",
+      "status": "PASS",
+      "criteria": "旧目录/旧消息DB迁移、失败回滚、混协议接入 | 原数据和授权历史保留，有备份；混跑拒绝；不导入伪在线 | F/E/D",
+      "evidence": [
+        "sub-item only: r8 isolated serve started then stopped; migration CLI evidence is separate; not full PASS",
+        "CLI/HTTP/SQLite sub-item only; see integration/CODEX-BOUNDARIES.md. Not a parent PASS. codex-http-boundary first same-key mismatch was a harness expected-code typo; later REQUEST_ID_CONFLICT retest. r10 ROLE_NOT_SCHEDULABLE kept; r11 retry success is separate.",
+        "F/E/D closed: migration evidence plus codex-migrated-protocol-offline-r16.json no fake online and 23 PROTOCOL_MISMATCH rejections"
+      ],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A07",
+      "status": "NOT_RUN",
+      "criteria": "并发注册、Leader失联但未释放、旧Runtime恢复、promote竞争 | offline不等于release；CAS唯一，旧凭据/epoch不能夺回身份 | F/E",
+      "evidence": [],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A08",
+      "status": "PASS",
+      "criteria": "从零使用命令创建Team Run，重复request，再提交同队第二Run | 一个逻辑请求一个Run；第二FIFO；无需隐藏手工改DB；补查Leader离线/换绑定的queued Run不占Role，原queue_seq相交公平顺序保留 | U/E",
+      "evidence": [
+        "evidence/r24/fifo-cases.json",
+        "evidence/r25/P4-A08.json"
+      ],
+      "runs": [
+        {
+          "status": "PARTIAL",
+          "evidence": "evidence/r24/fifo-cases.json",
+          "note": "P4-A08重复request与FIFO通过；Leader离线/换绑定排队子项尚待验证。"
+        },
+        {
+          "status": "PASS",
+          "evidence": "evidence/r25/P4-A08.json"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A09",
+      "status": "PASS",
+      "criteria": "use-run后终结Run或/new，再提交旧草稿 | 上下文失效可见，提交拒绝，不换队/复活旧Run；补查planned依赖就绪时才accept并冻结binding，hold不转换；accepted且从未有Attempt者显式rebind不建Attempt | U/E",
+      "evidence": [
+        "evidence/r25/P4-A09.json"
+      ],
+      "runs": [
+        {
+          "status": "PASS",
+          "evidence": "evidence/r25/P4-A09.json"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A10",
+      "status": "PARTIAL",
+      "criteria": "多blocker并存时取消/改版一个Task | 仅清对应revision的wait，其它分支正确推进 | F/E",
+      "evidence": [
+        "CLI/HTTP/SQLite sub-item only; see integration/CODEX-BOUNDARIES.md. Not a parent PASS. codex-http-boundary first same-key mismatch was a harness expected-code typo; later REQUEST_ID_CONFLICT retest. r10 ROLE_NOT_SCHEDULABLE kept; r11 retry success is separate.",
+        "evidence/r24/TR-A14-queue.json"
+      ],
+      "runs": [
+        {
+          "status": "PARTIAL",
+          "evidence": "evidence/r24/TR-A14-queue.json",
+          "note": "TR-A14覆盖32队列上限与同Primary串行；P4-A10仅取消自己的wait子项，P4-A16仅queued Task取消子项，其它条件待验。"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A11",
+      "status": "PARTIAL",
+      "criteria": "Run准入整体占用roster时、及首次派发时注入capacity/write冲突及事务失败 | 无部分Role占用，无lease/Attempt半成功；已有本Run ownership不误删 | F/E",
+      "evidence": [
+        "evidence/r25/ownership-rollback.json",
+        "evidence/r25/dispatch-rollback.json",
+        "evidence/r25/transaction-cleanup.json"
+      ],
+      "runs": [
+        {
+          "status": "PARTIAL",
+          "note": "真实HTTP/SQLite、集成构建故障点：角色占用首条写后及首次派发commit前失败均回滚；后者保留既有Run ownership。不是实际磁盘满。容量/write冲突组合及其余子项待补。",
+          "evidence": "evidence/r25/dispatch-rollback.json"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A12",
+      "status": "NOT_RUN",
+      "criteria": "在登记等待/释放/订阅/snapshot间注入竞态和事件gap | 无永久漏唤醒；重复事件去重；epoch/gap触发对账 | F/E",
+      "evidence": [],
+      "runs": [],
+      "phase": "4b"
+    },
+    {
+      "id": "P4-A13",
+      "status": "PASS",
+      "criteria": "Team capacity=1，父调用另一Role child，同时投无关父Agent任务 | child可执行，父保留affinity；无关任务不能占其会话；父正确续接 ；child 等父澄清时先 yield/settled，父 response-only 后再恢复 child，同样不超卖 capacity| U/E",
+      "evidence": [
+        "r11 capacity=1: parent task-14d9536209c invoked summer child task-5e44d66aa78, continuation_ready seq 5076, parent segment 2 completed; no clarify/response-only observed",
+        "CLI/HTTP/SQLite sub-item only; see integration/CODEX-BOUNDARIES.md. Not a parent PASS. codex-http-boundary first same-key mismatch was a harness expected-code typo; later REQUEST_ID_CONFLICT retest. r10 ROLE_NOT_SCHEDULABLE kept; r11 retry success is separate.",
+        "clarify fixture child task-2f54430c450 submitted 10+20=30 with no clarify event. Not a clarify PASS.",
+        "WITHDRAWN guess conclusion. Verified real Pi clarification on run-15f1ed932769: seq 7528 clarification_requested, 7538 response_ready, 7551 answer segment 2, 7561 child continuation segment 2, 7576 parent continuation segment 3. Second chain 7874/7879/7900/7904 same run. Not a full P4-A13 PASS.",
+        "r15 run-24eaef944340: capacity 1, parent suspended with affinity, unrelated task had no attempt until seq 10686 after parent segment 3 settled at 10588; clarify/response-only/child continuation verified",
+        "r20 capacity1 Team parent→summer→same-Attempt segment2 passed; evidence/r20/capacity1-yield.json. Remaining subcriteria explicitly listed, not a parent PASS.",
+        "r20 clarify round failed from frozen deadline during Leader auto-compaction; see evidence/r20/clarify-failed.json; unrelated parent-Agent task correctly stayed queued. Retest required.",
+        "r20 P4-A13 fresh retest PASS: Team/Project1, parent segments1/2/3, response-only tools, child clarification/resume, unrelated affinity, max active1. See evidence/r20/P4-A13-clarify2.json. Overall Run cancelled due separate reviewer fixture conflict; not a whole Run PASS."
+      ],
+      "runs": [
+        {
+          "run_id": "codex-r20-capacity1-yield",
+          "workspace_id": "wM",
+          "started_at": "2026-09-27T01:28:31.211037Z",
+          "controller_epoch": 2,
+          "project_capacity": 1,
+          "team_capacity": 4,
+          "entity_ids": {
+            "run": "run-27d3d5b990eabe316ff4e2db9059bfecd160499841aa411f03f3a2a6394e08e6",
+            "tasks": [
+              "task-da66e7ace53919388cd0b3f1507e153e0c116f1ae66f9e901711a1920bde665f",
+              "task-13a1efa21f0577d10b63e360a67832b9ac03957f0852ab68f8f37dda2c31d415",
+              "task-c737a858e3b5d9ea1e003c0a7a8608775e7fa7b099f3935a4bacac40bd7dc71b",
+              "task-82a77ea1d90f74e15aded5533bb9c26b8dd2499cfa8567301dcbc8857d3f87c6",
+              "task-ff37f81878c29eec2c091176150577dc91add4bfef89e376d2d4ad95ba032a85",
+              "task-ab4926d706e325c3842379ccb76e0f4649513c8d113679ebe4789e406613bd9f"
+            ],
+            "attempts": [
+              "attempt-88e62c181e460e09d80a4798456fef088585a41a486095c6aa49db39174d2151",
+              "attempt-7fcd5cf5fb37f10a4fee73315d5773378c951b930f3892c821d09ae5e556164b",
+              "attempt-5d423f5e58b2a06a45567bbac02bfe6a41a99c41ac8b6e1c83e067f3cc075ca4",
+              "attempt-1d5a84016f1e5019e200396b16dfb9ea0e714e27d09febaf598279d4873f770f",
+              "attempt-5d7300d749f4ceda7292b7f1ddc75d8962172f05fb11796051b5990c064ae3a7",
+              "attempt-dbe5c5bae0432cac676f296e87af7c69690de4cce326e1b2eaa38cc021c04459"
+            ]
+          },
+          "status": "PARTIAL",
+          "subcriteria": {
+            "team_yield": "PASS: original parent Attempt resumes segment2 after child settled; inherited child acceptance mode=parent after parent review",
+            "resource_release": "PASS: final Run completed/released, capacity empty",
+            "pending": [
+              "standalone null-scope continuation",
+              "reviewer as directly invoked child",
+              "Team policy capacity1 with unrelated parent-Agent task",
+              "child clarification/response-only cycle"
+            ]
+          },
+          "evidence": [
+            "yield-completed.json",
+            "yield-events.json",
+            "yield-progress-*.json",
+            "yield-wM-p*.txt"
+          ],
+          "failure": null
+        },
+        {
+          "run_id": "codex-r20-clarify-1",
+          "entity_ids": {
+            "run_id": "run-09580b863e77f548b9b152b5b6699e6e2aa40445339663f9b49aece757896f51"
+          },
+          "workspace_id": "wM",
+          "controller_epoch": 2,
+          "started_at": "2026-09-27T01:32:19.549346Z",
+          "project_capacity": 1,
+          "team_capacity": 1,
+          "config_version": 14,
+          "status": "FAIL",
+          "failure": "Leader remained in automatic compaction while holding sole execution permit; parent/child reached their frozen 120-second deadline before clarification cycle. No deadline extension or forced success.",
+          "subcriteria": {
+            "unrelated_task_affinity": "PASS: queued counter task blocked by agent_affinity, never dispatched into parent session",
+            "clarification": "NOT_COMPLETED: no completed child→response-only parent→child cycle",
+            "cleanup": "released"
+          },
+          "evidence": [
+            "evidence/r20/clarify-unrelated-queued.json",
+            "evidence/r20/clarify-autocompact-deadline.json",
+            "evidence/r20/clarify-autocompact-events.json",
+            "evidence/r20/clarify-autocompact-leader.txt",
+            "evidence/r20/clarify-failed-cleanup.json"
+          ]
+        },
+        {
+          "run_id": "codex-r20-clarify-2",
+          "workspace_id": "wM",
+          "controller_epoch": 2,
+          "project_capacity": 1,
+          "team_capacity": 1,
+          "config_version": 14,
+          "entity_ids": {
+            "run": "run-05f2cb4aef43ce344e98593a4b05da05636943bd1cb613e8d6fcef14964c7596",
+            "tasks": [
+              "task-03c85c2c247f0fbfd716afbc2e626611d37a05c905516b970fa4051ca28a273b",
+              "task-760c7ccee64755e75a85039c32fa6570646d155eb6ded0c72b6886e671adeeb0",
+              "task-f692d4f0bab78804534860c3b0b9ef3a815eb7e29578ca3f93d266bb62ee8742",
+              "task-cbbe53f40d43a5b556d1b32635fe2af9df60a27901292bd3df3352ea2084348c",
+              "task-90191e2d49b6fe1a469944283a3b7a61c8b6803df1a40e61db7616da2a66fa14",
+              "task-1200e946dae113dfe26498c25fb195e678dd4e09ffeed6b7d5071569689599aa",
+              "task-b885d57b3e7472d07302ffcad89a5208d0a78e3e2e68619cb9f871c45648f48d",
+              "task-89f6f825ac32750bcbf9d528dca76d7978d5946202aca4e85de5fd107f0f1c68"
+            ]
+          },
+          "status": "PASS",
+          "scope": "P4-A13 only; overall Run cancelled after independent reviewer fixture rejected sum30",
+          "subcriteria": {
+            "child_yield_settled": 1189,
+            "parent_response_ready": 1190,
+            "parent_answer": 1195,
+            "parent_response_settled": 1203,
+            "child_resume": 1204,
+            "child_settled": 1214,
+            "parent_resume_segment3": 1216,
+            "parent_settled": 1231,
+            "unrelated_affinity_blocked": [
+              1213,
+              1226
+            ],
+            "unrelated_dispatch_after_parent_settled": 1268,
+            "response_only_tools": [
+              "agent_task_get",
+              "agent_clarification_answer"
+            ],
+            "maximum_concurrent_segments_through_unrelated_completion": 1,
+            "same_parent_attempt_segments": [
+              1,
+              2,
+              3
+            ],
+            "child_result_sum": 30
+          },
+          "limitations": [
+            "Run not accepted: fixture reviewer required file sum60. Rejection preserved; cancelled/released, no live capacity.",
+            "Unrelated task prompt omitted fixtures/ in file path; real Pi observed ENOENT, used managed find, read correct fixture and completed.",
+            "Fixture updated to version15 for subsequent fresh Run; existing version14 evidence not rewritten. Reviewer must reload while idle before next Run."
+          ],
+          "evidence": [
+            "evidence/r20/clarify2-events.json",
+            "evidence/r20/clarify2-counter-probe.json",
+            "evidence/r20/clarify2-cleanup.json",
+            "evidence/r20/clarify2-review-rejected.json",
+            "evidence/r20/clarify2-counter-final.txt",
+            "evidence/r20/clarify2-summer-final.txt",
+            "evidence/r20/clarify2-reviewer.txt"
+          ]
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A14",
+      "status": "PASS",
+      "criteria": "child请求父持有的相同文件或其它等待环资源 | 明确RESOURCE_DEPENDENCY_CONFLICT/环，不静默释放父写锁 | F/E",
+      "evidence": [
+        "evidence/r25/P4-A14.json"
+      ],
+      "runs": [
+        {
+          "status": "PASS",
+          "evidence": "evidence/r25/P4-A14.json"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A15",
+      "status": "PARTIAL",
+      "criteria": "三层嵌套中叶子遭用户普通输入、/new或失败 | 失败沿祖先持久传播，停止成功后继；上层不永久等成功；补查manual_compaction与实际fork/tree/resume切换的中断向祖先传播，suspended父任务也不能跨历史续接 | U/E/F",
+      "evidence": [
+        "ordinary input interrupted counter task-e8ff11c8e37 with manual_interference seq 7229. !bash and manual compact not run.",
+        "manual /compact during task-f06049003568 interrupted attempt-e8423f2093 with manual_compaction; attempt interrupted not accepted",
+        "three-layer ordinary input: leaf task-74ed0166 interrupted manual_interference; summer and counter needs_review with dependency_interrupted. /new and fork/tree/resume ancestor propagation not shown.",
+        "run-97fee8c18fd753d98e7bfcbd3f0c068b3acfa9c2b9b39d99edb2d4054c82bce7 reviewer attempt-d03b8348 result_proposed then settled seq 14402; /new registered seq 14404 after settle. No attempt_interrupted, no ancestor dependency_interrupted. Not a /new pass.",
+        "run-fa422e1dcced reviewer attempt-4637f81b interrupted seq 15790 session_changed before registered seq 15792. summer task-0dfa4de2 and counter task-a08ddfd3 dependency_interrupted owner=session_changed. new session 01a0e027 has no current_task. prior run-97fee8c failure kept. fork/tree/resume still open.",
+        "fork not passed. run-e37a9e4d left planning: leader attempt-c785834c result_proposed holds capacity, summer queued. earlier fork attempts were lease_expired-contaminated or manual_interference. evidence/codex-fork-stopped-r15.json",
+        "fork while child paused: run-72ede11f summer attempt-71b6fed7 session_changed seq 18228 before registered 18231. counter task-45670a72 dependency_interrupted owner=session_changed seq 18227. renew continued during pause. child settled after pause release seq 18276 but summer/counter/run did not advance. tree/resume still open."
+      ],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A16",
+      "status": "PARTIAL",
+      "criteria": "分别取消排队Task、父Task和Run，含离线child | 不abort无关工作；级联停止派发；未确认执行不提前释放 | U/E/F",
+      "evidence": [
+        "evidence/r24/TR-A14-queue.json"
+      ],
+      "runs": [
+        {
+          "status": "PARTIAL",
+          "evidence": "evidence/r24/TR-A14-queue.json",
+          "note": "TR-A14覆盖32队列上限与同Primary串行；P4-A10仅取消自己的wait子项，P4-A16仅queued Task取消子项，其它条件待验。"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A17",
+      "status": "PASS",
+      "criteria": "stale DAG/Task revision、并发dispatch/complete/amend | CAS拒绝旧修订，幂等不重复创建；更新与完成有单一顺序；补查amend受理与应用revision、safe segment续接以及完成竞争；pending amend时旧结果不满足新要求 | F/E",
+      "evidence": [
+        "CLI/HTTP/SQLite sub-item only; see integration/CODEX-BOUNDARIES.md. Not a parent PASS. codex-http-boundary first same-key mismatch was a harness expected-code typo; later REQUEST_ID_CONFLICT retest. r10 ROLE_NOT_SCHEDULABLE kept; r11 retry success is separate.",
+        "codex-concurrent-amend-settled-r16.json: task_before_persist overlapped two HTTP transactions. amend-first seq 313/314/315; settled-first seq 328 then competing amend 409 REVISION_CONFLICT. Both matched. Plus prior amend continuation evidence. F/E, no Pi required."
+      ],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A18",
+      "status": "PARTIAL",
+      "criteria": "intent提交前后、Pi注入前后、ACK前后、settled后分别崩溃 | 可区分未接受/可核实/未知结果；未知注入不自动重放 | F/E/U",
+      "evidence": [
+        "HTTP only: evidence/codex-transaction-windows-http.json before/after commit windows. Not full PASS."
+      ],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A19",
+      "status": "PARTIAL",
+      "criteria": "SQLite写失败/磁盘满/事务回滚 | 不返回已接受、不向Pi注入；失败和清理状态可解释 | F/E",
+      "evidence": [
+        "CLI/HTTP/SQLite sub-item only; see integration/CODEX-BOUNDARIES.md. Not a parent PASS. codex-http-boundary first same-key mismatch was a harness expected-code typo; later REQUEST_ID_CONFLICT retest. r10 ROLE_NOT_SCHEDULABLE kept; r11 retry success is separate.",
+        "HTTP only: before_commit fail rolled back; after_commit fail was already committed. Not full PASS.",
+        "evidence/r25/ownership-rollback.json",
+        "evidence/r25/dispatch-rollback.json",
+        "evidence/r25/transaction-cleanup.json"
+      ],
+      "runs": [
+        {
+          "status": "PARTIAL",
+          "note": "真实HTTP/SQLite、集成构建故障点：角色占用首条写后及首次派发commit前失败均回滚；后者保留既有Run ownership。不是实际磁盘满。容量/write冲突组合及其余子项待补。",
+          "evidence": "evidence/r25/dispatch-rollback.json"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A20",
+      "status": "PASS",
+      "criteria": "丢失HTTP响应后同键重试、同键换内容、重复结果提交 | 返回同一实体；异内容拒绝；结果/Task仅一份有效版本 | F/E",
+      "evidence": [
+        "CLI/HTTP/SQLite sub-item only; see integration/CODEX-BOUNDARIES.md. Not a parent PASS. codex-http-boundary first same-key mismatch was a harness expected-code typo; later REQUEST_ID_CONFLICT retest. r10 ROLE_NOT_SCHEDULABLE kept; r11 retry success is separate.",
+        "HTTP only: same-key retry returned the original task. Not full PASS.",
+        "F/E closed by codex-result-replay-amend-r16.json plus transaction windows: same-key replay, REQUEST_ID_CONFLICT, one current result, two immutable versions"
+      ],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A21",
+      "status": "PASS",
+      "criteria": "Role与真实文件同名、未知显式role、@./path、@role:role | 歧义明确拒绝，可显式消歧；文件不误派发，已识别handoff不落LLM | U/E",
+      "evidence": [
+        "TARGET_AMBIGUOUS when file reviewer existed; file deleted after. @README.md fell through to ordinary model input, no squad run.",
+        "r23 real Pi UI: PASS: root reviewer file causes TARGET_AMBIGUOUS, unknown explicit role ROLE_NOT_IN_TEAM, @role:reviewer routes Primary, @./reviewer read native local file with no formal Task. Fixture removed. See evidence/r23/ui-cases.json."
+      ],
+      "runs": [
+        {
+          "run_id": "codex-r23-pi-ui",
+          "workspace_id": "wM",
+          "status": "PARTIAL",
+          "controller_epoch": 3,
+          "run_ids": [
+            "run-671da47e762b7e43ad99494a909f839c1e0169b806578897c66e5ac964b494b1",
+            "run-b1c125aeb78e607ac9e85509e03d9e3b3533ddc6a6f29b26329e165234930ce7"
+          ],
+          "subcriteria": {
+            "CMD-A01": "PASS: @re suggestions list current roster reviewer/researcher, Primary, online/idle and owner; no Secondary role capacity.",
+            "CMD-A02": "PASS: native @README.md and @src/foo.ts completions retained. src/foo.ts temporary fixture removed.",
+            "CMD-A03": "PASS after r23 fix: /pisquad-use selects reviewer, fills @reviewer without submission; sending draft routes through normal mention handler. r22 explicit-prefix mismatch preserved.",
+            "CMD-A04": "PASS: successful handoff returned Task; original secondary session assistant/user counts stayed1/1. Direct occupied-role rejection displayed request_id and ROLE_BUSY; no model fallback.",
+            "CMD-A05": "PASS: Primary and Secondary online, mention resolved reviewer-main; caller reviewer-secondary got no formal Attempt.",
+            "CMD-A13": "PASS: new explicit Squad-enabled role session with no Run rejected @role:reviewer with NO_ACTIVE_TEAM_CONTEXT, no Run/Task creation or model turn observed.",
+            "CMD-A14": "PASS: exact @reviewer @backend prefix rejected MULTI_TARGET_NOT_SUPPORTED, business tasks unchanged, draft restored.",
+            "CMD-A15": "PASS: completion obtained under old Run; old Run cancelled, new Run owned reviewer; submitting preserved old draft returned RUN_TERMINAL, no business Task in new Run.",
+            "CMD-A16": "PASS: source user_command@pi, input/request28381dbb-c2eb-44f2-aaf7-78994cc9b366, selected Run/role/Primary/Task/Attempt bindings, revisions, artifact hashes and events correlated; /squad request returned same Task.",
+            "P4-A21": "PASS: root reviewer file causes TARGET_AMBIGUOUS, unknown explicit role ROLE_NOT_IN_TEAM, @role:reviewer routes Primary, @./reviewer read native local file with no formal Task. Fixture removed.",
+            "P4-A23": "PARTIAL: empty-draft Picker cancel preserved state, no task. Existing draft, rapid Run switch and slow autocomplete response remain."
+          },
+          "source_trace": {
+            "task_id": "task-b24de0e9d1bdf85e22c69edbd5f11d8d42361570cc089d334054a8508c6fbdf0",
+            "attempt_id": "attempt-f5971335600851797852e6fbb1f33d8e3482536af010c9bf1f55027e000e48a0",
+            "request_id": "28381dbb-c2eb-44f2-aaf7-78994cc9b366",
+            "source": {
+              "binding": {
+                "agent_id": "reviewer-secondary",
+                "binding_epoch": 1,
+                "primary_epoch": 0,
+                "runtime_id": "ba5f9635-9a46-45ca-930b-f96558dfae46",
+                "session_id": "01a0e091-7e62-7072-8ca1-d08837d1ee5f"
+              },
+              "input_id": "28381dbb-c2eb-44f2-aaf7-78994cc9b366",
+              "origin": "user_command@pi"
+            },
+            "target": {
+              "agent_id": "reviewer-main",
+              "binding_epoch": 1,
+              "primary_epoch": 1,
+              "runtime_id": "d3ba7b04-90b0-4db3-8ef8-56ee13c2f6c4",
+              "session_id": "01a0e073-e0ce-7381-bdf5-9d6e7d9c29f8"
+            },
+            "result_hash": "14ea8fc25a43bdb6242a04d20d32df317e6f309deee3c63302a2df3a925407a4"
+          },
+          "cleanup": "Both UI Runs explicitly cancelled/released; no leases. Temporary reviewer and src/foo.ts removed. Test pane zoom restored and caller tab focused.",
+          "evidence": [
+            "../r22/ui-role-autocomplete.txt",
+            "../r22/ui-file-autocomplete-readme.txt",
+            "../r22/ui-file-autocomplete-src.txt",
+            "picker-selected.txt",
+            "handoff-before.json",
+            "handoff-progress.json",
+            "handoff-source-count-before.json",
+            "handoff-source-count-after.json",
+            "handoff-request-trace.txt",
+            "direct-owned-role-rejected.txt",
+            "direct-owned-role-after.json",
+            "multi-target-exact-rejected.txt",
+            "multi-target-exact-after.json",
+            "stale-draft-before-cancel.txt",
+            "stale-draft-new-owner.json",
+            "stale-draft-rejected.txt",
+            "stale-draft-after.json",
+            "role-file-ambiguous.txt",
+            "unknown-explicit-role.txt",
+            "explicit-role-routed.json",
+            "explicit-file-before.json",
+            "explicit-file-after.json",
+            "explicit-file-native.txt",
+            "no-run-before.json",
+            "no-run-after.json",
+            "no-run-rejected.txt",
+            "no-run-native-session.json",
+            "picker-cancelled.json",
+            "ui-events.json",
+            "ui-final.json"
+          ]
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A22",
+      "status": "PARTIAL",
+      "criteria": "代码块/正文/email/多行任务/仅Role/图片附件 | 仅合法首token路由；空任务拒绝；附件不静默丢失；无部分派发 | U/E",
+      "evidence": [
+        "EMPTY_HANDOFF_TASK from /squad call; no model turn"
+      ],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A23",
+      "status": "PARTIAL",
+      "criteria": "Picker取消、已有草稿、快速切Run、旧autocomplete慢响应 | 草稿保留，未提交不派任务；旧generation不覆盖新选择 | U/E/F",
+      "evidence": [
+        "pisquad-use opened selector; esc cancelled with agent done; select filled unsent @role:counter. Reopen-over-draft was contaminated by command submission.",
+        "r23 real Pi UI: PARTIAL: empty-draft Picker cancel preserved state, no task. Existing draft, rapid Run switch and slow autocomplete response remain. See evidence/r23/ui-cases.json."
+      ],
+      "runs": [
+        {
+          "run_id": "codex-r23-pi-ui",
+          "workspace_id": "wM",
+          "status": "PARTIAL",
+          "controller_epoch": 3,
+          "run_ids": [
+            "run-671da47e762b7e43ad99494a909f839c1e0169b806578897c66e5ac964b494b1",
+            "run-b1c125aeb78e607ac9e85509e03d9e3b3533ddc6a6f29b26329e165234930ce7"
+          ],
+          "subcriteria": {
+            "CMD-A01": "PASS: @re suggestions list current roster reviewer/researcher, Primary, online/idle and owner; no Secondary role capacity.",
+            "CMD-A02": "PASS: native @README.md and @src/foo.ts completions retained. src/foo.ts temporary fixture removed.",
+            "CMD-A03": "PASS after r23 fix: /pisquad-use selects reviewer, fills @reviewer without submission; sending draft routes through normal mention handler. r22 explicit-prefix mismatch preserved.",
+            "CMD-A04": "PASS: successful handoff returned Task; original secondary session assistant/user counts stayed1/1. Direct occupied-role rejection displayed request_id and ROLE_BUSY; no model fallback.",
+            "CMD-A05": "PASS: Primary and Secondary online, mention resolved reviewer-main; caller reviewer-secondary got no formal Attempt.",
+            "CMD-A13": "PASS: new explicit Squad-enabled role session with no Run rejected @role:reviewer with NO_ACTIVE_TEAM_CONTEXT, no Run/Task creation or model turn observed.",
+            "CMD-A14": "PASS: exact @reviewer @backend prefix rejected MULTI_TARGET_NOT_SUPPORTED, business tasks unchanged, draft restored.",
+            "CMD-A15": "PASS: completion obtained under old Run; old Run cancelled, new Run owned reviewer; submitting preserved old draft returned RUN_TERMINAL, no business Task in new Run.",
+            "CMD-A16": "PASS: source user_command@pi, input/request28381dbb-c2eb-44f2-aaf7-78994cc9b366, selected Run/role/Primary/Task/Attempt bindings, revisions, artifact hashes and events correlated; /squad request returned same Task.",
+            "P4-A21": "PASS: root reviewer file causes TARGET_AMBIGUOUS, unknown explicit role ROLE_NOT_IN_TEAM, @role:reviewer routes Primary, @./reviewer read native local file with no formal Task. Fixture removed.",
+            "P4-A23": "PARTIAL: empty-draft Picker cancel preserved state, no task. Existing draft, rapid Run switch and slow autocomplete response remain."
+          },
+          "source_trace": {
+            "task_id": "task-b24de0e9d1bdf85e22c69edbd5f11d8d42361570cc089d334054a8508c6fbdf0",
+            "attempt_id": "attempt-f5971335600851797852e6fbb1f33d8e3482536af010c9bf1f55027e000e48a0",
+            "request_id": "28381dbb-c2eb-44f2-aaf7-78994cc9b366",
+            "source": {
+              "binding": {
+                "agent_id": "reviewer-secondary",
+                "binding_epoch": 1,
+                "primary_epoch": 0,
+                "runtime_id": "ba5f9635-9a46-45ca-930b-f96558dfae46",
+                "session_id": "01a0e091-7e62-7072-8ca1-d08837d1ee5f"
+              },
+              "input_id": "28381dbb-c2eb-44f2-aaf7-78994cc9b366",
+              "origin": "user_command@pi"
+            },
+            "target": {
+              "agent_id": "reviewer-main",
+              "binding_epoch": 1,
+              "primary_epoch": 1,
+              "runtime_id": "d3ba7b04-90b0-4db3-8ef8-56ee13c2f6c4",
+              "session_id": "01a0e073-e0ce-7381-bdf5-9d6e7d9c29f8"
+            },
+            "result_hash": "14ea8fc25a43bdb6242a04d20d32df317e6f309deee3c63302a2df3a925407a4"
+          },
+          "cleanup": "Both UI Runs explicitly cancelled/released; no leases. Temporary reviewer and src/foo.ts removed. Test pane zoom restored and caller tab focused.",
+          "evidence": [
+            "../r22/ui-role-autocomplete.txt",
+            "../r22/ui-file-autocomplete-readme.txt",
+            "../r22/ui-file-autocomplete-src.txt",
+            "picker-selected.txt",
+            "handoff-before.json",
+            "handoff-progress.json",
+            "handoff-source-count-before.json",
+            "handoff-source-count-after.json",
+            "handoff-request-trace.txt",
+            "direct-owned-role-rejected.txt",
+            "direct-owned-role-after.json",
+            "multi-target-exact-rejected.txt",
+            "multi-target-exact-after.json",
+            "stale-draft-before-cancel.txt",
+            "stale-draft-new-owner.json",
+            "stale-draft-rejected.txt",
+            "stale-draft-after.json",
+            "role-file-ambiguous.txt",
+            "unknown-explicit-role.txt",
+            "explicit-role-routed.json",
+            "explicit-file-before.json",
+            "explicit-file-after.json",
+            "explicit-file-native.txt",
+            "no-run-before.json",
+            "no-run-after.json",
+            "no-run-rejected.txt",
+            "no-run-native-session.json",
+            "picker-cancelled.json",
+            "ui-events.json",
+            "ui-final.json"
+          ]
+        }
+      ],
+      "phase": "4b"
+    },
+    {
+      "id": "P4-A24",
+      "status": "PASS",
+      "criteria": "help、root命令补全、角色/Run补全、三个旧alias | 入口一致、参数明确、命令存在性与USAGE对应，不伪装未实现命令；补查resume/reconcile/rebind/leader release/accept/reject及operator凭据操作说明 | U/D",
+      "evidence": [
+        "evidence/r24/P4-A24.json"
+      ],
+      "runs": [
+        {
+          "status": "PASS",
+          "evidence": "evidence/r24/P4-A24.json",
+          "pane": "wM:pC"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A25",
+      "status": "PASS",
+      "criteria": "Pi dashboard与Go TUI同时查看同一revision并筛选/详情 | 同projection一致；无模型轮、无人工中断，无Herdr adapter亦可用 | U/E",
+      "evidence": [
+        "Pi dashboard epoch 9 revision 6724 while snapshot was 6733; q closed only the observer. Go TUI remained. Not a full same-revision proof.",
+        "evidence/r24/dashboard-cases.json",
+        "evidence/r25/dashboard-keys.json"
+      ],
+      "runs": [
+        {
+          "status": "PASS",
+          "evidence": "evidence/r24/dashboard-cases.json",
+          "epoch": 3
+        },
+        {
+          "status": "FAIL",
+          "note": "r24详情方向键未滚动，j/k可用；改用Pi matchesKey。"
+        },
+        {
+          "status": "PASS",
+          "evidence": "evidence/r25/dashboard-keys.json"
+        }
+      ],
+      "phase": "4b"
+    },
+    {
+      "id": "P4-A26",
+      "status": "NOT_RUN",
+      "criteria": "Dashboard乱序/断线/slow consumer/Controller重启 | 显示stale/data age，重取snapshot，不假在线或假accepted | U/E/F",
+      "evidence": [],
+      "runs": [],
+      "phase": "4b"
+    },
+    {
+      "id": "P4-A27",
+      "status": "PARTIAL",
+      "criteria": "Dashboard预览cancel/promote/recover命令并使目标revision变化 | 预览不写库；显式提交重新校验，有审计，不乐观假成功 | U/E",
+      "evidence": [
+        "sub-item only: codex-cli-preview.json preview submitted=false, revision unchanged",
+        "CLI/HTTP/SQLite sub-item only; see integration/CODEX-BOUNDARIES.md. Not a parent PASS. codex-http-boundary first same-key mismatch was a harness expected-code typo; later REQUEST_ID_CONFLICT retest. r10 ROLE_NOT_SCHEDULABLE kept; r11 retry success is separate."
+      ],
+      "runs": [],
+      "phase": "4b"
+    },
+    {
+      "id": "P4-A28",
+      "status": "PARTIAL",
+      "criteria": "Team成员通过direct/agent:secondary/旧send入口绕过，另测合法standalone | 前者拒绝，后者按独立权限工作；scope不是调用者自报 ；4a 已须拒绝 direct 到 active Run 持有的 Primary（ROLE_BUSY），4b TR-A13 扩测跨 Team 入口；runtime/model凭据伪造user origin不能管理；无direct预授权的模型root调用拒绝，operator显式direct仍受目标gate | U/E/F",
+      "evidence": [
+        "sub-item only: codex-protocol-auth-http.json 18 negative HTTP cases rejected, entity counts unchanged",
+        "CLI/HTTP/SQLite sub-item only; see integration/CODEX-BOUNDARIES.md. Not a parent PASS. codex-http-boundary first same-key mismatch was a harness expected-code typo; later REQUEST_ID_CONFLICT retest. r10 ROLE_NOT_SCHEDULABLE kept; r11 retry success is separate.",
+        "r22 real standalone root→child→same-Attempt segment2 PASS with null Team/Run and explicit human parent coverage; evidence/r22/TR-A27-standalone.json. Prefix-fixture rejection preserved. Other P4-A28 subcriteria unchanged."
+      ],
+      "runs": [
+        {
+          "run_id": "codex-r22-standalone-child",
+          "workspace_id": "wM",
+          "controller_epoch": 3,
+          "status": "PASS",
+          "entity_ids": {
+            "root_task": "task-cfabf1874f4ee06422d9e8d714340a17b10aa117d925c5697f3f3743c63c5a1c",
+            "tasks": [
+              "task-cfabf1874f4ee06422d9e8d714340a17b10aa117d925c5697f3f3743c63c5a1c",
+              "task-16d3fa00b6bec428782731b53251c35e9e28e9ce2088557dc1c0487022b188bf"
+            ],
+            "attempts": [
+              "attempt-cebd9ea224306ab1ab452b6d9201d823158994063fc8ac00745cc4d32c556572",
+              "attempt-a87d84953960d40103de8a5ccca5ab1c693ac81f72cedc6970b2f39e48dd221c"
+            ]
+          },
+          "subcriteria": {
+            "scope": "Both standalone, team_id/run_id null; no new Run",
+            "continuation": "one parent Attempt segment2 after child settled; child uses distinct Attempt",
+            "acceptance": "independent artifact sum60/hash verified; explicit human parent accept covers exact child result",
+            "cleanup": "both Attempts released; no execution lease"
+          },
+          "retest_of": "r21/standalone-prefix-failed.json (Codex fixture incorrectly used CLI-only agent: prefix)",
+          "evidence": [
+            "evidence/r22/standalone-before.json",
+            "evidence/r22/standalone-completed.json",
+            "evidence/r22/standalone-events.json",
+            "evidence/r22/standalone-counter.txt",
+            "evidence/r22/standalone-summer.txt",
+            "evidence/r22/standalone-independent-artifact.json"
+          ],
+          "limits": "TR-A27 also uses r20 capacity1-yield Team evidence; other standalone authorization/cycle/budget subcriteria are separate."
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A29",
+      "status": "PARTIAL",
+      "criteria": "活动Task时查询status/open dashboard，再普通输入 | 查询不打断；普通输入立即记录manual_interference及上行失败；4a观察路径用status/Go TUI，Pi overlay由4b P4-A25补验；Worker普通输入中断，Leader普通文字记run_guidance，显式takeover中断 | U/E",
+      "evidence": [
+        "CLI/HTTP/SQLite sub-item only; see integration/CODEX-BOUNDARIES.md. Not a parent PASS. codex-http-boundary first same-key mismatch was a harness expected-code typo; later REQUEST_ID_CONFLICT retest. r10 ROLE_NOT_SCHEDULABLE kept; r11 retry success is separate."
+      ],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A30",
+      "status": "NOT_RUN",
+      "criteria": "活动Worker用户发关联handoff，分别在父yield前/父完成后 | intent只在安全边界成为child；父终结后拒绝，不误接管或并发注入；活动或suspended Worker的plain@ handled拒绝且不接管，--parent current才产生关联intent | U/E/F",
+      "evidence": [],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A31",
+      "status": "PARTIAL",
+      "criteria": "模型自动重试、压缩、后置扩展改prompt、很长Role块 | agent_end不冒充settled；最终payload/工具集合有证据，未截断冒充完整；手动compact实际abort须manual_compaction且不自动续跑，自动threshold/overflow保持原Attempt；无活动segment的维护不造任务 | U/E/R",
+      "evidence": [
+        "r20 clarify round failed from frozen deadline during Leader auto-compaction; see evidence/r20/clarify-failed.json; unrelated parent-Agent task correctly stayed queued. Retest required.",
+        "r20 clarify4 Leader repeated wait text without settled; sole lease retained, reviewer stayed queued; safe operator cancellation. Whole end-to-end clarification Gate still unverified after fixture correction. See evidence/r20/clarify4-failure.json."
+      ],
+      "runs": [
+        {
+          "run_id": "codex-r20-clarify-1",
+          "entity_ids": {
+            "run_id": "run-09580b863e77f548b9b152b5b6699e6e2aa40445339663f9b49aece757896f51"
+          },
+          "workspace_id": "wM",
+          "controller_epoch": 2,
+          "started_at": "2026-09-27T01:32:19.549346Z",
+          "project_capacity": 1,
+          "team_capacity": 1,
+          "config_version": 14,
+          "status": "FAIL",
+          "failure": "Leader remained in automatic compaction while holding sole execution permit; parent/child reached their frozen 120-second deadline before clarification cycle. No deadline extension or forced success.",
+          "subcriteria": {
+            "unrelated_task_affinity": "PASS: queued counter task blocked by agent_affinity, never dispatched into parent session",
+            "clarification": "NOT_COMPLETED: no completed child→response-only parent→child cycle",
+            "cleanup": "released"
+          },
+          "evidence": [
+            "evidence/r20/clarify-unrelated-queued.json",
+            "evidence/r20/clarify-autocompact-deadline.json",
+            "evidence/r20/clarify-autocompact-events.json",
+            "evidence/r20/clarify-autocompact-leader.txt",
+            "evidence/r20/clarify-failed-cleanup.json"
+          ]
+        },
+        {
+          "run_id": "codex-r20-clarify-4",
+          "entity_ids": {
+            "run": "run-3ee59baf72bf21cfa0d6f9d2c24432bdad1206ec1a91c6bf5191baa40392ea18"
+          },
+          "workspace_id": "wM",
+          "status": "FAIL",
+          "reason": "Parent/child completed30; Leader repeated wait text without settled, holding sole capacity, review not dispatched. Operator cancelled; no deadline extension, no forced success.",
+          "cleanup": "released",
+          "evidence": [
+            "evidence/r20/clarify4-leader-loop.json",
+            "evidence/r20/clarify4-leader-loop.txt",
+            "evidence/r20/clarify4-cleanup.json",
+            "evidence/r20/clarify4-events.json"
+          ]
+        }
+      ],
+      "phase": "4b"
+    },
+    {
+      "id": "P4-A32",
+      "status": "PARTIAL",
+      "criteria": "Leader尝试edit/write/直接claim Worker任务或自由文本完成；Worker只说“完成了”不提交结果，或仅触发agent_end | 代码拒绝绕行；合法structured decision仍可执行；Worker不标completed，显示RESULT_MISSING或继续等settled | U/E",
+      "evidence": [
+        "CLI/HTTP/SQLite sub-item only; see integration/CODEX-BOUNDARIES.md. Not a parent PASS. codex-http-boundary first same-key mismatch was a harness expected-code typo; later REQUEST_ID_CONFLICT retest. r10 ROLE_NOT_SCHEDULABLE kept; r11 retry success is separate."
+      ],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A33",
+      "status": "PARTIAL",
+      "criteria": "review候选pending、reject后rework、修改产物/要求后complete | review无需先accepted；后继按边条件；旧review及旧result版本不通过Gate；补查checker/reviewer/human/parent策略、错真值拒绝、父子execution_completed与review不递归验收；无策略不接受业务Task | U/E/R",
+      "evidence": [
+        "r2 baseline only: review refs=[] and hash 0186bff1; do not treat this as the r3 retest",
+        "r4 live: both execute artifacts invalidated by ARTIFACT_LENGTH_CHANGED seq 699/700; no auto retry; reject/rework not run",
+        "same run is not rework coverage; natural 60 must not be counted",
+        "reject then rework completed on run-9bf7a88fcbf4; artifact-change invalidation remains a separate run; HTTP boundary is not this PASS",
+        "CLI/HTTP/SQLite sub-item only; see integration/CODEX-BOUNDARIES.md. Not a parent PASS. codex-http-boundary first same-key mismatch was a harness expected-code typo; later REQUEST_ID_CONFLICT retest. r10 ROLE_NOT_SCHEDULABLE kept; r11 retry success is separate.",
+        "r20 real rejection/rework/rereview sub-items passed; see evidence/r20/TR-A18-TR-A22.json. Artifact/goal mutation and all policy branches still require separate verification."
+      ],
+      "runs": [
+        {
+          "run_id": "r2-stats-20260927-1",
+          "started_at": "2026-09-26T21:31:28.98788Z",
+          "versions": {
+            "controller": "/tmp/pi-squad-phase04-controller-r2",
+            "epoch": 1
+          },
+          "handoff_id": "squad-p4-integration-20260927-01",
+          "workspace_id": "wJ",
+          "entity_ids": {
+            "run_id": "run-5b6fdcd4109fed9f1afebd808fe1dfc0f7733c18231440fdf5a178d0c923c5be",
+            "counter_task": "task-2c051875c74f6ba165087184e244df051c0b53382a0839f49496bba348a9b019",
+            "summer_task": "task-a4a5885ebf3c9aa89588c12b915e4425aa45d7e5e9f7d98334577b0a13e2ca76",
+            "review_task": "task-963337a5626261b54e80ae872b153df866e79b8c9625d4fd8f5e64d07af8e12d"
+          },
+          "artifact_hashes": {
+            "counter": "3c2a654e6c48e02cefbf4cada0982610f13e8e6ca30171fa862ff4f94cb785da",
+            "summer": "15756df9c7dfb739d1ec238fb68df46b47b5d112905ecf44b8161f35baf75ee3",
+            "review": "0186bff173c182a612125c2cbff5b2e4030a87cdf71f41163f4813dec4c65f0a",
+            "review_refs": []
+          },
+          "event_range": "1-195",
+          "status": "baseline_not_retest",
+          "failure": "review result refs empty; acceptance/release events precede settled events",
+          "subcriteria": "refs=[] preserved as historical evidence"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A34",
+      "status": "PARTIAL",
+      "criteria": "取消queued Run，再结束前Run；另测前Run cleanup未完成 | 已取消Run不准入；清理未完成不跳到下一Run | U/E",
+      "evidence": [
+        "r20 multi-Team evidence: PARTIAL: queued cancel released2602, never admitted after A release. Explicit unconfirmed-cleanup termination case remains. See evidence/r20/multiteam-round1.json; retain B wait failure and r21 guidance recovery."
+      ],
+      "runs": [
+        {
+          "run_id": "codex-r20-multiteam-round1",
+          "workspace_id": "wM",
+          "controller_epoch": 3,
+          "project_capacity": 4,
+          "team_capacity": {
+            "stats-team": 4,
+            "share-team": 2,
+            "audit-team": 2
+          },
+          "status": "PARTIAL",
+          "entity_ids": {
+            "codex-r20-multi-a": "run-db0093ea58d3205e54db1a27e7bbe9f32071cc3479575c591a34ea79dab332c0",
+            "codex-r20-multi-b": "run-5eb66a3a4ef1fcc9c30f14a404dfaea5d52817216db982f3d783dc0389b2ae86",
+            "codex-r20-multi-c": "run-41f1481a80cc713e0d573145c22dbcca77c97535a1651c6c0a8d3cd18b613aae",
+            "codex-r20-multi-b-cancel": "run-df92ef4ccf1e79b2c23563df90d421ef3f534c0b8f31d0154a6a324e45d56b81"
+          },
+          "subcriteria": {
+            "TR-A07": "PASS: A snapshot holds counter/summer/reviewer as one roster; researcher/auditor not owned by A.",
+            "TR-A09": "PASS: B queued with researcher unowned and zero Attempts; disjoint C admitted2493 and released2589 before A released2675.",
+            "TR-A10": "PASS: A reviewer settled2619, A kept reviewer until release2675; B admitted2677 only.",
+            "TR-A11": "PASS: A release2675 has persisted outbox row; B admitted2677 exactly once and LeaderStep2678 notified share-lead. Source cleanup and EventTx use same SQL transaction.",
+            "TR-A20": "PASS: reviewer-secondary ordinary 2+2 conversation; working heartbeat2697, no Attempt or execution lease; remained Secondary.",
+            "P4-A34": "PARTIAL: queued cancel released2602, never admitted after A release. Explicit unconfirmed-cleanup termination case remains."
+          },
+          "failure": "B Leader refreshed bare Run revision but relied on stale briefing task state; wait after worker accepted left B planning. Preserved stalled snapshot/transcript. TS run query fixed, B completed after explicit guidance; this is not automatic completion PASS.",
+          "evidence": [
+            "evidence/r20/codex-r20-multi-a-submitted.json",
+            "evidence/r20/codex-r20-multi-b-submitted.json",
+            "evidence/r20/codex-r20-multi-c-submitted.json",
+            "evidence/r20/multiteam-active-*.json",
+            "evidence/r20/multiteam-events.json",
+            "evidence/r20/multiteam-outbox.json",
+            "evidence/r20/multiteam-stalled.json",
+            "evidence/r20/multiteam-share-leader-stalled.txt",
+            "evidence/r20/multiteam-completed.json",
+            "evidence/r20/multiteam-final-wM-pC.txt",
+            "evidence/r21/multiteam-final-wM-p8.txt"
+          ],
+          "versions": "Controller r20 unchanged; extension r20 for baseline, only share-lead reloaded r21 before explicit guidance recovery."
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A35",
+      "status": "PARTIAL",
+      "criteria": "quarantined/suspended时promote/release；仅改TTL或DB显示状态 | 拒绝；只有可核实执行对账和显式命令才推进；补查人工confirm-stopped附精确旧绑定、原因/证据和审计，清理不伪称自动验证、不回滚文件、不放行仍未知子执行 | F/E",
+      "evidence": [
+        "CLI/HTTP/SQLite sub-item only; see integration/CODEX-BOUNDARIES.md. Not a parent PASS. codex-http-boundary first same-key mismatch was a harness expected-code typo; later REQUEST_ID_CONFLICT retest. r10 ROLE_NOT_SCHEDULABLE kept; r11 retry success is separate.",
+        "HTTP only: evidence/codex-presence-lease-http.json suspect does not expire lease, late heartbeat does not revive lease. Not a real Pi PASS."
+      ],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A36",
+      "status": "PARTIAL",
+      "criteria": "deadline、长等待、故障后role_available/child结果迟到 | 时间和原因可见；不推断已停、不自动重执行，不绕恢复门；区分presence suspect、到期lease及旧心跳；失租不自动复活，未知执行仍隔离 | U/E/F",
+      "evidence": [
+        "CLI/HTTP/SQLite sub-item only; see integration/CODEX-BOUNDARIES.md. Not a parent PASS. codex-http-boundary first same-key mismatch was a harness expected-code typo; later REQUEST_ID_CONFLICT retest. r10 ROLE_NOT_SCHEDULABLE kept; r11 retry success is separate.",
+        "HTTP only: evidence/codex-presence-lease-http.json suspect does not expire lease, late heartbeat does not revive lease. Not a real Pi PASS."
+      ],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A37",
+      "status": "PASS",
+      "criteria": "相同文件别名、目录包含、符号链接、嵌套其它Project路径 | 受管写入正确互斥或拒绝越界；不声称任意进程沙箱 | F/E",
+      "evidence": [
+        "evidence/r23/write-cases.json",
+        "evidence/r23/write-boundary-sentinels.json",
+        "evidence/r23/write-outside-rejected.txt",
+        "evidence/r23/write-nested-rejected.txt",
+        "evidence/r23/write-control-rejected.txt"
+      ],
+      "runs": [
+        {
+          "run_id": "run-f32e337a5fc58a8e3bb5ed011e486bc0f96ead65b0676ad0eb6f82d4595b77a4",
+          "status": "PARTIAL",
+          "evidence": "evidence/r23/write-cases.json"
+        },
+        {
+          "run_id": "run-bb4b6ea392213edbc3245a52c999ac432d05289f2348dc299e43a020ec033a5a",
+          "status": "PASS",
+          "evidence": "evidence/r23/reservation-completed.json",
+          "note": "结合write-check/write-locks及边界拒绝证据；保留此前PARTIAL记录。"
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A38",
+      "status": "PASS",
+      "criteria": "退出Pi观察overlay/Go TUI，兼容CLI调用并触发错误参数 | 只退出观察，Controller/Pi继续；错误无Task副作用 | U/E",
+      "evidence": [
+        "CLI/HTTP/SQLite sub-item only; see integration/CODEX-BOUNDARIES.md. Not a parent PASS. codex-http-boundary first same-key mismatch was a harness expected-code typo; later REQUEST_ID_CONFLICT retest. r10 ROLE_NOT_SCHEDULABLE kept; r11 retry success is separate.",
+        "Go TUI q exited observer only; controller epoch 8 kept listening",
+        "evidence/r24/dashboard-cases.json"
+      ],
+      "runs": [
+        {
+          "status": "PASS",
+          "evidence": "evidence/r24/dashboard-cases.json",
+          "epoch": 3
+        }
+      ],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A39",
+      "status": "NOT_RUN",
+      "criteria": "固定Pi API probe、重复reload、旧session callback、缺hook版本 | 能力不符fail closed；无重复provider/工具/订阅，无旧回调污染；补查native selector取消不中断、真实分支变化更新generation、user_bash介入、任务注入/前缀不执行命令 | F/U/E",
+      "evidence": [],
+      "runs": [],
+      "phase": "4a"
+    },
+    {
+      "id": "P4-A40",
+      "status": "NOT_RUN",
+      "criteria": "静态检查目录/schema/链接/ID/总数/来源；跑数字夹具三轮主流程 | 89项索引完整，来源区分借鉴/自设计；只有真实证据才能将对应项标PASS | D/U/E/R",
+      "evidence": [],
+      "runs": [],
+      "phase": "4b"
+    }
+  ]
+}

@@ -62,8 +62,23 @@ Viper 读取，Cobra 只声明 flag。高优先级覆盖低优先级：
 
 无子命令时等同 `serve`，以保持 `go run ./cmd/controller -listen ... -db ... -heartbeat-timeout ...`。
 
+## 阶段 04 目标变更（未实现）
+
+上面的默认值与 HTTP 清单描述当前实际行为。阶段 04（4a 的 M1）落地时按 `pi_squad_case/04-team-orchestration/` 修改，届时先改本文件再改代码：
+
+- 数据库改为 Project 的 `.agents/pisquad/.runtime/state.sqlite`；`serve` 持真实进程锁，动态绑定 `127.0.0.1:0` 并原子写 `.runtime/controller.json`。客户端按 discovery 文件与 `/health` 的 project/protocol/controller 校验连接，不回退到固定 `18741`。
+- 保留 `/health` 与现有查询兼容面；新调度写接口放在协议 `pi-squad/2` 的 `/v2/...`（技术设计 D08）。
+- 业务代码按技术设计 D01 分到 `project/`、`task/`、`scheduler/`、`recovery/`、`projection/`，HTTP handler 仍只做薄适配。
+- TUI 仍只读；命令预览只展示，实际执行走显式提交的操作接口。
+
 ## 改动约束
 
 - 不在 Controller 里 spawn Pi 或 Herdr。
 - TUI 只读。`q` 或 Ctrl+C 只退出观察进程。
 - 新的可用命令要同时写进 `pi_squad/USAGE.md`。未实现的命令不要写进使用说明。
+
+## 阶段 04 实施中覆盖（2026-09-27）
+
+当前开发开始切换 Project runtime；以下约束优先于上文旧 P0 默认：`serve` 从 cwd/`--project-root` 发现最近 Project，默认监听 `127.0.0.1:0`，数据库默认 Project `.runtime/state.sqlite`，URL 不设固定默认。显式 `--db` 仅用于隔离验收，仍持对应 Project 进程锁；不得启动第二个同 Project Controller。新增 `--max-parallel-tasks`（默认 2）、`--lease-ttl`（默认 30s，续约 10s）、`--project-root`，Viper 按原优先级读取；配置 direct.allowed_callers/allowed_targets 默认空，direct.allowed_tools 默认 read/grep/find/ls。30s 是本轮实现可查询默认，不表示 TTL 后可释放资源。
+
+按用户最新要求：不新增或运行单元测试，先完成全部需求开发，再统一整体集成验收；编译和类型检查可在开发期间运行，不能据此标验收 PASS。

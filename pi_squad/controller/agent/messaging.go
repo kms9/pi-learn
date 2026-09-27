@@ -364,8 +364,16 @@ func (s *Service) Receipt(ctx context.Context, req ReceiptRequest) (Message, err
 }
 
 // Invalidate queued delivery before a known offline binding is renewed or a session changes.
+type contextExecer interface {
+	ExecContext(context.Context, string, ...any) (sql.Result, error)
+}
+
 func (r *Registry) invalidatePending(ctx context.Context, a Agent, status string) error {
-	_, err := r.db.ExecContext(ctx, `UPDATE messages SET status=? WHERE status IN ('stored','received','recorded','injection_requested') AND (
+	return invalidatePendingWith(ctx, r.db, a, status)
+}
+
+func invalidatePendingWith(ctx context.Context, db contextExecer, a Agent, status string) error {
+	_, err := db.ExecContext(ctx, `UPDATE messages SET status=? WHERE status IN ('stored','received','recorded','injection_requested') AND (
  (json_extract(envelope,'$.to.agent_id')=? AND json_extract(envelope,'$.to.runtime_id')=? AND json_extract(envelope,'$.to.runtime_session_id')=?) OR
  (json_extract(envelope,'$.from.agent_id')=? AND json_extract(envelope,'$.from.runtime_id')=? AND json_extract(envelope,'$.from.runtime_session_id')=?))`, status, a.AgentID, a.RuntimeID, a.RuntimeSessionID, a.AgentID, a.RuntimeID, a.RuntimeSessionID)
 	return err

@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "workflow_id": "yield-child",
+  "steps": [
+    {
+      "id": "parent-count",
+      "role_ref": "counter",
+      "kind": "execute",
+      "goal": "Call agent_invoke for role summer to read pi_squad_case/04-team-orchestration/integration/fixtures/numbers.txt and return the actual sum. Immediately call agent_task_yield after the invoke. Do not calculate the sum in this segment. When the child result is available, submit count=3 and that sum.",
+      "depends_on": []
+    }
+  ]
+}

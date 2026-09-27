@@ -13,7 +13,6 @@ import (
 
 	"github.com/kms9/pi-learn/pi_squad/controller/agent"
 	"github.com/kms9/pi-learn/pi_squad/controller/client"
-	"github.com/kms9/pi-learn/pi_squad/controller/config"
 )
 
 const tuiRefresh = 2 * time.Second
@@ -23,11 +22,11 @@ func newTUICommand() *cobra.Command {
 		Use:   "tui",
 		Short: "Read-only agent table; quitting does not stop the controller",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			cfg, err := config.Load(cmd)
+			project, err := projectClient(cmd)
 			if err != nil {
-				return fail(err)
+				return err
 			}
-			model := newTUIModel(client.New(cfg.URL), cfg.URL)
+			model := newProjectTUI(project)
 			program := tea.NewProgram(model, tea.WithAltScreen())
 			if _, err := program.Run(); err != nil {
 				return fail(err)

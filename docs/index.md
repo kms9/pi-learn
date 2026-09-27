@@ -63,6 +63,8 @@ tags:
 
 ## 会话
 
+- [[sessions/2026-09-27-pi-squad-phase04-openspec-proposal|2026-09-27 阶段 04 OpenSpec 提案]] - 六能力、89 场景及 M0—M9 任务；仅规划，待 apply
+
 - [[sessions/2026-09-27-pi-squad-phase04-consolidation|2026-09-27 阶段 04 冲突审查、实施顺序与文档统一]]
 
 - [[sessions/2026-09-25-squad-role-lease-explanation|2026-09-25 澄清角色实例与执行租约]]
@@ -87,6 +89,7 @@ tags:
 
 - [[sessions/2026-09-24-squad-frontmatter-runtime-implementation|2026-09-24 实现 Markdown 角色、cwd 与运行 UUID]]
 
+- [[sessions/2026-09-27-pi-squad-phase04-code-gap|2026-09-27 阶段 04 需求对照当前代码的差距评估]] - 含用户裁决：激活整体占用 roster、阶段 03 并入、4a/4b 分段；决策 [[decisions/2026-09-27-squad-phase04-activation-and-split]]
 - [[sessions/2026-09-24-squad-role-frontmatter|2026-09-24 Squad 角色文件内容建议]]
 
 - [[sessions/2026-09-24-squad-agents-yaml-feasibility|2026-09-24 Squad 本地角色 YAML 发现可行性]] - 评估草案，未实施
@@ -142,4 +145,9 @@ tags:
 - [固定源码与文件/函数参考](../pi_squad_case/SOURCES.md)
 - [统一验收记录与恢复规范](../pi_squad_case/ACCEPTANCE.md)
 
-- [阶段 04 统一需求与 89 项验收](../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_REQUIREMENTS.md) / [技术设计、冲突裁决、实施顺序与来源](../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_DESIGN.md) - 2026-09-27 合并；新能力待实现，89 项 NOT_RUN；既有切片结果不被重置。
+- [阶段 04 统一需求与 89 项验收](../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_REQUIREMENTS.md) / [技术设计、冲突裁决、实施顺序与来源](../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_DESIGN.md) - 2026-09-27 合并；同日按用户裁决补充激活整体占用、阶段 03 并入与 4a（71）/4b（18）分段；需求代码已实现并进入 Codex 统一验收，89 项逐项状态见 integration/cases.json；既有失败与复测证据保留。
+
+- [[sessions/2026-09-27-pi-squad-phase04-cursor-review|2026-09-27 阶段 04 Cursor 协商评估与规格补充]]
+- [[decisions/2026-09-27-squad-recovery-guidance-acceptance|2026-09-27 恢复、Leader 输入、授权与验收裁决]]
+
+- [[sessions/2026-09-27-pi-squad-phase04-implementation|2026-09-27 阶段 04 实施进展]] - 用户重申先完成全部需求开发，再由 Codex 统一验收，不委派 cc/Claude；当前57/89主ID通过（24部分、8未执行）、OpenSpec17/71，既有失败与r20—r26修复/复测证据保留；TR-A17状态视图及既有边界验收通过，整体尚未完成。

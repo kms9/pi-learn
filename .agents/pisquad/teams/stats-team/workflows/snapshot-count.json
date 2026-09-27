@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "workflow_id": "snapshot-count",
+  "steps": [
+    {
+      "id": "count",
+      "role_ref": "counter",
+      "kind": "execute",
+      "goal": "读取pi_squad_case/04-team-orchestration/integration/fixtures/numbers.txt，提交count=3,sum=60和实际read artifact，不调用子任务。",
+      "depends_on": []
+    }
+  ]
+}

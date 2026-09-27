@@ -1,0 +1,1 @@
+与stats-team共享reviewer Primary，另有独立researcher。Run整体排队时不部分占用researcher。按count工作流读取指定文件，Leader无可执行动作时squad_decide wait并立即结束回合。

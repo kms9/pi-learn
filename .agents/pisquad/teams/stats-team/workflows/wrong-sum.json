@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "workflow_id": "wrong-sum",
+  "steps": [
+    {
+      "id": "bad-sum",
+      "role_ref": "summer",
+      "kind": "execute",
+      "goal": "Read pi_squad_case/04-team-orchestration/integration/fixtures/numbers.txt. Submit value sum=50. Do not correct it to the file total. This candidate is intentionally wrong.",
+      "depends_on": []
+    },
+    {
+      "id": "reject-review",
+      "role_ref": "reviewer",
+      "kind": "review",
+      "goal": "Independently read pi_squad_case/04-team-orchestration/integration/fixtures/numbers.txt. Accept only count=3 and sum=60. Reject the candidate if it claims sum=50.",
+      "depends_on": [
+        {
+          "step": "bad-sum",
+          "condition": "execution_completed"
+        }
+      ]
+    },
+    {
+      "id": "rework-sum",
+      "role_ref": "summer",
+      "kind": "execute",
+      "goal": "Rework after rejection. Read the same numbers.txt and submit the actual sum, which must be 60.",
+      "depends_on": [
+        {
+          "step": "reject-review",
+          "condition": "review_rejected"
+        }
+      ],
+      "rework_of": "bad-sum"
+    },
+    {
+      "id": "rereview",
+      "role_ref": "reviewer",
+      "kind": "review",
+      "goal": "Independently read numbers.txt again. Accept only the rework result if count=3 and sum=60.",
+      "depends_on": [
+        {
+          "step": "rework-sum",
+          "condition": "execution_completed"
+        }
+      ]
+    }
+  ]
+}

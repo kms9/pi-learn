@@ -5,7 +5,7 @@ type: process
 requirements: confirmed
 implementation_status: not_implemented
 acceptance_status: not_run
-updated: 2026-09-21
+updated: 2026-09-27
 ---
 
 # 阶段 05｜位置与可观测性：在 Herdr 中看清并进入目标 Agent
@@ -14,7 +14,7 @@ updated: 2026-09-21
 
 最终目标：用户通过 Pi 对话调用在线 Agent 或小队，能够观察每次消息、调用和协作结果；Agent 身份、通信和任务不依赖 Herdr，进程仍由用户管理。
 
-本阶段只验证**“用户看得见谁在哪个终端、正在做哪项任务、卡在哪里，并能准确进入该 Pi”**。先提供不依赖 Herdr 的 Go 观察视图，再增加可拔除的 Herdr location adapter。任何观察状态都不能反向覆盖任务真相。
+本阶段只验证**“用户看得见谁在哪个终端、正在做哪项任务、卡在哪里，并能准确进入该 Pi”**。不依赖 Herdr 的 Go TUI 与 Pi 内观察视图已由阶段 04 交付；本阶段只在其投影上增加可拔除的 Herdr location adapter 与 focus。任何观察状态都不能反向覆盖任务真相。
 
 用户里程碑：终端表格查看所有 Agent 与任务 → 将部分 Agent 由用户手动运行在 Herdr pane 中 → 自动关联位置 → 移动/改名后刷新 → 按 agent_id 聚焦对应 pane → 断开 adapter 后小队仍能工作。
 
@@ -22,7 +22,7 @@ updated: 2026-09-21
 
 | 要求 | 说明 |
 |---|---|
-| Go 终端视图 | `squad observe --tui`；无 Web 服务、无浏览器、无新的 TS 前端。 |
+| Go 终端视图 | 沿用阶段 04 Controller 的 `tui` 与统一投影，增加 location 列与 focus；无 Web 服务、无浏览器、无新的 TS 前端。 |
 | 混合运行 | 普通终端 Pi 与 Herdr Pi 出现在同一 Directory；不在 Herdr 的 location 为 null。 |
 | 身份不变 | Herdr session/workspace/tab/pane 全是属性，绝不重生成 agent_id。 |
 | 可定位 | 聚焦前复核位置绑定，只对已确认目标执行 focus。 |
@@ -64,7 +64,7 @@ updated: 2026-09-21
 
 只在本阶段读取 `HERDR_SOCKET_PATH`、`HERDR_SESSION`、`HERDR_WORKSPACE_ID`、`HERDR_TAB_ID`、`HERDR_PANE_ID` 等启动线索；使用显式配置或已注册 Pi 提供的端点线索连接，不扫描全机器 socket。验证端点属于当前用户且不是非预期符号链接。
 
-Go 单独实现 Herdr JSONL codec，调用 `ping`、`session.snapshot`、`pane.get`、`pane.process_info`、`events.subscribe` 和 `pane.focus`。**Herdr API 是 newline-delimited JSON，与本项目 4 字节长度前缀协议不同，不能复用同一个 decoder。** ping 检查版本/能力；不支持则 adapter 报错并降级，核心服务继续工作。
+Go 单独实现 Herdr JSONL codec，调用 `ping`、`session.snapshot`、`pane.get`、`pane.process_info`、`events.subscribe` 和 `pane.focus`。**Herdr API 是 newline-delimited JSON，与本项目 HTTP/JSON + SSE 控制面协议不同，不能复用同一个 decoder。** ping 检查版本/能力；不支持则 adapter 报错并降级，核心服务继续工作。
 
 关联流程：从已注册 Pi 的绑定/PID/启动 pane 线索找到候选；用当前 snapshot 和 process_info 核对；保存当前 terminal_id 与位置。只有唯一匹配才 verified。多个 Pi 继承同一个 pane 环境、pane 已被替换或 PID/terminal 不匹配时，显示 ambiguous/unverified，禁止自动 focus。
 
@@ -76,40 +76,40 @@ Herdr `events.subscribe` 使用已核对的事件类型，如 workspace.renamed�
 
 启动先建立订阅并缓冲通知，再拉 snapshot；期间有通知则再次刷新。事件合并窗口 200ms；正常变更目标 2 秒内可见。连接中断显示 location stale，重连后重新订阅和全量拉取；另每 15 秒低频 snapshot 校验，覆盖丢失通知。上述数值是实验目标，可在配置与验收中记录。
 
-Go TUI 订阅本项目自己的单调 event_seq；发生 gap 则重取核心 snapshot。渲染层只读，不阻塞控制面写入；列表分页/截断、大正文按需展开。键盘选择 Agent、查看详情、Enter 请求 focus、q 退出观察；退出必须恢复终端状态。观察程序崩溃不能让任务服务崩溃。
+Go TUI 沿用阶段 04 的单调 event_seq 与 gap 重取 snapshot 行为。渲染层只读，不阻塞控制面写入；列表分页/截断、大正文按需展开。键盘选择 Agent、查看详情、Enter 请求 focus、q 退出观察；退出必须恢复终端状态。观察程序崩溃不能让任务服务崩溃。
 
 focus 是显式用户动作：按 agent_id 查询最新绑定，再解析当前 verified location，核对 terminal/pane 后发 pane.focus；不使用旧列表缓存直接跳转。非 Herdr Agent 返回“当前不在 Herdr，可在原终端继续”，不创建 pane。
 
 ## 6. 实施文件与顺序（待实现）
 
-| 文件 | 逻辑 |
-|---|---|
-| `cmd/squad/main.go` | 继承前阶段，新增 observe、focus、herdr attach/status/detach。 |
-| `pkg/observe/{snapshot,stream}.go` | 合并只读投影、核心 event_seq、gap recovery；保留数据源。 |
-| `pkg/observe/tui.go` | Go 终端视图、筛选、详情、focus 入口、退出恢复。 |
-| `pkg/herdr/{client,codec}.go` | Herdr JSONL、request id、版本/能力、超时；与内部协议隔离。 |
-| `pkg/herdr/{binding,watch}.go` | 映射验证、事件触发 snapshot、重连、stale/ambiguous。 |
-| `extension/{index,location-hints}.ts` | 只补本 Pi 的启动环境/PID线索；不在 TS 中写 Herdr 控制面。 |
-| `tests/` | 两端协议隔离、多实例、ID 复用、错误 focus、丢事件、adapter 拔除回归。 |
+实现位于现有 `pi_squad/`，沿用阶段 04 技术设计 D01 的目录，不另建二进制或扩展入口。
 
-先完成纯 Go 非 Herdr dashboard；再增加只读位置映射；验证刷新/重连；最后增加显式 focus。不要把 pane 自动创建或 Pi 启动塞入本阶段。
+| 位置 | 逻辑 |
+|---|---|
+| `controller/cli/` | 新增 focus、herdr attach/status/detach 命令；`tui` 增加 location 列与 focus 入口。 |
+| `controller/projection/` | 在阶段 04 统一投影上附加 location 数据源与新鲜度。 |
+| `controller/herdr/` | Herdr JSONL client/codec、request id、版本/能力、超时；映射验证、事件触发 snapshot、重连、stale/ambiguous；与内部协议隔离。 |
+| `extension/` | 只补本 Pi 的启动环境/PID 线索；不在 TS 中写 Herdr 控制面。 |
+| 测试 | 两端协议隔离、多实例、ID 复用、错误 focus、丢事件、adapter 拔除回归。 |
+
+纯 Go 非 Herdr dashboard 由阶段 04 交付；本阶段先增加只读位置映射；验证刷新/重连；最后增加显式 focus。不要把 pane 自动创建或 Pi 启动塞入本阶段。
 
 ## 7. 用户主流程
 
-阶段 04 已通过。构建 `./05-herdr-observability/cmd/squad`，实验状态目录 `$HOME/.psq/05`；扩展路径为 `05-herdr-observability/extension/index.ts`。全部 squad 接口待实现。
+前置：阶段 04（4a 与 4b）通过。使用 `pi_squad/controller` 与 `pi_squad/extension`，Project 配置在 `.agents/pisquad`。herdr/focus 相关命令待实现。
 
-先在普通终端运行四个 Pi 和 stats-team，执行 `squad observe --tui`，验证不安装 Herdr 也能查看任务。然后由用户停止其中 reviewer；手动打开 Herdr，在选定 pane 中用同一 reviewer 配置重新启动 Pi。这会产生新 runtime_id；agent_id 不变。要延续原聊天，由用户明确选择 Pi resume；系统不能自行恢复。
+先在普通终端运行四个 Pi 和 stats-team，执行 Controller `tui`，验证不安装 Herdr 也能查看任务。然后由用户停止其中 reviewer；手动打开 Herdr，在选定 pane 中用同一 reviewer 配置重新启动 Pi。这会产生新 runtime_id；agent_id 不变。要延续原聊天，由用户明确选择 Pi resume；系统不能自行恢复。
 
 在那个 Herdr pane 的 shell 中查看实际 `HERDR_SOCKET_PATH`，以该值显式连接：
 
 ```bash
-squad herdr attach --socket '<实际socket路径>' --name dev
-squad herdr status
-squad observe --tui
-squad focus reviewer
+controller herdr attach --socket '<实际socket路径>' --name dev
+controller herdr status
+controller tui
+controller focus reviewer
 ```
 
-用户通过 Herdr 自身 UI 移动 pane、修改 workspace label，再观察表格。最后执行 `squad herdr detach --name dev`，在 operator 再调用 reviewer 或 stats-team，确认仅位置能力消失，通信和任务仍正常。
+用户通过 Herdr 自身 UI 移动 pane、修改 workspace label，再观察表格。最后执行 `controller herdr detach --name dev`，在 operator 再调用 reviewer 或 stats-team，确认仅位置能力消失，通信和任务仍正常。
 
 ## 8. 用户验收矩阵
 
@@ -125,9 +125,9 @@ squad focus reviewer
 | OBS-08 完成依据 | 让 Herdr 显示 idle，但任务验收尚未通过。 | dashboard 仍显示 acceptance pending/rejected，不自行改 completed/accepted。 |
 | OBS-09 拔除 adapter | 执行 detach，保留 Herdr 托管的 Pi。 | Discovery/Messaging/Invocation/Team 用例仍通过；只失去 verified location/focus。 |
 | OBS-10 退出观察 | q 退出或终止 dashboard。 | 终端恢复；Go 控制面、Pi 和任务继续；观察进程不是执行所有者。 |
-| OBS-11 不支持版本 | `squad lab observe-check --case incompatible-herdr`。 | adapter 明确失败并降级；不退回终端键盘注入。 |
+| OBS-11 不支持版本 | 以测试构建模拟不兼容 Herdr 版本（incompatible-herdr）。 | adapter 明确失败并降级；不退回终端键盘注入。 |
 | OBS-12 宿主退出区别 | 在安全实验中由用户真正停止 Herdr server。 | 若 Pi 随宿主退出，Directory 按真实连接标 offline；不谎称仅位置断开。 |
-| OBS-13 错误映射/事件丢失 | `squad lab observe-check --cases ambiguous,reused-pane,event-gap`。 | ambiguous 拒绝 focus；gap 重新 snapshot；无误关联。 |
+| OBS-13 错误映射/事件丢失 | 以测试构建注入 ambiguous、reused-pane、event-gap。 | ambiguous 拒绝 focus；gap 重新 snapshot；无误关联。 |
 
 用屏幕录像/前后 JSON 证明跳转和刷新，用 task timeline 证明状态来源。仅有漂亮表格不代表通过。显示时延从后端实际变更事件或快照开始计，不包含用户慢速操作。
 

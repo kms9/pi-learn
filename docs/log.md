@@ -342,3 +342,366 @@ tags:
 - 来源: 用户授权全面检查、补全、合并并推送；基线 `cdae80379685ff5c79621117712ce9f53ddefe1c` 的五文件、阶段03、现有扩展及固定Pi关键API。
 - 更新: `pi_squad_case/04-team-orchestration/` 两份权威文档和导航README；全局验收与索引；`docs/sessions/2026-09-27-pi-squad-phase04-consolidation.md`、`docs/index.md`。
 - 说明: 记录20处冲突/歧义及处理，保留49项用例并补40项，P4共89项、总索引160项；实施按M0—M8。明确FIFO、Task级blockers、affinity/segment分离、显式Run和输入分类等本轮默认。仅文档审查与整合，未实现或运行P4；不重置既有结果，不改submodule，不自动合并PR #3。
+
+## [2026-09-27] query | 阶段 04 需求对照当前代码评估
+
+- 来源: `pi_squad_case/04-team-orchestration/` 三份文档；`pi_squad/` 现有扩展与 Controller 源码；`pi-dev@890f920` 的 `extensions/types.ts`、`system-prompt.ts`
+- 更新: `docs/sessions/2026-09-27-pi-squad-phase04-code-gap.md`、`docs/questions/open-questions.md`（Q16、Q17）、`docs/index.md`
+- 说明: 代码仅覆盖 P0 身份与 P2 消息；阶段 03 Task/Attempt 未实现却是 P4 前提。列出可复用机制、必须改动点、规则文件冲突与 hold-and-wait 设计风险；建议重定阶段 03 基线并拆分 P4。仅评估，未改实现、未运行验收。
+
+## [2026-09-27] decision | 阶段 04 激活占用、阶段 03 并入与分段
+
+- 来源: 用户对差距评估的答复；AskQuestion 选择“激活时原子占用 roster”“释放 active = 显式取消 Run”
+- 更新: `pi_squad_case/04-team-orchestration/` 三份文档；`03-agent-invocation/README.md`（仅删除冲突点）；`05-herdr-observability/README.md`；`pi_squad_case/README.md`、`ACCEPTANCE.md`；`pi_squad/AGENTS.md`、`pi_squad/controller/AGENTS.md`、根 `AGENTS.md`；`docs/decisions/2026-09-27-squad-phase04-activation-and-split.md`、决策索引、概念页、开放问题 Q13—Q17、会话页、主索引
+- 说明: 以当前批次需求为准。Role 在 Team 激活时整体占用、queued Run 不持资源，跨 Team 互占环结构上不出现；阶段 03 能力由 4a 交付，INV 判据并入映射用例；89 项分 4a 71 / 4b 18，D10 改为 M0—M6 / M7—M9。静态检查通过（ID、JSON、分段与里程碑覆盖）；未改代码、未运行验收。
+
+## [2026-09-27] session | 阶段 04 OpenSpec 提案
+
+- 来源: 用户调用 openspec-propose；阶段 04 当前需求/设计、阶段 03 INV 判据、现有 pi_squad 实现与测试、2026-09-27 用户裁决
+- 更新: `openspec/changes/pi-squad-team-orchestration/`；`docs/sessions/2026-09-27-pi-squad-phase04-openspec-proposal.md`、`docs/index.md`
+- 说明: proposal、六份 specs（18 条需求/89 场景）、design、按 M0—M9 编排的 tasks；保持 4a 71 / 4b 18 与 INV 映射。仅规划，未改代码/配置或执行真实验收；所有实施任务未勾选。
+- 校验: `openspec validate pi-squad-team-orchestration --strict`、OpenSpec 4/4 产物状态、18/89 唯一性与 71/18 分段、INV 映射、本地链接及 `git diff --check` 通过；60 项实施任务均未执行。
+
+## [2026-09-27] session | 阶段 04 Cursor 协商与用户裁决写回
+
+- 来源: 用户 openspec-explore / herdr 指令；w6:p1 Cursor 三轮只读审查（handoff_id=squad-p4-explore-20260927-01）；四项用户明确选择；固定 Pi 源码 890f920。
+- 更新: 阶段 04 权威需求/设计/README；OpenSpec proposal、六份 specs、design、tasks；`docs/sessions/2026-09-27-pi-squad-phase04-cursor-review.md`、`docs/decisions/2026-09-27-squad-recovery-guidance-acceptance.md`、索引、Q18—Q21。
+- 说明: 补恢复出口、LeaderStep/guidance、operator 授权、planned/rebind、容量澄清、acceptance 覆盖与原生输入 hooks；四类待裁决已关闭。仅规划，未修改实现/USAGE/上游，未运行真实验收。
+- 校验: openspec strict validate 通过；4/4 规划产物齐备；6 specs / 18 requirements / 89 唯一主场景、JSON 示例和 git diff --check 通过；71 项实施任务全未勾选，4a 71 / 4b 18 验收编号分段保留。规划校验不代表运行验收 PASS。
+
+## [2026-09-27] session | 阶段 04 开始实施
+
+- 来源: 用户 openspec-apply-change 指令及“先全部开发、后整体集成测试，不做单元测试”的明确要求。
+- 更新: OpenSpec tasks 执行顺序；`pi_squad/` 开发代码及实际入口 USAGE；整体集成索引；实施会话页和主索引。
+- 说明: 实施进行中，编译/类型检查不等于验收；未启动真实测试、未修改上游、未将未完成任务勾选。
+
+## [2026-09-27] session | 阶段 04 开发收口，开始整体集成
+
+- 来源: 用户 openspec-apply-change 授权与先开发后整体集成、禁用单元测试要求。
+- 更新: `docs/sessions/2026-09-27-pi-squad-phase04-implementation.md`、`pi_squad/USAGE.md`、`pi_squad/protocol/`。
+- 说明: v2 控制面与 Pi 适配开发已接通，生产/集成构建和 TS 检查通过；运行验收尚未开始，89 项不记 PASS。记录 native bash/selector/UI 与 snapshot 边界事实，后续用真实 Pi 核对。
+
+## [2026-09-27] session | 阶段 04 首轮整体集成与修复
+
+- 来源: 用户要求先开发后整体集成；Herdr 真实 Pi 与独立验收现场。
+- 更新: `docs/sessions/2026-09-27-pi-squad-phase04-implementation.md`
+- 说明: 记录真实数字工作流、结果引用固定、产物变更失效、严格 JSON 字段名修复和 CLI 配置负例；全量验收进行中，未运行单元测试。
+
+## [2026-09-27] session | 阶段 04 返工链与恢复边界复测
+
+- 来源: Herdr 独立真实 Pi 验收报告；隔离 HTTP/SQLite 与生产构建实际请求。
+- 更新: `docs/sessions/2026-09-27-pi-squad-phase04-implementation.md`、集成 evidence。
+- 说明: 真实错误结果返工链已完成；修复 LeaderStep retry 与过期 complete intent，模拟复测容量1澄清续接、验收覆盖与生产故障入口隔离；区分模拟与真实证据，89 项仍在验收，不运行单元测试。
+
+## [2026-09-27] session | 阶段 04 身份退出、Presence 与旧回调修复
+
+- 来源: 独立真实 Pi 的同ID重复Leader失败/复测、native/UI观察；隔离HTTP/SQLite故障窗口。
+- 更新: `docs/sessions/2026-09-27-pi-squad-phase04-implementation.md`、`pi_squad/USAGE.md`、协议说明、Controller边界证据索引。
+- 说明: 重复Leader被拒后恢复普通工具与输入已真实复测；补suspect与独立lease状态、精确请求源binding、串行旧回调隔离；提交前回滚和提交后错误响应幂等性已有HTTP证据。89项继续验收，不把模拟/子项当完整PASS；未运行单元测试。
+
+## [2026-09-27] session | Squad 会话基线与发现边界集成
+
+- 来源: r15 真实Pi新会话回归、隔离Controller的Go/TS客户端HTTP检查、P4-A03启动代码核对。
+- 更新: `docs/sessions/2026-09-27-pi-squad-phase04-implementation.md`、`pi_squad/USAGE.md`、阶段04集成证据。
+- 说明: /new保留完整注册能力，正常统计Run完成释放；错误Project/协议/epoch和真实端口复用拒绝。首次未注册的连接失败恢复普通Pi修复待真实负例复测。阶段未全量通过，未运行单元测试。
+
+## [2026-09-27] session | Squad 配置、迁移与结果重放补证
+
+- 来源: r16实际doctor CLI、已迁移Project的HTTP/SQLite集成、独立验收RESULT。
+- 更新: `docs/sessions/2026-09-27-pi-squad-phase04-implementation.md`、阶段04 `integration/CODEX-BOUNDARIES.md` 及新证据、OpenSpec tasks。
+- 说明: 修复小数容量被截断；补direct名单/目录ID/sidecar、迁移离线行与23组混协议拒绝、amend安全续接和结果重放。独立验收将P4-A04/A06/A20收口PASS；无单元测试，仍未全量通过。
+
+## [2026-09-27] session | 原生切换收尾与递归预算边界
+
+- 来源: 本机 Pi 生命周期源码、真实 `/new` 失败、隔离 Controller HTTP/SQLite 集成。
+- 更新: `docs/sessions/2026-09-27-pi-squad-phase04-implementation.md`
+- 说明: 保留 /new 未通过证据并调整收尾顺序；r17 修正 standalone 20 child 计数，补循环/深度/重试预算边界；没有单元测试。
+
+## [2026-09-27] session | 重申先开发后整体集成
+
+- 来源: 用户再次确认不进行单元测试。
+- 更新: `docs/sessions/2026-09-27-pi-squad-phase04-implementation.md`
+- 说明: 停止扩展零散HTTP夹具，集中现有多Pi整体流程，实际阻塞取证后修复复测；保留已有证据。
+
+
+## [2026-09-27] session | 阶段 04 再次 apply 开发缺口修复
+
+- 来源: 用户重新调用 openspec-apply-change，重申先开发、后整体集成、无单元测试。
+- 更新: `docs/sessions/2026-09-27-pi-squad-phase04-implementation.md`、`pi_squad/USAGE.md`。
+- 说明: 统一 Role UI 投影与草稿保护，修复旧快照返回、discovery 乱序及 Pi operator direct scope 绕行。仅 Go 编译和 TS 类型检查；保留验收未完成状态，当前旧测试 workspace/Agent 不可沿用。
+
+## [2026-09-27] session | 开发优先，最终由 Codex 直接验收
+
+- 来源: 用户重申先完成 spec 开发再统一检查，并取消 Claude 验收。
+- 更新: `docs/sessions/2026-09-27-pi-squad-phase04-implementation.md`、交接记录、`pi_squad/USAGE.md`。
+- 说明: 关闭刚启动且无 Run 的测试现场；补全失败回退增加旧上下文隔离，类型检查通过。没有运行单元测试，没有新增验收 PASS。
+
+## [2026-09-27] session | 补齐未绑定 Role 投影与观察身份
+
+- 来源: 阶段04 TR-10、P4-A02/A26 与当前源码核对。
+- 更新: `docs/sessions/2026-09-27-pi-squad-phase04-implementation.md`、`pi_squad/USAGE.md`。
+- 说明: 完善无Primary角色/ownership展示、同revision观察时间排序、TUI选择清理及GET/SSE身份校验；只执行编译和类型检查，未进行运行验收。
+
+## [2026-09-27] session | 补齐会话异步回调隔离
+
+- 来源: P4-A39/TR-A29 与 Invocation 生命周期源码核对。
+- 更新: `docs/sessions/2026-09-27-pi-squad-phase04-implementation.md`、`pi_squad/USAGE.md`。
+- 说明: 补 poll/serial/ACK 旧上下文隔离与停止证明二次检查；只做类型和差异检查，运行验收留待全部开发完成后。
+
+## [2026-09-27] session | 取消树与恢复审计开发补齐
+
+- 来源: Task/Run cancel、planned rebind、恢复审计与当前源码对照。
+- 更新: `docs/sessions/2026-09-27-pi-squad-phase04-implementation.md`、USAGE、协议说明。
+- 说明: 修复取消树旧revision覆盖和child取消上行传播，收紧rebind边界，补旧新binding审计和释放幂等；仅编译通过，不标验收PASS。
+
+## [2026-09-27] session | 父验收覆盖与返工 Gate 开发补齐
+
+- 来源: TR-11/P4-A33 当前规格和acceptance/finalGate源码核对。
+- 更新: `docs/sessions/2026-09-27-pi-squad-phase04-implementation.md`、USAGE。
+- 说明: 父覆盖校验完成状态和修订、同事务失效通知，返工替代链重新校验，checker固定实际读取字节；编译通过，运行验收未执行。
+
+## [2026-09-27] session | 命令和多行交接开发补齐
+
+- 来源: TR-12/TR-13及输入错误无副作用要求。
+- 更新: `docs/sessions/2026-09-27-pi-squad-phase04-implementation.md`、USAGE。
+- 说明: 补多行mention、显式role错误、文件fallback、严格选项与命令异步上下文检查；仅类型检查，仍待统一验收。
+
+## [2026-09-27] session | 工具队列权限隔离与开发收口表
+
+- 来源: TR-06/TR-17/P4-A39与实际受管工具实现。
+- 更新: 实施会话页、阶段IMPLEMENTATION/README、USAGE。
+- 说明: 固定每次工具调用的执行上下文，防旧队列操作借用新权限；18条需求映射用于继续开发核对，不替代运行验收。
+
+## [2026-09-27] session | 中断幂等与SSE快照对账
+
+- 来源: TR-16协议/幂等和P4-A26观察要求。
+- 更新: 实施会话、开发收口表、USAGE和协议schema/README。
+- 说明: 补中断事务幂等、SSE重连resnapshot和Controller身份隔离；编译/类型检查通过，未进行运行验收。
+
+## [2026-09-27] session | 管理预览与能力检查开发补齐
+
+- 来源: TR-10/TR-13/TR-18 与当前代码核对。
+- 更新: 实施会话、IMPLEMENTATION、USAGE、Dashboard/命令/能力检查。
+- 说明: 补 release 预览、旧上下文拒绝和注册前能力检查；仅编译和类型检查通过，统一验收尚未启动。
+
+## [2026-09-27] session | 核心能力探针证据关联
+
+- 来源: TR-18/P4-A39 与 ReadProbe 当前实现。
+- 更新: 实施会话、IMPLEMENTATION、USAGE、integration README、probe代码。
+- 说明: 核心能力观察改为有序同执行身份链，防跨轮聚合误判；仅编译和类型检查，验收仍未启动。
+
+## [2026-09-27] session | 命令参数与操作矩阵开发补齐
+
+- 来源: TR-13/P4-A38 与 Pi/Go 命令、HTTP 操作契约。
+- 更新: 实施会话、IMPLEMENTATION、USAGE、命令与 Service 操作名称校验。
+- 说明: 错误参数在请求前拒绝、正文与选项区分、异步返回隔离；编译通过，统一验收尚未启动。
+
+## [2026-09-27] session | 调度主链与事务内状态开发核对
+
+- 来源: runs/dispatch/execution/continuation/cleanup源码与TR-04—06、TR-14—16。
+- 更新: 实施会话、IMPLEMENTATION路径记录、USAGE、调度与probe。
+- 说明: 重读事务内Task避免覆盖失效，补失败上行，纠正probe数字segment；只编译，运行验收尚未启动。
+
+## [2026-09-27] session | Task准入与Leader Gate开发核对
+
+- 来源: TR-07/TR-11/TR-14/TR-17与HTTP、Task、Leader、review源码。
+- 更新: 实施会话、IMPLEMENTATION、USAGE、协议说明及准入/Gate代码。
+- 说明: 补scope冲突、refs/依赖准入及版本有效性，review失败上行；Go编译通过，无运行验收。
+
+## [2026-09-27] session | 配置工具与native生命周期开发核对
+
+- 来源: TR-01/TR-06/TR-15/TR-17及native compaction具体契约。
+- 更新: 实施会话、IMPLEMENTATION核对项、USAGE和gate/discovery。
+- 说明: 补状态许可、路径失败及损坏Project标记处理；两种Go构建和TS通过，源码核对第1/3项完成，未开始验收。
+
+## [2026-09-27] session | 开发收口与统一验收准备
+
+- 来源: 命令/协议/文档最终核对及生产、故障版构建。
+- 更新: IMPLEMENTATION、development-build.json、阶段README、实施会话、schema/USAGE。
+- 说明: 四项源码开发核对完成，正确pisquad_integration构建通过；状态为待Codex统一运行验收，任务和用例未据此标通过。
+
+## [2026-09-27] session | Codex统一验收首轮数字流程
+
+- 来源: wM真实Pi pane、r20控制面事件和独立文件检查。
+- 更新: integration/evidence/r20、cases、RESULT、实施会话。
+- 说明: TR-A21复测PASS，r2失败保留；整体PARTIAL，继续其余场景，不运行单元测试。
+
+## [2026-09-27] session | r20真实返工复审验收
+
+- 来源: wM Pi pane、r20事件232—384及状态快照。
+- 更新: cases/RESULT/evidence和实施会话。
+- 说明: TR-A18/TR-A22 PASS，保留错结果与返工链，P4-A33其它子项待验。
+
+## [2026-09-27] session | r20单额度父子续接证据
+
+- 来源: wM真实Pi、epoch2事件与独立Dashboard。
+- 更新: capacity1-yield证据、cases/RESULT、实施会话。
+- 说明: 原Attempt segment2续接和parent覆盖通过；三项主ID仍PARTIAL，澄清等子项待验。
+
+## [2026-09-27] session | r20澄清失败与竞争隔离证据
+
+- 来源: wM真实auto-compaction、冻结deadline和affinity快照。
+- 更新: clarify-failed证据、cases/RESULT及实施会话。
+- 说明: 无关任务保持排队；澄清闭环因截止时间未完成，保存失败，显式取消，待新Run复测。
+
+## [2026-09-27] session | 再次确认先开发后统一验收
+
+- 来源: 用户本轮执行顺序与验收负责人要求。
+- 更新: `docs/sessions/2026-09-27-pi-squad-phase04-implementation.md`、`docs/index.md`。
+- 说明: 全部需求开发收口后由 Codex 统一验收；开发期保留构建和类型检查，既有证据不重置。
+
+## [2026-09-27] session | r20澄清续接与审查夹具修正
+
+- 来源: wM真实Pi、Controller事件、最终payload探针。
+- 更新: P4-A13记录、RESULT、实施会话、Team/reviewer夹具。
+- 说明: 双容量1澄清竞争复测通过；Run因夹具错误拒绝保留失败并取消，版本15完整Gate待验。
+
+## [2026-09-27] session | 澄清复测保留角色冲突与Leader重复输出
+
+- 来源: clarify3/4真实Attempt上下文、pane与事件。
+- 更新: RESULT、cases、实施会话及role.md夹具。
+- 说明: 新Team/agents.md已生效但role.md仍冲突，已修正；随后Leader重复输出未settled，Run取消释放，完整Gate未通过。
+
+## [2026-09-27] session | 多Team准入证据与Run查询修复
+
+- 来源: wM真实Pi、epoch3事件/SQLite outbox、r21工具调用。
+- 更新: USAGE、cases/RESULT、r20/r21证据与实施会话。
+- 说明: 五项主ID复测通过；保留B stale-state wait失败，补齐Run查询任务图，显式guidance恢复不冒充自动推进，新Run复测中。
+
+## [2026-09-27] session | r21新Run查询修复运行通过
+
+- 来源: share Leader真实工具调用及fresh-run事件。
+- 更新: r21证据、RESULT、实施会话。
+- 说明: 无追加guidance完成释放，源码hash一致；仍未完成全89项，不运行单元测试。
+
+## [2026-09-27] session | 父子调用与Pi界面验收推进
+
+- 来源: wM真实Pi、r22/r23 snapshot/events/pane和独立产物。
+- 更新: USAGE、tasks 5.5、cases/RESULT、阶段README、实施会话与index。
+- 说明: 补齐standalone/reviewer child；明确工具target裸ID，修正Picker短写；35主ID通过，保留夹具错误及旧结果，剩余边界不冒称通过。
+
+## [2026-09-27] session | 写入并行与独立阻塞验收证据
+
+- 来源: wM真实Pi、r23完整事件与独立文件hash。
+- 更新: cases、RESULT、实施会话与write-cases证据。
+- 说明: TR-A24通过，另三项保持PARTIAL；越界探针文件核对未变后清理，整体尚未通过。
+
+## [2026-09-27] session | 受管写入与reservation验收通过
+
+- 来源: 真实Pi工具payload、SQLite运行中租约/预留、控制面事件及越界sentinel。
+- 更新: cases、RESULT、OpenSpec任务4.6、实施会话和index。
+- 说明: CMD-A09/TR-A31/P4-A37通过；Leader压缩后正常释放，39/89主ID通过，未扩大为整体验收完成。
+
+## [2026-09-27] session | 命令帮助与别名一致性修复
+
+- 来源: wM:pC真实帮助/补全/alias输出与控制面快照。
+- 更新: squad-commands、USAGE、r24证据、cases、实施记录。
+- 说明: 参数说明补齐，旧alias参数校验统一，P4-A24通过；40/89通过，其余未冒称完成。
+
+## [2026-09-27] session | Dashboard同版本对照与退出验收
+
+- 来源: wM:pC/wM:p2同revision视图、进程状态及CLI。
+- 更新: r24证据、cases、OpenSpec9.1、实施会话与index。
+- 说明: P4-A25/P4-A38通过，42/89主ID通过；Controller和Pi继续存活，无单元测试。
+
+## [2026-09-27] session | Primary等待队列上限与串行验收
+
+- 来源: wM:p3真实Pi、wM:p7可见CLI、32个排队Task与完整事件。
+- 更新: TR-A14证据、cases、RESULT、实施会话和index。
+- 说明: 第33项QUEUE_FULL且无半记录；取消31项后保留任务串行接续，最终资源为空，43/89通过。
+
+## [2026-09-27] session | FIFO与queued handoff验收及原生按键修复
+
+- 来源: wM真实Pi/CLI、完整准入释放事件与Dashboard方向键操作。
+- 更新: cases、RESULT、r24/r25证据、dashboard、USAGE、实施会话。
+- 说明: TR-A33/CMD-A07通过；修复方向键编码并复测，45/89主ID通过，仍有未完成子项。
+
+## [2026-09-27] session | Primary离线路由验收
+
+- 来源: wM:p6真实进程暂停/恢复、pC路由错误及控制面。
+- 更新: CMD-A06证据、cases、RESULT、实施会话和index。
+- 说明: 离线Primary明确拒绝，不改投在线Secondary；恢复同一绑定，46/89通过。澄清逻辑roster占用与在线Task接受的区别。
+
+## [2026-09-27] session | 同Run再次派发与Leader结构化调用
+
+- 来源: share Leader及reviewer真实Pi、用户handoff、native JSONL和控制面事件。
+- 更新: CMD-A08/A10/A12、OpenSpec6.4、RESULT、r25证据、实施会话及index。
+- 说明: 文字mention无派发，structured decision创建任务；同Primary串行，未读Squad Skill也能路由，49/89通过。
+
+## [2026-09-27] session | 准入与首次派发事务回滚证据
+
+- 来源: 真实Controller集成故障点、SQLite前后快照、wM Pi与operator pane。
+- 更新: P4-A11/P4-A19证据、cases、RESULT及实施会话。
+- 说明: 部分角色写后失败全回滚，派发失败保留既有ownership；故障均reset、Run取消释放，其余窗口不冒称通过。
+
+## [2026-09-27] session | 两Run并发整体准入通过
+
+- 来源: 两HTTP请求重叠计时、真实Leader pane、SQLite角色占用与释放准入事件。
+- 更新: TR-A12证据、cases、RESULT、实施会话和index。
+- 说明: 只有一个完整占用，另一Run无部分占用；释放后仅准入一次，两Run已安全收尾，50/89通过。
+
+## [2026-09-27] session | 实际请求动态块隔离验收
+
+- 来源: reviewer两Team六次实际provider请求、Controller上下文与native会话。
+- 更新: pi-probe、TR-A30/TR-A16、证据限制说明、cases、RESULT及实施会话。
+- 说明: 动态块隔离通过；保留Pi进程缺失和sum夹具验收失败，显式恢复同session并安全收尾，51/89通过。
+
+## [2026-09-27] session | 进程与Run及Attempt快照边界通过
+
+- 来源: counter父子续接、排队Task及新Run的11次实际provider请求。
+- 更新: P4-A05证据、cases、OpenSpec3.5、RESULT、实施会话与index。
+- 说明: Role按进程、工作规则按Attempt、Team指令按Run固定，临时内容已恢复，52/89通过。
+
+## [2026-09-27] session | 重申先开发后统一检查
+
+- 来源: 用户本轮执行顺序与验收负责人指示。
+- 更新: `docs/sessions/2026-09-27-pi-squad-phase04-implementation.md`、`docs/index.md`。
+- 说明: 全部需求开发完成后由 Codex 直接统一验收；本轮未运行验收，不改变既有结果。
+
+## [2026-09-27] session | 配置版本冲突拒绝证据补齐
+
+- 来源: wM可见operator执行、Controller HTTP409及SQLite前后对照。
+- 更新: r25证据、cases、RESULT、OpenSpec2.1、实施会话与index。
+- 说明: 同版本异内容拒绝且无业务副作用，配置恢复；13/71任务完成，整体验收未完成。
+
+## [2026-09-27] session | standalone委派环与任务预算子项
+
+- 来源: wM真实counter、operator终端断言与控制面快照。
+- 更新: TR-A28进展证据、cases、RESULT、实施会话与index。
+- 说明: 保存收尾CAS冲突及原始响应未落盘限制；父子均取消、资源释放，仅记PARTIAL。
+
+## [2026-09-27] session | 父写资源冲突验收通过
+
+- 来源: wM真实frontend、Team HTTP拒绝原始响应、SQLite资源及收尾快照。
+- 更新: P4-A14/TR-A28证据、cases、RESULT、实施会话与index。
+- 说明: 子任务不能申请父目录或其中的文件，拒绝不释放父写资源；Run安全取消释放，53/89通过。
+
+## [2026-09-27] session | 四层委派边界与三次Attempt预算
+
+- 来源: wM四Role真实父子链、Secondary显式retry、原始拒绝响应及资源快照。
+- 更新: depth-boundary夹具/config27、TR-A28证据、cases、RESULT、实施会话与index。
+- 说明: Team祖先/深度拒绝后原链正常完成；standalone第四Attempt拒绝并可取消释放。TR-A28仍部分完成。
+
+## [2026-09-27] session | 委派环与预算TR-A28通过
+
+- 来源: Team/standalone真实Pi链、逐条拒绝响应、重试与取消资源证据。
+- 更新: TR-A28矩阵、cases、RESULT、实施会话与index。
+- 说明: 覆盖两scope的环/深度/任务及Attempt预算；保留文本循环和收尾脚本旧失败，54/89通过。
+
+## [2026-09-27] session | planned与rebind及旧草稿验收通过
+
+- 来源: wM真实/new、planned依赖/hold快照、rebind审计与草稿提交。
+- 更新: config30/夹具、P4-A09证据、cases、RESULT、OpenSpec4.9、实施会话与index。
+- 说明: P4-A09通过、14/71任务完成；Run恢复后四步验收并释放，55/89通过。
+
+## [2026-09-27] session | queued Leader离线与重绑FIFO通过
+
+- 来源: wM真实Leader/new与暂停恢复、队列快照、显式resume审计、完整事件。
+- 更新: P4-A08证据、cases、RESULT、OpenSpec6.1、实施会话与index。
+- 说明: 离线/旧绑定不占Role，显式恢复保留queue_seq，不被后续相交Run越过；56/89通过、15/71任务完成。
+
+## [2026-09-27] session | 补齐共享投影并通过状态视图验收
+
+- 来源: r26真实Controller、Go/Pi视图、API快照及资源收尾。
+- 更新: projection/Go列表、USAGE、r26构建与TR-A17证据、cases、OpenSpec2.8/7.1、wiki。
+- 说明: Team运行汇总及Secondary standalone标识补齐；保留暂停超deadline故障，57/89通过、17/71任务完成。

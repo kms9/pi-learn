@@ -5,7 +5,7 @@ import { isMissingIdentity, readIdentityEnv, type IdentityEnv } from "./registra
 
 export const ROLE_ENV = "PI_SQUAD_ROLE_ID";
 const MAX_CONFIG_BYTES = 64 * 1024;
-const ROLE_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const ROLE_NAME = /^[a-z][a-z0-9-]*$/;
 
 export type RoleProfile = {
   name: string;
@@ -39,7 +39,7 @@ export function parseRoleFile(raw: string, configPath: string): RoleProfile {
   const fields = header as Record<string, unknown>;
   const unknown = Object.keys(fields).filter(key => key !== "name" && key !== "description");
   if (unknown.length) throw new Error(`unsupported frontmatter fields: ${unknown.join(", ")}`);
-  const name = typeof fields.name === "string" ? fields.name.trim() : "";
+  const name = typeof fields.name === "string" ? fields.name : "";
   const description = typeof fields.description === "string" ? fields.description.trim() : "";
   const body = lines.slice(end + 1).join("\n").trim();
   if (!ROLE_NAME.test(name)) throw new Error("name must contain lowercase letters/digits separated by hyphens");

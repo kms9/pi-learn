@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "workflow_id": "context-sum",
+  "steps": [
+    {
+      "id": "context-sum",
+      "role_ref": "reviewer",
+      "kind": "execute",
+      "goal": "读取pi_squad_case/04-team-orchestration/integration/fixtures/numbers.txt，提交实际count=3及sum=60和read返回的artifact。不调用子任务。",
+      "depends_on": []
+    }
+  ]
+}

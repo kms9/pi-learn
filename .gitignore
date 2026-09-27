@@ -16,3 +16,6 @@ pi_squad/controller/bin/
 .cursorindexingignore
 .specstory
 paseo.json
+
+# Project-local controller state and credentials.
+.agents/pisquad/.runtime/

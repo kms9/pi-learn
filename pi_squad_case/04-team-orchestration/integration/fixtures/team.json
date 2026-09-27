@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "team_id": "stats-team",
+  "config_version": 1,
+  "leader": {
+    "agent_ref": "stats-lead"
+  },
+  "members": [
+    {
+      "role_ref": "counter",
+      "responsibility": "count"
+    },
+    {
+      "role_ref": "summer",
+      "responsibility": "sum"
+    },
+    {
+      "role_ref": "reviewer",
+      "responsibility": "review"
+    }
+  ],
+  "instructions_file": "instructions.md",
+  "default_workflow": "stats",
+  "policy": {
+    "run_admission": "fifo_single_active",
+    "max_parallel_tasks": 2,
+    "max_delegate_depth": 3,
+    "max_total_tasks": 20,
+    "max_attempts_per_task": 3,
+    "allowed_tools": [
+      "read",
+      "grep",
+      "find",
+      "ls"
+    ],
+    "writable_roots": [],
+    "acceptance_policy": {
+      "mode": "review",
+      "reviewer_ref": "reviewer",
+      "child_policy": "inherit_parent"
+    }
+  }
+}

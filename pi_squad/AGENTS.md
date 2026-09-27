@@ -8,6 +8,8 @@
 2. 至少启动三个不同角色的 Pi，每个角色一个终端。三个节点指的是三个角色，不是把 Controller、单个 Pi 和 Dashboard 凑成三个终端。这些 Pi 的启动 cwd 必须是当前要检查的项目目录，角色只读该目录下的 `.agents/roles/<role_id>/role.md`。不要把正常角色复制到 `/tmp` 再启动，否则 whoami 的 cwd、role_dir 对不上仓库里的配置。
 3. Controller `serve` 单独一个终端。Dashboard 也单独一个终端，运行 `tui --url http://<该 serve 的监听地址>`。不要往 serve 终端的 stdin 输入 `tui`。`q` 只退出面板，不停止服务。Controller 可以用独立端口和临时数据库，避免写到用户已有服务；这不改变 Pi 的 cwd。
 
+阶段 04（4a 的 M1）落地后，角色路径改为 `.agents/pisquad/roles/<role_id>/{role.md,agents.md}`，启动变量改为 `PI_SQUAD_MODE`、`PI_SQUAD_AGENT_ID` 及 `PI_SQUAD_TEAM_ID` / `PI_SQUAD_ROLE_ID`，Controller 改为动态端口加 discovery 文件（见 `pi_squad_case/04-team-orchestration/`）。落地前按下面的现有路径检查。
+
 ## 上次实际开法
 
 2026-09-24 的可见检查是这样做的：

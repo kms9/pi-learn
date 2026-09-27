@@ -8,7 +8,7 @@ updated: 2026-09-27
 
 # 用户验收与实验记录规范
 
-当前计划清单共 **160 项**：ID 15、DISC 16、MSG 12、INV 15、阶段04 89、OBS 13。阶段04的89项为TR-A01—A33、CMD-A01—A16、P4-A01—A40，唯一清单见 [统一需求](04-team-orchestration/TEAM_RUNTIME_REQUIREMENTS.md)，实施顺序和来源见 [技术设计](04-team-orchestration/TEAM_RUNTIME_DESIGN.md)。其它阶段数量沿用各阶段登记；本次没有重新执行这些用例。
+当前计划清单共 **160 项**：ID 15、DISC 16、MSG 12、INV 15、阶段04 89、OBS 13。阶段04的89项为TR-A01—A33、CMD-A01—A16、P4-A01—A40，分4a（71）与4b（18）两段退出；INV 15项由阶段04 4a映射用例验证，不单独执行。唯一清单见 [统一需求](04-team-orchestration/TEAM_RUNTIME_REQUIREMENTS.md)，实施顺序和来源见 [技术设计](04-team-orchestration/TEAM_RUNTIME_DESIGN.md)。其它阶段数量沿用各阶段登记；本次没有重新执行这些用例。
 
 计划数量不是测试结果。P4新能力的89项均NOT_RUN；已有HTTP/身份/消息切片的部分PASS/PARTIAL证据继续保留在原RESULT中，不被本次文档整合重置，也不能自动当作新协议已通过。文中的lab工具需先实现，不能拿文档示例冒充可运行程序。
 
@@ -28,7 +28,7 @@ updated: 2026-09-27
 
 每一步写明“哪个终端、输入什么、应看到什么、实际看到什么”。计时从服务接收/事件发生点计算，不靠回忆。失败先保留证据、定位层级再修改；复测产生新记录关联原失败，不覆盖失败历史。
 
-阶段通过要求本阶段全部用例PASS及前阶段关键流程无回归。NOT_RUN/BLOCKED必须保留，不用“基本通过”掩盖。允许分增量验收，但应列出尚未通过项。P4按M0—M8实施，不能先把@role转成Messaging ask就宣布正式调用通过。
+阶段通过要求本阶段全部用例PASS及前阶段关键流程无回归。NOT_RUN/BLOCKED必须保留，不用“基本通过”掩盖。允许分增量验收，但应列出尚未通过项。P4按4a（M0—M6）与4b（M7—M9）实施，两段各自退出，不能先把@role转成Messaging ask就宣布正式调用通过。
 
 ## 3. 单用例记录模板
 

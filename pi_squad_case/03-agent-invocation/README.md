@@ -28,7 +28,7 @@ updated: 2026-09-21
 
 ## 3. Task Contract 与接口
 
-模型工具：`agent_invoke`、`agent_task_get`、`agent_task_yield`、`agent_task_complete`；用户命令 `/squad call <alias> <goal>`、`/squad task <id>`、`/squad cancel <id>`。由 Go 创建任务及 attempt，模型不得自造 owner 或已完成状态。
+模型工具：`agent_invoke`、`agent_task_get`、`agent_task_yield`、`agent_task_complete`。由 Go 创建任务及 attempt，模型不得自造 owner 或已完成状态。
 
 ```json
 {
@@ -102,12 +102,6 @@ Go 重启：记录恢复、在线重新握手；未终结任务进入 reconcilia
 
 | 文件 | 逻辑 |
 |---|---|
-| `cmd/squad/main.go` | 继承前阶段；增加 task invoke/get/events/cancel/recover/retry。 |
-| `pkg/invocation/{contract,service}.go` | Task/Attempt/Result、schema、owner 校验、状态迁移。 |
-| `pkg/invocation/{scheduler,gate}.go` | 单 Agent 执行槽、排队、二次占位、deadline。 |
-| `pkg/invocation/{context,result}.go` | 文件引用、摘要校验、artifact 检查、验收记录。 |
-| `pkg/invocation/{dependencies,recovery}.go` | 责任树/等待图、深度预算、崩溃对账、显式恢复。 |
-| `extension/{index,task-tools,executor}.ts` | Pi task 工具、输入标记、结果提交、settled 采集与 ctx.abort。 |
 | `fixtures/numbers.txt` | 三行 `10`、`20`、`30`，固定验收真值 count=3、sum=60。 |
 | `tests/` | 状态机、错 owner、cancel 竞争、会话代次、循环依赖、重启注入窗口。 |
 
@@ -115,32 +109,13 @@ Go 重启：记录恢复、在线重新握手；未终结任务进入 reconcilia
 
 ## 8. 用户主流程
 
-阶段 02 已通过。本阶段状态目录 `$HOME/.psq/03`，构建 `./03-agent-invocation/cmd/squad`，扩展路径 `03-agent-invocation/extension/index.ts`。手动开 operator、worker、reviewer 三个 Pi，保持 Go 服务在线。以下接口待实现。
-
-配置终端先准备唯一的测试输入及授权；三个 Pi 都由用户从这个 workspace 目录启动（CASE 仍为工程绝对路径）。
-
-```bash
-mkdir -p "$SQUAD_HOME/workspace"
-printf '10\n20\n30\n' > "$SQUAD_HOME/workspace/numbers.txt"
-squad policy allow --from operator --to reviewer --actions invoke,send,ask
-squad policy allow --from operator --to worker --actions invoke,send,ask
-squad policy allow --from worker --to reviewer --actions invoke,send,ask
-# 每个 Pi 的启动终端先执行：cd "$SQUAD_HOME/workspace"
-```
+手动开 operator、worker、reviewer 三个 Pi，保持 Go 服务在线。以下接口待实现。
 
 用户先在 reviewer 说“本次会话用于统计实验”，记录其 session_id；在 operator：
 
 ```text
 请调用 reviewer，读取实验文件 numbers.txt，返回 JSON 中的 count 和 sum。
 只读，不修改文件；使用正式任务工具，完成后给我 task_id 和结果。
-```
-
-CLI 观察：
-
-```bash
-squad task get <task-id> --json
-squad task events <task-id>
-squad task verify <task-id> --check count-sum --input <numbers.txt的绝对路径>
 ```
 
 必须看到 reviewer 仍在原 session 执行，结果 count=3、sum=60，且关联 owner、attempt、结果摘要。再让 worker 接收一项“委派 reviewer 完成统计后汇总”的任务，以验证 Agent→Agent 调用，而不是只有人通过 CLI 派发。
@@ -163,7 +138,7 @@ squad task verify <task-id> --check count-sum --input <numbers.txt的绝对路�
 | INV-12 递归调用 | operator→worker→reviewer，worker yield 后汇总。 | root/parent 链完整；reviewer 结果唤醒 worker 原任务；不误归属。 |
 | INV-13 环和深度 | 尝试同链 B→A 或超 max_depth。 | CALL_CYCLE/DEPTH_LIMIT 明确出现，不无限互叫；已有任务记录保留。 |
 | INV-14 故障恢复 | 执行中重启 Go，再手动恢复。 | 先 needs_review；无自动重派；attach-evidence 不执行，retry 生成新 attempt。 |
-| INV-15 边界模拟 | `squad lab invocation-check --cases wrong-owner,stale-result,cancel-race,injection-unknown`。 | 不接收旧结果/他人结果；终态竞争一致；未知窗口不虚报。 |
+| INV-15 边界模拟 | wrong-owner,stale-result,cancel-race,injection-unknown。 | 不接收旧结果/他人结果；终态竞争一致；未知窗口不虚报。 |
 
 控制面接受/拒绝目标 2 秒内可见；实验模型结果等待预算 120 秒，超时逐层归因。INV-01、02、03、08、12、14 必须用真实 Pi，模拟用例只验证确定性边界。
 
@@ -181,6 +156,6 @@ squad task verify <task-id> --check count-sum --input <numbers.txt的绝对路�
 
 ## 11. 退出门槛
 
-INV-01—15 全部通过，前阶段无回归，保留每条任务状态链及失败复测证据。当前为 **NOT RUN**。下一阶段只组合已验证的 invocation，不另建一套小队执行机制。
+INV-01—15 全部通过，前阶段无回归，保留每条任务状态链及失败复测证据。当前为 **NOT RUN**。不另建一套小队执行机制。
 
 回退前先检查仍可能运行的 Pi 工作，不能把“停 Go”当作“工作已停止”；用户确认实际状态后再回退代码。数据备份及复测方法见 [验收模板](../ACCEPTANCE.md)。

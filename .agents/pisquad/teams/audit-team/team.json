@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "team_id": "audit-team",
+  "config_version": 2,
+  "leader": {
+    "agent_ref": "audit-lead"
+  },
+  "members": [
+    {
+      "role_ref": "auditor",
+      "responsibility": "disjoint check"
+    }
+  ],
+  "instructions_file": "instructions.md",
+  "policy": {
+    "run_admission": "fifo_single_active",
+    "max_parallel_tasks": 2,
+    "max_delegate_depth": 1,
+    "max_total_tasks": 12,
+    "max_attempts_per_task": 3,
+    "allowed_tools": [
+      "read"
+    ],
+    "writable_roots": [],
+    "acceptance_policy": {
+      "mode": "checker",
+      "checker_ref": "numbers-count",
+      "child_policy": "separate"
+    }
+  },
+  "default_workflow": "count"
+}
