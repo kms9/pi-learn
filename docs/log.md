@@ -3,7 +3,7 @@ title: Wiki 日志
 type: log
 status: active
 created: 2026-09-07
-updated: 2026-09-27
+updated: 2026-10-02
 tags:
   - project-wiki
   - log
@@ -12,6 +12,14 @@ tags:
 # Wiki 日志
 
 按时间追加。事件类型：`init`、`ingest`、`query`、`lint`、`sync`、`decision`、`maintenance`、`session`。
+
+## [2026-10-02] maintenance | 全量同步 submodule 到最新上游分支尖点
+
+- 来源: `.gitmodules` 登记的 11 个上游仓库；同步时各自 `main/master` 分支尖点
+- 更新: 8 个 gitlink（`pi-dev`、`agent-tools`、`herdr-pi-extensions`、`pi-intercom`、`pi-subagents`、`pi-workflows`、`deepseek-harness`、`paseo`）；新增 `docs/sessions/2026-10-02-submodule-refresh.md`
+- 不变: `pi-context`、`pi-trace-extension`、`pigo` 已是上游最新
+- 说明: Pi 从 0.86.1 基线跨到 1.0.0 系列 main HEAD `3874b3e`；静态检查显示 Squad 使用的核心 extension API 仍存在，但阶段04真实 Pi 1.0 运行回归未在本次维护中执行，不能据此标为兼容验收通过。
+
 
 ## [2026-09-24] session | SSE 验收未收口
 
