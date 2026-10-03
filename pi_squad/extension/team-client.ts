@@ -249,7 +249,10 @@ export class TeamClient {
               if (!Number.isSafeInteger(event.seq) || event.seq < 0)
                 throw new Error("INVALID_EVENT_CURSOR");
               if (event.seq > cursor) {
-                cursor = event.seq;
+                // Gap or newer hint is invalidation only. Commit the cursor from
+                // the snapshot below so a failed reconcile cannot skip events.
+                if (event.seq > cursor + 1)
+                  this.transport.last_error = "EVENT_GAP";
                 this.transport.wakeups++;
                 invalidated = true;
               }
@@ -258,7 +261,8 @@ export class TeamClient {
               const snapshot = await this.snapshot(signal);
               if (snapshot.controller_epoch !== known.controller_epoch)
                 throw new Error("CONTROLLER_EPOCH_CHANGED");
-              cursor = Math.max(cursor, snapshot.revision);
+              cursor = snapshot.revision;
+              this.transport.last_error = "";
               this.transport.last_reconcile_at = new Date().toISOString();
               wake();
             }

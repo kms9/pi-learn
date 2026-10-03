@@ -1,5 +1,0 @@
-# 仅隔离验收 Controller 使用；模型只读 standalone 白名单。
-direct:
-  allowed_callers: [counter-main, summer-main, reviewer-main]
-  allowed_targets: [counter-main, summer-main, reviewer-main]
-  allowed_tools: [read, grep, find, ls]

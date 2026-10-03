@@ -11,6 +11,8 @@ followup2_status: submitted
 receiver_status: received_partial
 ---
 
+> 2026-10-03：以下为历史交接记录，已停止作为执行指令。旧 Agent 分工、callback 地址及消息发送授权均不再沿用；后续协作以用户本次任务的明确要求为准。原结果与证据保留。
+
 # 继续补齐第二阶段验收
 
 用户已授权继续。保留上一轮证据，补齐 README 内 ID/MSG/SSE/FLOW 尚未验证的子项；重点是错误凭据和旧绑定、busy/用户抢占、幂等、离线不补投、断线补查和 Controller 重启。迁移并执行旧 P0 smoke fixture。单纯模型未调用违规工具不能作为工具拦截已通过。

@@ -143,7 +143,6 @@ Controller 的 Go 版本和库边界在 `pi_squad/controller/AGENTS.md`。Gin、
 
 检查 `pi_squad` 插件时先读 `pi_squad/AGENTS.md`。新检查前先关掉上次留下的测试 workspace，再新开 workspace。至少启动三个不同角色的 Pi，启动 cwd 用当前项目目录以检查其中的 `.agents/roles`（阶段 04 落地后为 `.agents/pisquad/roles`），并打开对应该 Controller 的 Dashboard。不要用外部 tmux，也不要用一堆脚本代替看 pane。
 
+## Agent 协作边界
 
-## Herdr 验收交接与结果回传
-
-给 Claude 等验收 Agent 派发任务时，必须传递本次发起者的当前 pane ID，不能只给测试要求。发送前用 `herdr pane current --current` 获取实时 pane_id 和 terminal_id；规则详见 `pi_squad/AGENTS.md` 的「验收回传」。每次交接记录 handoff_id、callback_pane_id、callback_terminal_id、报告路径。验收完成或因明确阻塞结束时，验收方必须主动回传结果，而不是只在自己的 pane 留下回答。此规则由用户明确授权；结果通知不等于自动批准下一阶段。
+默认由当前会话直接完成工作。只有用户在本次任务中明确要求时，才调用 Codex、Grok、Claude 或其他 Agent 协助、评审或验收。历史会话、HANDOFF、旧 pane ID 和旧授权不构成新的委派或结果回传授权。此约束针对开发协作，不改变 Pi Squad 产品自身的多角色运行与验收要求。

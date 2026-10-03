@@ -412,3 +412,32 @@ owner stats Run queue37持有角色时，share first queue38与stats later queue
 确认全部Runreleased后，在wM:p1更换r26 Controller，同一DB升级到epoch4，endpoint63136、pid79454，11个Pi恢复online；p2重新打开对应r26 TUI。实际share Run占用reviewer、stats Run排队，Go Team/Role/Agent与Pi Team详情和API一致；Leader/session/epoch、owner、阻塞、Attempt/affinity/lease、Secondary standalone且不计Team容量均有可见证据。UI检查暂停过久触发deadline及随后lease_expired，故障状态/owner保持可见；不宣称这两个业务Run通过，已显式取消、解除暂停并确认全资源释放。Herdr逻辑Enter本轮未可靠展开Go详情，标准CR可用，未扩大为键盘兼容性通过。
 
 TR-A17 PASS，证据integration/evidence/r26/TR-A17.json；OpenSpec2.8/7.1完成，现17/71。当前57 PASS、24 PARTIAL、8 NOT_RUN。USAGE、构建清单和旧版本/失败证据同步保留，整体仍未完成。
+
+
+## r28 Claude 全量执行（Codex 额度用尽后）
+
+用户要求由 Claude 执行到全部 OpenSpec 任务完成。新测试 space `wP` / squad-p4-r27，隔离库 `/tmp/pi-squad-p4-r27.sqlite`，二进制 r28，epoch 3 端口以 discovery 为准。不跑单元测试。
+
+已观察到：
+- 数字 review Run `run-90cfc5f9` completed/released，count=3、sum=60、review accepted。
+- wrong-sum `run-08d9660e`：sum=50 rejected，返工 sum=60 accepted，复审 accepted，Leader settled 后 released。
+- audit-team 与 stats 不相交期间 audit Run completed。
+- 交叉 roster：cross-a 同时占用 backend+reviewer，cross-b 整体 queued 且两条 waiting_roles，A 释放后 B 只准入一次。TR-A26 记 PASS，证据 `integration/evidence/r28/cross-roster.json`。OpenSpec 8.1 勾选。
+- 重复 stats-lead 被 IDENTITY_ALREADY_OWNED，whoami 为 ordinary 且恢复普通工具。
+- cross-b-lead SIGSTOP 到 offline 后 binding_epoch/runtime 不变，SIGCONT 后仍是同一绑定。
+- Dashboard 在 Controller 停止时显示 STALE，重启到 epoch 3 后 current，12 个 Agent 恢复 online。
+- `!date` 中断记 manual_interference。`/compact` 在过小会话先 abort 且不发 before_compact；原实现记 RESULT_MISSING。已改为 settlement 延后一轮，`session_compact_failed reason=manual` 同步置位，复测 seq 4677 `attempt_interrupted reason=manual_compaction`。
+- 数字 checker 不再因额外数组字段拒绝含 count/sum 的结果。
+- 活动/已 yield 的 counter plain `@summer` 返回 ACTIVE_TASK_SCOPE_CONFLICT，未建额外 child。以 `/` 开头的 standalone goal 未执行成命令。
+
+未完成：53 个 OpenSpec 任务，以及 TR-A25、P4-A07/A12/A26/A30/A39/A40 等仍未整项通过。现场保持运行，继续补剩余场景。
+
+
+## r28 续跑
+
+- 澄清链 `run-da7f7258` 的 yield/clarification_answer/continuation 与 sum=30 已保存；后续 Leader 中断，Run 已取消，不算 Gate 通过。
+- `--parent current` child `task-102cc396` 在父 yield 后完成。P4-A30 仍 PARTIAL。
+- 重复 `roles_released` seq 6830 被消费后，waiter 的 `run_admitted` 仍为 1，ownership revision 仍为 2。TR-A25 PASS。
+- `/squad status` 不中断；Worker 普通输入 seq 7271 `manual_interference`；Leader 普通文字 seq 7412 `operator_guidance`，没有接管。
+- auditor 对已被 cross-a 占用的 reviewer 发 `/squad call` 得到 ROLE_BUSY，未建 Attempt。TR-A13 仍缺模型工具直接调用。
+- OpenSpec 仍 22/71。已勾选且本轮新增的是 1.1、6.5、7.2、8.1、8.4。

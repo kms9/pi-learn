@@ -713,3 +713,21 @@ tags:
 - 来源: r26真实Controller、Go/Pi视图、API快照及资源收尾。
 - 更新: projection/Go列表、USAGE、r26构建与TR-A17证据、cases、OpenSpec2.8/7.1、wiki。
 - 说明: Team运行汇总及Secondary standalone标识补齐；保留暂停超deadline故障，57/89通过、17/71任务完成。
+
+## [2026-10-03] maintenance | 清理旧 Agent 协作要求
+
+- 来源: 用户本轮指示；仓库规则、skills、全局规则与相关记忆核对。
+- 更新: `AGENTS.md`、`pi_squad/AGENTS.md`、两份历史 `HANDOFF.md`、`docs/sessions/2026-10-03-agent-collaboration-cleanup.md`、`docs/index.md`。
+- 说明: 移除旧 Codex/Claude 验收回传协议，明确协作须由用户本次要求；Grok 历史评审和工具能力保留，不自动调用。
+
+## [2026-10-03] query | 验证协作规则清理
+
+- 来源: 用户选择验证不会自动找 Codex / Grok；五项静态检查、skills 触发条件及本轮实际工具调用。
+- 更新: `docs/sessions/2026-10-03-agent-collaboration-cleanup.md`。
+- 说明: 静态检查通过，本轮无 Agent 委派或旧 pane 回传；通用 committee 能力受本次授权边界约束。未运行 Pi Squad 功能测试或独立新会话加载测试。
+
+## [2026-10-03] maintenance | 阶段 04 集成目录不入库
+
+- 来源: 用户要求把上次提交里的 `pi_squad_case/04-team-orchestration/integration/` 排除，以减小仓库体积。
+- 更新: `.gitignore`。本地目录保留，不再跟踪。
+- 说明: 该目录约 166MB，几乎全是 `evidence/`。整体集成索引、夹具和证据留在工作区，不进入 git。

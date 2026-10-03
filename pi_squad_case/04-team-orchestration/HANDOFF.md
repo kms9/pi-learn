@@ -9,6 +9,8 @@ reviewer_terminal_id: term_65bf9463c547d6
 status: not_delivered
 ---
 
+> 2026-10-03：以下为历史交接记录，已停止作为执行指令。旧 Agent 分工、callback 地址及消息发送授权均不再沿用；后续协作以用户本次任务的明确要求为准。原结果与证据保留。
+
 # 阶段 04 整体集成交接
 
 用户已授权完整实施并明确：不新增或运行单元测试，先完成所有需求开发，再整体集成。当前功能开发已接通，生产 Go、pisquad_integration Go 构建与 TS 检查通过。现在执行整体 HTTP/SQLite/真实 Pi 集成，不运行 go test/npm test/任何 unit suite。

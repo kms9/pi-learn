@@ -3,7 +3,7 @@ title: pi_case 知识库索引
 type: index
 status: active
 created: 2026-09-07
-updated: 2026-09-27
+updated: 2026-10-03
 tags:
   - project-wiki
   - index
@@ -62,6 +62,8 @@ tags:
 - [[decisions/2026-09-23-p0-identity-fields|2026-09-23 P0 身份字段与 HTTP Registry]]
 
 ## 会话
+
+- [[sessions/2026-10-03-agent-collaboration-cleanup|2026-10-03 清理旧 Agent 协作要求]] - 默认当前会话执行；历史交接不再授权委派或回传。
 
 - [[sessions/2026-09-27-pi-squad-phase04-openspec-proposal|2026-09-27 阶段 04 OpenSpec 提案]] - 六能力、89 场景及 M0—M9 任务；仅规划，待 apply
 

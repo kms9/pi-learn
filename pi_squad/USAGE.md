@@ -49,7 +49,7 @@ Role 正文在 Pi 进程启动时固定；`/new`、`/reload` 不偷偷换角色�
 - `instructions_file: "instructions.md"`，可选 `default_workflow`。
 - `policy.run_admission: "fifo_single_active"`，正整数 `max_parallel_tasks`、`max_delegate_depth`、`max_total_tasks`、`max_attempts_per_task`。
 - `allowed_tools`、`writable_roots` 必须显式数组。受管工具为 `read/grep/find/ls/write/edit`；只读任务去掉写工具；write/edit 必须有任务 `write_set` 且位于配置允许的根下。正式任务不放行 bash 或未受管的第三方工具。
-- `acceptance_policy`：Team 的 `mode` 为 `checker/review`，`child_policy` 为 `inherit_parent/separate`。checker 需要 `checker_ref`（当前内置 `numbers-count/numbers-sum/numbers-stats`）；review 需要 roster 内独立 `reviewer_ref`；standalone 默认 human，由操作者显式验收。review Task 不递归找 reviewer。
+- `acceptance_policy`：Team 的 `mode` 为 `checker/review`，`child_policy` 为 `inherit_parent/separate`。checker 需要 `checker_ref`（当前内置 `numbers-count/numbers-sum/numbers-stats`）；review 需要 roster 内独立 `reviewer_ref`；standalone 默认 human，由操作者显式验收。review Task 不递归找 reviewer。数字 checker 只核对应的 count/sum 数值和产物 hash，结果里的额外字段不会让合法数字失效。
 
 Workflow 的 `steps` 包含 `id/role_ref/kind/goal/depends_on`，可附 `refs/expected_output/acceptance/write_set/rework_of`。依赖条件为 `execution_completed/acceptance_accepted/review_rejected`；环和预算超限拒绝。`expected_output` 使用实现的严格 JSON schema 子集（type、properties、required、items、enum、additionalProperties、minimum/maximum、minItems/maxItems），未知关键词拒绝。`acceptance` 是给 checker/reviewer 的验收说明，不得覆写冻结的权限或 policy。
 
