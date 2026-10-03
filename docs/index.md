@@ -46,6 +46,8 @@ tags:
 
 ## 决策
 
+- [[decisions/2026-10-03-commit-non-dev-artifacts|2026-10-03 提交前先询问非开发材料]] - 日志和验收证据默认不入库，AI 提交前先问
+
 - [[decisions/2026-09-25-squad-team-runtime-scope|2026-09-25 Squad 专属目录与启动身份]]
 
 - [[decisions/2026-09-24-squad-role-directories|2026-09-24 一角色一目录]]
@@ -62,6 +64,8 @@ tags:
 - [[decisions/2026-09-23-p0-identity-fields|2026-09-23 P0 身份字段与 HTTP Registry]]
 
 ## 会话
+
+- [[sessions/2026-10-03-commit-non-dev-artifacts|2026-10-03 提交前询问非开发材料]] - 日志和验收证据先问再决定是否入库。
 
 - [[sessions/2026-10-03-agent-collaboration-cleanup|2026-10-03 清理旧 Agent 协作要求]] - 默认当前会话执行；历史交接不再授权委派或回传。
 

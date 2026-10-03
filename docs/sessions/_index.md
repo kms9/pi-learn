@@ -3,7 +3,7 @@ title: 会话索引
 type: index
 status: active
 created: 2026-09-07
-updated: 2026-09-24
+updated: 2026-10-03
 tags:
   - project-wiki
 ---
@@ -12,6 +12,7 @@ tags:
 
 实质性沟通写到这里，文件名 `YYYY-MM-DD-短标题.md`。
 
+- [[2026-10-03-commit-non-dev-artifacts|2026-10-03 提交前询问非开发材料]]
 - [[2026-09-24-squad-role-dir-check|2026-09-24 角色目录与发现链路可见验收]]
 - [[2026-09-24-squad-herdr-check|2026-09-24 Pi Squad 检查必须新开 space]]
 - [[2026-09-24-pi-squad-usage|2026-09-24 整理 Pi Squad 配置与启动说明]]

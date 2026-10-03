@@ -731,3 +731,9 @@ tags:
 - 来源: 用户要求把上次提交里的 `pi_squad_case/04-team-orchestration/integration/` 排除，以减小仓库体积。
 - 更新: `.gitignore`。本地目录保留，不再跟踪。
 - 说明: 该目录约 166MB，几乎全是 `evidence/`。整体集成索引、夹具和证据留在工作区，不进入 git。
+
+## [2026-10-03] decision | 提交前先询问非开发材料
+
+- 来源: 用户要求在 `AGENTS.md` 中提示：日志、验收证据及其他开发不需要的代码或文档，用 AI 提交时先问。
+- 更新: `AGENTS.md`、`docs/decisions/2026-10-03-commit-non-dev-artifacts.md`、`docs/sessions/2026-10-03-commit-non-dev-artifacts.md`、`docs/index.md`。
+- 说明: 这类材料默认不纳入。列出路径和体积，用户明确同意后才暂存。
