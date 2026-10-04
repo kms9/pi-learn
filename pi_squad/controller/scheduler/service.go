@@ -162,6 +162,48 @@ func New(ctx context.Context, store *task.Store, snapshot project.Snapshot, cfg 
 				return err
 			}
 		}
+		// Accepted standalone Tasks can survive a crash before the first
+		// dispatch intent commits. There is no Attempt to reconcile, but that
+		// does not authorize new model input after restarting the Controller.
+		// Run-scoped Tasks are already fenced by their Run recovery hold.
+		rows, err = tx.Query(`SELECT body FROM tasks WHERE run_id IS NULL AND state IN ('planned','queued','waiting_dependency')`)
+		if err != nil {
+			return err
+		}
+		var uninjected []task.Contract
+		for rows.Next() {
+			var body string
+			if err := rows.Scan(&body); err != nil {
+				rows.Close()
+				return err
+			}
+			var c task.Contract
+			if err := json.Unmarshal([]byte(body), &c); err != nil {
+				rows.Close()
+				return err
+			}
+			if c.Accepted && len(c.AttemptIDs) == 0 {
+				uninjected = append(uninjected, c)
+			}
+		}
+		err = rows.Err()
+		rows.Close()
+		if err != nil {
+			return err
+		}
+		for _, c := range uninjected {
+			c.State = "needs_review"
+			c.Revision++
+			blocker(&c, "controller_restart", c.ID)
+			if err := task.SaveTask(tx, c); err != nil {
+				return err
+			}
+			if err := task.EventTx(tx, "task_recovery_hold", c.ID, c.Revision, map[string]string{
+				"reason": "controller_restart", "input_state": "not_injected",
+			}); err != nil {
+				return err
+			}
+		}
 		_, err = tx.Exec(`UPDATE instances SET last_seen='',activity='unknown'`)
 		return err
 	})

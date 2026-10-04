@@ -518,6 +518,9 @@ func validateTeam(t Team, id string, roles map[string]Role) error {
 		seen[m.RoleRef] = true
 	}
 	a := p.Acceptance
+	if a.Mode != "review" && a.Mode != "checker" {
+		return fmt.Errorf("ACCEPTANCE_POLICY_MISSING: Team requires checker or review")
+	}
 	if a.ChildPolicy != "inherit_parent" && a.ChildPolicy != "separate" {
 		return fmt.Errorf("invalid child_policy")
 	}

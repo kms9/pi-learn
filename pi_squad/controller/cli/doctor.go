@@ -37,13 +37,14 @@ func newDoctorCommand() *cobra.Command {
 		if err != nil {
 			return err
 		}
-		capabilities := project.InspectCapabilities()
+		piBinary, _ := cmd.Flags().GetString("pi-binary")
+		capabilities := project.InspectCapabilitiesFor(piBinary)
 		d, discoveryErr := project.ReadDiscovery(root)
 		report := map[string]any{"protocol_version": project.Protocol, "go_version": runtime.Version(), "project_root": root, "config_hash": snap.Hash, "roles": len(snap.Roles), "teams": len(snap.Teams), "pi_runtime_probe": "NOT_RUN", "formal_execution_ready": false, "capabilities": capabilities}
 		report["configured_timing"] = project.Timing(cfg.HeartbeatTimeout, cfg.LeaseTTL)
 		probePath, _ := cmd.Flags().GetString("probe-file")
 		if probePath != "" {
-			probe, err := project.ReadProbe(probePath, capabilities.PiVersion)
+			probe, err := project.ReadProbeForHost(probePath, capabilities)
 			if err != nil {
 				return err
 			}
@@ -58,6 +59,7 @@ func newDoctorCommand() *cobra.Command {
 		return printJSON(cmd, report)
 	}}
 	command.Flags().String("probe-file", "", "redacted report saved by the real Pi integration probe")
+	command.Flags().String("pi-binary", "pi", "Pi executable whose version and identity must match the runtime probe")
 	return command
 }
 func newMigrationCommand() *cobra.Command {

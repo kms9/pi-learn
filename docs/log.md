@@ -3,7 +3,7 @@ title: Wiki 日志
 type: log
 status: active
 created: 2026-09-07
-updated: 2026-10-02
+updated: 2026-10-04
 tags:
   - project-wiki
   - log
@@ -737,3 +737,45 @@ tags:
 - 来源: 用户要求在 `AGENTS.md` 中提示：日志、验收证据及其他开发不需要的代码或文档，用 AI 提交时先问。
 - 更新: `AGENTS.md`、`docs/decisions/2026-10-03-commit-non-dev-artifacts.md`、`docs/sessions/2026-10-03-commit-non-dev-artifacts.md`、`docs/index.md`。
 - 说明: 这类材料默认不纳入。列出路径和体积，用户明确同意后才暂存。
+
+## [2026-10-03] session | submodule 更新继续用 shell
+
+- 来源: 用户要求升级 `pi-dev`，并评估用 TypeScript 或 Go 写全量 submodule 更新脚本。
+- 更新: `pi-dev` 工作区 `890f92088` → `4c6fb7cfe`；`docs/sessions/2026-10-03-submodule-update-stack.md`、`docs/index.md`。
+- 说明: 批量更新已由 `scripts/sync-submodules.sh` 覆盖。清单以 `.gitmodules` 为准。gitlink 尚未提交，其余 submodule 未动。
+
+## [2026-10-03] query | Pi Squad 适配 Pi 1.0.1 的源码评估
+
+- 来源: 用户要求分析新版适配；`pi-dev@4c6fb7cfe`、coding-agent 1.0.1 changelog/API/运行时、Squad 当前生产入口与 OpenSpec 设计；实际 `pi --version` 为 1.0.0。
+- 更新: `docs/sessions/2026-10-03-pi-squad-pi-1.0.1-assessment.md`、`docs/index.md`、会话索引、`docs/sources/pi-agent-core.md`、来源登记、`docs/concepts/pi-squad.md`、开放问题。
+- 说明: 保留 Extension + Go Controller；提出 model-only/nested gate、RPC 分类、terminate/串行收尾、有效 prompt/tools 证据、安装能力探针与 fullscreen 回归。未实施建议、升级实际 CLI 或启动真实功能验收；没有把静态接口存在判为兼容 PASS。
+
+## [2026-10-04] session | Pi Squad 的 Pi 1.0.1 规划与实施
+
+- 来源: 用户要求 OpenSpec 后实施 P0 与选定 P1、TUI-only 答复及模型服务修复；独立 Pi 1.0.1 的 Herdr 三角色、Controller、Dashboard、父子链和受控负例。
+- 更新: `openspec/changes/pi-squad-pi-1-0-1-compatibility/`、`pi_squad/extension/`、Controller doctor/probe、USAGE、阶段 04 compatibility 入口；`docs/sessions/2026-10-04-pi-squad-pi-1.0.1-implementation.md`、TUI 决策、概念、问题与 index。
+- 说明: 宿主/工具护栏、可靠收尾、当前请求证据和能力诊断已实施；类型检查、构建与严格 OpenSpec 校验通过，真实 schema 2 核心就绪。兼容 14 PASS / 5 PARTIAL，未改变原 89 项全量未通过的事实；失败和运行证据保留 ignored，测试 space 清理，全局 Pi 1.0.0 及用户服务未修改，未委派 Agent 或运行单元测试。
+
+## [2026-10-04] session | 阶段 04 继续实施与真实复测
+
+- 来源: OpenSpec原71任务、89项矩阵；wZ的真实Pi 1.0.1五Role/三Leader、Controller/Dashboard、HTTP与SQLite。
+- 更新: `pi_squad/`、USAGE、阶段04开发记录与ignored逐项证据、`docs/sessions/2026-10-04-pi-squad-phase04-continuation.md`、index。
+- 说明: 修复acceptance入口、manual compact续接污染与SQLite写满错误；62/71任务、61/89 PASS。并行数字、共享reviewer返工/唤醒及capacity=1澄清通过；其余真实边界继续验收，阶段未完成。保留失败链，不委派Agent、不运行单元测试、未提交。
+
+## [2026-10-04] session | 原生压缩收口与提交前恢复门修复
+
+- 来源: wZ真实Pi自动retry/overflow/threshold、55KB Role、native三层fork/bash/失败、reload；r32→r33物理Controller/adapter崩溃。
+- 更新: Invocation手动压缩维护保护、Controller启动恢复门、USAGE、OpenSpec10.1、阶段矩阵及实施记录、wiki继续实施页。
+- 说明: 64/89 PASS、63/71任务。修复已受理但无Attempt的standalone Task重启自动注入漏洞；物理同窗复测先保持needs_review，显式rebind后才输入。提交后逐窗口仍继续，阶段未完成，未委派Agent、未运行单元测试、未提交。
+
+## [2026-10-04] session | 阶段 04 全量开发与验收完成
+
+- 来源: 原OpenSpec71任务/89用例及新增子断言；实际Pi1.0.1 TUI、Grok4.7、r29—r36控制面、HTTP/SQLite和原生交互。
+- 更新: OpenSpec tasks、USAGE、Controller/Extension、阶段04需求/设计/README/开发与验收记录、全局160导航、wiki会话/concept/questions/index。
+- 说明: 71/71任务、4a71/71、4b18/18 PASS；三轮数字/多Team及九个物理窗、精确版本化验收/草稿/传输/权限补验。保留真实失败和准备错误，F/E不冒充模型；两库五种资源全0、Pi/runtime和服务退出、仅本次wZ关闭。未委派Agent、未运行单元测试、未提交或archive。额外provider/native binary/Pi1.0.2不在结论内。
+
+## [2026-10-04] maintenance | 同步并归档两个 OpenSpec change
+
+- 来源: 用户要求先同步再归档当前两个 change。
+- 更新: `openspec/specs/` 七份主 spec；归档到 `openspec/changes/archive/2026-10-04-pi-squad-team-orchestration` 与 `openspec/changes/archive/2026-10-04-pi-squad-pi-1-0-1-compatibility`。
+- 说明: 工件与任务均已完成。delta 均为新增需求，主 spec 原先为空。`openspec validate --specs` 7 passed。活跃 change 已清空。未提交。

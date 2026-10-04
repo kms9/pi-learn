@@ -20,7 +20,7 @@ tags:
 ## 达成了什么
 
 - 创建本地 change `pi-squad-team-orchestration`，使用配置的 spec-driven schema；未选外部 store。
-- [提案](../../openspec/changes/pi-squad-team-orchestration/proposal.md)、[设计](../../openspec/changes/pi-squad-team-orchestration/design.md)、[任务](../../openspec/changes/pi-squad-team-orchestration/tasks.md) 和六份 capability specs 将 TR-01—18 与 89 个原用例转为 OpenSpec 契约；任务按 M0—M9、4a 71 / 4b 18 分段，含 INV-01—15 映射和每项验证方式。
+- [提案](../../openspec/changes/archive/2026-10-04-pi-squad-team-orchestration/proposal.md)、[设计](../../openspec/changes/archive/2026-10-04-pi-squad-team-orchestration/design.md)、[任务](../../openspec/changes/archive/2026-10-04-pi-squad-team-orchestration/tasks.md) 和六份 capability specs 将 TR-01—18 与 89 个原用例转为 OpenSpec 契约；任务按 M0—M9、4a 71 / 4b 18 分段，含 INV-01—15 映射和每项验证方式。
 - 读取当前实现及附近配置/SSE 测试，确认固定端口、旧目录、整段 prompt、独立 input hook 和 Registry 跨事务失效等改动落点。沿用本批用户裁决，不改变整体 roster 占用、显式取消释放、故障恢复门与阶段 03 并入。
 - 本轮仅规划及 wiki 写回；未修改插件代码、运行配置或 submodule，未启动 Pi、迁移数据库或派发验收，未将 89 项记为已通过。
 

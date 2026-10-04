@@ -23,47 +23,6 @@ export function sections(
   });
   return blocks;
 }
-/** Only structural evidence and hashes; never persist request bodies or headers. */
-export function payloadEvidence(
-  payload: unknown,
-  dispatch: Dispatch | undefined,
-  identity?: ProjectIdentity,
-) {
-  const text = JSON.stringify(payload);
-  const contains = (value: string | undefined) =>
-    !value || text.includes(JSON.stringify(value).slice(1, -1));
-  const object =
-    payload && typeof payload === "object"
-      ? (payload as Record<string, unknown>)
-      : {};
-  const tools = Array.isArray(object.tools)
-    ? object.tools.map((tool: unknown) => {
-        const t = tool as { name?: string; function?: { name?: string } };
-        return t.name ?? t.function?.name ?? "unknown";
-      })
-    : [];
-  return {
-    role_body_present: contains(identity?.role?.body),
-    working_rules_present: contains(
-      dispatch?.attempt.context.role.working_rules,
-    ),
-    team_instructions_present: contains(
-      dispatch?.attempt.context.team_instructions,
-    ),
-    tools,
-    attempt_id: dispatch?.attempt.attempt_id,
-    segment_id: dispatch?.attempt.segment_id,
-    sha256: hash(text),
-    bytes: Buffer.byteLength(text),
-    top_level_keys:
-      payload && typeof payload === "object" ? Object.keys(payload) : [],
-    task_id_present: dispatch ? text.includes(dispatch.task.task_id) : null,
-    working_hash_present: dispatch
-      ? text.includes(dispatch.attempt.context.role.working_hash)
-      : null,
-  };
-}
-
 const preview = (value: unknown, max = 2048): unknown => {
   const raw = JSON.stringify(value ?? null);
   return raw.length <= max

@@ -3,7 +3,8 @@ import { Type } from "typebox";
 import { StringEnum } from "@earendil-works/pi-ai";
 import type { Invocation } from "./invocation.ts";
 import type { Binding } from "./protocol.ts";
-import { toolResult } from "./task-tools.ts";
+import { toolResult, finalToolResult } from "./task-tools.ts";
+import { CONTROL_TOOL_OPTIONS } from "./control-tools.ts";
 
 export function installTeamMessaging(runtime: Invocation): void {
   const { pi, client } = runtime;
@@ -38,6 +39,7 @@ export function installTeamMessaging(runtime: Invocation): void {
   });
   pi.registerTool({
     name: "send_message",
+    ...CONTROL_TOOL_OPTIONS,
     label: "Send Squad Message",
     description:
       "Send a passive notice; ask creates a managed, asynchronous Task with normal authorization and execution gates.",
@@ -80,6 +82,7 @@ export function installTeamMessaging(runtime: Invocation): void {
   });
   pi.registerTool({
     name: "reply_message",
+    ...CONTROL_TOOL_OPTIONS,
     label: "Reply to Squad Message",
     description:
       "Reply to an exact passive message or propose the current managed ask answer; publication waits for settled.",
@@ -101,7 +104,7 @@ export function installTeamMessaging(runtime: Invocation): void {
             refs: [],
           },
         });
-        return toolResult({
+        return finalToolResult({
           state: "reply_proposed",
           message_id: current.task.task_id,
           next: "End this turn; reply is published only after matching settled.",

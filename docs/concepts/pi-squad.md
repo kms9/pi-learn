@@ -3,7 +3,7 @@ title: Pi Squad
 type: concept
 status: active
 created: 2026-09-23
-updated: 2026-09-25
+updated: 2026-10-04
 tags:
   - project-wiki
   - concept
@@ -16,7 +16,13 @@ tags:
 
 本仓库里「Pi Squad」指 **Herdr + 薄 Pi Extension + Go Controller** 的本地多智能体协作验证，不是一个已完成的产品平台。逻辑身份是 `agent_id`；Pi 进程、`runtime_session_id`、Herdr Space/Pane 都是属性。
 
-当前实现只到 **P0** 加上按 Markdown 角色文件注入提示及启动 cwd/runtime_id 上报：注册、心跳、在线状态、`role_prompt`。代码在 `pi_squad/controller` 与 `pi_squad/extension`。配置和启动见 `pi_squad/USAGE.md`。
+截至 2026-10-03，当前入口已是 **Project runtime v2**：`index.ts → team-extension.ts → Invocation`，使用 `.agents/pisquad`，包含 Team/Task/Attempt、执行 gate、受管工具、结果/settled 和观察入口。配置和启动见 `pi_squad/USAGE.md`；代码已接入不等于阶段 04 全量验收通过。
+
+当前 Role 正文在进程启动时固定，working rules 在 Attempt 固定，Team instructions 在 Run 固定；通过 `before_agent_start.systemPromptOptions.sections` 组合装配。Pi 将有效 prompt/tools 的变化持久化到 transcript，不能沿用旧 P0「提示不进历史」的结论。已有聊天历史可能保留，不承诺跨 Team 历史隔离。
+
+Pi 1.0.1 的前序评估见 [[sessions/2026-10-03-pi-squad-pi-1.0.1-assessment]]；本轮规划、实施和真实集成见 [[sessions/2026-10-04-pi-squad-pi-1.0.1-implementation]]。正式支持精确 1.0.1/TUI，RPC/JSON/print 注册前拒绝；控制工具 model-only + sequential，成功收尾 terminate 仍须真实 settled 确认。canonical 当前 sections/tools 与末位有效请求分开证明，历史 ID 或声明文件不能替代真实运行。兼容 14 PASS / 5 PARTIAL，阶段04原规格已于2026-10-04完成89/89验收，见 [[sessions/2026-10-04-pi-squad-phase04-continuation]]；兼容表的额外provider/binary分支仍按其自身状态记录。
+
+以下 P0、旧角色目录、旧 systemPrompt 投影与历史验收分工均为前序切片记录；现行路径与行为以 USAGE 和阶段 04 规格为准，协作执行边界以当前 AGENTS.md 为准。
 
 ## 不是什么
 

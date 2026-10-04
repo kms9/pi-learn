@@ -208,7 +208,9 @@ export function installCommands(runtime: Invocation): void {
           current_task: runtime.gate.current?.task.task_id,
           selected_run: runtime.selectedRun,
           disabled_reason: runtime.disabledReason,
+          host: runtime.host,
           active_tools: pi.getActiveTools(),
+          tool_contracts: pi.getAllTools().map(({ name, exposure }) => ({ name, exposure })),
         });
         return;
       }

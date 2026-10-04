@@ -3,13 +3,14 @@ title: 决策索引
 type: index
 status: active
 created: 2026-09-07
-updated: 2026-10-03
+updated: 2026-10-04
 tags:
   - project-wiki
 ---
 
 # 决策索引
 
+- [[2026-10-04-squad-pi-1.0.1-tui-scope|2026-10-04 Pi Squad 的 Pi 1.0.1 TUI 范围]]
 - [[2026-10-03-commit-non-dev-artifacts|2026-10-03 提交前先询问非开发材料]]
 - [[2026-09-07-overlay-not-fork|2026-09-07 overlay 而不是 fork 上游]]
 - [[2026-09-07-translations-live-in-docs-zh|2026-09-07 译文放在 docs-zh 并还原 pi-dev]]

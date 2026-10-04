@@ -1,12 +1,12 @@
 ---
 title: 阶段 04｜统一技术设计、冲突裁决与实施顺序
 type: process
-status: draft
+status: active
 created: 2026-09-25
-updated: 2026-09-27
+updated: 2026-10-04
 decision_status: consolidated
-implementation_status: not_implemented
-acceptance_status: not_run
+implementation_status: implemented
+acceptance_status: passed
 review_baseline: cdae80379685ff5c79621117712ce9f53ddefe1c
 baseline_pi_commit: 890f920884f6d21fc7617d236ef9e1cc5d7a0ef8
 tags: [pi-squad, phase-04, design, implementation, sources]
@@ -14,7 +14,7 @@ tags: [pi-squad, phase-04, design, implementation, sources]
 
 # 阶段 04｜统一技术设计
 
-唯一需求及89个用例见 [TEAM_RUNTIME_REQUIREMENTS.md](TEAM_RUNTIME_REQUIREMENTS.md)。本文不声明产品已实现；代码片段、API及目录树除明确标为现有源码外，均是待实现契约。
+唯一需求及89个用例见 [TEAM_RUNTIME_REQUIREMENTS.md](TEAM_RUNTIME_REQUIREMENTS.md)。2026-10-04 已完成实施与原89项整体集成验收；代码和命令以现行 USAGE 为准。本文保留2026-09-27固定来源与设计推导，实际版本、失败复测和收尾见 IMPLEMENTATION.md。
 
 ## C. 冲突检查与收口
 
@@ -617,7 +617,7 @@ M0补原生事件/注入探针；M1补operator凭据、planned/schema和绑定�
 
 ### S1 Pi固定源码（本轮复读关键API）
 
-本仓pi-dev gitlink仍为 `earendil-works/pi@890f920884f6d21fc7617d236ef9e1cc5d7a0ef8`，不使用浮动main宣称兼容。
+本节引用固定的历史设计基线 `earendil-works/pi@890f920884f6d21fc7617d236ef9e1cc5d7a0ef8`。2026-10-03用户已更新本地pi-dev至 `4c6fb7cfe8c538a668726f6f8b3554098c39faee`；2026-10-04实际验收使用独立npm Pi1.0.1/TUI，当前API适配及实际请求证据见 [compatibility/README.md](compatibility/README.md)。不以历史链接或浮动main宣称当前宿主兼容。
 
 | 功能 | 文件/符号 | 借鉴与边界 |
 |---|---|---|

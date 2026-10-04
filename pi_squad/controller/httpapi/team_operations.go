@@ -15,6 +15,24 @@ import (
 )
 
 func (s *Server) operationRoutes(v *gin.RouterGroup) {
+	v.POST("/tasks/:id/acceptance", func(c *gin.Context) {
+		p, err := s.principal(c)
+		if err != nil {
+			teamError(c, err)
+			return
+		}
+		var q scheduler.AcceptanceRequest
+		if err := decodeTeam(c, &q); err != nil {
+			teamError(c, err)
+			return
+		}
+		out, err := s.team.RecordAcceptance(c.Request.Context(), p, c.Param("id"), q)
+		if err != nil {
+			teamError(c, err)
+			return
+		}
+		c.JSON(200, out)
+	})
 	v.GET("/requests/:id", func(c *gin.Context) {
 		p, err := s.principal(c)
 		if err != nil {
@@ -43,6 +61,30 @@ func (s *Server) operationRoutes(v *gin.RouterGroup) {
 		if err := rows.Err(); err != nil {
 			teamError(c, err)
 			return
+		}
+		// Rejections have no idempotency row because they never accepted a
+		// mutation. Make their separate management audit queryable by the same
+		// request ID; runtime callers cannot read operator submissions.
+		rows.Close()
+		if p.Operator {
+			audits, err := s.team.Store.DB.QueryContext(c.Request.Context(), `SELECT action,target,json_extract(body,'$.code') FROM recovery_actions WHERE action LIKE '%:rejected' AND json_extract(body,'$.request.request_id')=? ORDER BY seq`, c.Param("id"))
+			if err != nil {
+				teamError(c, err)
+				return
+			}
+			defer audits.Close()
+			for audits.Next() {
+				var action, target, code string
+				if err := audits.Scan(&action, &target, &code); err != nil {
+					teamError(c, err)
+					return
+				}
+				result = append(result, map[string]string{"operation": action, "entity_id": target, "status": "rejected", "code": code})
+			}
+			if err := audits.Err(); err != nil {
+				teamError(c, err)
+				return
+			}
 		}
 		c.JSON(200, map[string]any{"request_id": c.Param("id"), "records": result})
 	})

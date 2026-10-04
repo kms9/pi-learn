@@ -3,7 +3,7 @@ title: pi_case 知识库索引
 type: index
 status: active
 created: 2026-09-07
-updated: 2026-10-03
+updated: 2026-10-04
 tags:
   - project-wiki
   - index
@@ -46,6 +46,8 @@ tags:
 
 ## 决策
 
+- [[decisions/2026-10-04-squad-pi-1.0.1-tui-scope|2026-10-04 Pi Squad 的 Pi 1.0.1 TUI 范围]] - 注册前拒绝非 TUI 和未验证版本；真实 probe 与声明诊断分层。
+
 - [[decisions/2026-10-03-commit-non-dev-artifacts|2026-10-03 提交前先询问非开发材料]] - 日志和验收证据默认不入库，AI 提交前先问
 
 - [[decisions/2026-09-25-squad-team-runtime-scope|2026-09-25 Squad 专属目录与启动身份]]
@@ -64,6 +66,16 @@ tags:
 - [[decisions/2026-09-23-p0-identity-fields|2026-09-23 P0 身份字段与 HTTP Registry]]
 
 ## 会话
+
+- [[sessions/2026-10-04-openspec-archive-two-changes|2026-10-04 归档两个 OpenSpec change]] - 阶段 04 与 Pi 1.0.1 兼容 change 已同步到主 spec 并归档。
+
+- [[sessions/2026-10-04-pi-squad-phase04-continuation|2026-10-04 Pi Squad 阶段 04 继续实施与验收]] - 71/71任务、89/89 PASS（4a71、4b18）；真实多Team、九个物理故障窗及版本化验收完成，测试资源安全收尾。
+
+- [[sessions/2026-10-04-pi-squad-pi-1.0.1-implementation|2026-10-04 Pi Squad 的 Pi 1.0.1 规划与实施]] - P0 与选定 P1 已落地；独立 1.0.1 三角色、父子链与负例真实集成，14 PASS / 5 PARTIAL；全局 Pi 仍为 1.0.0，原 89 项未全量通过。
+
+- [[sessions/2026-10-03-pi-squad-pi-1.0.1-assessment|2026-10-03 Pi Squad 适配 Pi 1.0.1 评估]] - 前序源码分析与适配建议；后续实施见上面的 2026-10-04 会话。
+
+- [[sessions/2026-10-03-submodule-update-stack|2026-10-03 submodule 更新用现有 shell]] - `pi-dev` 已快进到 `4c6fb7cfe`；批量更新继续用 `scripts/sync-submodules.sh`。
 
 - [[sessions/2026-10-03-commit-non-dev-artifacts|2026-10-03 提交前询问非开发材料]] - 日志和验收证据先问再决定是否入库。
 
@@ -151,9 +163,9 @@ tags:
 - [固定源码与文件/函数参考](../pi_squad_case/SOURCES.md)
 - [统一验收记录与恢复规范](../pi_squad_case/ACCEPTANCE.md)
 
-- [阶段 04 统一需求与 89 项验收](../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_REQUIREMENTS.md) / [技术设计、冲突裁决、实施顺序与来源](../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_DESIGN.md) - 2026-09-27 合并；同日按用户裁决补充激活整体占用、阶段 03 并入与 4a（71）/4b（18）分段；需求代码已实现并进入 Codex 统一验收，89 项逐项状态见 integration/cases.json；既有失败与复测证据保留。
+- [阶段 04 统一需求与 89 项验收](../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_REQUIREMENTS.md) / [技术设计、冲突裁决、实施顺序与来源](../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_DESIGN.md) - 2026-09-27 合并；同日按用户裁决补充激活整体占用、阶段 03 并入与 4a（71）/4b（18）分段；2026-10-04完成71/71任务与89/89验收，实际Pi1.0.1/TUI；逐项结果见integration/cases.json，既有失败与复测证据保留。
 
 - [[sessions/2026-09-27-pi-squad-phase04-cursor-review|2026-09-27 阶段 04 Cursor 协商评估与规格补充]]
 - [[decisions/2026-09-27-squad-recovery-guidance-acceptance|2026-09-27 恢复、Leader 输入、授权与验收裁决]]
 
-- [[sessions/2026-09-27-pi-squad-phase04-implementation|2026-09-27 阶段 04 实施进展]] - 用户重申先完成全部需求开发，再由 Codex 统一验收，不委派 cc/Claude；当前57/89主ID通过（24部分、8未执行）、OpenSpec17/71，既有失败与r20—r26修复/复测证据保留；TR-A17状态视图及既有边界验收通过，整体尚未完成。
+- [[sessions/2026-09-27-pi-squad-phase04-implementation|2026-09-27 阶段 04 实施进展]] - 用户重申先完成全部需求开发，再由 Codex 统一验收，不委派 cc/Claude；历史截至 2026-09-27 为57/89主ID通过、OpenSpec17/71；最新见2026-10-04继续实施会话，既有失败与r20—r26修复/复测证据保留；最新2026-10-04全量已完成，历史进度不覆盖新结果。

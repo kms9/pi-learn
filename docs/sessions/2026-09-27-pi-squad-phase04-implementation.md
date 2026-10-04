@@ -21,7 +21,7 @@ tags:
 
 ## 跟踪
 
-- [OpenSpec 任务](../../openspec/changes/pi-squad-team-orchestration/tasks.md)
+- [OpenSpec 任务](../../openspec/changes/archive/2026-10-04-pi-squad-team-orchestration/tasks.md)
 - [整体集成索引](../../pi_squad_case/04-team-orchestration/integration/README.md)
 - [[sessions/2026-09-27-pi-squad-phase04-cursor-review]]
 

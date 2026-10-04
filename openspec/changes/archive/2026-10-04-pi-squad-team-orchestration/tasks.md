@@ -32,7 +32,7 @@
 - [x] 3.5 新增 context-assembly 的进程/Run/Attempt 快照和 segment sections，保留 Pi 原生规则；验证真实请求中 IDs/hashes/工具集合及新 Attempt/continuation 边界（TR-A30、CMD-A12、P4-A05）。
 - [x] 3.6 实现权限交集、Leader 协调工具、read_only/write_set gate、结构化结果工具；验证违规工具阻断、details/截断及写 fixture 正式执行（CMD-A09、P4-A32）。
 - [x] 3.7 实现 result_proposed、refs/schema 校验和 settled/no pending 完成判定；验证 RESULT_MISSING、旧 binding/result 拒绝、agent_end 不提前完成（P4-A32）。
-- [ ] 3.8 按插件验收规范启动真实单 Task 与 operator→standalone reviewer 调用；保存 U/E/R 证据，核对 INV-01—05/10 映射判据并同步本增量 USAGE。
+- [x] 3.8 按插件验收规范启动真实单 Task 与 operator→standalone reviewer 调用；保存 U/E/R 证据，核对 INV-01—05/10 映射判据并同步本增量 USAGE。
 
 - [x] 3.9 落地Project容量与direct授权配置、standalone只读root/child预算；验证未授权root调用拒绝、scope=null继承、队列32边界及容量计数（TR-A14/A27/A28、P4-A04/A28）。
 
@@ -44,7 +44,7 @@
 - [x] 4.4 实现统一 InputClassifier 和 /new、reload generation 清理；验证只读操作不中断、普通输入/takeover 持久中断、旧回调隔离（TR-A15/A29、P4-A29/A39）。
 - [x] 4.5 实现中断/失败向父及所有等待祖先的持久传播；验证三层链普通输入、/new、失败不会被当成功或永久等成功（P4-A15）。
 - [x] 4.6 实现规范化 write reservation、目录包含及受管工具检查；验证同文件别名互斥、不同文件并行、symlink/嵌套 Project/控制文件越界拒绝（TR-A31、P4-A37）。
-- [ ] 4.7 注入 intent 提交/注入/ACK/result/settled 崩溃窗口并执行真实会话恢复检查；保存 P4-A18 逐窗口证据及 INV-06—09/14/15 映射，同步 USAGE。
+- [x] 4.7 注入 intent 提交/注入/ACK/result/settled 崩溃窗口并执行真实会话恢复检查；保存 P4-A18 逐窗口证据及 INV-06—09/14/15 映射，同步 USAGE。
 
 - [x] 4.8 实现operator人工confirm-stopped、Run resume及Leader release完整恢复入口；验证无Task queued Run可解冻、未知执行仍拒绝、人工声明不伪装自动证明（TR-A19、P4-A35）。
 - [x] 4.9 实现从未有Attempt的Task显式rebind及预算耗尽retry拒绝；验证CAS、旧新绑定审计和既有Attempt不绕retry（P4-A09、TR-A28）。
@@ -59,7 +59,7 @@
 - [x] 5.5 实现 agent_invoke、yield、affinity 保留和同 Attempt 新 segment 续接；验证 capacity=1 child 可运行、澄清时 child yield→父答复→child 续接不死锁、无关任务不进入父会话（TR-A27、CMD-A11、P4-A13）。
 - [x] 5.6 实现关联 amend/peer handoff intent 与 response-only clarification；验证父 yield 前不派发、终结后拒绝 intent、不自动 steer 或反向执行祖先（P4-A30）。
 - [x] 5.7 实现 immutable Result/Review、独立 reviewer 身份校验、rework/re-review 新节点和 Acceptance Gate；验证 sum=50 拒绝后返工、产物/目标变更使旧 review 失效（TR-A18/A22/A32、P4-A33）。
-- [ ] 5.8 运行两计算 Role 真实并行、review/Gate 和 capacity=1 续接主流程；以运行区间、事件及独立 count=3/sum=60 检查证明，覆盖 INV-11—13 并同步 USAGE。
+- [x] 5.8 运行两计算 Role 真实并行、review/Gate 和 capacity=1 续接主流程；以运行区间、事件及独立 count=3/sum=60 检查证明，覆盖 INV-11—13 并同步 USAGE。
 
 - [x] 5.9 实现同Store LeaderStep、run_guidance与completion intent→settled→Gate；验证capacity=1、未知注入不重发、普通Leader补充不误接管（TR-A01、P4-A29）。
 - [x] 5.10 实现planned→accepted、acceptance_policy解析、checker/review/human及parent覆盖；验证hold不自动accept、父子不验收自锁、review不递归自验和覆盖失效（P4-A09/A33、TR-A32）。
@@ -80,10 +80,10 @@
 
 - [x] 7.1 实现 projection 一致 snapshot、revision/age 和 Team/Role/Agent/Run/Task 详情；验证身份/在线/活动/ownership/acceptance 分字段、Secondary 不计容量（TR-A17）。
 - [x] 7.2 扩展 Resty client/Go TUI 的筛选、选择、刷新、DAG/事件详情；验证从 API 读取、不打开 DB、退出不停止 Controller/Pi（P4-A38）。
-- [ ] 7.3 全部开发完成后执行整体 HTTP/SQLite/Pi 集成测试及竞争/恢复故障窗口，不运行 Go/TS 单元测试；记录实际命令、版本和结果，确认前序身份/消息关键回归无退化。
+- [x] 7.3 全部开发完成后执行整体 HTTP/SQLite/Pi 集成测试及竞争/恢复故障窗口，不运行 Go/TS 单元测试；记录实际命令、版本和结果，确认前序身份/消息关键回归无退化。
 - [x] 7.4 按 `pi_squad/AGENTS.md` 关闭旧测试 workspace 后建立新 workspace，当前项目 cwd 启动至少三个不同 Role Pi、独立 Controller/Dashboard；派发独立验收前实时获取 callback pane/terminal 并登记 handoff_id、报告路径，核对结果主动回传。
-- [ ] 7.5 完成下方 4a 的 71 项、数字夹具第一轮与单 Team 故障窗口、P4-A40 静态部分和 INV 映射；逐项 U/E/R/F/D 记录，全部 PASS 才标 4a 通过，BLOCKED/NOT_RUN 不通过。
-- [ ] 7.6 更新 USAGE、阶段结果及 wiki，记录 4a 已可用和 4b 待实现边界；检查命令/配置/结果一致，不把 4a 通过标为整个阶段完成。
+- [x] 7.5 完成下方 4a 的 71 项、数字夹具第一轮与单 Team 故障窗口、P4-A40 静态部分和 INV 映射；逐项 U/E/R/F/D 记录，全部 PASS 才标 4a 通过，BLOCKED/NOT_RUN 不通过。
+- [x] 7.6 更新 USAGE、阶段结果及 wiki，记录 4a 已可用和 4b 的实际交付状态及边界；检查命令/配置/结果一致，不把 4a 通过标为整个阶段完成。
 
 ## 8. M7：多 Team 准入与唤醒（4b，依赖 4a 开发完成）
 
@@ -101,19 +101,21 @@
 
 ## 10. M9：最终证据与全量收口（4b）
 
-- [ ] 10.1 在真实 Pi 覆盖自动重试、压缩、长上下文及后置扩展改写；保存最终 payload 的脱敏结构/hash/工具集合，验证 agent_end 不冒充 settled（P4-A31）。
-- [ ] 10.2 运行数字夹具第二轮：两 Leader、共享 reviewer Primary、Secondary、另一个 roster 不相交 Team（Project capacity显式≥4，Team额度记录）；记录并行区间、整体排队、返工期间持有及释放唤醒，补第三轮多 Team 故障窗口。
-- [ ] 10.3 依当前验收回传规范完成独立 4b 验收，核对 18 项全部 PASS、4a 关键回归及问题相关复测；保留失败和重测链、实际版本、handoff 和报告，不以静态检查替代运行证据。
-- [ ] 10.4 完成 P4-A40 全量检查、89 项证据核对、阶段总索引 160 一致性和资源安全收尾；同步 USAGE、阶段文档、wiki/index/log，所有退出门满足才标阶段 04 完成。
+- [x] 10.1 在真实 Pi 覆盖自动重试、压缩、长上下文及后置扩展改写；保存最终 payload 的脱敏结构/hash/工具集合，验证 agent_end 不冒充 settled（P4-A31）。
+- [x] 10.2 运行数字夹具第二轮：两 Leader、共享 reviewer Primary、Secondary、另一个 roster 不相交 Team（Project capacity显式≥4，Team额度记录）；记录并行区间、整体排队、返工期间持有及释放唤醒，补第三轮多 Team 故障窗口。
+- [x] 10.3 依当前验收回传规范完成独立 4b 验收，核对 18 项全部 PASS、4a 关键回归及问题相关复测；保留失败和重测链、实际版本、handoff 和报告，不以静态检查替代运行证据。
+- [x] 10.4 完成 P4-A40 全量检查、89 项证据核对、阶段总索引 160 一致性和资源安全收尾；同步 USAGE、阶段文档、wiki/index/log，所有退出门满足才标阶段 04 完成。
 
-- [ ] 10.5 逐一执行本轮协商新增的既有ID子断言与四项用户裁决，记录每个子项证据；验证主ID仍89、4a/4b仍71/18，不以旧父ID的PASS覆盖新子项。
+- [x] 10.5 逐一执行本轮协商新增的既有ID子断言与四项用户裁决，记录每个子项证据；验证主ID仍89、4a/4b仍71/18，不以旧父ID的PASS覆盖新子项。
 
 ## 11. 验收分段与追踪规则
 
-以下是索引，不增加实施任务或验收计数。每个 ID 的规范场景在 `specs/*/spec.md` 恰有一处；完整原判据见 [阶段 04 需求](../../../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_REQUIREMENTS.md)。实现进度以上方复选框为准；本轮开发已收口、待重新统一集成验收，结果以逐项证据为准。本轮评估新增子断言仍属原ID，真实报告须逐子项记录；详见需求当前矩阵和spec scenarios。
+以下是索引，不增加实施任务或验收计数。每个 ID 的规范场景在 `specs/*/spec.md` 恰有一处；完整原判据见 [阶段 04 需求](../../../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_REQUIREMENTS.md)。实现进度以上方复选框为准；2026-10-04开发与整体集成均收口，71/71任务和89/89主ID通过；执行者为当前会话，未委派其他Agent，结果以逐项证据为准。本轮评估新增子断言仍属原ID，真实报告须逐子项记录；详见需求当前矩阵和spec scenarios。
 
 4a（71）：TR-A01、TR-A03—TR-A07、TR-A14—TR-A24、TR-A27—TR-A33；CMD-A01—CMD-A06、CMD-A08—CMD-A14、CMD-A16；P4-A01—P4-A11、P4-A13—P4-A22、P4-A24、P4-A28—P4-A30、P4-A32—P4-A39。
 
 4b（18）：TR-A02、TR-A08—TR-A13、TR-A25、TR-A26；CMD-A07、CMD-A15；P4-A12、P4-A23、P4-A25—P4-A27、P4-A31、P4-A40。
 
 4a 中 P4-A29 的观察操作可使用已交付 Go TUI/只读查询；完整 Pi dashboard 交互在 4b P4-A25 验证，不能将该后置能力提前记 PASS。P4-A40 静态部分在 4a 检查，整项在 4b 计结果。
+
+2026-10-04 全量收尾：4a 71/71、4b 18/18，保留原89主ID、160全局计划与INV映射。实际Pi1.0.1/TUI，Controller最终r36；全量结果与范围见阶段04 IMPLEMENTATION.md及本地ignored integration/RESULT.md。当前任务未请求commit、archive或跨Agent回传，均未执行。

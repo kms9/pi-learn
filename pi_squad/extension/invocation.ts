@@ -3,11 +3,13 @@ import type {
   ExtensionAPI,
   ExtensionContext,
 } from "@earendil-works/pi-coding-agent";
-import { capabilities } from "./doctor.ts";
+import { capabilities, inspectHost } from "./doctor.ts";
+import { activateTaskTools, taskTools } from "./control-tools.ts";
 import { ExecutionGate } from "./execution-gate.ts";
 import { TeamClient } from "./team-client.ts";
 import { hash } from "./project.ts";
-import { payloadEvidence, sections, briefing } from "./context-assembly.ts";
+import { sections, briefing } from "./context-assembly.ts";
+import { expectedContext, canonicalEvidence, providerEvidence, type ContextEvidence } from "./request-evidence.ts";
 import type { IntegrationHooks } from "./integration-hooks.ts";
 import type { ProjectIdentity } from "./project.ts";
 import type { Binding, Dispatch } from "./protocol.ts";
@@ -28,6 +30,7 @@ export class Invocation {
   context?: ExtensionContext;
   selectedRun?: string;
   disabledReason?: string;
+  host?: ReturnType<typeof inspectHost>;
   private state: ProcessState;
   private alive = true;
   private timer?: ReturnType<typeof setInterval>;
@@ -37,8 +40,12 @@ export class Invocation {
   private lastHeartbeat = 0;
   private recordedNotices = new Set<string>();
   private outcome = "completed";
+  private localTurn = 0;
   private nativeChangePrepared = false;
-  private manualCompact = false;
+  private nativeManualCompacting = false;
+  private requestSeq = 0;
+  private expectedContext?: ContextEvidence;
+  private canonical?: ReturnType<typeof canonicalEvidence>;
   private expectedInput?: string;
   private uiDepth = 0;
   private pendingBash: { hash: string; before: Set<string> }[] = [];
@@ -137,8 +144,14 @@ export class Invocation {
   async event(
     type: string,
     extra: Record<string, unknown> = {},
+    validate?: () => void,
   ): Promise<void> {
+    const checkEvent = this.captureExecutionFence();
+    if (type === "result_proposed" || type === "yield")
+      await this.integration?.point(type === "yield" ? "yield_before_commit" : "result_before_commit");
     await this.serial(async () => {
+      checkEvent();
+      validate?.();
       const current = this.gate.current;
       if (!current) throw new Error("NO_CURRENT_ATTEMPT");
       const generation = this.gate.generation;
@@ -160,12 +173,12 @@ export class Invocation {
     if (type === "result_proposed")
       await this.integration?.point("result_after_commit_before_settled");
   }
-  async interrupt(reason: string): Promise<void> {
+  async interrupt(reason: string, abortModel = true): Promise<void> {
     if (!this.gate.current || this.gate.frozen) return;
     this.gate.invalidate();
     this.expectedInput = undefined;
     if (
-      this.context &&
+      abortModel && this.context &&
       this.gate.current.attempt.target.session_id ===
         this.context.sessionManager.getSessionId() &&
       !this.context.isIdle()
@@ -196,13 +209,14 @@ export class Invocation {
       this.selectedRun = undefined;
       let registrationStarted = false;
       try {
+        this.host = inspectHost(this.pi, ctx);
+        const declaredCapabilities = capabilities(this.pi, ctx);
         if (this.gate.current && event.reason !== "startup")
           await this.interrupt(
             event.reason === "reload" ? "extension_reload" : "session_changed",
           );
         const session = ctx.sessionManager.getSessionId();
         await this.client.connect();
-        const declaredCapabilities = capabilities();
         registrationStarted = true;
         const registered = await this.client.register(
           this.state.runtimeID,
@@ -214,6 +228,7 @@ export class Invocation {
         );
         if (!this.alive) return;
         this.binding = registered.binding;
+        this.nativeChangePrepared = false;
         this.state.sessionID = session;
         await this.client.snapshot();
         if (!this.gate.current) this.gate.frozen = false;
@@ -259,6 +274,7 @@ export class Invocation {
             `pi-squad: ${this.identity.mode} 模式未启用；普通 Pi 可继续使用。${this.disabledReason}`,
             "error",
           );
+          if (ctx.mode !== "tui") process.stderr.write(`pi-squad: ${this.disabledReason}; ordinary Pi remains available.\n`);
           return;
         }
         this.fail(error);
@@ -301,16 +317,27 @@ export class Invocation {
         await this.interrupt("session_changed").catch((e) => this.fail(e));
       }
     });
+    const markManualCompaction = async (reason: string) => {
+      const current = this.gate.current;
+      // compact() has already awaited abort. An idle/suspended maintenance
+      // operation must not interrupt a later continuation. Fence an active
+      // segment now: its deferred settled callback may already have run, and
+      // a terminating tool can report completed even when abort was requested.
+      // Do not abort again here and cancel the user's compaction itself.
+      if (reason === "manual" && current && current.attempt.state !== "suspended")
+        await this.interrupt("manual_compaction", false).catch((e) => this.fail(e));
+    };
     pi.on("session_before_compact", (event) => {
-      if (event.reason === "manual" && this.gate.current)
-        this.manualCompact = true;
+      this.nativeManualCompacting = event.reason === "manual";
+      return markManualCompaction(event.reason);
     });
-    pi.on("session_compact_failed", (event) => {
+    pi.on("session_compact", () => { this.nativeManualCompacting = false; });
+    pi.on("session_compact_failed", async (event) => {
       // Pi aborts before this hook, and a too-small session throws before
-      // session_before_compact. The flag must be set synchronously so the
-      // deferred settlement below cannot report the abort as a missing result.
-      if (event.reason === "manual" && this.gate.current)
-        this.manualCompact = true;
+      // session_before_compact. Fence the active segment here as well, so
+      // deferred settlement cannot report that abort as a missing result.
+      try { await markManualCompaction(event.reason); }
+      finally { this.nativeManualCompacting = false; }
     });
     pi.on("user_bash", async (event, ctx) => {
       this.pendingBash.push({
@@ -324,6 +351,8 @@ export class Invocation {
     });
     pi.on("before_agent_start", (event) => {
       if (this.disabledReason) return;
+      this.localTurn++;
+      this.nativeChangePrepared = false;
       if (!event.systemPromptOptions?.sections) {
         this.gate.invalidate();
         this.context?.abort();
@@ -334,13 +363,20 @@ export class Invocation {
         if (key.startsWith("pi_squad_"))
           delete event.systemPromptOptions.sections[key];
       Object.assign(event.systemPromptOptions.sections, dynamic);
+      this.expectedContext = expectedContext(dynamic, this.gate.current ? taskTools(this.gate.current) : pi.getActiveTools(), 0);
+      this.canonical = undefined;
       this.outcome = "completed";
+    });
+    pi.on("context_with_system", (event, ctx) => {
+      if (this.disabledReason || !this.expectedContext) return;
+      this.canonical = canonicalEvidence(event.messages, { ...this.expectedContext, request_seq: ++this.requestSeq }, pi.getActiveTools(), "squad_hook", ctx.model);
+      pi.appendEntry("pi-squad-canonical", this.canonical);
     });
     pi.on("before_provider_request", (event) => {
       if (this.disabledReason) return;
       pi.appendEntry(
         "pi-squad-payload",
-        payloadEvidence(event.payload, this.gate.current, this.identity),
+        providerEvidence(event.payload, this.canonical, "squad_hook"),
       );
     });
     pi.on("agent_before_settle", (event) => {
@@ -349,28 +385,34 @@ export class Invocation {
     pi.on("agent_settled", (_event, ctx) => {
       this.context = ctx;
       const current = this.gate.current;
-      const binding = this.binding;
+      const checkFence = this.captureExecutionFence();
+      const outcome = this.outcome;
+      const turn = this.localTurn;
+      const session = ctx.sessionManager.getSessionId();
+      const stillSettled = () => {
+        checkFence();
+        if (this.context !== ctx || this.localTurn !== turn ||
+          ctx.sessionManager.getSessionId() !== session ||
+          current?.attempt.target.session_id !== session ||
+          this.nativeChangePrepared || !this.localIdle(ctx) || ctx.hasPendingMessages())
+          throw new Error("STALE_SETTLED_CALLBACK");
+      };
       // compact() aborts first and only then emits before/failed hooks.
-      // Do not report settled inside that abort; the next turn can see the
-      // manual reason and must not record RESULT_MISSING.
+      // Defer confirmation until those hooks can fence this segment. A changed
+      // generation rejects this callback rather than affecting a later turn.
       setTimeout(() => {
-        this.nativeChangePrepared = false;
-        if (
-          !this.alive ||
-          this.gate.current !== current ||
-          this.binding !== binding ||
-          this.gate.frozen
-        )
-          return;
-        if (this.manualCompact) {
-          this.manualCompact = false;
-          void this.interrupt("manual_compaction").catch((e) => this.fail(e));
-          return;
-        }
-        void this.settle(ctx);
+        if (!current || this.gate.frozen) return;
+        try { checkFence(); } catch { return; }
+        try { stillSettled(); } catch { return; }
+        void this.settle(ctx, outcome, stillSettled);
       }, 0);
     });
     pi.on("input", async (event) => {
+      if (this.disabledReason) return { action: "continue" };
+      if (event.source === "rpc" && this.gate.current) {
+        this.context?.ui.notify("SQUAD_MODE_UNSUPPORTED: RPC input cannot enter a formal TUI segment.", "error");
+        return { action: "handled" };
+      }
       if (event.source === "extension") {
         if (this.gate.current && this.gate.frozen) return { action: "handled" };
         if (this.gate.current && event.text !== this.expectedInput) {
@@ -393,30 +435,35 @@ export class Invocation {
             JSON.stringify(this.binding) !== binding
           )
             return { action: "handled" };
-          await this.event("input_observed").catch((e) => this.fail(e));
+          await this.event("input_observed")
+            .then(() => this.integration?.point("input_after_ack"))
+            .catch((e) => this.fail(e));
         }
         return { action: this.gate.frozen ? "handled" : "continue" };
       }
       return { action: "continue" };
     });
     pi.on("tool_call", (event) => {
-      const reason = this.gate.checkTool(event.toolName, event.input);
+      const reason = this.gate.checkTool(event.toolName, event.input, event.parentToolCallId);
       if (reason) return { block: true, reason };
     });
   }
-  private async settle(ctx: ExtensionContext): Promise<void> {
+  private async settle(ctx: ExtensionContext, outcome: string, validate: () => void): Promise<void> {
     if (!this.gate.current) return;
     if (this.gate.frozen) {
       await this.reportStopped(ctx).catch((error) => this.fail(error));
       return;
     }
     try {
+      await this.integration?.point("settled_before_confirm");
       await this.event("settled", {
-        idle: ctx.isIdle(),
-        pending: ctx.hasPendingMessages(),
-        outcome: this.outcome,
-      });
-      if (this.gate.current?.attempt.cleanup_state === "released") {
+        idle: true,
+        pending: false,
+        outcome,
+      }, validate);
+      const settled = this.gate.current;
+      await this.integration?.point("settled_after_confirm");
+      if (settled && this.gate.current === settled && settled.attempt.cleanup_state === "released") {
         this.gate.current = undefined;
         this.pi.setActiveTools(
           this.identity.mode === "leader"
@@ -425,6 +472,7 @@ export class Invocation {
         );
       }
     } catch (error) {
+      if (/STALE_(LOCAL|SETTLED)_CALLBACK/.test(String(error))) return;
       this.fail(error);
     }
   }
@@ -476,6 +524,7 @@ export class Invocation {
       this.context &&
       this.gate.current.attempt.target.session_id ===
         this.context.sessionManager.getSessionId() &&
+      !this.nativeManualCompacting &&
       !this.context.isIdle()
     )
       this.context.abort();
@@ -648,8 +697,12 @@ export class Invocation {
         ) {
           if (this.gate.current?.attempt.attempt_id === d.attempt.attempt_id) {
             this.gate.invalidate();
-            if (!ctx.isIdle()) ctx.abort();
-            else await this.reportStopped(ctx);
+            // Native /compact has already stopped the formal agent loop.
+            // Its summarizer is separate maintenance; do not cancel it when
+            // the interruption we just reported comes back through polling.
+            if (!ctx.isIdle()) {
+              if (!this.nativeManualCompacting) ctx.abort();
+            } else await this.reportStopped(ctx);
           }
           continue;
         }
@@ -664,6 +717,9 @@ export class Invocation {
           continue;
         this.gate.current = d;
         const generation = this.gate.generation;
+        await this.integration?.point("dispatch_before_received");
+        if (!this.alive || this.gate.current !== d || generation !== this.gate.generation)
+          continue;
         await this.event("adapter_received");
         if (d.task.run_id) {
           const run = await this.client.request<Record<string, unknown>>(
@@ -690,6 +746,8 @@ export class Invocation {
           }
           continue;
         }
+        const loadout = taskTools(d);
+        activateTaskTools(this.pi, loadout);
         await this.event("injection_requested");
         // No await between the final gate and Pi input. Durable injection intent
         // precedes this call, so ambiguous outcomes never cause an automatic replay.
@@ -709,24 +767,8 @@ export class Invocation {
           }
           continue;
         }
+        activateTaskTools(this.pi, loadout);
         this.gate.markInjection(d);
-        const taskTools =
-          d.attempt.segment_mode === "response_only"
-            ? ["agent_task_get", "agent_clarification_answer"]
-            : d.task.kind === "leader_step"
-              ? ["squad_decide", "squad_run_get", "agent_task_get"]
-              : d.task.kind === "ask"
-                ? ["get_message", "reply_message"]
-                : [
-                    ...d.attempt.context.allowed_tools,
-                    "agent_task_complete",
-                    "agent_task_get",
-                    "agent_invoke",
-                    "agent_task_yield",
-                    "agent_clarify",
-                  ];
-        const available = new Set(this.pi.getAllTools().map((t) => t.name));
-        this.pi.setActiveTools(taskTools.filter((name) => available.has(name)));
         this.expectedInput = input;
         this.pi.sendUserMessage(input, { expandPromptTemplates: false });
       }

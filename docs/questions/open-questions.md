@@ -3,7 +3,7 @@ title: 开放问题
 type: question-log
 status: active
 created: 2026-09-07
-updated: 2026-09-27
+updated: 2026-10-04
 tags:
   - project-wiki
   - questions
@@ -35,3 +35,6 @@ tags:
 | Q19 | Leader 活动 Run 期间普通输入是什么语义？ | closed | 用户确认：作为 run_guidance，在安全边界应用。见 [[decisions/2026-09-27-squad-recovery-guidance-acceptance]]。 |
 | Q20 | Project 管理操作由谁授权？ | closed | 用户确认：Project 管理员与独立 operator 凭据；runtime 模型凭据不可管理。见 [[decisions/2026-09-27-squad-recovery-guidance-acceptance]]。 |
 | Q21 | Task 默认由谁验收，父子/review 如何避免自锁？ | closed | 用户确认：声明 checker 或独立 reviewer；standalone 无 reviewer 人工验收；版本化父覆盖、控制节点不递归。见 [[decisions/2026-09-27-squad-recovery-guidance-acceptance]]。 |
+| Q22 | Pi Squad 在 Pi 1.0.1 的真实兼容回归是否通过？ | open | P0 和选定 P1 已实施；独立 1.0.1 三角色与 schema 2 核心事件真实就绪，兼容场景 14 PASS / 5 PARTIAL。阶段04原规格随后独立完成89/89，未据此补齐额外兼容分支，全局 Pi 仍 1.0.0。见 [[sessions/2026-10-04-pi-squad-pi-1.0.1-implementation]]。 |
+| Q23 | 受管 Squad 正式支持 RPC 模式，还是只支持 TUI？ | closed | 用户明确选择 TUI-only；已在注册前拒绝 RPC/JSON/print，普通 Pi 可继续使用；真实 RPC get_state 正常且没有 Squad 注册。见 [[decisions/2026-10-04-squad-pi-1.0.1-tui-scope]]。 |
+| Q24 | Pi 1.0.1 兼容表的剩余运行分支何时补齐？ | open | 阶段04现已补验真实compact/bash/fork/tree与代表性护栏；其余嵌套/exposure逐变体、隔离纯pending回调和非OpenAI chat provider增量仍未全部实跑，独立native binary未验收。具体覆盖见阶段 04 compatibility/README.md；当前不推导这些分支 PASS。 |

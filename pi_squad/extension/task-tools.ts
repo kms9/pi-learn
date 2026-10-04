@@ -5,6 +5,7 @@ import { truncateHead } from "@earendil-works/pi-coding-agent";
 import type { Invocation } from "./invocation.ts";
 import type { Attempt, TaskContract, Snapshot } from "./protocol.ts";
 import { runStatus } from "./context-assembly.ts";
+import { CONTROL_TOOL_OPTIONS } from "./control-tools.ts";
 
 export function toolResult(value: unknown) {
   const output = truncateHead(JSON.stringify(value, null, 2));
@@ -19,6 +20,9 @@ export function toolResult(value: unknown) {
     ],
     details: value,
   };
+}
+export function finalToolResult(value: unknown) {
+  return { ...toolResult(value), terminate: true };
 }
 export function installTaskTools(runtime: Invocation): void {
   const { pi, client } = runtime;
@@ -37,6 +41,7 @@ export function installTaskTools(runtime: Invocation): void {
 
   pi.registerTool({
     name: "agent_clarify",
+    ...CONTROL_TOOL_OPTIONS,
     label: "Ask Parent Clarification",
     description:
       "Yield the child segment and request a capacity-limited response from its parent; end this turn after success.",
@@ -57,7 +62,7 @@ export function installTaskTools(runtime: Invocation): void {
         checkCurrent();
         current.attempt = attempt;
       });
-      return toolResult({
+      return finalToolResult({
         state: "clarification_requested",
         next: "End this turn; do not wait or poll.",
       });
@@ -65,13 +70,14 @@ export function installTaskTools(runtime: Invocation): void {
   });
   pi.registerTool({
     name: "agent_clarification_answer",
+    ...CONTROL_TOOL_OPTIONS,
     label: "Answer Child Clarification",
     description:
       "Answer only the current response-only clarification; end this turn after success.",
     parameters: Type.Object({ answer: Type.String() }),
     async execute(_id, params) {
       await runtime.event("clarification_answer", { answer: params.answer });
-      return toolResult({
+      return finalToolResult({
         state: "answer_proposed",
         next: "End this response-only segment.",
       });
@@ -91,6 +97,7 @@ export function installTaskTools(runtime: Invocation): void {
   });
   pi.registerTool({
     name: "agent_task_complete",
+    ...CONTROL_TOOL_OPTIONS,
     label: "Propose Task Result",
     description:
       "Propose structured output. Controller only completes after this Pi settles; this is not business acceptance.",
@@ -127,7 +134,7 @@ export function installTaskTools(runtime: Invocation): void {
           refs: params.refs ?? [],
         },
       });
-      return toolResult({
+      return finalToolResult({
         state: "result_proposed",
         task_id: current.task.task_id,
         next: "End this turn and wait for settled; do not claim accepted.",
@@ -136,13 +143,14 @@ export function installTaskTools(runtime: Invocation): void {
   });
   pi.registerTool({
     name: "agent_task_yield",
+    ...CONTROL_TOOL_OPTIONS,
     label: "Yield Task",
     description:
       "Yield the current execution segment to declared children. End this turn after yielding; do not poll.",
     parameters: Type.Object({}),
     async execute() {
       await runtime.event("yield");
-      return toolResult({
+      return finalToolResult({
         state: "yield_requested",
         next: "End this turn. Controller waits for settled before dispatching children.",
       });
@@ -150,6 +158,7 @@ export function installTaskTools(runtime: Invocation): void {
   });
   pi.registerTool({
     name: "agent_invoke",
+    ...CONTROL_TOOL_OPTIONS,
     label: "Invoke Agent",
     description:
       "Asynchronously invoke a child in current scope, or a preauthorized standalone root. Returns task_id; never blocks waiting for model output.",
@@ -227,6 +236,7 @@ export function installTaskTools(runtime: Invocation): void {
   });
   pi.registerTool({
     name: "squad_run_create",
+    ...CONTROL_TOOL_OPTIONS,
     label: "Create Team Run",
     description:
       "Create an explicit Run for this idle Team Leader; does not spawn processes.",
@@ -249,6 +259,7 @@ export function installTaskTools(runtime: Invocation): void {
   });
   pi.registerTool({
     name: "squad_decide",
+    ...CONTROL_TOOL_OPTIONS,
     label: "Team Decision",
     description:
       "Submit a revision-checked dispatch plan, wait, or completion intent from current LeaderStep. End the turn after success.",
@@ -317,7 +328,7 @@ export function installTaskTools(runtime: Invocation): void {
         current.attempt = attempt;
         return result;
       });
-      return toolResult(result);
+      return finalToolResult(result);
     },
   });
 }

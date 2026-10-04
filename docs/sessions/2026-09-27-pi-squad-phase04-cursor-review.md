@@ -65,7 +65,7 @@ tags:
 - Round 1：只读独立审查；Round 2：接受主要处置，附 planned/rebind、capacity 夹具条件，新增 N1/N2；Round 3：接受修订，补 manual_compaction 上行失败、所有非终态 session_changed、hold 期间禁止 planned 自动接受。
 - Round 3 主动回传因调用方问题对话框返回 agent_blocked；对方未替用户答题、未重复发送。发起方通过 `herdr agent read w6:p1 --source recent-unwrapped` 收到完整结果（received_by_read）。
 - 固定源码 `pi-dev@890f920884f6d21fc7617d236ef9e1cc5d7a0ef8`：`packages/coding-agent/src/core/agent-session.ts`（command/input 顺序、sendUserMessage、compact 先 abort），`src/modes/interactive/interactive-mode.ts`（原生命令和 bash 分支），`src/core/extensions/types.ts`（生命周期事件）。只读核对，不改上游。
-- [权威需求](../../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_REQUIREMENTS.md)、[权威设计 D12](../../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_DESIGN.md#d12)、[OpenSpec 任务](../../openspec/changes/pi-squad-team-orchestration/tasks.md)。
+- [权威需求](../../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_REQUIREMENTS.md)、[权威设计 D12](../../pi_squad_case/04-team-orchestration/TEAM_RUNTIME_DESIGN.md#d12)、[OpenSpec 任务](../../openspec/changes/archive/2026-10-04-pi-squad-team-orchestration/tasks.md)。
 
 ## 写回了哪些 wiki 页
 

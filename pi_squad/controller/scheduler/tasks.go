@@ -141,6 +141,19 @@ func (s *Service) createTask(tx *sql.Tx, p Principal, q CreateTask) (task.Contra
 				return zero, err
 			}
 			if teamContexts != 0 {
+				// Report a foreign target's ownership before rejecting the
+				// caller's attempted standalone escape. The target may be a
+				// Secondary; it never bypasses its Role's Run ownership.
+				target, targetErr := loadInstance(tx, q.Target)
+				if targetErr == nil {
+					var sourceRun string
+					if err := tx.QueryRow(`SELECT run_id FROM role_ownership o JOIN primary_bindings b ON b.role_id=o.role_id WHERE b.agent_id=? UNION ALL SELECT run_id FROM runs WHERE admitted=1 AND cleanup!='released' AND json_extract(body,'$.leader.agent_id')=? LIMIT 1`, p.Binding.AgentID, p.Binding.AgentID).Scan(&sourceRun); err != nil {
+						return zero, err
+					}
+					if err := rejectForeignRoleOwner(tx, target.RoleID, sourceRun); err != nil {
+						return zero, err
+					}
+				}
 				return zero, task.Reject("ACTIVE_TEAM_SCOPE_CONFLICT", "active Team member cannot escape into standalone work")
 			}
 		}
@@ -177,6 +190,9 @@ func (s *Service) createTask(tx *sql.Tx, p Principal, q CreateTask) (task.Contra
 		c.TeamID = &run.TeamID
 		c.RoleID = q.Target
 		if !roleSet(*run)[q.Target] {
+			if err := rejectForeignRoleOwner(tx, q.Target, run.ID); err != nil {
+				return zero, err
+			}
 			return zero, task.Reject("ROLE_NOT_IN_TEAM", q.Target)
 		}
 		target, err = s.primary(tx, q.Target)
@@ -199,23 +215,17 @@ func (s *Service) createTask(tx *sql.Tx, p Principal, q CreateTask) (task.Contra
 	if err != nil {
 		return zero, err
 	}
-	var owner string
-	err = tx.QueryRow(`SELECT run_id FROM role_ownership WHERE role_id=?`, target.RoleID).Scan(&owner)
-	if err == nil && (run == nil || owner != run.ID) {
-		var primary sql.NullString
-		if err := tx.QueryRow(`SELECT agent_id FROM primary_bindings WHERE role_id=?`, target.RoleID).Scan(&primary); err != nil {
+	allowedRun := ""
+	if run != nil {
+		allowedRun = run.ID
+	}
+	if err := rejectForeignRoleOwner(tx, target.RoleID, allowedRun); err != nil {
+		// A queued Run may accept work for a member in its frozen roster, but
+		// cannot allocate an Attempt until its entire roster is admitted.
+		busy, isBusy := err.(*task.Error)
+		if run == nil || run.Admitted || !isBusy || busy.Code != "ROLE_BUSY" {
 			return zero, err
 		}
-		if (run == nil && primary.String == target.Binding.AgentID) || (run != nil && run.Admitted) {
-			var team string
-			var revision int64
-			if err := tx.QueryRow(`SELECT team_id,revision FROM role_ownership WHERE role_id=?`, target.RoleID).Scan(&team, &revision); err != nil {
-				return zero, err
-			}
-			return zero, &task.Error{Code: "ROLE_BUSY", Message: "Role is owned by another Run", Details: map[string]any{"role_id": target.RoleID, "primary_agent_id": primary.String, "owner_team_id": team, "owner_run_id": owner, "ownership_revision": revision}}
-		}
-	} else if err != nil && err != sql.ErrNoRows {
-		return zero, err
 	}
 	if parent != nil {
 		c.ParentID = parent.ID
@@ -326,6 +336,23 @@ func (s *Service) createTask(tx *sql.Tx, p Principal, q CreateTask) (task.Contra
 		return zero, err
 	}
 	return c, nil
+}
+
+func rejectForeignRoleOwner(tx *sql.Tx, roleID, allowedRun string) error {
+	var owner, team string
+	var primary sql.NullString
+	var revision int64
+	err := tx.QueryRow(`SELECT o.run_id,o.team_id,o.revision,b.agent_id FROM role_ownership o JOIN primary_bindings b ON b.role_id=o.role_id WHERE o.role_id=?`, roleID).Scan(&owner, &team, &revision, &primary)
+	if err == sql.ErrNoRows {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if owner == allowedRun {
+		return nil
+	}
+	return &task.Error{Code: "ROLE_BUSY", Message: "Role is owned by another Run", Details: map[string]any{"role_id": roleID, "primary_agent_id": primary.String, "owner_team_id": team, "owner_run_id": owner, "ownership_revision": revision}}
 }
 func sameScope(a, b task.Contract) bool {
 	if a.Scope != b.Scope {

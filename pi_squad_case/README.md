@@ -3,14 +3,14 @@ title: Pi Squad 本地实验｜需求、技术方案与用户验收总索引
 status: draft
 type: index
 requirements: confirmed
-implementation_status: not_implemented
-acceptance_status: not_run
-updated: 2026-09-27
+implementation_status: partial
+acceptance_status: partial
+updated: 2026-10-04
 ---
 
 # Pi Squad 本地实验
 
-**交付范围：六阶段需求与技术实施文档、源码证据索引、统一验收规范。** 当前登记 **160 个计划用例**，不是已运行结果；阶段 04 新能力尚未实现、89 项（4a 71 + 4b 18）均 NOT_RUN。阶段 03 不单独实施，其能力与 INV 判据由阶段 04 的 4a 交付和验证。已有身份和 HTTP 消息切片的结果保留在对应 RESULT 中，不被本次文档整理重置。未实现的 CLI、命令、模型工具和测试工具必须完成后才能执行。
+**交付范围：六阶段需求与技术实施文档、源码证据索引、统一验收规范。** 当前登记 **160 个计划用例**，不是已运行结果；阶段04已于2026-10-04完成开发与89项验收（4a 71/71、4b 18/18 PASS），详情见04目录。阶段 03 不单独实施，其能力与 INV 判据由阶段 04 的 4a 交付和验证。已有身份和 HTTP 消息切片的结果保留在对应 RESULT 中，不被本次文档整理重置。未实现的 CLI、命令、模型工具和测试工具必须完成后才能执行。
 
 仓库：`kms9/pi-learn`；实验分支：`pi_squad_dev`；实验根目录：`pi_squad_case/`。分支基于 `main` 的 `2ee5bd7995d1504f73aa5955181f3b9fa5289b8e` 创建。上游 submodule 不修改、不自动升级。
 

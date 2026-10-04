@@ -1,10 +1,12 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { realpathSync } from "node:fs";
+import { readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import {
   createGrepToolDefinition,
   createFindToolDefinition,
+  createLsToolDefinition,
   truncateHead,
 } from "@earendil-works/pi-coding-agent";
 import type { Invocation } from "./invocation.ts";
@@ -36,6 +38,32 @@ export function installManagedSearch(runtime: Invocation): void {
       details: { truncation },
     };
   };
+  // Pi's --tools allowlist also filters extension tools. Register the native
+  // ls definition here so the default launch has a complete managed file set.
+  const ls = createLsToolDefinition(runtime.identity.root);
+  runtime.pi.registerTool({
+    ...ls,
+    async execute(id, params, signal, onUpdate, ctx) {
+      const checkCurrent = runtime.captureExecutionFence();
+      const checkedPath = (target: string) => { checkCurrent(); return guard("ls", target); };
+      const tool = createLsToolDefinition(runtime.identity.root, {
+        operations: {
+          exists(target) { checkedPath(target); return true; },
+          async stat(target) { const value = await stat(checkedPath(target)); checkCurrent(); return value; },
+          async readdir(target) {
+            const entries = await readdir(checkedPath(target));
+            checkCurrent();
+            return entries.filter((name) => {
+              try { checkedPath(path.join(target, name)); return true; } catch { return false; }
+            });
+          },
+        },
+      });
+      const output = await tool.execute(id, { ...params, limit: Math.min(params.limit ?? 500, 1000) }, signal, onUpdate, ctx);
+      checkCurrent();
+      return output;
+    },
+  });
   const grep = createGrepToolDefinition(runtime.identity.root);
   runtime.pi.registerTool({
     ...grep,

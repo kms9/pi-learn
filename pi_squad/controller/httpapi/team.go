@@ -13,6 +13,8 @@ import (
 	"github.com/kms9/pi-learn/pi_squad/controller/projection"
 	"github.com/kms9/pi-learn/pi_squad/controller/scheduler"
 	"github.com/kms9/pi-learn/pi_squad/controller/task"
+	"modernc.org/sqlite"
+	sqlite3 "modernc.org/sqlite/lib"
 )
 
 func NewTeam(svc *agent.Service, team *scheduler.Service, d project.Discovery) *Server {
@@ -30,6 +32,19 @@ func teamError(c *gin.Context, err error) {
 		}
 		c.JSON(status, e)
 		return
+	}
+	var storage *sqlite.Error
+	if errors.As(err, &storage) {
+		switch storage.Code() & 0xff {
+		case sqlite3.SQLITE_FULL, sqlite3.SQLITE_IOERR, sqlite3.SQLITE_READONLY,
+			sqlite3.SQLITE_CORRUPT, sqlite3.SQLITE_NOTADB, sqlite3.SQLITE_CANTOPEN,
+			sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED:
+			c.JSON(http.StatusServiceUnavailable, map[string]any{
+				"code": "STORAGE_UNAVAILABLE", "message": storage.Error(),
+				"details": map[string]int{"sqlite_code": storage.Code()},
+			})
+			return
+		}
 	}
 	c.JSON(http.StatusBadRequest, map[string]string{"code": "INVALID_REQUEST", "message": err.Error()})
 }

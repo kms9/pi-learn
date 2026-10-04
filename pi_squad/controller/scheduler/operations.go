@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"github.com/kms9/pi-learn/pi_squad/controller/fault"
 	"time"
 
@@ -20,6 +21,37 @@ type Operation struct {
 	ConfirmStopped   bool   `json:"confirm_stopped,omitempty"`
 	RebindCurrent    bool   `json:"rebind_current,omitempty"`
 	ResultHash       string `json:"result_hash,omitempty"`
+}
+
+// AcceptanceRequest is the canonical HTTP shape for explicit human acceptance.
+// Both this endpoint and the accept/reject commands use Operate, so permission,
+// revision checks, idempotency and the audit transaction remain identical.
+type AcceptanceRequest struct {
+	RequestID        string `json:"request_id"`
+	ExpectedRevision int64  `json:"expected_revision"`
+	Decision         string `json:"decision"`
+	ResultHash       string `json:"result_hash"`
+	Note             string `json:"note"`
+	Evidence         string `json:"evidence,omitempty"`
+}
+
+func (s *Service) RecordAcceptance(ctx context.Context, p Principal, id string, q AcceptanceRequest) (any, error) {
+	if err := requireOperator(p); err != nil {
+		return nil, err
+	}
+	operation := ""
+	switch q.Decision {
+	case "accepted":
+		operation = "accept"
+	case "rejected":
+		operation = "reject"
+	default:
+		return nil, task.Reject("INVALID_ACCEPTANCE", "decision must be accepted or rejected")
+	}
+	return s.Operate(ctx, p, "task", id, operation, Operation{
+		RequestID: q.RequestID, ExpectedRevision: q.ExpectedRevision,
+		ResultHash: q.ResultHash, Note: q.Note, Evidence: q.Evidence,
+	})
 }
 
 // ValidateOperationName is shared by operator entry points before any mutation.
@@ -115,6 +147,27 @@ func (s *Service) Operate(ctx context.Context, p Principal, kind, id, op string,
 		}
 		return task.EventTx(tx, "operator_"+op, id, q.ExpectedRevision+1, map[string]any{"kind": kind, "note": q.Note})
 	})
+	// A rejected explicit management submission still needs a durable audit.
+	// Keep it outside the rolled-back business transaction and do not publish an
+	// entity event, change its revision, or remember it as an accepted request.
+	var rejected *task.Error
+	if errors.As(err, &rejected) && q.RequestID != "" {
+		body, marshalErr := json.Marshal(map[string]any{
+			"request": q, "source": sourceOf(p), "status": "rejected",
+			"code": rejected.Code, "message": rejected.Message,
+		})
+		if marshalErr != nil {
+			return nil, marshalErr
+		}
+		auditErr := s.Store.Transaction(ctx, func(tx *sql.Tx) error {
+			_, auditErr := tx.Exec(`INSERT INTO recovery_actions(actor,action,target,body,at) VALUES(?,?,?,?,?)`,
+				p.Origin, kind+":"+id+":"+op+":rejected", id, string(body), fault.Now().Format(time.RFC3339Nano))
+			return auditErr
+		})
+		if auditErr != nil {
+			return nil, auditErr
+		}
+	}
 	return out, err
 }
 func (s *Service) runOperation(tx *sql.Tx, id, op string, q Operation) (any, error) {

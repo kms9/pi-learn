@@ -21,7 +21,7 @@ status: not_delivered
 
 集成二进制已构建：/tmp/pi-squad-phase04-controller（tags pisquad_integration）；生产源在 pi_squad/controller。Pi 可 --no-extensions -e integration/adapter-entry.ts -e integration/pi-probe.ts，probe最后加载；需要真实模型，不用 fake provider 替代主流程。依赖API本机 Pi 0.87.1，Go1.27.0，Node24.16.0。生产入口 pi_squad/extension/index.ts。正式Run要在注册Leader后创建。
 
-以 pi_squad/USAGE.md、protocol/README.md、阶段需求与 openspec/changes/pi-squad-team-orchestration/specs 的89项和新增子断言逐项验证，证据 U/E/R/F/D、请求ID、实体ID、seq、hash。cases.json 初始89项 NOT_RUN，不能机械打勾。4a=71/4b=18，总阶段仍160。不要把构建或模拟主流程当PASS。
+以 pi_squad/USAGE.md、protocol/README.md、阶段需求与 openspec/changes/archive/2026-10-04-pi-squad-team-orchestration/specs 的89项和新增子断言逐项验证，证据 U/E/R/F/D、请求ID、实体ID、seq、hash。cases.json 初始89项 NOT_RUN，不能机械打勾。4a=71/4b=18，总阶段仍160。不要把构建或模拟主流程当PASS。
 
 先真实单Task/独立审核，再数字10/20/30两计算Role并行+review=3/60，错误sum=50返工、Gate；再capacity=1父子yield/澄清、隔离/恢复/原生/new等；最后多Team两Leader、共享reviewer Primary、Secondary、不相交第三Team，Project capacity≥4。包括授权边界、CAS/幂等、严格配置/迁移dry-run无写、原子roster FIFO、故障窗口、doctor真实probe、Go/Pi Dashboard只读/乱序/epoch/stale。fixture与故障用法见integration/README.md。停止证明、Leader guidance、operator隔离、acceptance policy四项用户裁决必须子项取证。
 

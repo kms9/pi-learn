@@ -2,6 +2,7 @@ import { realpathSync, lstatSync } from "node:fs";
 import path from "node:path";
 import { within } from "./project.ts";
 import type { Binding, Dispatch } from "./protocol.ts";
+import { CONTROL_TOOLS } from "./control-tools.ts";
 
 export class ExecutionGate {
   generation = 0;
@@ -44,8 +45,9 @@ export class ExecutionGate {
     this.current = d;
     this.injected.add(this.key(d));
   }
-  checkTool(name: string, args: Record<string, unknown>): string | undefined {
+  checkTool(name: string, args: Record<string, unknown>, parentToolCallId?: string): string | undefined {
     const d = this.current;
+    if (parentToolCallId && CONTROL_TOOLS.has(name)) return "NESTED_CONTROL_CALL_DENIED";
     if (!d) {
       const input = args.path ?? args.file_path;
       if (typeof input === "string") {

@@ -1,13 +1,13 @@
 ---
 title: 阶段 04｜Team Runtime、Pi 交互与验收统一需求
 type: process
-status: draft
+status: active
 created: 2026-09-25
-updated: 2026-09-27
+updated: 2026-10-04
 scope_status: confirmed
 decision_status: consolidated
-implementation_status: not_implemented
-acceptance_status: not_run
+implementation_status: implemented
+acceptance_status: passed
 review_baseline: cdae80379685ff5c79621117712ce9f53ddefe1c
 phase_split: [4a-single-team, 4b-multi-team-hardening]
 tags: [pi-squad, phase-04, requirements, acceptance]
@@ -27,7 +27,7 @@ tags: [pi-squad, phase-04, requirements, acceptance]
 
 **本轮补全的实施默认值**：同 Team 单 active Run 加 FIFO；跨 Team 排队 Run 按 Project 请求顺序准入；任务级 blockers；父任务 affinity 与模型执行额度分开；显式 Run 创建/选择；歧义 mention 拒绝与显式消歧；统一命令入口及 Dashboard 只读交互。这些是本轮在用户授权审查、补全及合并下选定的 V1 实施规则，不冒称为此前逐项批准的决定或上游现成能力。逐项理由见技术设计 C01—C20。
 
-本次只提交文档，不声明实现或真实 Pi 验收完成。现有发现/消息代码和已有部分验收记录不被重置；P4 新能力及下列 **89 个计划用例均为 NOT_RUN**。
+2026-09-27整合时仅规划，89项初始为NOT_RUN。2026-10-04已完成开发与真实整体集成验收，4a为71/71、4b为18/18 PASS；原ID与本页判据保持不变，失败和重测链保留。结果与宿主版本范围见 [IMPLEMENTATION.md](IMPLEMENTATION.md) 及本地 ignored `integration/cases.json`。
 
 ### 0.1 范围
 
