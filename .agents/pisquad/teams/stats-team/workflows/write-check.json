@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "workflow_id": "write-check",
+  "steps": [
+    {
+      "id": "write-a",
+      "role_ref": "backend",
+      "kind": "execute",
+      "goal": "读取pi_squad_case/04-team-orchestration/integration/fixtures/write-area/a.txt。用edit将文件全部三行1、2、3改为10、20、30。然后再次read该文件，提交value={count:3,sum:实际合计}及该read返回的准确artifact。不要计算或猜测hash，不调用其它任务。",
+      "write_set": [
+        "pi_squad_case/04-team-orchestration/integration/fixtures/write-area/a.txt"
+      ],
+      "depends_on": []
+    },
+    {
+      "id": "write-b",
+      "role_ref": "frontend",
+      "kind": "execute",
+      "goal": "读取pi_squad_case/04-team-orchestration/integration/fixtures/write-area/b.txt。用write将文件完整内容写为40、50、60三行，末尾换行。然后再次read该文件，提交value={count:3,sum:实际合计}及该read返回的准确artifact。不要计算或猜测hash，不调用其它任务。",
+      "write_set": [
+        "pi_squad_case/04-team-orchestration/integration/fixtures/write-area/b.txt"
+      ],
+      "depends_on": []
+    }
+  ]
+}

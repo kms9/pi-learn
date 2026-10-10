@@ -1,0 +1,1864 @@
+{
+  "$defs": {
+    "project_AcceptancePolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "checker_ref": {
+          "type": "string"
+        },
+        "child_policy": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "reviewer_ref": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "mode",
+        "child_policy"
+      ],
+      "type": "object"
+    },
+    "project_Dependency": {
+      "additionalProperties": false,
+      "properties": {
+        "condition": {
+          "type": "string"
+        },
+        "step": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "step",
+        "condition"
+      ],
+      "type": "object"
+    },
+    "project_Discovery": {
+      "additionalProperties": false,
+      "properties": {
+        "controller_epoch": {
+          "type": "integer"
+        },
+        "controller_id": {
+          "type": "string"
+        },
+        "endpoint": {
+          "type": "string"
+        },
+        "pid": {
+          "type": "integer"
+        },
+        "project_root": {
+          "type": "string"
+        },
+        "protocol_version": {
+          "type": "string"
+        },
+        "schema_version": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "protocol_version",
+        "controller_id",
+        "controller_epoch",
+        "project_root",
+        "endpoint",
+        "pid"
+      ],
+      "type": "object"
+    },
+    "project_Leader": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_ref": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "agent_ref"
+      ],
+      "type": "object"
+    },
+    "project_Member": {
+      "additionalProperties": false,
+      "properties": {
+        "responsibility": {
+          "type": "string"
+        },
+        "role_ref": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "role_ref",
+        "responsibility"
+      ],
+      "type": "object"
+    },
+    "project_Policy": {
+      "additionalProperties": false,
+      "properties": {
+        "acceptance_policy": {
+          "$ref": "#/$defs/project_AcceptancePolicy"
+        },
+        "allowed_tools": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max_attempts_per_task": {
+          "type": "integer"
+        },
+        "max_delegate_depth": {
+          "type": "integer"
+        },
+        "max_parallel_tasks": {
+          "type": "integer"
+        },
+        "max_total_tasks": {
+          "type": "integer"
+        },
+        "run_admission": {
+          "type": "string"
+        },
+        "writable_roots": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "run_admission",
+        "max_parallel_tasks",
+        "max_delegate_depth",
+        "max_total_tasks",
+        "max_attempts_per_task",
+        "allowed_tools",
+        "writable_roots",
+        "acceptance_policy"
+      ],
+      "type": "object"
+    },
+    "project_ResultRef": {
+      "additionalProperties": false,
+      "properties": {
+        "hash": {
+          "type": "string"
+        },
+        "length": {
+          "type": "integer"
+        },
+        "result_revision": {
+          "type": "integer"
+        },
+        "task_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "length",
+        "task_id",
+        "result_revision",
+        "hash"
+      ],
+      "type": "object"
+    },
+    "project_Role": {
+      "additionalProperties": false,
+      "properties": {
+        "body": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "hash": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "working_hash": {
+          "type": "string"
+        },
+        "working_rules": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "description",
+        "body",
+        "working_rules",
+        "hash",
+        "working_hash"
+      ],
+      "type": "object"
+    },
+    "project_Step": {
+      "additionalProperties": false,
+      "properties": {
+        "acceptance": {},
+        "depends_on": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/project_Dependency"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expected_output": {},
+        "goal": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "refs": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/project_ResultRef"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rework_of": {
+          "type": "string"
+        },
+        "role_ref": {
+          "type": "string"
+        },
+        "write_set": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "role_ref",
+        "kind",
+        "goal",
+        "depends_on"
+      ],
+      "type": "object"
+    },
+    "project_Team": {
+      "additionalProperties": false,
+      "properties": {
+        "config_version": {
+          "type": "integer"
+        },
+        "default_workflow": {
+          "type": "string"
+        },
+        "instructions_file": {
+          "type": "string"
+        },
+        "leader": {
+          "$ref": "#/$defs/project_Leader"
+        },
+        "members": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/project_Member"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "policy": {
+          "$ref": "#/$defs/project_Policy"
+        },
+        "schema_version": {
+          "type": "integer"
+        },
+        "team_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "team_id",
+        "config_version",
+        "leader",
+        "members",
+        "instructions_file",
+        "policy"
+      ],
+      "type": "object"
+    },
+    "project_TeamSnapshot": {
+      "additionalProperties": false,
+      "properties": {
+        "config": {
+          "$ref": "#/$defs/project_Team"
+        },
+        "hash": {
+          "type": "string"
+        },
+        "instructions": {
+          "type": "string"
+        },
+        "workflows": {
+          "additionalProperties": {
+            "$ref": "#/$defs/project_Workflow"
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "config",
+        "instructions",
+        "workflows",
+        "hash"
+      ],
+      "type": "object"
+    },
+    "project_Workflow": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "type": "integer"
+        },
+        "steps": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/project_Step"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "workflow_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "workflow_id",
+        "steps"
+      ],
+      "type": "object"
+    },
+    "projection_Snapshot": {
+      "additionalProperties": false,
+      "properties": {
+        "controller_epoch": {
+          "type": "integer"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "revision": {
+          "type": "integer"
+        },
+        "state": {
+          "type": "string"
+        },
+        "timing": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "type": "object"
+        },
+        "views": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": {},
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "revision",
+        "controller_epoch",
+        "observed_at",
+        "state",
+        "timing",
+        "views"
+      ],
+      "type": "object"
+    },
+    "scheduler_AttemptEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "controller_epoch": {
+          "type": "integer"
+        },
+        "expected_revision": {
+          "type": "integer"
+        },
+        "fencing_token": {
+          "type": "integer"
+        },
+        "idle": {
+          "type": "boolean"
+        },
+        "outcome": {
+          "type": "string"
+        },
+        "pending": {
+          "type": "boolean"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/task_Result"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "segment_id": {
+          "type": "integer"
+        },
+        "type": {
+          "type": "string"
+        },
+        "uninjected": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "uninjected",
+        "request_id",
+        "expected_revision",
+        "segment_id",
+        "fencing_token",
+        "controller_epoch",
+        "type",
+        "idle",
+        "pending"
+      ],
+      "type": "object"
+    },
+    "scheduler_ClarificationRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_revision": {
+          "type": "integer"
+        },
+        "question": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "expected_revision",
+        "question"
+      ],
+      "type": "object"
+    },
+    "scheduler_CreateRun": {
+      "additionalProperties": false,
+      "properties": {
+        "goal": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "team_id": {
+          "type": "string"
+        },
+        "workflow_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "team_id",
+        "goal"
+      ],
+      "type": "object"
+    },
+    "scheduler_CreateTask": {
+      "additionalProperties": false,
+      "properties": {
+        "acceptance": {},
+        "dependencies": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/task_Dependency"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expected_output": {},
+        "expected_revision": {
+          "type": "integer"
+        },
+        "goal": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "parent_id": {
+          "type": "string"
+        },
+        "refs": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/project_ResultRef"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "write_set": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "request_id",
+        "target",
+        "kind",
+        "goal",
+        "write_set",
+        "dependencies",
+        "refs"
+      ],
+      "type": "object"
+    },
+    "scheduler_Decision": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "type": "string"
+        },
+        "attempt_id": {
+          "type": "string"
+        },
+        "expected_revision": {
+          "type": "integer"
+        },
+        "note": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "tasks": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/project_Step"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "request_id",
+        "expected_revision",
+        "attempt_id",
+        "action",
+        "tasks",
+        "note"
+      ],
+      "type": "object"
+    },
+    "scheduler_HeartbeatRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "activity": {
+          "type": "string"
+        },
+        "binding": {
+          "$ref": "#/$defs/task_Binding"
+        },
+        "underlying_activity": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "binding",
+        "activity",
+        "underlying_activity"
+      ],
+      "type": "object"
+    },
+    "scheduler_Instance": {
+      "additionalProperties": false,
+      "properties": {
+        "activity": {
+          "type": "string"
+        },
+        "available_tools": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "binding": {
+          "$ref": "#/$defs/task_Binding"
+        },
+        "capabilities": {
+          "additionalProperties": {
+            "type": "boolean"
+          },
+          "type": "object"
+        },
+        "last_seen": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "presence": {
+          "type": "string"
+        },
+        "revoked": {
+          "type": "boolean"
+        },
+        "role_hash": {
+          "type": "string"
+        },
+        "role_id": {
+          "type": "string"
+        },
+        "role_snapshot": {
+          "$ref": "#/$defs/project_Role"
+        },
+        "team_id": {
+          "type": "string"
+        },
+        "underlying_activity": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "underlying_activity",
+        "role_snapshot",
+        "available_tools",
+        "binding",
+        "mode",
+        "activity",
+        "last_seen",
+        "presence",
+        "revoked",
+        "capabilities",
+        "role_hash"
+      ],
+      "type": "object"
+    },
+    "scheduler_Interruption": {
+      "additionalProperties": false,
+      "properties": {
+        "binding": {
+          "$ref": "#/$defs/task_Binding"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "binding",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "scheduler_Message": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "expires_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "from": {
+          "$ref": "#/$defs/task_Binding"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "message_id": {
+          "type": "string"
+        },
+        "reply_to": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "to": {
+          "$ref": "#/$defs/task_Binding"
+        }
+      },
+      "required": [
+        "message_id",
+        "request_id",
+        "from",
+        "to",
+        "kind",
+        "text",
+        "created_at",
+        "expires_at",
+        "status"
+      ],
+      "type": "object"
+    },
+    "scheduler_MessageReceipt": {
+      "additionalProperties": false,
+      "properties": {
+        "request_id": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "status"
+      ],
+      "type": "object"
+    },
+    "scheduler_Operation": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_id": {
+          "type": "string"
+        },
+        "confirm_stopped": {
+          "type": "boolean"
+        },
+        "evidence": {
+          "type": "string"
+        },
+        "expected_revision": {
+          "type": "integer"
+        },
+        "expected_runtime": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        },
+        "rebind_current": {
+          "type": "boolean"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "result_hash": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "expected_revision"
+      ],
+      "type": "object"
+    },
+    "scheduler_Register": {
+      "additionalProperties": false,
+      "properties": {
+        "activity": {
+          "type": "string"
+        },
+        "agent_id": {
+          "type": "string"
+        },
+        "available_tools": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "capabilities": {
+          "additionalProperties": {
+            "type": "boolean"
+          },
+          "type": "object"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "previous_session_id": {
+          "type": "string"
+        },
+        "role_hash": {
+          "type": "string"
+        },
+        "role_id": {
+          "type": "string"
+        },
+        "runtime_id": {
+          "type": "string"
+        },
+        "runtime_token": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "team_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "available_tools",
+        "agent_id",
+        "runtime_id",
+        "session_id",
+        "previous_session_id",
+        "runtime_token",
+        "mode",
+        "activity",
+        "capabilities",
+        "role_hash"
+      ],
+      "type": "object"
+    },
+    "scheduler_SendMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_target": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/task_Binding"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "kind": {
+          "type": "string"
+        },
+        "reply_to": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "target",
+        "kind",
+        "text"
+      ],
+      "type": "object"
+    },
+    "scheduler_StoppedEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "binding": {
+          "$ref": "#/$defs/task_Binding"
+        },
+        "expected_revision": {
+          "type": "integer"
+        },
+        "fencing_token": {
+          "type": "integer"
+        },
+        "idle": {
+          "type": "boolean"
+        },
+        "pending": {
+          "type": "boolean"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "segment_id": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "request_id",
+        "expected_revision",
+        "segment_id",
+        "fencing_token",
+        "binding",
+        "idle",
+        "pending"
+      ],
+      "type": "object"
+    },
+    "task_Acceptance": {
+      "additionalProperties": false,
+      "properties": {
+        "covered_by": {
+          "type": "string"
+        },
+        "decision": {
+          "type": "string"
+        },
+        "evidence": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/project_ResultRef"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "goal_revision": {
+          "type": "integer"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "result_hash": {
+          "type": "string"
+        },
+        "reviewer_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision",
+        "mode",
+        "result_hash",
+        "goal_revision",
+        "reason",
+        "evidence"
+      ],
+      "type": "object"
+    },
+    "task_Artifact": {
+      "additionalProperties": false,
+      "properties": {
+        "length": {
+          "type": "integer"
+        },
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "length",
+        "path",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "task_Attempt": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "type": "string"
+        },
+        "attempt_no": {
+          "type": "integer"
+        },
+        "clarification_id": {
+          "type": "string"
+        },
+        "clarification_text": {
+          "type": "string"
+        },
+        "cleanup_state": {
+          "type": "string"
+        },
+        "context": {
+          "$ref": "#/$defs/task_Context"
+        },
+        "controller_epoch": {
+          "type": "integer"
+        },
+        "error": {
+          "type": "string"
+        },
+        "fencing_token": {
+          "type": "integer"
+        },
+        "lease_expires_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "receipt": {
+          "type": "string"
+        },
+        "result_proposed": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/task_Result"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "retry_of": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "integer"
+        },
+        "segment_id": {
+          "type": "integer"
+        },
+        "segment_mode": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "target": {
+          "$ref": "#/$defs/task_Binding"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "yield_requested": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "attempt_id",
+        "task_id",
+        "attempt_no",
+        "state",
+        "cleanup_state",
+        "target",
+        "context",
+        "segment_id",
+        "controller_epoch",
+        "fencing_token",
+        "lease_expires_at",
+        "receipt",
+        "yield_requested",
+        "revision"
+      ],
+      "type": "object"
+    },
+    "task_Binding": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_id": {
+          "type": "string"
+        },
+        "binding_epoch": {
+          "type": "integer"
+        },
+        "primary_epoch": {
+          "type": "integer"
+        },
+        "runtime_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "agent_id",
+        "runtime_id",
+        "session_id",
+        "binding_epoch",
+        "primary_epoch"
+      ],
+      "type": "object"
+    },
+    "task_Blocker": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "string"
+        },
+        "resource": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "integer"
+        },
+        "since": {
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "resource",
+        "revision",
+        "since"
+      ],
+      "type": "object"
+    },
+    "task_Context": {
+      "additionalProperties": false,
+      "properties": {
+        "allowed_tools": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "config_hash": {
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/$defs/project_Role"
+        },
+        "team_instructions": {
+          "type": "string"
+        },
+        "write_set": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "role",
+        "team_instructions",
+        "config_hash",
+        "allowed_tools",
+        "write_set"
+      ],
+      "type": "object"
+    },
+    "task_Contract": {
+      "additionalProperties": false,
+      "properties": {
+        "acceptance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/task_Acceptance"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "acceptance_criteria": {},
+        "acceptance_policy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/project_AcceptancePolicy"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "accepted": {
+          "type": "boolean"
+        },
+        "allowed_tools": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "amendments": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "applied_revision": {
+          "type": "integer"
+        },
+        "attempt_ids": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "blockers": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/task_Blocker"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "deadline_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "dependencies": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/task_Dependency"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "depth": {
+          "type": "integer"
+        },
+        "expected_output": {},
+        "expected_target": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/task_Binding"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "goal": {
+          "type": "string"
+        },
+        "goal_revision": {
+          "type": "integer"
+        },
+        "guidance_count": {
+          "type": "integer"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "parent_id": {
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/project_Policy"
+        },
+        "refs": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/project_ResultRef"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "result": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/task_Result"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "revision": {
+          "type": "integer"
+        },
+        "rework_of": {
+          "type": "string"
+        },
+        "role_id": {
+          "type": "string"
+        },
+        "root_id": {
+          "type": "string"
+        },
+        "run_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scope": {
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/task_Source"
+        },
+        "state": {
+          "type": "string"
+        },
+        "superseded_by": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "team_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "write_set": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "task_id",
+        "scope",
+        "team_id",
+        "run_id",
+        "role_id",
+        "kind",
+        "goal",
+        "goal_revision",
+        "applied_revision",
+        "revision",
+        "state",
+        "accepted",
+        "source",
+        "root_id",
+        "depth",
+        "expected_target",
+        "dependencies",
+        "refs",
+        "expected_output",
+        "acceptance_policy",
+        "allowed_tools",
+        "write_set",
+        "deadline_at",
+        "policy",
+        "blockers",
+        "attempt_ids",
+        "amendments",
+        "created_at"
+      ],
+      "type": "object"
+    },
+    "task_Dependency": {
+      "additionalProperties": false,
+      "properties": {
+        "condition": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "task_id",
+        "condition"
+      ],
+      "type": "object"
+    },
+    "task_Error": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "details": {},
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "type": "object"
+    },
+    "task_Result": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_id": {
+          "type": "string"
+        },
+        "artifacts": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/task_Artifact"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "attempt_id": {
+          "type": "string"
+        },
+        "goal_revision": {
+          "type": "integer"
+        },
+        "hash": {
+          "type": "string"
+        },
+        "refs": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/project_ResultRef"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "revision": {
+          "type": "integer"
+        },
+        "value": {}
+      },
+      "required": [
+        "revision",
+        "goal_revision",
+        "attempt_id",
+        "agent_id",
+        "value",
+        "artifacts",
+        "refs",
+        "hash"
+      ],
+      "type": "object"
+    },
+    "task_Run": {
+      "additionalProperties": false,
+      "properties": {
+        "admitted": {
+          "type": "boolean"
+        },
+        "blockers": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/task_Blocker"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cleanup_state": {
+          "type": "string"
+        },
+        "completion_intent": {
+          "type": "integer"
+        },
+        "config_snapshot": {
+          "$ref": "#/$defs/project_TeamSnapshot"
+        },
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "goal": {
+          "type": "string"
+        },
+        "guidance": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "leader": {
+          "$ref": "#/$defs/task_Binding"
+        },
+        "leader_revision": {
+          "type": "integer"
+        },
+        "phase": {
+          "type": "string"
+        },
+        "queue_seq": {
+          "type": "integer"
+        },
+        "recovery_hold": {
+          "type": "boolean"
+        },
+        "revision": {
+          "type": "integer"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/task_Source"
+        },
+        "team_id": {
+          "type": "string"
+        },
+        "waiting_roles": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/task_WaitingRole"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "run_id",
+        "team_id",
+        "goal",
+        "source",
+        "config_snapshot",
+        "leader",
+        "queue_seq",
+        "admitted",
+        "phase",
+        "revision",
+        "cleanup_state",
+        "recovery_hold",
+        "blockers",
+        "waiting_roles",
+        "guidance",
+        "leader_revision",
+        "created_at"
+      ],
+      "type": "object"
+    },
+    "task_Source": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "type": "string"
+        },
+        "binding": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/task_Binding"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "input_id": {
+          "type": "string"
+        },
+        "origin": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "origin"
+      ],
+      "type": "object"
+    },
+    "task_WaitingRole": {
+      "additionalProperties": false,
+      "properties": {
+        "owner_run_id": {
+          "type": "string"
+        },
+        "owner_team_id": {
+          "type": "string"
+        },
+        "ownership_revision": {
+          "type": "integer"
+        },
+        "role_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "role_id",
+        "owner_team_id",
+        "owner_run_id",
+        "ownership_revision"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "urn:pi-squad:protocol:2",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Pi Squad v2 wire contracts",
+  "x-contracts": {
+    "attempt": {
+      "$ref": "#/$defs/task_Attempt"
+    },
+    "attempt_event": {
+      "$ref": "#/$defs/scheduler_AttemptEvent"
+    },
+    "clarification": {
+      "$ref": "#/$defs/scheduler_ClarificationRequest"
+    },
+    "create_run": {
+      "$ref": "#/$defs/scheduler_CreateRun"
+    },
+    "create_task": {
+      "$ref": "#/$defs/scheduler_CreateTask"
+    },
+    "decision": {
+      "$ref": "#/$defs/scheduler_Decision"
+    },
+    "discovery": {
+      "$ref": "#/$defs/project_Discovery"
+    },
+    "error": {
+      "$ref": "#/$defs/task_Error"
+    },
+    "heartbeat": {
+      "$ref": "#/$defs/scheduler_HeartbeatRequest"
+    },
+    "instance": {
+      "$ref": "#/$defs/scheduler_Instance"
+    },
+    "interruption": {
+      "$ref": "#/$defs/scheduler_Interruption"
+    },
+    "message": {
+      "$ref": "#/$defs/scheduler_Message"
+    },
+    "message_receipt": {
+      "$ref": "#/$defs/scheduler_MessageReceipt"
+    },
+    "message_send": {
+      "$ref": "#/$defs/scheduler_SendMessage"
+    },
+    "operation": {
+      "$ref": "#/$defs/scheduler_Operation"
+    },
+    "register": {
+      "$ref": "#/$defs/scheduler_Register"
+    },
+    "run": {
+      "$ref": "#/$defs/task_Run"
+    },
+    "snapshot": {
+      "$ref": "#/$defs/projection_Snapshot"
+    },
+    "stopped_evidence": {
+      "$ref": "#/$defs/scheduler_StoppedEvidence"
+    },
+    "task_contract": {
+      "$ref": "#/$defs/task_Contract"
+    },
+    "team": {
+      "$ref": "#/$defs/project_Team"
+    },
+    "workflow": {
+      "$ref": "#/$defs/project_Workflow"
+    }
+  },
+  "x-semantic-validation": "Controller project/task/scheduler validators remain authoritative; nullable Go zero values are not acceptance evidence"
+}

@@ -1,0 +1,9 @@
+{
+  "name": "pi-squad",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "pi": { "extensions": ["./extension/index.ts"] },
+  "scripts": { "test": "node --test extension/*.test.ts" },
+  "dependencies": { "yaml": "2.9.1" }
+}

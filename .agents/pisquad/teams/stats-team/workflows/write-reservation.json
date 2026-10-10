@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "workflow_id": "write-reservation",
+  "steps": [
+    {
+      "id": "directory-b",
+      "role_ref": "frontend",
+      "kind": "execute",
+      "goal": "用write将pi_squad_case/04-team-orchestration/integration/fixtures/write-area/sub/inside.txt完整写成21、22、23三行，末尾换行；read修改后的文件并提交count=3、实际sum和准确artifact。不调用其它任务。",
+      "write_set": [
+        "pi_squad_case/04-team-orchestration/integration/fixtures/write-area/sub"
+      ],
+      "depends_on": []
+    },
+    {
+      "id": "nested-b",
+      "role_ref": "backend",
+      "kind": "execute",
+      "goal": "用write将pi_squad_case/04-team-orchestration/integration/fixtures/write-area/sub/inside.txt完整写成21、22、23三行，末尾换行；read修改后的文件并提交count=3、实际sum和准确artifact。不调用其它任务。",
+      "write_set": [
+        "pi_squad_case/04-team-orchestration/integration/fixtures/write-area/sub/inside.txt"
+      ],
+      "depends_on": []
+    }
+  ]
+}

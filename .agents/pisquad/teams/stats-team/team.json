@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "team_id": "stats-team",
+  "config_version": 31,
+  "leader": {
+    "agent_ref": "stats-lead"
+  },
+  "members": [
+    {
+      "role_ref": "counter",
+      "responsibility": "count"
+    },
+    {
+      "role_ref": "summer",
+      "responsibility": "sum"
+    },
+    {
+      "role_ref": "reviewer",
+      "responsibility": "review"
+    },
+    {
+      "role_ref": "backend",
+      "responsibility": "write fixture A"
+    },
+    {
+      "role_ref": "frontend",
+      "responsibility": "write fixture B"
+    }
+  ],
+  "instructions_file": "instructions.md",
+  "default_workflow": "stats",
+  "policy": {
+    "run_admission": "fifo_single_active",
+    "max_parallel_tasks": 4,
+    "max_delegate_depth": 3,
+    "max_total_tasks": 20,
+    "max_attempts_per_task": 3,
+    "allowed_tools": [
+      "read",
+      "edit",
+      "write",
+      "grep",
+      "find",
+      "ls"
+    ],
+    "writable_roots": [
+      "pi_squad_case/04-team-orchestration/integration/fixtures/write-area"
+    ],
+    "acceptance_policy": {
+      "mode": "review",
+      "reviewer_ref": "reviewer",
+      "child_policy": "inherit_parent"
+    }
+  }
+}

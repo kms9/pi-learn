@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "workflow_id": "reviewer-child",
+  "steps": [
+    {
+      "id": "review-parent",
+      "role_ref": "counter",
+      "kind": "execute",
+      "goal": "Call agent_invoke target=reviewer kind=execute. Child goal: independently read pi_squad_case/04-team-orchestration/integration/fixtures/numbers.txt, verify count=3 and sum=60, and submit both values plus the exact managed read artifact. After invocation, immediately agent_task_yield and end the turn. Only in the original Attempt continuation after the child completes, submit count=3,sum=60 with exact refs to the child result and copy its artifact. Do not perform the child work yourself; do not poll.",
+      "depends_on": []
+    }
+  ]
+}

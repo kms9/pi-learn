@@ -1,0 +1,317 @@
+{
+  "pass": true,
+  "not_p0_exit_gate": true,
+  "controller": "http://127.0.0.1:52602",
+  "proxy": "http://127.0.0.1:52614",
+  "work": "/private/var/folders/yw/k8drw3x52_j3z401tt505xl00000gn/T/pi-squad-get-agent-EXfzR8",
+  "db": "/private/var/folders/yw/k8drw3x52_j3z401tt505xl00000gn/T/pi-squad-get-agent-EXfzR8/pi_squad.sqlite",
+  "contacted_18741": false,
+  "cases": [
+    {
+      "id": "mutual-discovery",
+      "status": "PASS",
+      "expected": "reviewer-a lists backend-1; backend-1 lists both alpha reviewers and not beta",
+      "actual": {
+        "reviewerSees": [
+          "backend-1"
+        ],
+        "backendSees": [
+          "reviewer-a",
+          "reviewer-b"
+        ]
+      },
+      "text": {
+        "reviewer": "{\n  \"agents\": [\n    {\n      \"cwd\": \"/private/var/folders/yw/k8drw3x52_j3z401tt505xl00000gn/T/pi-squad-get-agent-EXfzR8\",\n      \"runtime_id\": \"03e3eab3-5c2e-4c7f-8778-0163a5e44392\",\n      \"role_description\": \"Backend catalog entry\",\n      \"agent_id\": \"backend-1\",\n      \"role\": \"backend\",\n      \"squad",
+        "backend": "{\n  \"agents\": [\n    {\n      \"cwd\": \"/private/var/folders/yw/k8drw3x52_j3z401tt505xl00000gn/T/pi-squad-get-agent-EXfzR8\",\n      \"runtime_id\": \"e437d004-8b0a-40c7-ad8e-82cbce3a1345\",\n      \"role_description\": \"Reviewer catalog entry\",\n      \"agent_id\": \"reviewer-a\",\n      \"role\": \"reviewer\",\n      \"sq"
+      }
+    },
+    {
+      "id": "same-role-no-misselect",
+      "status": "PASS",
+      "expected": "role filter returns both instances; get_agent(reviewer-a) returns only that record; get_agent(reviewer) errors",
+      "actual": {
+        "sameIds": [
+          "reviewer-a",
+          "reviewer-b"
+        ],
+        "exact": {
+          "agent_id": "reviewer-a",
+          "role": "reviewer",
+          "squad_id": "alpha",
+          "status": "online",
+          "cwd": "/private/var/folders/yw/k8drw3x52_j3z401tt505xl00000gn/T/pi-squad-get-agent-EXfzR8",
+          "runtime_id": "e437d004-8b0a-40c7-ad8e-82cbce3a1345",
+          "role_description_len": 22,
+          "has_role_prompt": false
+        },
+        "roleAsIdError": true,
+        "roleAsIdText": "Agent not found: reviewer. Use list_agents to discover available agent_id values."
+      }
+    },
+    {
+      "id": "exact-id",
+      "status": "PASS",
+      "expected": "get_agent text and details are a single { agent } for reviewer-a",
+      "actual": {
+        "summary": {
+          "agent_id": "reviewer-a",
+          "role": "reviewer",
+          "squad_id": "alpha",
+          "status": "online",
+          "cwd": "/private/var/folders/yw/k8drw3x52_j3z401tt505xl00000gn/T/pi-squad-get-agent-EXfzR8",
+          "runtime_id": "e437d004-8b0a-40c7-ad8e-82cbce3a1345",
+          "role_description_len": 22,
+          "has_role_prompt": false
+        },
+        "textHead": "{\n  \"agent\": {\n    \"cwd\": \"/private/var/folders/yw/k8drw3x52_j3z401tt505xl00000gn/T/pi-squad-get-agent-EXfzR8\",\n    \"runtime_id\": \"e437d004-8b0a-40c7-ad8e-82cbce3a1345\",\n    \"role_",
+        "isError": false
+      }
+    },
+    {
+      "id": "metadata",
+      "status": "PASS",
+      "expected": "cwd is the temp workdir, runtime_id is UUID v4, role_description is the frontmatter description, role_prompt is absent",
+      "actual": {
+        "agent_id": "reviewer-a",
+        "role": "reviewer",
+        "squad_id": "alpha",
+        "status": "online",
+        "cwd": "/private/var/folders/yw/k8drw3x52_j3z401tt505xl00000gn/T/pi-squad-get-agent-EXfzR8",
+        "runtime_id": "e437d004-8b0a-40c7-ad8e-82cbce3a1345",
+        "role_description_len": 22,
+        "has_role_prompt": false
+      }
+    },
+    {
+      "id": "special-ids",
+      "status": "PASS",
+      "expected": "get_agent returns the exact record for '.', '..', slash, and space ids",
+      "actual": {
+        ".": {
+          "isError": false,
+          "agent_id": ".",
+          "textHead": "{\n  \"agent\": {\n    \"cwd\": \"/private/var/folders/yw/k8drw3x52_j3z401tt505xl00000gn/T/pi-squad-get-agent-EXfzR8\",\n    \"runtime_id\": \"e234f106-e410-4bac-8247-5c5a3"
+        },
+        "..": {
+          "isError": false,
+          "agent_id": "..",
+          "textHead": "{\n  \"agent\": {\n    \"cwd\": \"/private/var/folders/yw/k8drw3x52_j3z401tt505xl00000gn/T/pi-squad-get-agent-EXfzR8\",\n    \"runtime_id\": \"dfe7030a-2932-46c6-be1b-f8198"
+        },
+        "squad/a/b": {
+          "isError": false,
+          "agent_id": "squad/a/b",
+          "textHead": "{\n  \"agent\": {\n    \"cwd\": \"/private/var/folders/yw/k8drw3x52_j3z401tt505xl00000gn/T/pi-squad-get-agent-EXfzR8\",\n    \"runtime_id\": \"d3aa3696-a97f-4a9c-9582-4d958"
+        },
+        "a b": {
+          "isError": false,
+          "agent_id": "a b",
+          "textHead": "{\n  \"agent\": {\n    \"cwd\": \"/private/var/folders/yw/k8drw3x52_j3z401tt505xl00000gn/T/pi-squad-get-agent-EXfzR8\",\n    \"runtime_id\": \"5b6eafb3-b53e-44bb-b4ed-f4593"
+        }
+      }
+    },
+    {
+      "id": "unknown-id",
+      "status": "PASS",
+      "expected": "error text contains Agent not found: missing-agent",
+      "actual": {
+        "isError": true,
+        "text": "Agent not found: missing-agent. Use list_agents to discover available agent_id values.",
+        "recent": [
+          {
+            "type": "turn_start"
+          },
+          {
+            "type": "message_start"
+          },
+          {
+            "type": "message_update"
+          },
+          {
+            "type": "message_update"
+          },
+          {
+            "type": "message_end"
+          },
+          {
+            "type": "turn_end"
+          },
+          {
+            "type": "agent_end"
+          },
+          {
+            "type": "agent_settled"
+          }
+        ]
+      }
+    },
+    {
+      "id": "blank-id",
+      "status": "PASS",
+      "expected": "empty and whitespace agent_id are rejected and do not return an agent",
+      "actual": {
+        "empty": {
+          "isError": true,
+          "text": "Validation failed for tool \"get_agent\":\n  - agent_id: must not have fewer than 1 characters\n\nReceived arguments:\n{\n  \"agent_id\": \"\"\n}",
+          "recent": [
+            {
+              "type": "turn_start"
+            },
+            {
+              "type": "message_start"
+            },
+            {
+              "type": "message_update"
+            },
+            {
+              "type": "message_update"
+            },
+            {
+              "type": "message_end"
+            },
+            {
+              "type": "turn_end"
+            },
+            {
+              "type": "agent_end"
+            },
+            {
+              "type": "agent_settled"
+            }
+          ]
+        },
+        "spaces": {
+          "isError": true,
+          "text": "agent_id must not be empty",
+          "recent": [
+            {
+              "type": "turn_start"
+            },
+            {
+              "type": "message_start"
+            },
+            {
+              "type": "message_update"
+            },
+            {
+              "type": "message_update"
+            },
+            {
+              "type": "message_end"
+            },
+            {
+              "type": "turn_end"
+            },
+            {
+              "type": "agent_end"
+            },
+            {
+              "type": "agent_settled"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "no-role-custom-url",
+      "status": "PASS",
+      "expected": "reader with only PI_SQUAD_CONTROLLER_URL can list and get, and does not add a registry row",
+      "actual": {
+        "readerIds": [
+          "backend-1",
+          "reviewer-a",
+          "reviewer-b"
+        ],
+        "get": {
+          "agent_id": "backend-1",
+          "role": "backend",
+          "squad_id": "alpha",
+          "status": "online",
+          "cwd": "/private/var/folders/yw/k8drw3x52_j3z401tt505xl00000gn/T/pi-squad-get-agent-EXfzR8",
+          "runtime_id": "03e3eab3-5c2e-4c7f-8778-0163a5e44392",
+          "role_description_len": 21,
+          "has_role_prompt": false
+        },
+        "before": [
+          ".",
+          "..",
+          "a b",
+          "backend-1",
+          "fat-desc",
+          "reviewer-a",
+          "reviewer-b",
+          "reviewer-other",
+          "squad/a/b"
+        ],
+        "after": [
+          ".",
+          "..",
+          "a b",
+          "backend-1",
+          "fat-desc",
+          "reviewer-a",
+          "reviewer-b",
+          "reviewer-other",
+          "squad/a/b"
+        ]
+      }
+    },
+    {
+      "id": "truncation",
+      "status": "PASS",
+      "expected": "tool text is truncated with the narrowing hint; details.agent.role_description remains the full 52000-character description",
+      "actual": {
+        "textHasNotice": true,
+        "textHasFullDescription": false,
+        "textBytes": 278,
+        "detailsLen": 52000,
+        "isError": false
+      }
+    },
+    {
+      "id": "offline-still-queryable",
+      "status": "PASS",
+      "expected": "after heartbeat timeout, get_agent returns reviewer-b offline; online filter excludes it; offline filter includes it",
+      "actual": {
+        "get": {
+          "agent_id": "reviewer-b",
+          "role": "reviewer",
+          "squad_id": "alpha",
+          "status": "offline",
+          "cwd": "/private/var/folders/yw/k8drw3x52_j3z401tt505xl00000gn/T/pi-squad-get-agent-EXfzR8",
+          "runtime_id": "e393b6e3-82a1-4f34-a455-e72861cf32b1",
+          "role_description_len": 22,
+          "has_role_prompt": false
+        },
+        "online": [
+          "reviewer-a"
+        ],
+        "offline": [
+          "reviewer-b"
+        ]
+      }
+    },
+    {
+      "id": "cancel-signal",
+      "status": "PASS",
+      "expected": "abort closes the delayed GET /agents/reviewer-a before the proxy responds, and the tool does not return that agent",
+      "actual": {
+        "hit": {
+          "path": "/agents/reviewer-a",
+          "method": "GET",
+          "aborted": true,
+          "responded": false
+        },
+        "toolStarted": "get_agent",
+        "isError": true,
+        "returnedAgent": false,
+        "text": "This operation was aborted"
+      }
+    },
+    {
+      "id": "natural-language-model",
+      "status": "NOT_RUN",
+      "expected": "a model selects list_agents/get_agent from a natural-language prompt",
+      "actual": "No isolated local model was available. A remote model call was not attempted, so natural-language tool selection is not evidenced."
+    }
+  ]
+}

@@ -3,13 +3,24 @@ title: 决策索引
 type: index
 status: active
 created: 2026-09-07
-updated: 2026-09-07
+updated: 2026-10-04
 tags:
   - project-wiki
 ---
 
 # 决策索引
 
+- [[2026-10-04-squad-pi-1.0.1-tui-scope|2026-10-04 Pi Squad 的 Pi 1.0.1 TUI 范围]]
+- [[2026-10-03-commit-non-dev-artifacts|2026-10-03 提交前先询问非开发材料]]
 - [[2026-09-07-overlay-not-fork|2026-09-07 overlay 而不是 fork 上游]]
 - [[2026-09-07-translations-live-in-docs-zh|2026-09-07 译文放在 docs-zh 并还原 pi-dev]]
 - [[2026-09-07-github-clones-as-submodules|2026-09-07 现有 GitHub 仓改为 submodule]]
+- [[2026-09-21-squad-ownership-and-suspect|2026-09-21 Pi Squad 身份占用与 suspect 投递规则]]
+- [[2026-09-21-squad-user-intervention|2026-09-21 任务补充与用户介入向上反馈]]
+- [[2026-09-24-controller-go-stack|2026-09-24 Controller 使用 Go 1.27 与 Gin 栈]]
+- [[2026-09-23-p0-identity-fields|2026-09-23 P0 身份字段与 HTTP Registry]]
+- [[2026-09-24-squad-role-frontmatter|2026-09-24 Squad 角色格式与首版范围]]
+- [[2026-09-24-squad-role-directories|2026-09-24 Squad 一角色一目录]]
+- [[2026-09-25-squad-team-runtime-scope|2026-09-25 Squad 专属目录与启动身份]]
+- [[2026-09-27-squad-phase04-activation-and-split|2026-09-27 阶段 04 激活占用、阶段 03 并入与 4a/4b 分段]]
+- [[2026-09-27-squad-recovery-guidance-acceptance|2026-09-27 恢复、Leader 输入、授权与验收]]

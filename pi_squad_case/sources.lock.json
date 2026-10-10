@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-09-21",
+  "baseline": {
+    "repository": "kms9/pi-learn",
+    "commit": "2ee5bd7995d1504f73aa5955181f3b9fa5289b8e",
+    "target_branch": "pi_squad_dev"
+  },
+  "runtime_tests": "not_run",
+  "sources": [
+    {
+      "repository": "earendil-works/pi",
+      "commit": "890f920884f6d21fc7617d236ef9e1cc5d7a0ef8",
+      "local_submodule": "pi-dev",
+      "basis": "pi-learn gitlink",
+      "files": [
+        {
+          "path": "packages/coding-agent/src/core/extensions/types.ts",
+          "inspection": "220–380；380–650；695–830；1170–1490",
+          "symbols": "ExtensionContext、SessionStartEvent/ShutdownEvent、AgentSettledEvent、ExtensionAPI",
+          "stages": "00–05"
+        },
+        {
+          "path": "packages/coding-agent/package.json",
+          "inspection": "1–115",
+          "symbols": "name/version/engines",
+          "stages": "00及所有前置检查"
+        },
+        {
+          "path": "packages/coding-agent/src/cli/args.ts",
+          "inspection": "代码搜索命中片段，不声称通读全文件",
+          "symbols": "--no-extensions / -e 解析分支",
+          "stages": "00–05"
+        }
+      ]
+    },
+    {
+      "repository": "nicobailon/pi-intercom",
+      "commit": "199279ae861bf53ce014809fb2a03337538ae13e",
+      "local_submodule": "pi-intercom",
+      "basis": "pi-learn gitlink",
+      "files": [
+        {
+          "path": "broker/framing.ts",
+          "inspection": "全文件",
+          "symbols": "writeMessage/createMessageReader",
+          "stages": "00/02"
+        },
+        {
+          "path": "broker/protocol.ts",
+          "inspection": "全文件",
+          "symbols": "isMessage/isMessageReceipt/isSessionInfo/isSessionRegistration",
+          "stages": "00–02"
+        },
+        {
+          "path": "broker/broker.ts",
+          "inspection": "1–220",
+          "symbols": "IntercomBroker、ConnectedSession、DeliveryRecord、MessageReceiptRoute、scopedSessionKey",
+          "stages": "01/02"
+        },
+        {
+          "path": "broker/client.ts",
+          "inspection": "1–170",
+          "symbols": "IntercomClient.isConnected/startLivenessHeartbeat/runLivenessProbe",
+          "stages": "01"
+        },
+        {
+          "path": "reply-tracker.ts",
+          "inspection": "全文件",
+          "symbols": "ReplyTracker.recordIncomingMessage/resolveReplyTarget/markReplied",
+          "stages": "02/03"
+        }
+      ]
+    },
+    {
+      "repository": "nicobailon/pi-subagents",
+      "commit": "678f842f386334d8444af9265ff85636e3216cef",
+      "local_submodule": "pi-subagents",
+      "basis": "pi-learn gitlink",
+      "files": [
+        {
+          "path": "src/extension/herdr-pi-bridge.ts",
+          "inspection": "入口、execute、session_start、message_end、agent_settled、supervisor及configure片段；长响应存在截断",
+          "symbols": "registerHerdrPiBridge、execute、activeRequestId",
+          "stages": "02–04"
+        },
+        {
+          "path": "src/runs/shared/herdr-pi-protocol.ts",
+          "inspection": "全文件",
+          "symbols": "HerdrPiFrame/encodeHerdrPiFrame/HerdrPiFrameDecoder",
+          "stages": "00/03"
+        }
+      ]
+    },
+    {
+      "repository": "tmustier/pi-agent-teams",
+      "commit": "2c1776d2a68104aaadc1c622d8a704684c7c35d6",
+      "local_submodule": null,
+      "basis": "external inspected snapshot",
+      "files": [
+        {
+          "path": "extensions/teams/task-store.ts",
+          "inspection": "1–290",
+          "symbols": "TeamTask/updateTask/isTaskBlocked/claimTask/completeTask",
+          "stages": "03/04"
+        }
+      ]
+    },
+    {
+      "repository": "multica-ai/multica",
+      "commit": "b866dacd1cc5932d88863b5634826d8efb9260c6",
+      "local_submodule": null,
+      "basis": "external inspected snapshot",
+      "files": [
+        {
+          "path": "server/internal/handler/squad_briefing.go",
+          "inspection": "1–250",
+          "symbols": "squadOperatingProtocolFor/buildSquadLeaderBriefing/buildSquadRoster/squadOperatingProtocolHardRules",
+          "stages": "04"
+        }
+      ]
+    },
+    {
+      "repository": "herdrdev/herdr",
+      "commit": "5a649142233631f8407b4099da0e8e78dfef8574",
+      "local_submodule": null,
+      "basis": "external inspected snapshot",
+      "files": [
+        {
+          "path": "src/integration/env.rs",
+          "inspection": "全文件",
+          "symbols": "HERDR_*_ID_ENV_VAR/apply_pane_base_env",
+          "stages": "05"
+        },
+        {
+          "path": "src/api/client.rs",
+          "inspection": "1–160",
+          "symbols": "ApiClient/ConnectionTarget/request_value/status",
+          "stages": "05"
+        },
+        {
+          "path": "src/api/schema.rs",
+          "inspection": "1–240",
+          "symbols": "Request/Method",
+          "stages": "05"
+        },
+        {
+          "path": "src/api/schema/session.rs",
+          "inspection": "全文件",
+          "symbols": "SessionSnapshot",
+          "stages": "05"
+        },
+        {
+          "path": "src/api/schema/events.rs",
+          "inspection": "1–180",
+          "symbols": "EventsSubscribeParams/Subscription",
+          "stages": "05"
+        }
+      ]
+    }
+  ]
+}

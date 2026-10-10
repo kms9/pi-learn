@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "workflow_id": "rebind-boundary",
+  "steps": [
+    {
+      "id": "directory-b",
+      "role_ref": "frontend",
+      "kind": "execute",
+      "goal": "用write将pi_squad_case/04-team-orchestration/integration/fixtures/write-area/sub/inside.txt完整写成21、22、23三行，末尾换行；read修改后的文件并提交count=3、实际sum和准确artifact。不调用其它任务。",
+      "write_set": [
+        "pi_squad_case/04-team-orchestration/integration/fixtures/write-area/sub"
+      ],
+      "depends_on": []
+    },
+    {
+      "id": "seed",
+      "role_ref": "counter",
+      "kind": "execute",
+      "goal": "读取pi_squad_case/04-team-orchestration/integration/fixtures/numbers.txt，提交count=3,sum=60和实际read artifact，不调用子任务。",
+      "depends_on": []
+    },
+    {
+      "id": "nested-b",
+      "role_ref": "backend",
+      "kind": "execute",
+      "goal": "用write将pi_squad_case/04-team-orchestration/integration/fixtures/write-area/sub/inside.txt完整写成21、22、23三行，末尾换行；read修改后的文件并提交count=3、实际sum和准确artifact。不调用其它任务。",
+      "write_set": [
+        "pi_squad_case/04-team-orchestration/integration/fixtures/write-area/sub/inside.txt"
+      ],
+      "depends_on": [
+        {
+          "step": "seed",
+          "condition": "execution_completed"
+        }
+      ]
+    },
+    {
+      "id": "held-ready",
+      "role_ref": "reviewer",
+      "kind": "execute",
+      "goal": "读取pi_squad_case/04-team-orchestration/integration/fixtures/numbers.txt，提交count=3,sum=60和准确read artifact。不委派子任务。",
+      "depends_on": [
+        {
+          "step": "directory-b",
+          "condition": "execution_completed"
+        }
+      ]
+    }
+  ]
+}

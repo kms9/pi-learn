@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "workflow_id": "count",
+  "steps": [
+    {
+      "id": "count",
+      "role_ref": "researcher",
+      "kind": "execute",
+      "goal": "Read pi_squad_case/04-team-orchestration/integration/fixtures/numbers.txt and submit actual count=3 with the exact managed-read artifact path/sha256/length. Do not call children.",
+      "depends_on": []
+    }
+  ]
+}

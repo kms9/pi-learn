@@ -134,3 +134,27 @@ python3 scripts/sync-zh.py --accept <source> --record-head
 - 不要掩盖歧义，记入 `docs/questions/open-questions.md`。
 - 不要引入 RAG、向量库、wiki 搜索服务，除非用户批准且现有 index 不够用。
 - 不要整份粘贴 `extensions.md`。
+
+## 提交前核对
+
+用户要求提交时，先看本次会进入提交的路径，再执行提交。运行日志、验收证据，以及其他不是开发或阅读产品所需要的代码和文档，默认不纳入。先列出路径和大致体积，问用户是否纳入；用户明确同意后才暂存。
+
+需要停下来问的例子：
+
+- 运行日志、调试输出
+- 验收证据和运行抓取，例如 `pi_squad_case/**/evidence/` 里的大段 JSON 或文本快照
+- 只留下某次运行记录、构建和阅读产品用不到的代码或文档
+
+源码、规格、使用说明，以及构建或文档明确依赖的小夹具，可以提交。拿不准就问。不要用 `git add -A` 或 `git add .` 把上述内容一起加进去。
+
+## Pi Squad 使用说明
+
+`pi_squad/USAGE.md` 是这个插件的配置与启动说明。给 `pi_squad/` 增加已经能用的功能时，同一次改动更新该文件：配置字段、启动命令、会话内命令和工具。不要把还没落地的能力写进去。阶段验收仍以 `pi_squad_case/` 为准，不把使用说明拆成第二份。
+
+Controller 的 Go 版本和库边界在 `pi_squad/controller/AGENTS.md`。Gin、Resty、Viper、Cobra、Bubble Tea 只用于该目录。
+
+检查 `pi_squad` 插件时先读 `pi_squad/AGENTS.md`。新检查前先关掉上次留下的测试 workspace，再新开 workspace。至少启动三个不同角色的 Pi，启动 cwd 用当前项目目录以检查其中的 `.agents/roles`（阶段 04 落地后为 `.agents/pisquad/roles`），并打开对应该 Controller 的 Dashboard。不要用外部 tmux，也不要用一堆脚本代替看 pane。
+
+## Agent 协作边界
+
+默认由当前会话直接完成工作。只有用户在本次任务中明确要求时，才调用 Codex、Grok、Claude 或其他 Agent 协助、评审或验收。历史会话、HANDOFF、旧 pane ID 和旧授权不构成新的委派或结果回传授权。此约束针对开发协作，不改变 Pi Squad 产品自身的多角色运行与验收要求。
