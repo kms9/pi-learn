@@ -14,8 +14,8 @@ import (
 	"time"
 )
 
-const HostProfile = "pi-coding-agent/1.0.1"
-const HostVersion = "1.0.1"
+const HostProfile = "pi-coding-agent/1.1.0"
+const HostVersion = "1.1.0"
 
 type CapabilityReport struct {
 	GoVersion      string          `json:"go_version"`
@@ -30,6 +30,7 @@ type CapabilityReport struct {
 	Installation   string          `json:"installation_kind"`
 	Executable     string          `json:"pi_executable"`
 	ExecutableHash string          `json:"pi_executable_sha256"`
+	Launcher       string          `json:"pi_launcher,omitempty"`
 }
 
 func InspectCapabilities() CapabilityReport {
@@ -69,12 +70,45 @@ func InspectCapabilitiesFor(binary string) CapabilityReport {
 		r.Errors = append(r.Errors, "Pi executable identity unavailable")
 		return r
 	}
+	managed, err := resolveManagedPi(r.Executable, entry)
+	if err != nil {
+		r.Errors = append(r.Errors, "MANAGED_INSTALL_INVALID: "+err.Error())
+		return r
+	}
+	if managed != nil {
+		r.Launcher = r.Executable
+		r.Executable = managed.entry
+		resolved = managed.entry
+		entry, err = os.ReadFile(r.Executable)
+		if err != nil {
+			r.Errors = append(r.Errors, "Pi managed executable identity unavailable")
+			return r
+		}
+		if managed.nodeBin != "" {
+			if b, err := versionOutput(filepath.Join(managed.nodeBin, "node")); err == nil {
+				r.NodeVersion = strings.TrimSpace(string(b))
+			} else {
+				r.Errors = append(r.Errors, "Pi managed Node version unavailable")
+			}
+		}
+	}
 	digest := sha256.Sum256(entry)
 	r.ExecutableHash = hex.EncodeToString(digest[:])
-	if b, err := versionOutput(r.Executable); err == nil {
+	nodeBin := ""
+	if managed != nil {
+		nodeBin = managed.nodeBin
+	}
+	if b, err := versionOutputWithNode(r.Executable, nodeBin); err == nil {
 		r.PiVersion = strings.TrimSpace(string(b))
 	} else {
 		r.Errors = append(r.Errors, "Pi --version unavailable")
+	}
+	if managed != nil {
+		b, err := versionOutput(r.Launcher)
+		current, readErr := os.ReadFile(managed.versionFile)
+		if err != nil || strings.TrimSpace(string(b)) != r.PiVersion || r.PiVersion != managed.version || readErr != nil || strings.TrimSpace(string(current)) != managed.version {
+			r.Errors = append(r.Errors, "MANAGED_INSTALL_VERSION_MISMATCH: launcher, selected release and runtime must match")
+		}
 	}
 	if r.PiVersion != HostVersion {
 		r.Errors = append(r.Errors, "SQUAD_HOST_UNSUPPORTED: Pi "+r.PiVersion+"; requires "+HostProfile)
@@ -93,6 +127,9 @@ func InspectCapabilitiesFor(binary string) CapabilityReport {
 			if json.Unmarshal(b, &p) == nil && p.Name == "@earendil-works/pi-coding-agent" {
 				packageDir = dir
 				r.Installation = "npm"
+				if managed != nil {
+					r.Installation = "managed"
+				}
 				if p.Version != r.PiVersion {
 					r.Errors = append(r.Errors, "Pi CLI/package version mismatch")
 				}
@@ -110,6 +147,9 @@ func InspectCapabilitiesFor(binary string) CapabilityReport {
 		dir = next
 	}
 	if packageDir == "" {
+		if managed != nil {
+			r.Errors = append(r.Errors, "MANAGED_INSTALL_INVALID: Pi package metadata unavailable")
+		}
 		return r
 	}
 	var major, minor, patch int

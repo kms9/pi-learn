@@ -20,6 +20,7 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--upstream", required=True)
 parser.add_argument("--control", type=pathlib.Path, required=True)
 parser.add_argument("--evidence", type=pathlib.Path, required=True)
+parser.add_argument("--port", type=int, default=0)
 args = parser.parse_args()
 upstream = urlsplit(args.upstream)
 if upstream.scheme != "http" or upstream.hostname != "127.0.0.1":
@@ -66,7 +67,7 @@ class Proxy(BaseHTTPRequestHandler):
                     raise ValueError("unknown provider fault")
                 status = 503 if fault == "retry" else 400
                 response = json.dumps({"error": {
-                    "message": "Service temporarily unavailable" if fault == "retry" else "maximum context length exceeded",
+                    "message": "Service temporarily unavailable" if fault == "retry" else "Requested token count exceeds the model's maximum context length of 128000 tokens",
                     "type": "server_error" if fault == "retry" else "invalid_request_error",
                     "code": "server_error" if fault == "retry" else "context_length_exceeded",
                 }}).encode()
@@ -106,6 +107,6 @@ class Proxy(BaseHTTPRequestHandler):
             print(json.dumps(report), flush=True)
 
 
-server = ThreadingHTTPServer(("127.0.0.1", 0), Proxy)
+server = ThreadingHTTPServer(("127.0.0.1", args.port), Proxy)
 print(json.dumps({"endpoint": f"http://127.0.0.1:{server.server_port}", "kind": "provider-fault-proxy"}), flush=True)
 server.serve_forever()

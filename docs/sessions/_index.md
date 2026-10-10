@@ -3,7 +3,7 @@ title: 会话索引
 type: index
 status: active
 created: 2026-09-07
-updated: 2026-10-04
+updated: 2026-10-09
 tags:
   - project-wiki
 ---
@@ -12,6 +12,12 @@ tags:
 
 实质性沟通写到这里，文件名 `YYYY-MM-DD-短标题.md`。
 
+- [[2026-10-09-pi-squad-pi-1.1.0-implementation|2026-10-09 Pi Squad 的 Pi 1.1.0 升级实施与验收]]
+- [[2026-10-09-pi-squad-pi-1.1.0-assessment|2026-10-09 Pi Squad 升级到 Pi 1.1.0 的影响评估]]
+- [[2026-10-09-pi-squad-1.1.0-version-check|2026-10-09 核对 Pi Squad 与 Pi 1.1.0 的版本状态]]
+- [[2026-10-04-squad-review-clarification|2026-10-04 读取 Cursor 结论并澄清优化方向]]
+- [[2026-10-04-pi-squad-readme-usage-update|2026-10-04 更新 Pi Squad README 与 USAGE]]
+- [[2026-10-04-pi-squad-phase04-code-review|2026-10-04 Pi Squad 阶段 04 代码审核与评估]]
 - [[2026-10-04-openspec-archive-two-changes|2026-10-04 归档两个 OpenSpec change]]
 - [[2026-10-04-pi-squad-phase04-continuation|2026-10-04 Pi Squad 阶段 04 继续实施与验收]] - 71/71任务、89/89 PASS（4a71、4b18）；真实多Team、九个物理故障窗及版本化验收完成，测试资源安全收尾。
 

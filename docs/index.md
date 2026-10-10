@@ -3,7 +3,7 @@ title: pi_case 知识库索引
 type: index
 status: active
 created: 2026-09-07
-updated: 2026-10-04
+updated: 2026-10-09
 tags:
   - project-wiki
   - index
@@ -34,6 +34,8 @@ tags:
 
 ## 概念
 
+- [[concepts/squad-completion-yield-scheduling|Squad 明确完成、yield 与调度 tick]] - 父子回传链、提前完成漏洞、500ms 状态推进及 Leader 简报与历史的区别。
+
 - [[concepts/squad-role-instance-lease|Squad 角色复用、当前 Team 与任务租约]] - 双 Team 共用 reviewer 的通俗解释
 
 - [[concepts/_index|概念索引]]
@@ -45,6 +47,8 @@ tags:
 - [[concepts/pi-squad|Pi Squad]] - Herdr + 薄 Extension + Go Controller 的本地协作验证；配置与启动见 `pi_squad/USAGE.md`
 
 ## 决策
+
+- [[decisions/2026-10-04-squad-explicit-completion-and-context|2026-10-04 Squad 明确完成与 Leader 上下文方向]] - 取消业务硬截止、等待派发任务明确回传；固定当前上下文、checker 测试用途与后续文档更新。
 
 - [[decisions/2026-10-04-squad-pi-1.0.1-tui-scope|2026-10-04 Pi Squad 的 Pi 1.0.1 TUI 范围]] - 注册前拒绝非 TUI 和未验证版本；真实 probe 与声明诊断分层。
 
@@ -66,6 +70,18 @@ tags:
 - [[decisions/2026-09-23-p0-identity-fields|2026-09-23 P0 身份字段与 HTTP Registry]]
 
 ## 会话
+
+- [[sessions/2026-10-09-pi-squad-pi-1.1.0-implementation|2026-10-09 Pi Squad 的 Pi 1.1.0 升级实施与验收]] - 兼容代码已实施，三角色、三轮数字、真实取消与 managed probe 通过；89 项新版本全量验收进行中，尚未收尾。
+
+- [[sessions/2026-10-09-pi-squad-pi-1.1.0-assessment|2026-10-09 Pi Squad 升级到 Pi 1.1.0 的影响评估]] - 公共类型检查与 Go 构建通过；建议先处理 profile、取消收尾与 managed 安装身份，再跑真实回归。尚未实施升级。
+
+- [[sessions/2026-10-09-pi-squad-1.1.0-version-check|2026-10-09 核对 Pi Squad 与 Pi 1.1.0 的版本状态]] - 默认 Pi CLI 已为 1.1.0，插件自身为 0.1.0，正式激活仍精确限定 1.0.1/TUI；尚未完成 1.1.0 适配。
+
+- [[sessions/2026-10-04-squad-review-clarification|2026-10-04 读取 Cursor 结论并澄清优化方向]] - 只读 wN:p1，解释 yield、上下文增长与 tick；记录用户决定，方案尚未实施。
+
+- [[sessions/2026-10-04-pi-squad-readme-usage-update|2026-10-04 更新 Pi Squad README 与 USAGE]] - 对照当前 Project runtime v2 整理总览、完整三角色示例、命令/工具和恢复；CLI 示例与链接检查通过，保留实际限制。
+
+- [[sessions/2026-10-04-pi-squad-phase04-code-review|2026-10-04 Pi Squad 阶段 04 代码审核与评估]] - 需求入口齐全、事务与恢复设计扎实；固定 120 秒截止会中止真实任务、父不 yield 可致子任务卡死、空闲模型可读 operator 凭据。
 
 - [[sessions/2026-10-04-openspec-archive-two-changes|2026-10-04 归档两个 OpenSpec change]] - 阶段 04 与 Pi 1.0.1 兼容 change 已同步到主 spec 并归档。
 

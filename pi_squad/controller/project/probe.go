@@ -190,8 +190,9 @@ func readProbe(path string, installed CapabilityReport, matchHost bool) (map[str
 			var d struct {
 				Idle    bool  `json:"idle"`
 				Pending *bool `json:"pending"`
+				Aborted *bool `json:"aborted"`
 			}
-			if stage == 5 && json.Unmarshal(event.Details, &d) == nil && d.Idle && d.Pending != nil && !*d.Pending {
+			if stage == 5 && json.Unmarshal(event.Details, &d) == nil && d.Idle && d.Pending != nil && !*d.Pending && d.Aborted != nil && !*d.Aborted {
 				cycles = append(cycles, map[string]any{"input_seq": inputSeq, "settled_seq": event.Seq, "identity": canonical.Identity, "request_seq": canonical.RequestSeq})
 			}
 			stage = 0

@@ -382,11 +382,13 @@ export class Invocation {
     pi.on("agent_before_settle", (event) => {
       this.outcome = event.outcome;
     });
-    pi.on("agent_settled", (_event, ctx) => {
+    pi.on("agent_settled", (event, ctx) => {
       this.context = ctx;
       const current = this.gate.current;
       const checkFence = this.captureExecutionFence();
-      const outcome = this.outcome;
+      // A native abort can skip agent_before_settle. Never reuse the default
+      // completed outcome when the host explicitly reports cancellation.
+      const outcome = event.aborted ? "aborted" : this.outcome;
       const turn = this.localTurn;
       const session = ctx.sessionManager.getSessionId();
       const stillSettled = () => {

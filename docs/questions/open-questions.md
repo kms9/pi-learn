@@ -3,7 +3,7 @@ title: 开放问题
 type: question-log
 status: active
 created: 2026-09-07
-updated: 2026-10-04
+updated: 2026-10-09
 tags:
   - project-wiki
   - questions
@@ -38,3 +38,6 @@ tags:
 | Q22 | Pi Squad 在 Pi 1.0.1 的真实兼容回归是否通过？ | open | P0 和选定 P1 已实施；独立 1.0.1 三角色与 schema 2 核心事件真实就绪，兼容场景 14 PASS / 5 PARTIAL。阶段04原规格随后独立完成89/89，未据此补齐额外兼容分支，全局 Pi 仍 1.0.0。见 [[sessions/2026-10-04-pi-squad-pi-1.0.1-implementation]]。 |
 | Q23 | 受管 Squad 正式支持 RPC 模式，还是只支持 TUI？ | closed | 用户明确选择 TUI-only；已在注册前拒绝 RPC/JSON/print，普通 Pi 可继续使用；真实 RPC get_state 正常且没有 Squad 注册。见 [[decisions/2026-10-04-squad-pi-1.0.1-tui-scope]]。 |
 | Q24 | Pi 1.0.1 兼容表的剩余运行分支何时补齐？ | open | 阶段04现已补验真实compact/bash/fork/tree与代表性护栏；其余嵌套/exposure逐变体、隔离纯pending回调和非OpenAI chat provider增量仍未全部实跑，独立native binary未验收。具体覆盖见阶段 04 compatibility/README.md；当前不推导这些分支 PASS。 |
+| Q25 | 正式任务截止时间是否可配置，续接、yield 等待和排队时是否重算？ | closed | 2026-10-04 用户决定取消业务 Task 固定时间截止，以上层及必要子任务的明确结束回传为准，不改为可配置硬截止。代码尚未实施；可续通信 lease 与业务时限分开。见 [[decisions/2026-10-04-squad-explicit-completion-and-context]]。 |
+| Q26 | 父任务仍有未完成子依赖时提交结果，应拒绝结果还是取消孤儿子任务？ | open | 用户已明确必要子任务未回传时上层不得完成；建议未完成依赖拒绝 completion，并提示先 yield。具体错误/自动处理策略仍待实施设计。当前 parent_yield 无法正常解除，既有 deadline 可能转 needs_review。见 [[concepts/squad-completion-yield-scheduling]]。 |
+| Q27 | Pi Squad 升级到 Pi 1.1.0 的兼容调整与真实验收是否完成？ | open | 2026-10-09 默认 CLI 已为 1.1.0，产品仍限定 1.0.1/TUI。静态差异、实际公共声明类型检查、Go 构建和只读 doctor 已完成；建议先同步 profile、消费 settled.aborted、处理 managed launcher 与 runtime entry 身份，再采集新 probe、跑新版本真实三角色及阶段 04 矩阵。尚未改产品或启动模型验收，旧 PASS 不覆盖 1.1.0。见 [[sessions/2026-10-09-pi-squad-pi-1.1.0-assessment]]。 |

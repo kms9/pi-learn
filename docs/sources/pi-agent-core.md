@@ -3,7 +3,7 @@ title: Pi agent core 与 coding-agent
 type: source
 status: active
 created: 2026-09-07
-updated: 2026-10-03
+updated: 2026-10-09
 source_path: pi-dev/packages/agent
 tags:
   - project-wiki
@@ -60,4 +60,15 @@ Pi 把「最小 coding harness」做成四个包。真正的 loop 在 `packages/
 - 本轮核对 `src/core/extensions/{types,runner,wrapper}.ts`、`agent-session.ts`、`ai/src/api/anthropic-messages.ts`、`ai/src/utils/transcript.ts` 及 Durable README；未运行上游测试或 Squad 三角色真实验收。`docs-zh` 本轮未同步，API 结论依据固定英文源码。
 
 应用评估见 [[sessions/2026-10-03-pi-squad-pi-1.0.1-assessment|Pi Squad 适配 Pi 1.0.1]]。
+
+## 2026-10-09 更新核对：Pi 1.0.1 → 1.1.0
+
+- 固定基线 release commit `a7229ddc21810d6245105978033b7df645ecc2f7`，目标 `v1.1.0` / `abe508e1b89912adde45528136c3221eb69acdd7`。目标源码从官方 tag tarball 解包到仓库外临时目录；本地 submodule 未升级。实际默认 CLI 及其 core/ai/tui package 均为 1.1.0。
+- [1.1.0 release](https://github.com/earendil-works/pi/releases/tag/v1.1.0) 和 [固定 changelog](https://github.com/earendil-works/pi/blob/abe508e1b89912adde45528136c3221eb69acdd7/packages/coding-agent/CHANGELOG.md) 记录 `agent_settled.aborted`、工具/消息计时、OSC 7501 和 CLI 工具修饰语。中间 1.0.4 已调整 MCP 保留规则与 hidden prompt，1.0.3 重命名 Azure provider；升级评估要包含中间版本。
+- 固定 [AgentSession](https://github.com/earendil-works/pi/blob/abe508e1b89912adde45528136c3221eb69acdd7/packages/coding-agent/src/core/agent-session.ts) 的 `_runAgentPrompt()` 在显式 abort 后可跳过 before-settle boundary，finally 仍调用 `_emitAgentSettled()`，后者发送 aborted。取消判断不能只缓存前一个 before-settle outcome。
+- 1.0.1 与 1.1.0 的 Extension runner/wrapper、SessionManager、`ai/src/utils/transcript.ts`、Anthropic message adapter、Responses shared conversion、原生 write/edit/file-mutation queue 未变化；nested pipeline 增加 duration，控制工具 exposure 和 parentToolCallId 保留。agent-loop 的 batch terminate 规则未变化。
+- [pi-ai changelog](https://github.com/earendil-works/pi/blob/abe508e1b89912adde45528136c3221eb69acdd7/packages/ai/CHANGELOG.md) 的 stream 类型收紧影响自定义 stream；Azure provider 名变化不改变 `azure-openai-responses` API ID。Squad 当前未注册自定义 provider/stream。
+- 当前生产 Extension 与兼容 observer 对实际 1.1.0 公共声明的严格类型检查通过，Go 构建通过；没有运行三角色功能验收。默认 managed launcher 与具体 release 入口在当前 Controller doctor 中形成不同身份，不能据版本或声明存在判正式 ready。
+
+具体适配建议、证据范围和未决见 [[sessions/2026-10-09-pi-squad-pi-1.1.0-assessment|Pi Squad 的 Pi 1.1.0 升级评估]]。
 ---

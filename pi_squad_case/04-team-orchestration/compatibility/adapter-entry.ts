@@ -1,10 +1,12 @@
 // Integration entry only. Never load alongside the production index.ts.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import type { ExtensionAPI, ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { processIdentity } from "../../../pi_squad/extension/project.ts";
 import { installTeamExtension } from "../../../pi_squad/extension/team-extension.ts";
 import { withNestedControlCheck } from "./nested-read.ts";
+import { TeamClient } from "../../../pi_squad/extension/team-client.ts";
+import type { ExecutionGate } from "../../../pi_squad/extension/execution-gate.ts";
 
 export default function (pi: ExtensionAPI) {
   const identity = processIdentity();
@@ -30,6 +32,17 @@ export default function (pi: ExtensionAPI) {
   // result or a simulated agent_end event.
   const faultPi: ExtensionAPI = {
     ...pi,
+    on: ((name: any, handler: any) => {
+      pi.on(name, (event: any, ctx: ExtensionContext) => {
+        if (!existsSync(path.join(directory, "native-handoff-image.json"))) return handler(event, ctx);
+        const ui = { ...ctx.ui, notify(message: string, kind?: "info" | "warning" | "error") {
+          if (message.includes("UNSUPPORTED_HANDOFF_ATTACHMENT"))
+            writeFileSync(path.join(directory, "native-handoff-image-rejected.observed.json"), JSON.stringify({ at: new Date().toISOString(), error_code: "UNSUPPORTED_HANDOFF_ATTACHMENT", source: "native_ui_notify" }), { mode: 0o600 });
+          ctx.ui.notify(message, kind);
+        } };
+        return handler(event, { ...ctx, ui });
+      });
+    }) as ExtensionAPI["on"],
     registerCommand(name, command) {
       commandHandlers.set(name, command.handler);
       pi.registerCommand(name, command);
@@ -71,6 +84,21 @@ export default function (pi: ExtensionAPI) {
               observed.push({ name, denied: result.isError === true });
               if (!result.isError) throw new Error(`FIXTURE_LEADER_BYPASS_ACCEPTED:${name}`);
             }
+            const state = (process as NodeJS.Process & { [key: symbol]: { token: string; gate: ExecutionGate } })[Symbol.for("pi-squad.runtime.v2")];
+            const dispatch = state?.gate.current;
+            if (!dispatch) throw new Error("FIXTURE_LEADER_SEGMENT_MISSING");
+            const client = new TeamClient(identity, state.token);
+            await client.connect();
+            await client.heartbeat(dispatch.attempt.target, "working");
+            let directDenied = false;
+            try {
+              await client.request("/v2/tasks/direct", { request_id: `leader-negative-${id}`, target: "counter-main", kind: "execute", goal: "Forbidden Leader direct Worker claim" });
+            } catch (error) {
+              directDenied = /Controller HTTP (403|409).*?(LEADER|DIRECT_NOT_AUTHORIZED|ROLE_BUSY|ACTIVE_TEAM_SCOPE_CONFLICT)/s.test(String(error));
+              if (!directDenied) throw error;
+            }
+            if (!directDenied) throw new Error("FIXTURE_LEADER_DIRECT_CLAIM_ACCEPTED");
+            observed.push({ name: "direct-worker-claim", denied: directDenied });
             writeFileSync(path.join(directory, "leader-bypass.observed.json"), JSON.stringify({ at: new Date().toISOString(), observed }), { mode: 0o600 });
             // Settle the real Leader with no structured decision. The normal
             // query remains genuine; no business result or event is invented.

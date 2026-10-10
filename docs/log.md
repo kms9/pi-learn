@@ -3,7 +3,7 @@ title: Wiki 日志
 type: log
 status: active
 created: 2026-09-07
-updated: 2026-10-04
+updated: 2026-10-09
 tags:
   - project-wiki
   - log
@@ -779,3 +779,51 @@ tags:
 - 来源: 用户要求先同步再归档当前两个 change。
 - 更新: `openspec/specs/` 七份主 spec；归档到 `openspec/changes/archive/2026-10-04-pi-squad-team-orchestration` 与 `openspec/changes/archive/2026-10-04-pi-squad-pi-1-0-1-compatibility`。
 - 说明: 工件与任务均已完成。delta 均为新增需求，主 spec 原先为空。`openspec validate --specs` 7 passed。活跃 change 已清空。未提交。
+
+## [2026-10-04] query | 阶段 04 代码审核与评估
+
+- 来源: `pi_squad_case/04-team-orchestration/TEAM_RUNTIME_REQUIREMENTS.md`、`pi_squad/`@c0214d5 源码、本地 ignored `integration/RESULT.md` 与 `cases.json`。
+- 更新: `docs/sessions/2026-10-04-pi-squad-phase04-code-review.md`、`docs/questions/open-questions.md`（Q25、Q26）、`docs/sessions/_index.md`、`docs/index.md`。
+- 说明: 只读审核，未改产品代码。Go 构建/vet/tsc 通过；`client.TestListAndGet` 失败，`npm test` 3 文件无法加载，scheduler 等核心包无测试。需求入口齐全，事务、fencing、恢复门扎实；主要问题为固定 120 秒截止中止真实任务、父不 yield 致子任务卡死、空闲模型可经 bash 读 operator 凭据、checker 仅夹具、Leader 会话膨胀、Tick 全表扫描和若干文档漂移。
+
+## [2026-10-04] maintenance | 按当前实现更新 Pi Squad README 与 USAGE
+
+- 来源: 用户要求；当前 Extension/Controller/协议源码、阶段 04 与兼容记录、当前 CLI doctor/help/schema。
+- 更新: `pi_squad/README.md`、`pi_squad/USAGE.md`、`docs/sessions/2026-10-04-pi-squad-readme-usage-update.md`、两份 index。
+- 说明: 移除旧 P0 和未全量通过表述，整理完整三角色配置、精确 1.0.1/TUI 范围、命令/工具、验收和恢复。明确 120 秒截止、child yield、checker 与空闲 shell 边界；Go 构建、45 链接/锚点、临时 Project doctor、六组 CLI help 与 acceptance schema 校验通过。仅更新文档，保留已有审核改动，未运行模型或单元验收、未提交。
+
+## [2026-10-04] session | Cursor 结论与任务完成、yield、上下文和 tick 澄清
+
+- 来源: 用户六条补充；herdr skill 只读 wN:p1 Cursor/idle；Controller/Extension 与 Pi context API 源码。
+- 更新: `docs/decisions/2026-10-04-squad-explicit-completion-and-context.md`、`docs/concepts/squad-completion-yield-scheduling.md`、`docs/sessions/2026-10-04-squad-review-clarification.md`、index、会话索引与问题。
+- 说明: 用户决定取消业务固定截止，等待必要派发任务明确回传；checker 用于测试，Leader 固定当前简报，文档漂移后续统一更新。解释 result/settled/验收、父 yield 及提前完成漏洞、500ms 调度和历史累积；Q25 closed（待实施），Q26 保留具体策略设计。未修改插件、启动模型验收或向 Cursor 发消息，未提交。
+
+## [2026-10-09] query | 核对 Pi Squad 与 Pi 1.1.0 的版本状态
+
+- 来源: 实际 `command -v pi` / `pi --version`、npm 包页面、插件 package.json、Extension/Controller doctor、README/USAGE 与既有兼容记录。
+- 更新: `docs/sessions/2026-10-09-pi-squad-1.1.0-version-check.md`、`docs/sessions/_index.md`、`docs/index.md`。
+- 说明: 默认 Pi CLI 已为 1.1.0；插件自身仍为 0.1.0，宿主兼容检查精确限定 1.0.1/TUI，按当前代码在 1.1.0 下会拒绝激活 Squad。尚未完成 1.1.0 适配，历史 89/89 不覆盖新版本；未改产品、安装环境或 submodule，未启动功能验收、委派 Agent 或提交。
+
+## [2026-10-09] query | Pi Squad 升级到 Pi 1.1.0 的影响评估
+
+- 来源: 官方 1.1.0 release/固定源码 `abe508e1b89912adde45528136c3221eb69acdd7`、1.0.1 release `a7229ddc21810d6245105978033b7df645ecc2f7`、实际 1.1.0 安装及当前 Squad 源码、只读 doctor。
+- 更新: `docs/sessions/2026-10-09-pi-squad-pi-1.1.0-assessment.md`、source 摘要/登记、Q27、总索引、会话索引。
+- 说明: 公共声明严格类型检查与 Go 构建通过，建议局部适配后升级；必需项为精确 profile、取消收尾、managed 安装身份，工具/MCP/loadout/请求/原生 UI 需真实回归。默认 launcher 与 release 入口的 doctor 身份差异已核对；取消误分类为静态风险，未冒充实跑复现。未改产品、规格、安装或 submodule，未运行单元/模型验收、委派 Agent 或提交。
+
+## [2026-10-09] session | Pi 1.1.0 兼容实现与真实核心回归
+
+- 来源: 用户实施授权；实际 Pi 1.1.0/TUI、local-grok/grok-4.7、wA Controller/Dashboard 与原生交互。
+- 更新: `pi_squad/` profile/settled/managed doctor/probe、USAGE/README、compatibility observer 与版本入口、OpenSpec 升级 change、实施会话和索引。
+- 说明: 编译/类型检查/严格规格校验通过；三轮数字和 parent yield 重测完成，result_proposed 后 Esc interrupted/aborted/released，retry 等待 Esc interrupted/error/released，managed/release 正常 probe 均就绪，负例拒绝。保留重试窗口准备失败及 Leader 冗余 child review 拒绝；新 89 项仍在验收，尚未收尾，不声称全通过。未改上游或用户已有服务、未委派开发 Agent、运行单元测试或提交。
+
+## [2026-10-09] session | Pi 1.1.0 升级进度核对
+
+- 来源: 当前 OpenSpec tasks、新版本 cases.json、实际 Controller snapshot 与本次 native probe/Herdr pane。
+- 更新: 升级实施会话、OpenSpec 核心集成任务。
+- 说明: 核心兼容实现与真实验证12/15，新版本原矩阵23 PASS/7 PARTIAL/59 NOT_RUN；MCP及九种nested控制、native fork/tree/bash/reload/compact和普通输入接管已验证。核对时所有Attempt/Run均安全收尾，测试进程与wA仍在线；全量回归继续，未宣称完成、委派Agent或提交。
+
+## [2026-10-10] session | Pi 1.1.0 升级进度与物理恢复验证
+
+- 来源: 用户进度询问；新版本矩阵与本轮 Herdr wA 真实运行。
+- 更新: `docs/sessions/2026-10-09-pi-squad-pi-1.1.0-implementation.md`
+- 说明: 核对时 34 PASS / 9 PARTIAL / 46 NOT_RUN，核心开发和真实宿主验证 12/15；保留未验收边界与失败历史，继续物理崩溃恢复。

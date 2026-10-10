@@ -1,115 +1,208 @@
-# Pi Squad：Project runtime v2
+# Pi Squad 使用与实现说明
 
-阶段 04 的实现已接入本文件所列入口，目前已进入**整体集成验收，尚未全量通过**。编译通过不代表真实执行或恢复场景通过；运行结果以 [阶段 04](../pi_squad_case/04-team-orchestration/README.md) 和 [89 项集成索引](../pi_squad_case/04-team-orchestration/integration/README.md) 为准。本轮不新增、也不运行单元测试，本轮按全部开发后统一整体集成的顺序执行。
+本文件对应当前 **Project runtime v2 / `pi-squad/2`** 实现，是配置、启动、会话命令和模型工具的统一说明。功能总览与源码导航见 [README.md](README.md)。
+
+正式激活范围为 **Pi 1.1.0、TUI 模式**，profile 为 `pi-coding-agent/1.1.0`。其他 Pi 版本（包括 1.0.1）以及 RPC/JSON/print 在注册前拒绝 Squad 激活，退回普通 Pi；已有未收尾执行仍保持隔离。阶段 04 于 2026-10-04 在 Pi 1.0.1/TUI 记录 89/89 项通过；1.1.0 的新版本验收单独记录在 [升级验收入口](../pi_squad_case/04-team-orchestration/compatibility/pi-1.1.0/README.md)，完整范围见 [阶段文档](../pi_squad_case/04-team-orchestration/README.md)；额外兼容分支见 [兼容说明](../pi_squad_case/04-team-orchestration/compatibility/README.md)。
+
+## 阅读导航
+
+- [安装与构建](#安装与构建)
+- [配置一个三角色 Project](#配置一个三角色-project)
+- [启动与创建 Run](#启动与创建-run)
+- [配置参考](#配置参考)
+- [Pi 会话命令](#pi-会话命令)
+- [模型工具与协作流程](#模型工具与协作流程)
+- [执行许可、结果与验收](#执行许可结果与验收)
+- [取消、对账与恢复](#取消对账与恢复)
+- [观察、诊断与请求证据](#观察诊断与请求证据)
+- [从旧目录迁移](#从旧目录迁移)
+- [当前限制与排错](#当前限制与排错)
 
 ## 安装与构建
+
+npm 版 Pi 要求 Node >=22.19.0；Controller 使用 Go 1.27.0。以下构建命令在本仓库根目录运行：
 
 ```bash
 npm ci --prefix pi_squad
 (cd pi_squad/controller && go build -o bin/controller ./cmd/controller)
 ```
 
-Pi 提供 `@earendil-works/pi-coding-agent`、`@earendil-works/pi-ai`、`typebox`；包安装自己的 `yaml` 依赖。可 `pi install /绝对路径/pi_squad`，或安装 `extension/index.ts`，二选一，避免重复加载。隔离检查用 `pi --no-extensions -e /绝对路径/pi_squad/extension/index.ts`。
+Pi 提供 `@earendil-works/pi-coding-agent`、`@earendil-works/pi-ai` 和 `typebox`；Pi Squad 自己安装 `yaml`。包入口由 [package.json](package.json) 的 `pi.extensions` 指向 `extension/index.ts`。
 
-当前正式执行支持 **Pi 1.0.1、TUI 模式**，profile 为 `pi-coding-agent/1.0.1`。npm 安装要求 Node >=22.19.0；`pi-dev` 源码版本不能替代实际 `pi --version`。其他 Pi 版本及 RPC/JSON/print 模式在注册前明确拒绝 Squad 激活，并恢复普通 Pi；已有未收尾片段仍保持隔离。`/squad whoami` 的 `host` 显示实际版本、模式、入口路径/哈希、公开 API 检查及可选声明诊断。声明文件不存在不单独判不支持，事件语义需要真实探针验证。
-
-可在独立目录安装 exact version，避免改变正在运行的 Pi：
+如需独立安装已支持的 Pi，使用固定版本：
 
 ```bash
-npm install --prefix /绝对路径/pi-1.0.1 @earendil-works/pi-coding-agent@1.0.1
-/绝对路径/pi-1.0.1/node_modules/.bin/pi --version
+npm install --prefix /绝对路径/pi-1.1.0 @earendil-works/pi-coding-agent@1.1.0
+/绝对路径/pi-1.1.0/node_modules/.bin/pi --version
 ```
 
-后文启动命令里的 `pi` 应指向这个经过核对的可执行文件。升级或更换宿主后重新启动进程并采集探针。
+输出应为 `1.1.0`。官方 managed 安装的默认 `pi` 启动器也可使用，doctor 会解析当前 release 的实际入口，并核对启动器、入口和包版本；报告中的 `pi_launcher` 与 `pi_executable` 分别表示两者。无效安装或版本切换期间身份不一致会明确拒绝；也可显式选择具体 release 的 `node_modules/.bin/pi`。`pi-dev` 的源码版本不能替代实际运行版本。后文的 `pi` 均指这个已核对的可执行文件。
 
-## Project 与配置
+选择一种加载方式：
 
-从启动 cwd 向上寻找最近 `.agents/pisquad`，以 canonical 路径为 Project 身份。不同子目录共享同一 Project；嵌套 Project 是独立边界。配置路径检查准确大小写、UTF-8、64 KiB 上限、未知/重复字段、引用、版本和目录边界。
+| 方式 | 命令 |
+|---|---|
+| 本地 package 安装 | `pi install /绝对路径/pi_case/pi_squad`，随后正常启动 `pi` |
+| 每次显式加载 | `pi --no-extensions -e /绝对路径/pi_case/pi_squad/extension/index.ts` |
+
+同一进程只加载一次 Squad 入口。显式加载方式适合独立检查；它关闭自动发现的其他扩展。不要只用文件工具的 `--tools` 白名单启动正式 Squad，它会排除控制工具并使派发停止。
+
+## 配置一个三角色 Project
+
+Project 是启动 cwd 向上最近含 `.agents/pisquad/` 的目录，使用 canonical 路径标识。同一 Project 的子目录共享 Controller；嵌套 Project 独立。下面是可自行创建的最小示例，不依赖 `integration/` 验收夹具。
 
 ```text
-.agents/pisquad/
-├── roles/
-│   ├── counter/{role.md,agents.md}
-│   ├── summer/{role.md,agents.md}
-│   └── reviewer/{role.md,agents.md}
-├── teams/stats-team/
-│   ├── team.json
-│   ├── instructions.md
-│   └── workflows/stats.json
-└── .runtime/                 # 私有运行状态，不提交 Git
+你的项目/
+├── numbers.txt
+└── .agents/pisquad/
+    ├── roles/
+    │   ├── counter/
+    │   │   ├── role.md
+    │   │   └── agents.md
+    │   ├── summer/
+    │   │   ├── role.md
+    │   │   └── agents.md
+    │   └── reviewer/
+    │       ├── role.md
+    │       └── agents.md
+    ├── teams/stats-team/
+    │   ├── team.json
+    │   ├── instructions.md
+    │   └── workflows/stats.json
+    └── .runtime/                 # Controller 生成，不提交 Git
 ```
 
-`role.md` 必须有且仅有 `name`、`description` 两个 YAML frontmatter 字段，正文非空。ID 使用 `[a-z][a-z0-9-]*`，目录名等于 name。`agents.md` 必须存在，允许为空。角色目录的其它文件不作为提示加载。
+已有 Project 使用自己的配置；以下三角色启动示例对应此处的 Team。若现有 Team 的 `members` 更多，应启动它的全部成员 Primary。
+
+### Role 与工作规则
+
+每个 `role.md` 必须仅包含 `name`、`description` 两个 YAML frontmatter 字段，正文非空。ID 格式为 `[a-z][a-z0-9-]*`；目录名与 `name` 相同。示例 `roles/counter/role.md`：
 
 ```markdown
 ---
 name: counter
 description: 独立统计数据条数。
 ---
-读取任务指定的数据，提交可核对的结构化结果。
+读取任务指定的数据，提交可核对的结构化计数结果。不要修改文件。
 ```
 
-Role 正文在 Pi 进程启动时固定；`/new`、`/reload` 不偷偷换角色。`agents.md` 在新 Attempt 读取并固定，同 Attempt 的 continuation 不刷新。Team 的 instructions、policy 和 Workflow 在 Run 创建时固定；同 config_version 改内容会被拒绝，变更须增加版本。
+另两个 Role 使用同一格式：
 
-完整 Team/Workflow 样例见 [team.json](../pi_squad_case/04-team-orchestration/integration/fixtures/team.json)、[stats.json](../pi_squad_case/04-team-orchestration/integration/fixtures/stats.json)。Team 必须声明：
-
-- `schema_version: 1`、`team_id`、正整数 `config_version`。
-- `leader.agent_ref`：稳定 Leader Agent ID；`members`：不重复的 `role_ref` 与非空 `responsibility`。
-- `instructions_file: "instructions.md"`，可选 `default_workflow`。
-- `policy.run_admission: "fifo_single_active"`，正整数 `max_parallel_tasks`、`max_delegate_depth`、`max_total_tasks`、`max_attempts_per_task`。
-- Team 缺少可解析的 `acceptance_policy.mode` 时先报告 `ACCEPTANCE_POLICY_MISSING`，不受缺省 child_policy 的次级错误遮蔽，也不创建 Run 或业务 Task。
-- `allowed_tools`、`writable_roots` 必须显式数组。受管工具为 `read/grep/find/ls/write/edit`；只读任务去掉写工具；write/edit 必须有任务 `write_set` 且位于配置允许的根下。正式任务不放行 bash 或未受管的第三方工具。
-- `acceptance_policy`：Team 的 `mode` 为 `checker/review`，`child_policy` 为 `inherit_parent/separate`。checker 需要 `checker_ref`（当前内置 `numbers-count/numbers-sum/numbers-stats`）；review 需要 roster 内独立 `reviewer_ref`；standalone 默认 human，由操作者显式验收。review Task 不递归找 reviewer。数字 checker 只核对应的 count/sum 数值和产物 hash，结果里的额外字段不会让合法数字失效。
-
-Workflow 的 `steps` 包含 `id/role_ref/kind/goal/depends_on`，可附 `refs/expected_output/acceptance/write_set/rework_of`。依赖条件为 `execution_completed/acceptance_accepted/review_rejected`；环和预算超限拒绝。`expected_output` 使用实现的严格 JSON schema 子集（type、properties、required、items、enum、additionalProperties、minimum/maximum、minItems/maxItems），未知关键词拒绝。`acceptance` 是给 checker/reviewer 的验收说明，不得覆写冻结的权限或 policy。
-
-## 从旧目录迁移
-
-不会自动加载或移动 `.agents/roles`。在旧项目根运行已构建的二进制：
-
-```bash
-/绝对路径/controller migrate --dry-run --source-db /绝对路径/旧库.sqlite
-/绝对路径/controller migrate --dry-run=false \
-  --source-db /绝对路径/旧库.sqlite --mapping /绝对路径/mapping.json \
-  --confirm-old-writer-stopped
-```
-
-无旧库时省略 `--source-db`。mapping 是完整 `TeamSnapshot` JSON 数组，每项包含 `config`、`instructions`、`workflows`；`[]` 明确表示仅 standalone，不推断 roster。执行前须已停止旧写入者。迁移先检查冲突、复制到 staging、严格加载、做 SQLite 一致备份并核验，再原子发布新目录；保留旧角色原件和旧库，不覆盖已有 Project。备份及 manifest 位于新 `.runtime`。
-
-## 启动与发现
-
-在 Project cwd 的独立终端启动 Controller：
-
-```bash
-/绝对路径/controller serve --max-parallel-tasks 4
-```
-
-默认 loopback 动态端口 `127.0.0.1:0`，持有唯一 Project 进程锁；数据库默认 `.runtime/state.sqlite`。原子写出的 `.runtime/controller.json` 包含 Project、协议、Controller ID/epoch、实际 endpoint。客户端读取并核对 health，不回退固定端口。已握手的 snapshot/SSE 读取也携带 Controller 身份；端口被另一 Controller 复用时拒绝旧身份读取，观察端须重新发现。显式 `--url` 仍须通过 Project/协议/epoch 握手。
-
-配置优先级为 flag > `PI_SQUAD_*` 环境 > `--config` 文件 > 默认：
-
-| 字段/flag | 默认 | 含义 |
+| name | description | 正文 |
 |---|---|---|
-| `--project-root` | cwd 向上发现 | 发现起点 |
-| `--listen` | `127.0.0.1:0` | 服务监听 |
-| `--db` | Project `.runtime/state.sqlite` | 显式覆盖仅用于隔离验收，仍持 Project 锁 |
-| `--max-parallel-tasks` | 2 | Project 执行 segment 容量，必须为正整数；配置文件/环境值中的小数拒绝，不截断 |
-| `--heartbeat-timeout` | 15s | 超时标 suspect，2 倍超时标 offline；均不释放身份/资源 |
-| `--lease-ttl` | 30s | 执行许可期限，失租即隔离，不自动释放 |
-| `--url` / `PI_SQUAD_CONTROLLER_URL` | discovery | 客户端显式地址 |
+| `summer` | 独立计算数据总和。 | 读取任务指定的数据，提交可核对的结构化求和结果。不要修改文件。 |
+| `reviewer` | 独立核对候选结果。 | 依据候选 Task 的实际目标和精确版本引用独立审查；读取原始数据，不修改候选或文件。 |
 
-需要模型发起 standalone root 时，在 Controller 配置文件显式授权：
+每个角色还必须有 `agents.md`，允许为空。可写入“结果使用结构化 value；文件证据使用 read 返回的 artifact；调用 child 后 yield，续接后再完成”。其它角色目录文件不会作为提示自动加载。
 
-```yaml
-direct:
-  allowed_callers: [operator-agent]
-  allowed_targets: [reviewer-agent]
-  allowed_tools: [read, grep, find, ls]
+`numbers.txt` 的内容为：
+
+```text
+10
+20
+30
 ```
 
-caller/target 默认空；operator 显式命令可以创建只读 standalone Task。子任务继承作用域、预算与工具上限。standalone 每 root 最多 20 个 child（不含 root，包含所有层级后代）、深度最多 3、每 Task 最多 3 个 Attempt；Team 的 max_total_tasks 计整个 Run 的业务 Task。Project 私有 operator 凭据在 `.runtime/operator.token`（0600）；只由显式管理命令读取，不交给模型。停服后下次 `serve --rotate-operator-token` 轮换并留审计。
+### Team
 
-分别从 Project cwd 启动已有 Pi：
+保存为 `.agents/pisquad/teams/stats-team/team.json`：
+
+```json
+{
+  "schema_version": 1,
+  "team_id": "stats-team",
+  "config_version": 1,
+  "leader": { "agent_ref": "stats-lead" },
+  "members": [
+    { "role_ref": "counter", "responsibility": "统计条数" },
+    { "role_ref": "summer", "responsibility": "计算总和" },
+    { "role_ref": "reviewer", "responsibility": "独立验收" }
+  ],
+  "instructions_file": "instructions.md",
+  "default_workflow": "stats",
+  "policy": {
+    "run_admission": "fifo_single_active",
+    "max_parallel_tasks": 2,
+    "max_delegate_depth": 3,
+    "max_total_tasks": 20,
+    "max_attempts_per_task": 3,
+    "allowed_tools": ["read", "grep", "find", "ls"],
+    "writable_roots": [],
+    "acceptance_policy": {
+      "mode": "review",
+      "reviewer_ref": "reviewer",
+      "child_policy": "inherit_parent"
+    }
+  }
+}
+```
+
+同目录的 `instructions.md` 写入：
+
+```text
+数据来自 Project 根的 numbers.txt。count 和 sum 必须来自实际读取。
+reviewer 独立核对 count=3、sum=60；审查使用候选 Task 的当前结果引用。
+Leader 只协调、处理拒绝与返工；全部业务结果验收后才提议完成 Run。
+```
+
+### Workflow
+
+保存为 `.agents/pisquad/teams/stats-team/workflows/stats.json`：
+
+```json
+{
+  "schema_version": 1,
+  "workflow_id": "stats",
+  "steps": [
+    {
+      "id": "count",
+      "role_ref": "counter",
+      "kind": "execute",
+      "goal": "读取 numbers.txt，提交 value={count:实际条数} 及 read 返回的 artifact。",
+      "depends_on": []
+    },
+    {
+      "id": "sum",
+      "role_ref": "summer",
+      "kind": "execute",
+      "goal": "读取 numbers.txt，提交 value={sum:实际总和} 及 read 返回的 artifact。",
+      "depends_on": []
+    },
+    {
+      "id": "review",
+      "role_ref": "reviewer",
+      "kind": "review",
+      "goal": "独立读取 numbers.txt，核对 count、sum 候选结果。提交 decision、reason 和包含精确版本/hash 的 candidates。",
+      "depends_on": [
+        { "step": "count", "condition": "execution_completed" },
+        { "step": "sum", "condition": "execution_completed" }
+      ]
+    }
+  ]
+}
+```
+
+正式运行前可以检查配置，不启动模型：
+
+```bash
+/绝对路径/pi_case/pi_squad/controller/bin/controller doctor \
+  --project-root /绝对路径/你的项目 \
+  --pi-binary /绝对路径/pi-1.1.0/node_modules/.bin/pi
+```
+
+Controller 尚未启动时 `discovery_error` 是预期结果；没有真实 probe 时 `formal_execution_ready=false`。配置加载成功和宿主版本匹配仍不代表正式执行已验收。
+
+## 启动与创建 Run
+
+所有终端都从工作 Project 的 cwd 启动；构建后的二进制和 Extension 可位于另一个目录。
+
+Controller 单独一个终端：
+
+```bash
+/绝对路径/pi_case/pi_squad/controller/bin/controller serve --max-parallel-tasks 4
+```
+
+Leader 和三个不同 Role 分别各开一个 Pi 终端。以下假设已通过 `pi install` 安装 package；若选择显式加载，在每行 `pi` 后追加前文的 `--no-extensions -e ...`：
 
 ```bash
 PI_SQUAD_MODE=leader PI_SQUAD_AGENT_ID=stats-lead PI_SQUAD_TEAM_ID=stats-team pi
@@ -118,63 +211,171 @@ PI_SQUAD_MODE=role PI_SQUAD_AGENT_ID=summer-primary PI_SQUAD_ROLE_ID=summer pi
 PI_SQUAD_MODE=role PI_SQUAD_AGENT_ID=reviewer-primary PI_SQUAD_ROLE_ID=reviewer pi
 ```
 
-未设置 `PI_SQUAD_MODE` 时 no-op，不加工具或 gate。每个角色首个成功绑定的 Agent 为 Primary；其它为 Secondary，可独立工作，不自动晋升。离线不释放身份。系统不代用户启动 Pi、清历史、切会话或执行 `/new`。
+每个 Pi 用 `/squad whoami` 检查 Project、mode、Agent/Role/Team、binding 和 host。Leader 的 Agent ID 必须与 `leader.agent_ref` 一致。模型、provider 和登录使用 Pi 自身配置。
 
-另一个终端运行只读 Go Dashboard：
+另一个终端打开 Go Dashboard：
 
 ```bash
-/绝对路径/controller tui
+/绝对路径/pi_case/pi_squad/controller/bin/controller tui
 ```
 
-Tab 切视图、`/` 筛选、方向键选择/滚动、Enter 详情、`r` 重新发现并刷新、`q` 仅退出观察者。可查看 Team/Role/Agent/Run/Task/Attempt、lease、wait、事件、evidence；epoch/revision/age 和 stale 分开显示。
+在 Leader Pi 创建示例 Run：
 
-## Pi 会话入口
+```text
+/squad run stats-team 统计 numbers.txt 的条数与总和，并独立验收
+/squad status
+/squad dashboard
+```
+
+`run` 使用 Team 的 `default_workflow` 并选中返回的 Run ID；Pi 命令没有 `--workflow` 选项。需要指定其他 Workflow 时，使用 `controller run <team> '<goal>' --workflow <id>` 或空闲 Leader 的 `squad_run_create` 工具，再用 `/squad use-run <run_id>` 选中。
+
+同一个 Role 首个成功绑定的 Agent 为 Primary；后续 Agent 为 Secondary，不自动晋升，也不增加 Team 的执行容量。Controller 不启动 Pi、不清历史、不自动 `/new`。退出 Go Dashboard 的 `q` 只关闭观察者。
+
+## 配置参考
+
+### 启动身份与 Controller 发现
+
+| Pi 环境变量 | 含义 |
+|---|---|
+| `PI_SQUAD_MODE` | `leader` 或 `role`；未设置时 Extension no-op，不添加 Squad 工具与 gate |
+| `PI_SQUAD_AGENT_ID` | 稳定的小写 Agent ID，重新启动仍使用同一逻辑 ID |
+| `PI_SQUAD_TEAM_ID` | Leader 必填，对应 Team 目录 ID |
+| `PI_SQUAD_ROLE_ID` | Role 必填，对应 Role 目录 ID |
+| `PI_SQUAD_CONTROLLER_URL` | 可选显式地址；仍必须与 Project discovery 的身份握手匹配 |
+
+Controller 默认监听 `127.0.0.1:0` 并持有唯一 Project 进程锁，数据库为 `.agents/pisquad/.runtime/state.sqlite`。原子写出的 `.runtime/controller.json` 包含实际 endpoint、Project、协议、Controller ID/epoch；客户端核对 `/health` 后连接，不回退固定端口。显式 URL 也不能跨 Project 或跳过该校验。
+
+Controller 配置优先级：显式 flag > `PI_SQUAD_*` 环境变量 > `--config` 文件 > 默认值。不指定 `--config` 时不搜索文件。
+
+| flag / 配置键 | 环境变量 | 默认值 / 用途 |
+|---|---|---|
+| `--project-root` / `project-root` | `PI_SQUAD_PROJECT_ROOT` | cwd 向上发现的起点 |
+| `--listen` / `listen` | `PI_SQUAD_LISTEN` | `127.0.0.1:0`，服务监听 |
+| `--db` / `db` | `PI_SQUAD_DB` | Project `.runtime/state.sqlite`；显式覆盖用于隔离验收，仍持 Project 锁 |
+| `--max-parallel-tasks` / `max-parallel-tasks` | `PI_SQUAD_MAX_PARALLEL_TASKS` | `2`，Project 同时执行的 segment 上限，必须正整数 |
+| `--heartbeat-timeout` / `heartbeat-timeout` | `PI_SQUAD_HEARTBEAT_TIMEOUT` | `15s`，超时 suspect、两倍超时 offline；均不释放资源 |
+| `--lease-ttl` / `lease-ttl` | `PI_SQUAD_LEASE_TTL` | `30s`，执行许可期限；过期隔离，不视为停止证明 |
+| `--url` / `url` | `PI_SQUAD_CONTROLLER_URL` | discovery，供 CLI/Go TUI 使用 |
+| `--config` | — | 可选 YAML/JSON 配置路径 |
+| `serve --rotate-operator-token` | — | 停服后下次启动显式轮换 operator 凭据并审计 |
+
+需要模型创建 standalone root 时，Controller 配置文件须显式授权 caller 与 target：
+
+```yaml
+direct:
+  allowed_callers: [operator-agent]
+  allowed_targets: [reviewer-agent]
+  allowed_tools: [read, grep, find, ls]
+```
+
+caller/target 默认空，工具默认 `read/grep/find/ls`。显式 operator 命令可创建只读 standalone；模型调用仍受 direct 授权约束。
+
+### Team 与 Workflow 规则
+
+- 配置检查 UTF-8、64 KiB 单文件上限、精确大小写、未知/重复字段、ID 引用、目录和版本。损坏的 Project 标记、越界 symlink 或权限错误会报错，不向上回退另一个 Project。
+- Role 正文在进程启动时固定，修改后需重启 Pi；`/new`、`/reload` 不更换身份。`agents.md` 在新 Attempt 固定，同 Attempt continuation 不刷新。Team instructions/policy/Workflow 在 Run 创建时固定；改内容须增加 `config_version`。
+- `members` 的 `role_ref` 不重复，`responsibility` 非空。`allowed_tools` 与 `writable_roots` 必须显式数组。Team 数量预算计整个 Run 的业务 Task，Attempt 和委派深度另受各自预算约束。
+- Team 必须声明可解析的 `acceptance_policy.mode`，当前为 `review` 或 `checker`。缺失时报告 `ACCEPTANCE_POLICY_MISSING`，不创建业务 Run/Task。
+- `review` 需要 roster 内的独立 `reviewer_ref`；`checker` 需要内置 `checker_ref`。`child_policy` 为 `inherit_parent` 或 `separate`；standalone 默认 human。review 控制 Task 不递归申请 reviewer。
+- Workflow 的 step 必填 `id/role_ref/kind/goal/depends_on`；kind 为 `execute/review/rework/ask`。可选 `refs/expected_output/acceptance/write_set/rework_of`。依赖条件为 `execution_completed/acceptance_accepted/review_rejected`；环、重复依赖和预算超限拒绝。
+- `expected_output` 支持严格 JSON schema 子集：`type/properties/required/items/enum/additionalProperties/minimum/maximum/minItems/maxItems`，未知关键词拒绝。`acceptance` 是验收说明，不能覆写冻结的权限或 policy。
+
+需要写文件时，Team 的 `allowed_tools` 加入 `write/edit`，`writable_roots` 明确允许的 Project 相对根，并给具体 Task 声明 `write_set`。仅在 Team 开启工具不会自动给予任意路径写权限。
+
+standalone root 最多 20 个 child（包含所有层级后代，不含 root）、深度最多 3、每 Task 最多 3 个 Attempt；工具只读。子任务继承父 scope、预算与工具上限。
+
+## Pi 会话命令
+
+除 `/pisquad-use` 与旧别名外，下列入口均以 `/squad` 开头。`/squad help` 显示当前实现的语法。
+
+### 查询、创建与交接
 
 | 命令 | 行为 |
 |---|---|
-| `/squad help`、`whoami`、`agents`、`roles`、`teams` | help 显示各入口参数、管理预览、旧别名及凭据轮换说明；其余为只读身份/投影 |
-| `/squad run <team> <goal>` | 显式创建 Run 并选中 |
-| `/squad use-run <run>` | 显式选 Run，活动 Worker 不能换作用域 |
-| `/squad status [run]`、`task <task>` | 查询，不启动模型 |
-| `/squad call role:<id> -- <goal>` | 当前选定 Run 内 handoff |
-| `/squad call agent:<id> -- <goal>` | standalone，只读；不能绕过活动 Primary ownership |
-| `/squad call role:<id> --write <path> --parent current -- <goal>` | 显式关联 child intent；活动父须 yield 后 child 才派发 |
-| `/squad ask role:<id> <question>` | 受管问答 Task；目标只读/回复当前问题 |
-| `/squad send agent:<id> <text>` | passive notice，不启动模型 |
-| `/squad inbox`、`transport`、`request <request_id> [--runtime]` | 收件、连接诊断、查询未知提交结果 |
-| `/squad dashboard` | Pi 原生只读 Dashboard；`p` 预览精确 CAS 管理动作后显式提交 |
-| `/pisquad-use` | 选 Role 填草稿，不提交；取消保留草稿 |
+| `help`、`whoami` | 帮助；身份、host、disabled_reason、active_tools 和 tool_contracts |
+| `agents`、`roles`、`teams` | Project snapshot 查询，不启动模型 |
+| `run <team_id> <goal>` | 显式创建并选中 Run |
+| `use-run <run_id>` | 显式选择非终态 Run；当前有正式 Attempt 时拒绝切换 |
+| `status [run_id]`、`task <task_id>` | snapshot 或指定 Run/Task 查询 |
+| `call role:<id> -- <goal>` | 当前 Run 内 handoff |
+| `call agent:<id> -- <goal>` | 只读 standalone；活动来源 scope 与目标 Role ownership 仍检查 |
+| `call role:<id> --write <path> --parent current -- <goal>` | 当前正式任务的 child intent，父 yield 后才能派发 |
+| `ask role:<id> -- <question>`、`ask agent:<id> -- <question>` | 受管 ask Task；目标仅取得当前问题的查询/回复工具 |
+| `send agent:<id> <text>` | passive notice，不启动模型 |
+| `inbox`、`transport` | 收件；连接与本地 execution_gate 诊断 |
+| `request <request_id> [--runtime]` | 查询 operator 或当前 runtime 的提交结果 |
+| `dashboard` | Pi 原生观察面板；角色/Leader 管理须进入预览并显式提交 |
+| `/pisquad-use` | 选当前 Run Role 填草稿，不提交；取消保留草稿 |
 
-保留 alias `/squad-whoami`、`/squad-inbox`、`/squad-transport`。参数补全来自带版本及观察时间的缓存；presence 随时间变化时刷新展示，同 revision 的旧响应不能覆盖较新的观察结果；提交仍由 Controller 重新裁决。
+保留 `/squad-whoami`、`/squad-inbox`、`/squad-transport` 三个别名，参数校验与对应子命令一致。只读命令拒绝多余参数；带引号的参数必须闭合。call/ask 可不带 `--` 直接写正文；有选项时选项必须在 `--` 前，未知、重复或缺值选项拒绝。Pi call 的 `--write` 只接受一个路径；CLI 的 `--write` 可重复。
 
-行首 `@Role`、call/ask 的 Role 参数补全与 `/pisquad-use` 共用当前 Run 的角色投影，包含 Primary、presence/activity、owner 和 revision；不把 Project 内其它 Role 当作当前 Team 成员。Picker 无同名文件歧义时填 `@Role`，有同名文件时填 `@role:Role`；取消或打开期间草稿发生变化时不覆盖编辑器。补全正常与失败回退路径均隔离旧 Run/session generation 的迟到响应。角色变更和 Run 终结仍在提交时由 Controller 检查。`role release/promote`、`leader release` 参数补全使用查询快照中的明确身份。
+行首 `@role:counter 统计数据` 或无文件歧义的 `@counter 统计数据` 路由当前 Run，Role 与正文之间也可换行。`@./file`、`@src/file` 保留 Pi 文件语义；同名文件用 `@role:<id>` 消歧。正文/email/代码块中的 @ 不路由。空任务、多目标、图片/附件拒绝；已识别 handoff 失败不会回落为本地模型任务。
 
-Pi Dashboard 断线后会以只读方式重新校验 discovery 并刷新快照；旧连接响应和较低 revision 不覆盖新状态，恢复观察不会恢复执行。活动 Team/Task 的 Pi 显式 call/ask 同样受来源 scope 约束，不能借 operator 凭据绕到 standalone；独立 operator CLI 不附带虚构 Pi 来源。
+补全与 Picker 使用当前 Run roster，显示 Primary、presence/activity、owner 和观察版本。Picker 打开期间草稿变化时不覆盖编辑器。快照只是观察，提交仍由 Controller 检查当前 scope、ownership 和 revision。
 
-行首 `@role:counter 统计数据` 或无文件歧义的 `@counter 统计数据` 路由当前 Run；`@./file`、`@src/file` 保留 Pi 文件语义。空任务、多目标、图片/附件拒绝；正文/email/代码块里的 @ 不路由。已识别 handoff 失败不落成本地模型任务，错误保留请求 ID；结果不明先查询，不盲目重提。
+### 用户输入与人工介入
 
-活动 Leader 的普通输入保存为当前 Run guidance，安全 settled 后进入下一协调轮。活动 Worker 普通输入、显式 takeover、实际 session/branch 更换、用户 `!bash`、实际中止正式 segment 的 manual compaction 中断当前执行并传播至等待祖先；已 suspended 且无活动 segment 时的纯上下文压缩保留快照。只读操作、selector 取消和自动 compaction 不构成接管。原生切换等待当前回合停止时，扩展延后成功收尾确认，让实际 session shutdown 先持久化中断，避免旧结果在切换过程中抢先完成。
+活动 Leader 的普通输入持久化为 Run guidance，安全 settled 后进入下一协调轮。活动 Worker 的普通输入、`/squad takeover`、实际 session/branch 更换、用户 `!bash`，以及确实中止正式 segment 的 manual compaction，会中断执行并向等待祖先传播。
 
-手动压缩的中断标记只关联实际被 abort 的 Task 执行轮。suspended 父任务上成功或失败的 `/compact` 维护不会污染随后同 Attempt 的 continuation；“Nothing to compact”也不会把下一轮误标为 `manual_compaction`。
+只读查询、Dashboard、selector 取消和自动 compaction 不构成接管。已 suspended 且无活动 segment 时的纯上下文压缩保留快照；“Nothing to compact”不会污染下一 continuation。原生切换或手动压缩已发起 abort 后，扩展仍等待真实 idle 且无 pending 的停止证明，不把旧结果抢先判为完成。
 
-Controller 重启后，已经受理但尚无 Attempt 的 standalone Task 也会进入 `needs_review`，不会因目标重新在线就自动派发。确认其未注入后，操作者用 `/squad rebind task:<id> --rebind-current` 显式授权当前绑定；已存在 Attempt 的恢复仍须先对账，再用 retry，不以 rebind 绕过未知执行。
+## 模型工具与协作流程
 
-原生手动压缩已先等待 Pi abort；扩展在 `session_before_compact` 或 `session_compact_failed` 中 fence 仍活动的正式片段，不再等待下一轮 settled，也不再次 abort 用户的压缩。终止工具在 abort 后报告 `completed` 不能消除这次明确的用户中断。后续轮询不会再次 abort 原生手动压缩的摘要；停止证明仍等待实际 idle 且无 pending。
+工具由扩展注册，实际可用集合随片段变化；模型不能调用 operator 恢复、换人或跨 Team 管理接口。
 
-首次启动在发起注册前发现 Controller 不可用或握手不匹配时，给出一次错误并退回普通 Pi 工具与对话；修复连接后 `/reload` 重新尝试。已有绑定、未完成执行或注册请求结果不明时仍保留隔离，不据此自动退出。
+| 场景 | 工具 / 用法 |
+|---|---|
+| 普通 Worker 执行 | 配置允许的文件工具，以及 `agent_invoke/agent_task_get/agent_task_complete/agent_task_yield/agent_clarify` |
+| clarification 的 response-only | 仅 `agent_task_get/agent_clarification_answer` |
+| 正式 ask | 仅 `get_message/reply_message`，message_id 必须是当前 ask Task ID |
+| 空闲 Leader | `squad_run_create` 创建自己的 Team Run，`agent_task_get` 查询 |
+| Leader 协调轮 | `squad_run_get/agent_task_get/squad_decide`；decision 为 `dispatch/wait/complete` |
+| 普通 Role 的身份与通信 | `list_agents/get_agent/read_inbox/get_message/send_message/reply_message`，仍按来源与目标权限检查 |
 
-远端对账释放 suspended Attempt 后，adapter 在下一次轮询核对旧 reservation；本地 idle 且无 pending 时清除旧引用，后续派发无需依赖 reload。本地仍忙时保留正式执行门，等待结束，不因旧 reservation 已释放而中断新的普通用户轮次。
+`agent_invoke.target` 使用裸 ID：Team child 填 `role_id`，standalone 填已授权 `agent_id`；`role:`/`agent:` 前缀仅用于命令。invoke 异步返回 Task ID，不等待模型结果。正常父子流程为：创建 child → `agent_task_yield` 结束当前片段 → Controller 等真实 settled 并运行 child → 同 Attempt 的新 segment 续接父 → 查询结果并完成父。
 
-同一 Team 的重复 Leader 进程注册被拒后退出 Squad Leader 模式，恢复普通 Pi 工具与对话；原 Leader 不变。`/squad whoami` 的 `disabled_reason/active_tools` 可核对退出状态；解决身份冲突后重新启动或 reload 才重新尝试注册。
+子任务需要澄清时调用 `agent_clarify({question})` 并结束片段；父仅在 response-only 片段通过 `agent_clarification_answer({answer})` 回答，不能借此继续业务工作。
 
-## 取消、恢复与验收
+Worker 用 `agent_task_complete` 提议结构化 `value`，可带 `artifacts` 与精确 `refs`。review 的 value 必须包含 `decision`（`accepted/rejected`）、非空 `reason` 和 `candidates` 数组；每个 candidate 带 `task_id/result_revision/hash`，并是该 review 的 `execution_completed` 依赖。候选和 reviewer 必须独立，换会话不能规避同 Agent 自审检查。
 
-管理命令使用独立 operator 凭据和当前 revision。cancel/recover/retry/rebind/accept/reject/resume/reconcile、role 和 leader 操作支持 `--preview`，仅展示不写入；amend 后为完整补充正文，不解析预览选项。
+Leader 决策前通过 `squad_run_get` 读取一次新 snapshot 中的 Run revision、任务状态/结果/验收和 blocker。顶层 `revision` 用于 `squad_decide.expected_revision`；`snapshot_revision` 仅用于观察排序。不能刷新 revision 后继续用旧 briefing 作决定。`complete` 是意图，仍须 Leader 自身 settled 和最终 Gate 通过；期间 guidance 等推进版本后需重新提议。
 
-显式管理提交被 CAS 或业务校验拒绝时，也保留包含 request_id、目标、原因和错误码的拒绝审计；不改变业务对象、revision 或已接受请求记录。`/squad request <request_id>` 可查到 `status=rejected` 和错误码。`--runtime` 查询不能读取 operator 的管理审计。
+状态修改工具为 `model-only`、`sequential`，拒绝嵌套控制调用。成功的 completion/yield/clarify/answer/decision 与正式 ask reply 返回 `terminate: true`；错误、invoke、Run create、notice 与被动 reply 不终止。混合工具批次仍按 Pi 的“全部最终结果均 terminate”规则结束，Controller 不以该标记代替真实 settled。
+
+`send_message(kind=notice)` 与普通 reply 只展示消息；`kind=ask` 创建统一 Task/Attempt，当前有任务时应改用当前 scope 的 `agent_invoke`。消息发送固定精确 runtime/session 和 request_id，不猜联系人；离线失败记录不自动补投，绑定变化使旧待处理消息失效。
+
+## 执行许可、结果与验收
+
+Controller 是唯一 SQLite 写入者；Extension 通过派发许可执行当前片段。Run 准入原子占用整个 roster；同 Team FIFO 单活跃，相交 Team 整体排队且不占部分 Role，不相交 Team 可在 Project 容量内并行。Run 终止且 cleanup 完成后整体释放。
+
+Project 和 Team 的 max_parallel_tasks 同时约束执行；LeaderStep 和 clarification 片段也使用同一容量，每个 Agent 串行执行。yield 释放执行容量供 child 使用，不释放父的会话 affinity 与写 reservation。
+
+活动 Run 占用的 Role，其 Primary 与 Secondary 都拒绝外部 standalone、ask、peer invoke 与 direct，返回 `ROLE_BUSY` 及占用 Team/Run。Secondary 不可绕过 ownership。整体排队 Run 可保存自己 roster 的 handoff，但准入前不产生 Attempt。
+
+正式许可要求完整 binding/session、Controller epoch、Attempt、segment、fencing token 匹配，且 lease 有效。只有 running/result_proposed、未 released 的片段可执行工具；suspended 保留 affinity 与写 reservation，释放执行容量，但没有工具执行许可。适配器每秒检查，许可剩余少于 20 秒时续约；默认 TTL=30s 时通常约 10 秒续约，迟到心跳不能复活过期 lease。
+
+受管文件工具为 `read/grep/find/ls/write/edit`，沿用 Pi 原生输出截断；Squad 查询/控制工具也截断展示，结构状态保留在 details。正式工具不能访问 Project 控制目录、根 `AGENTS.md`、`.git` 或嵌套 Project。write/edit 使用 Pi 原生文件 mutation queue，在真正操作前再次检查发起时的 Attempt/segment/binding/generation、允许根和 write_set；已开始的文件系统操作不承诺回滚。
+
+read 返回实际读取字节的 `{path,sha256,length}` artifact，可以直接放入 completion 的 artifacts；无需 shell 计算 hash。提交和验收时再次核对长度与 hash，文件变化会使证据失效。Task refs 的 revision/hash 必须成对，重复引用拒绝；未固定版本的请求引用只能使用 revision=0、空 hash 和 length=0，由派发固定。
+
+结果状态依次区分 **result_proposed → completed → acceptance accepted/rejected**。completed 需要匹配的成功收尾、idle/no pending、schema、refs 与产物校验；不能据此宣称业务验收。父验收覆盖仅对当前版本且无 blocker 的 completed 父子成立；amend、retry、cancel、interrupt 或引用变化会撤销过期覆盖。返工链也须当前替代结果有效并通过验收。
+
+当前 Team checker 只有 `numbers-count/numbers-sum/numbers-stats`，核对实际文件字节、hash/长度与 count/sum，拒绝非有限数和合计溢出。一般项目用 review；standalone human 由操作者显式 accept/reject。
+
+## 取消、对账与恢复
+
+管理命令读取本地 `.runtime/operator.token`（0600），使用当前 revision 做 CAS；模型工具没有该管理授权。除 amend 外，以下 Pi 管理命令支持 `--preview`，只显示请求不提交；去掉该选项才正式提交。amend 后全部内容都是正文，正文中的 `--preview` 不会取消提交。
+
+| Pi 命令对象 | 支持的操作 |
+|---|---|
+| Run | cancel、resume |
+| Task | cancel、amend、recover、retry、rebind、accept、reject |
+| Attempt | reconcile |
+| Role | release、promote |
+| Team Leader | release |
 
 ```text
-/squad cancel run:<id> --note <reason>
+/squad cancel run:<id> --note <reason> --preview
 /squad cancel task:<id> --note <reason>
 /squad amend task:<id> <补充要求>
 /squad takeover
@@ -186,115 +387,126 @@ Controller 重启后，已经受理但尚无 Attempt 的 standalone Task 也会�
 /squad resume run:<id> --rebind-current --note <reason>
 /squad accept task:<id> --note <验收依据>
 /squad reject task:<id> --note <拒绝依据>
-/squad role release <role> --note <reason>
-/squad role promote <role> <secondary-agent> --note <reason>
-/squad leader release <team> --note <reason>
+/squad role release <role_id> --note <reason>
+/squad role promote <role_id> <secondary_agent_id> --note <reason>
+/squad leader release <team_id> --note <reason>
 ```
 
-`reconcile` 是人工停止声明，不能把超时当自动证明。recover 只挂接已有证据，不执行模型。retry 创建带 retry_of 的新 Attempt，保留历史且受重试预算约束。rebind 仅用于从未有 Attempt 的 Task。resume 仍检查所有隔离和未完成 cleanup；不自动替换 Leader。role release 不解除 Run ownership、不自动提升 Secondary。human accept/reject 仅适用于固定 human policy，不能改写 checker/reviewer 策略。
+### 选择恢复动作
 
-HTTP 操作者可使用 `POST /v2/tasks/{id}/acceptance`，提交 `request_id`、`expected_revision`、`decision`（`accepted/rejected`）、当前 `result_hash`、`note` 和可选 `evidence`。此入口与 `/accept`、`/reject` 共用鉴权、CAS、幂等和审计事务；只允许 operator 验收当前 completed 的 human-policy 结果。`controller schema` 中的 `acceptance` 导出该请求结构。
+| 所见状态 / 意图 | 操作与边界 |
+|---|---|
+| 请求超时或提交结果不明 | 用原 request_id 查询事实；不要重新创建或盲目重放注入 |
+| 旧 Attempt 的执行是否停止不明 | 先核对原 runtime 与相关子进程；`reconcile` 人工确认停止，超时/offline/lease 过期不算证明 |
+| 已保存候选结果，想保留这次执行 | cleanup 完成后 `recover` 挂接本 Task 的 `attempt:<id>` 或 `evidence:<seq>`，不运行模型；不接受任意文件路径作为该引用 |
+| 需要重新执行，已有 Attempt | `retry --rebind-current` 新建带 retry_of 的 Attempt，保留历史并检查预算 |
+| 已 accepted、有冻结目标、无任何 Attempt 的非终态 Task | `rebind --rebind-current` 显式授权当前绑定；planned 或已有 Attempt 的任务不能用它绕过调度/恢复 |
+| Run 的恢复 hold 已处理 | 所有未确认执行和未解决 Task 清理后 `resume`；终态 Run 不能恢复 |
+| 需要更换 Leader | 先显式 release 原 Leader，注册当前 Leader；resume 还须 `--expected-runtime <旧UUID> --rebind-current` 承认旧绑定变化 |
+| human-policy completed 结果待验收 | 核对当前结果后 accept/reject；不能覆盖固定 checker/reviewer policy |
 
-Run 准入原子取得整个 roster；相交 Run 按 queue_seq FIFO，不相交可并行。Run 终止且所有执行 cleanup 后整体释放。Task result_proposed 不是 completed，completed 不是 accepted；结果必须经过 settled/no pending、schema/refs/产物校验，再按固定 policy 验收。
+Controller 重启后，未释放的执行保持隔离；已受理但尚无 Attempt 的 standalone Task 也进入 needs_review，目标上线不自动派发。Role release 不解除 Run ownership，也不自动提升 Secondary。runtime release 只撤销 UUID，不终止进程。
 
-显式取消的过期 Task 不再单独阻挡最终 Gate；仍被当前任务依赖或引用时，必须先修订相关任务。取消不会绕过执行停止证明，任何未释放的旧 Attempt 仍阻止 Run 完成。Leader 的 complete 提议还需等待自身 settled；期间 guidance 等变更推进 Run revision 后，必须重新提议。
+取消 child 会向等待祖先传播 cancel_requested。取消不等于停止，旧 Attempt cleanup 未释放仍阻止 Run 完成。未被依赖或引用的已取消过期 Task 不单独阻挡最终 Gate；仍被引用时先修订依赖。迟到 poll、注入 ACK 或收尾回调不能推进新会话/片段。
 
-CLI 等价入口：
+### CLI 与 HTTP 管理
+
+以下 `controller` 指构建后的绝对路径，在 Project cwd 使用：
 
 ```bash
 controller snapshot
 controller agents list
-controller agents get <agent>
-controller run <team> '<goal>' --request-id <key> [--workflow <id>]
-controller task role:<role> '<goal>' --run <run> [--write <path>] [--preview]
-controller task agent:<agent> '<goal>' --request-id <key>
-controller operate task <id> retry --expected-revision <n> --rebind-current --note '<reason>' --preview
-controller agents release <agent> --expected-runtime-id <UUID> --expected-revision <binding_epoch> --note '<reason>'
+controller agents get counter-primary
+controller run stats-team '统计 numbers.txt' --request-id <key> --workflow stats
+controller task role:counter '统计条数' --run <run_id> --preview
+controller task agent:reviewer-primary '只读核对文件' --request-id <key>
+controller task role:summer '计算总和' --parent <task_id> --expected-revision <n> --preview
+controller operate task <id> retry --expected-revision <n> --rebind-current --note '重新执行原因' --preview
+controller agents release <agent_id> --expected-runtime-id <UUID> --expected-revision <binding_epoch> --note '释放原因' --preview
 ```
 
-`operate` 的 kind 为 run/task/attempt/role/leader/agent，参数有 `--request-id/--expected-runtime/--agent-id/--note/--evidence/--result-hash/--confirm-stopped/--rebind-current`；移除 `--preview` 才提交。runtime release 撤销 UUID，不等于终止进程。
+`task` 支持 `--request-id/--run/--parent/--expected-revision/--kind/--write/--preview`；`--write` 可重复，关联 parent 必须给其 revision。`operate <kind> <id> <operation>` 的 kind 为 run/task/attempt/role/leader/agent，必须给 `--expected-revision`，其他参数按操作使用 `--request-id/--expected-runtime/--agent-id/--note/--evidence/--result-hash/--confirm-stopped/--rebind-current/--preview`。CLI 验收须明确当前 `--result-hash`；Pi 命令从当前结果读取该值。
 
-## 模型工具、收据与观察
+CLI 的 Run 操作还支持 `guidance --note '<补充指导>'`，Agent 操作支持 release；Pi 活动 Leader 的普通输入已经走 guidance，不提供同名 `/squad guidance` 子命令。
 
-`agent_invoke.target` 使用裸 ID：Team child 填 role_id，standalone 填已授权 agent_id；`role:`/`agent:` 是 CLI/Pi 命令语法，不是该工具参数。
+HTTP human acceptance 可使用 `POST /v2/tasks/{id}/acceptance`，包含 `request_id/expected_revision/decision/result_hash/note` 和可选 evidence，decision 为 accepted/rejected。与 `/accept`、`/reject` 共用鉴权、CAS、幂等与审计；请求结构由 `controller schema` 导出，详见 [HTTP 契约](protocol/README.md)。
 
-Worker 工具：`agent_invoke`、`agent_task_get`、`agent_task_complete`、`agent_task_yield`、`agent_clarify`。response-only 仅 `agent_task_get/agent_clarification_answer`。Leader 空闲时 `squad_run_create`；协调轮 `squad_run_get/squad_decide/agent_task_get`。模型无法调用恢复/换人/跨 Team 管理接口。 `squad_run_get` 从一次新 snapshot 同时返回 Run revision、任务状态/结果/acceptance、依赖和 blocker；顶层 `revision` 用于 `squad_decide` CAS，`snapshot_revision` 仅用于观察排序。不要仅刷新 revision 后沿用旧 briefing 的任务状态。
+管理 CAS 或业务校验拒绝仍记录 request_id、目标、原因与错误码，不推进业务 revision。`/squad request <id>` 可见 rejected；`--runtime` 不能读取 operator 审计。operator 请求和 runtime 请求按各自认证来源查询。
 
-保留 `list_agents/get_agent/read_inbox/get_message/send_message/reply_message`。notice/reply 仅记录展示；ask 使用统一 Task/Attempt/容量执行，reply_message 的结果要等对应 settled 才发布。普通发送需目标精确 runtime/session 及 request_id；不猜最近联系人。离线消息保留失败记录且不自动补投，身份变化使旧待处理消息失效。
+## 观察、诊断与请求证据
 
-持久收据依次为 dispatch_intent、adapter_received、injection_requested、input_observed、result_proposed、settled。void 输入 API 不是执行成功证明；不明注入不自动重放。SSE `/v2/events` 是可丢失的持久事件唤醒提示，客户端重新读取权威投影；断线轮询补查，不自动重发写请求。
+Pi 1.1.0 的 `agent_settled.aborted=true` 按取消处理，优先于缓存的 completed outcome。运行 probe 的成功生命周期必须包含明确的 `aborted=false`，旧 profile 或缺少取消标记的报告不能证明当前宿主就绪。
 
-模型材料不能读取/改写 Project 控制目录、根 AGENTS.md、.git 或跨嵌套 Project；正式 read 返回实际读取字节的 artifact path/hash/length，模型可直接把该引用放入结果，不需要开放 shell 来计算 hash；产物后来变化则提交/验收失败。实际 write/edit 通过 Pi 文件 mutation queue 并在操作时重新核对 permit/path。runtime/operator token 不进入 Task、提示、whoami 或事件。
+### Dashboard 与连接
 
-## 诊断与验收证据
+Go `controller tui` 是只读观察者。Tab 切视图、`/` 筛选、方向键选择/滚动、Enter 详情、`r` 重新发现并刷新、`q` 退出。Pi `/squad dashboard` 也支持 j/k、Escape 与 Backspace，使用 Pi 原生按键解析；roles 视图的 `p` 可预览 promote/release，leaders 视图可预览 release，输入原因后仍须选择“显式提交”。预览后本地会话或 Controller 变化则重新预览；服务端仍做精确 CAS。
+
+面板显示 Team/Role/Agent/Run/Task/Attempt、lease/wait/blocker/evidence，以及 epoch/revision/age/stale。Team 详情汇总当前 Leader、Primary/Secondary/owner、活跃与排队 Run；Run 的 current_roster 是当前观察，原 leader/config_snapshot 是冻结快照。next_step 是说明，不代替操作权限。未注册 Primary 的 Role 显示 unassigned，也可能仍有 ownership。
+
+SSE `/v2/events` 是可丢失的投影失效提示；断线、gap、epoch/Controller 变化后重新发现并读取 snapshot，再继续观察。旧响应与较低 revision 不能覆盖新状态。恢复观察不恢复执行、不自动重发写请求。`/squad transport` 显示脱敏的 gate frozen/generation/Attempt/segment/cleanup_state，可区分连接故障与执行对账。
+
+### doctor 与真实 probe
 
 ```bash
-controller doctor --pi-binary /绝对路径/pi-1.0.1/node_modules/.bin/pi
-controller doctor --pi-binary /绝对路径/pi-1.0.1/node_modules/.bin/pi --probe-file <真实Pi保存的脱敏报告>
+controller doctor --pi-binary /绝对路径/pi-1.1.0/node_modules/.bin/pi
+controller doctor --pi-binary /绝对路径/pi-1.1.0/node_modules/.bin/pi --probe-file <脱敏报告路径>
 controller schema
 ```
 
-doctor 不启动模型；实际版本/profile 检查、可选声明诊断与真实运行观察分开。不传 `--pi-binary` 时检查 PATH 上的 `pi`。没有 probe 时 `formal_execution_ready=false`；安装来源 commit 缺失显示 `unknown`。schema 1 报告仅用于旧版诊断；schema 2 校验版本/profile、TUI 模式及所选 Pi 入口路径/哈希。不匹配报告明确拒绝。带 probe 只说明该宿主的核心事件链已观察，不能替代完整场景验收。协议说明见 [protocol/README.md](protocol/README.md)。
+doctor 不启动模型。不指定 `--pi-binary` 时检查 PATH 上的 pi；报告包含实际版本、profile、入口路径/hash、可选声明诊断和 CLI 配置的 configured_timing。服务实际 timing 来自在线 snapshot；suspect_at/offline_at 与 lease_expires_at 分开显示。来源 commit 缺失显示 unknown。
 
-兼容探针必须**最后加载**，启动时关闭自动发现，避免其后还有请求修改扩展：
+没有真实 probe 时 `formal_execution_ready=false`。声明文件缺失不单独判不支持；schema 1 只作旧版诊断。schema 2 核对报告的版本/profile/TUI/所选安装入口与 hash，再检查同一有序核心事件链。静态声明、历史文本里的 Task ID、单独 terminate 标记都不构成执行证据。
+
+需要采集时，兼容 probe **最后加载**，关闭自动发现以固定顺序：
 
 ```bash
-PI_SQUAD_MODE=role PI_SQUAD_AGENT_ID=counter PI_SQUAD_ROLE_ID=counter \
-  /绝对路径/pi-1.0.1/node_modules/.bin/pi --no-extensions \
-  -e /绝对路径/pi_squad/extension/index.ts \
-  -e /绝对路径/pi_squad_case/04-team-orchestration/compatibility/pi-probe.ts
+PI_SQUAD_MODE=role PI_SQUAD_AGENT_ID=counter-primary PI_SQUAD_ROLE_ID=counter \
+  /绝对路径/pi-1.1.0/node_modules/.bin/pi --no-extensions \
+  -e /绝对路径/pi_case/pi_squad/extension/index.ts \
+  -e /绝对路径/pi_case/pi_squad_case/04-team-orchestration/compatibility/pi-probe.ts
 ```
 
-Extension 用官方工具定义注册受管 `read/write/edit/grep/find/ls`；Controller 固定到 Attempt 的 `context.allowed_tools` 才是正式片段的工具许可，Extension 在注入前验证这份完整许可。不要用仅包含文件工具的 `--tools` 白名单启动，它也会排除 Squad 控制工具；缺项会停止注入。`/squad whoami` 的 `tool_contracts` 可核对注册名称及 exposure。
+完成真实正式任务后在 TUI 执行 `/squad-probe-save`，报告位于当前 Project `.agents/pisquad/.runtime/integration-probes/<session_id>.json`。生产 hook 标为 squad_hook，末位 observer 标为 last_observer；加载顺序与报告一起核对。生产入口不加载故障注入实现。
 
-在 TUI 运行 `/squad-probe-save`，保存到当前 Project `.agents/pisquad/.runtime/integration-probes/<session_id>.json`。生产 hook 的记录标为 `squad_hook`，不会宣称它是末位请求；验收 probe 标为 `last_observer`，加载顺序须与启动命令一起复核。canonical 和有效请求记录当前 task/attempt/segment、section 哈希及工具名称；未知格式、缺失当前 section、工具集合不匹配均不能证明就绪。不保存原始 prompt、request 或 headers。
+核心判断要求：extension input → 当前任务 sections/tools → 匹配的 canonical 上下文 → 同 request_seq 的末位有效 provider system/tools → completed agent_before_settle → idle 且无 pending 的 agent_settled。Task/Attempt/segment、role/working/config/section hash 与工具集合须一致。ordered_core_lifecycles 保留首尾 seq 供复核；未知请求格式或缺失当前 section 不会判就绪。
 
-Pi 1.0.1 的可复用观察入口、故障窗口及实际覆盖限制见 [兼容说明](../pi_squad_case/04-team-orchestration/compatibility/README.md)。原阶段 04 的集成构建与 fake clock 仍见 [集成说明](../pi_squad_case/04-team-orchestration/integration/README.md)。生产入口不加载故障实现。报告仅存结构、版本、ID、hash、工具集合、事件顺序，不存凭据或完整 provider payload。
+报告只保存结构、版本、ID、hash、工具名称与事件顺序，不保存原始 prompt/request/headers 或凭据。就绪证明仅针对已观察到的宿主核心链，不替代业务验收或所有 provider 场景验收。
 
-### 截止时间与恢复诊断
+## 从旧目录迁移
 
-planned 节点尚未进入 Agent 队列，`deadline_at` 在 planned→accepted 时冻结为受理后 120 秒；未受理节点不因等待前置依赖或 Run 准入消耗这一预算。已受理队列、运行及续接仍遵守冻结的截止时间，超时进入显式恢复流程，不等于执行已停止。
+不会自动加载或移动 `.agents/roles/`。在旧 Project 根显式运行：
 
-`/squad transport` 同时显示脱敏的本地 execution_gate（frozen、generation、Attempt/segment、cleanup_state），用于区分通信失败和等待执行对账；消息恢复会清除旧错误状态。
+```bash
+controller migrate --dry-run --source-db /绝对路径/旧库.sqlite
+controller migrate --dry-run=false \
+  --source-db /绝对路径/旧库.sqlite --mapping /绝对路径/mapping.json \
+  --confirm-old-writer-stopped
+```
 
-`doctor.configured_timing` 显示本次 CLI 配置的心跳/lease 参数；在线 snapshot 的 `timing` 为服务实际配置。Agent 投影的 `suspect_at/offline_at` 与 Attempt 的 `lease_expires_at` 分开显示。适配器每秒检查，许可剩余少于 20 秒时申请续约；默认 TTL=30s 时通常约每 10 秒续约，迟到心跳不复活过期 lease。
+无旧库时省略 `--source-db`。mapping 是完整 TeamSnapshot JSON 数组，每项包含 config/instructions/workflows；`[]` 明确表示仅 standalone，不推断 roster。执行前停止旧写入者。迁移检查冲突、复制 staging、严格加载、做 SQLite 一致备份并核验，再原子发布；保留旧角色和旧库，不覆盖已有 Project。备份与 manifest 位于新 `.runtime/`。
 
-runtime 请求绑定到发起时的完整 binding（含 session/epoch），旧会话回调不能借同一进程凭据变成新会话请求。升级到要求源 binding 的 Controller 前，应在安全空闲窗口 reload Pi 扩展；正式状态不明时仍先走恢复/对账，不能靠重载重派。
+## 当前限制与排错
 
-Role 投影包含配置中尚未注册 Primary 的角色，以及仍有绑定或 ownership 历史的角色。`primary_agent_id` 为空显示 unassigned，不等于没有 Run ownership；发现角色不会预先创建 Primary 绑定。Go/Pi Dashboard 的 Team 列表显示 Team ID，Controller epoch 改变时清除旧选择。
+当前实现适用于可在固定预算内完成的短任务。下面是实际边界，不是已开放的配置选项：
 
-旧会话或旧 generation 的 poll、消息回执、排队生命周期事件和注入 ACK 回调不会继续更新新会话。adapter 上报停止前会重新核对原会话/segment、idle 与无 pending；迟到响应不作为新任务的停止证明。
+- **120 秒硬截止**：planned 节点在 accepted 时冻结 deadline_at；未受理节点不因等依赖或 Run 准入消耗预算。已受理后的队列、执行、yield/续接共用该截止，当前不可配置；超时会中断，不证明执行已停止。
+- **child 必须 yield**：创建未完成 child 后直接完成父可能留下 parent_yield blocker。按正常 invoke→yield→continuation 流程工作；出现孤儿任务须显式取消和对账。
+- **验收器范围**：内置 checker 只支持数字 count/sum/stats，一般项目配置 review；未提供自定义 checker 注册入口。
+- **本地权限边界**：正式片段受 gate 限制；空闲 Role 使用普通 Pi 工具时 shell 不属于该 gate 的文件访问隔离。不要把 operator token 的“未进入提示/事件”理解为同 OS 用户或任意 shell 无法读取它。
+- **历史与长期运行**：不会自动隔离或清空 Pi 历史，也没有任务历史归档入口；长 Leader 会话和长期积累的数据需要操作者关注。Herdr pane 自动定位与进程代启动未在此版本提供。
 
-取消 child 会向等待祖先持久传播 `cancel_requested`，不会把取消当成功；取消只清该 Task 自身的 wait。重复收尾不重复发出 Role 释放事件。`rebind` 仅接受已有冻结目标、从未产生 Attempt 的非终态 accepted Task，planned 节点仍由依赖就绪流程受理；否则返回 `INVALID_REBIND_STATE`。rebind/retry 与 Run resume 的审计保留完整旧、新 binding。
+| 现象 / 错误 | 处理 |
+|---|---|
+| 没有 Squad 命令 | 核对加载入口、PI_SQUAD_MODE 和 Project/Role 配置；未设 mode 是 no-op |
+| SQUAD_HOST_UNSUPPORTED / SQUAD_MODE_UNSUPPORTED | 使用实际 Pi 1.1.0 TUI；用 whoami.host 或 doctor 核对，源码版本不能代替 |
+| 首次发现/握手失败 | 注册前失败会恢复普通 Pi；修复连接后 reload。绑定已存在或注册结果不明时仍保持隔离，先查事实 |
+| 重复 Leader 注册 | 被拒进程恢复普通 Pi，whoami 显示 disabled_reason/active_tools；解决身份冲突后重启或 reload |
+| ROLE_BUSY / waiting_roles | 看实际占用 Team/Run；释放方式为取消占用 Run 并等待 cleanup，offline 不释放 ownership |
+| TASK_TOOL_UNAVAILABLE / exposure 或 active 集合不符 | 核对完整注册工具及 whoami.tool_contracts；移除排除 Squad 工具的白名单，缺能力不强行注入 |
+| RESULT_VERSION_CONFLICT / artifact 变化 | 查询当前结果、引用与文件；更新任务或返工，不对旧版本强行验收 |
+| EXECUTION_UNCONFIRMED / needs_review | 核对旧 Attempt 的停止/副作用，选择 reconcile 后 recover/retry；不要靠 reload 重派 |
+| STORAGE_UNAVAILABLE（HTTP 503） | 修复 SQLite 空间、I/O、只读等问题，用原 request_id 查提交事实，再由操作者显式同键重试；失败响应不代表已接受 |
 
-父验收覆盖要求父子均为当前版本的 completed、无 blocker，且父 acceptance 匹配当前 goal/result；中断、补充、重试或取消使覆盖失效时同事务记录事件。最终 Gate 校验整条返工替代链，历史 `superseded_by` 不免除已失效替代结果的验收义务。内置数字 checker 核对实际读取字节的 hash/长度，并拒绝 NaN、Infinity 和合计溢出。
+首次激活的能力拒绝、已绑定执行的隔离、恢复操作与版本化验收是不同状态；遇到错误先查看 whoami、transport、Task/Attempt 和 request_id，不用“重新启动”替代对账。
 
-`@role` 与任务正文之间可以直接换行；`@role:` 的非法 ID 会明确拒绝。已识别但不在当前 roster 的角色不会回落本地模型。普通文件引用不因 Run 已结束而变成交接错误。call/ask 的选项须在 `--` 之前，未知、重复和缺值选项拒绝；管理命令同样检查未知选项，避免把拼错的预览参数当正式提交。异步 handoff/use-run 返回后再次检查原会话与 generation。
-
-受管文件工具每次调用固定发起时的 Attempt/segment/binding/generation，仍使用 Pi 原生文件修改队列；排队后在实际文件操作前复核，旧调用不能借用新任务的权限。已开始的文件系统操作不承诺回滚；搜索和模型工具的迟到响应也不会更新新执行上下文。
-
-SSE 重连先重新发现 Controller 并读取 snapshot；失效通知按读批次刷新 snapshot 后再唤醒本地对账，断档不重放旧派发。Controller ID 改变时清缓存，同 epoch 的另一 Controller 也不能接管旧响应。生命周期 interruption 使用 request_id 幂等，同键同内容不重复传播中断。
-
-SQLite 空间耗尽、I/O、只读或不可用等存储错误返回 HTTP 503 `STORAGE_UNAVAILABLE`，附 SQLite code，不归为用户参数错误。失败响应不代表已接受；用原 `request_id` 查询已提交事实，修复存储后由操作者显式同键重试，不重放未知注入。
-
-Dashboard 的 roles 视图可预览 promote/release，leaders 视图可预览 release；输入原因后仍需选择“显式提交”。预览绑定所见 Controller 与本地执行上下文，切换后提交会拒绝，须重新打开预览；目标 revision 仍由服务端 CAS 裁决。能力检查包含 `agent_before_settle`，首次注册前缺能力会停止 Squad 激活并恢复普通工具。
-
-`doctor --probe-file` 的核心能力判断要求同一条有序事件链：extension input → 预期任务 sections/tools → 匹配的 canonical 当前上下文 → 同 request_seq 的末位有效 provider system/tools → completed agent_before_settle → idle 且无 pending 的 agent_settled。完整 task/attempt/segment 与 role/working/config hash、自有 section 哈希、工具集合均须一致。历史 user/assistant 文本含有 ID 不作为证明。`ordered_core_lifecycles` 保存首尾 seq 和身份供复核；该判断不代表任务成功或场景验收通过。
-
-状态修改工具使用 `model-only` 和 `sequential`，不允许嵌套控制调用；派发前缺失、hidden/deferred/codemode 工具或实际 active 集合不一致会停止注入。成功的 `agent_task_complete/agent_task_yield/agent_clarify/agent_clarification_answer/squad_decide` 及正式 ask 的 `reply_message` 返回 `terminate: true`；失败、invoke、send、Run create 和被动 reply 不返回终止。混合批次仍按 Pi 的“全部最终结果均 terminate”规则结束，不跳过其它调用。Controller 始终等真实 settled 再确认，终止标记不能代替确认。延后收尾重新核对 generation、binding/session、attempt/segment、outcome 及实时 idle/pending，旧回调不能推进新片段。
-
-Pi 管理命令按目标与操作校验：Run 支持 cancel/resume，Task 支持 cancel/amend/recover/retry/rebind/accept/reject，Attempt 支持 reconcile。`--confirm-stopped` 仅用于 reconcile，`--rebind-current` 用于 retry/rebind/resume，evidence 两种拼法只能选一个。amend 后全部参数作为正文，正文中的 `--preview` 不会取消提交。只读命令拒绝多余参数，带引号的参数必须闭合；Go operate 也在连接前拒绝不存在的 kind/operation 组合。
-
-调度中的绑定变化或 Attempt 预算耗尽会进入 needs_review 并通知等待祖先；同事务后续调度读取最新 Task 状态，避免继续使用已失效的排队状态。probe 的 segment_id 与协议一致使用正整数。
-
-Role 被活动 Run 占用时，该 Role 的 Primary 和 Secondary 都拒绝外部 standalone、ask、peer invoke 与 direct，返回 `ROLE_BUSY` 并带占用 Team/Run；不能通过指定 Secondary 绕过。其它 Team 的请求同样先检查实际占用。已整体排队的 Run 可保存自己 roster 的 handoff，但准入前不会创建 Attempt。
-
-Task 请求必须与端点作用域一致：direct 不带 Run/parent，handoff 使用指定 Run，child 继承父 scope。结果 refs 的 revision/hash 必须成对，重复引用和依赖会拒绝；未固定引用的 length 必须为0。调度和Gate只消费当前目标修订且无blocker的结果，review创建遇到自审或预算耗尽会明确进入 needs_review 并向祖先传播。
-
-工具执行许可要求 Attempt 为 running/result_proposed、未释放且租约时间有效；suspended保留affinity不等于仍有执行许可。Project发现遇到损坏标记symlink或权限错误会报错，不向上回退到别的Project。
-
-三个旧别名 `/squad-whoami`、`/squad-inbox`、`/squad-transport` 与对应 `/squad` 子命令使用同一参数校验，多余参数会明确拒绝。
-
-Pi Dashboard 的方向键、Tab、Enter、Escape 和 Backspace 使用 Pi 原生按键解析，兼容终端扩展按键编码；j/k 同样可以选择或滚动详情。
-
-Team 详情在共享 snapshot 中汇总当前 Leader 绑定/在线状态、成员 Primary/Secondary/owner、活跃与排队 Run 数量及其 blocker/waiting_roles。Run 的 `current_roster` 表示观察时的角色状态，原始 `leader` 和 `config_snapshot` 仍是该 Run 固定的快照；`next_step` 只是说明，不能代替操作时的权限与 revision 校验。Agent 的 `standalone_only=true` 明确标识 Secondary，不计为 Team 额外容量。
+实现位置见 [README 源码导航](README.md#实现导航)，协议字段见 [protocol/README.md](protocol/README.md)，需求与验收仍以 [阶段 04](../pi_squad_case/04-team-orchestration/README.md) 为准。

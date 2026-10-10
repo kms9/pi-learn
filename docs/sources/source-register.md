@@ -3,7 +3,7 @@ title: 来源登记
 type: source
 status: active
 created: 2026-09-07
-updated: 2026-10-03
+updated: 2026-10-09
 tags:
   - project-wiki
   - sources
@@ -21,6 +21,7 @@ tags:
 | herdr-pi-extensions | git clone | `herdr-pi-extensions/` | 2026-09-07 | [[learning/怎么学写插件\|怎么学写插件]] | 第三方插件样本，不是官方 API。 |
 | agent-tools | git clone | `agent-tools/` | 2026-09-07 | [[learning/怎么学写插件\|怎么学写插件]] | 第三方插件/工具样本。 |
 | Pi agent core / coding-agent | git submodule | `pi-dev/packages/agent/`、`pi-dev/packages/coding-agent/` | 2026-09-07 | [[pi-agent-core\|Pi agent core]] | 初始 HEAD `92d8e2d17d4f357788381c49ce2cdb3f4ed1f21c`；2026-10-03 补核对 `4c6fb7cfe8c538a668726f6f8b3554098c39faee`、package 1.0.1，含 pi-ai transcript 和独立 experimental pi-durable。实际全局 CLI 1.0.0；新版真实回归未执行。 |
+| Pi 1.1.0 升级源码与 release | 官方固定源码与本机安装 | https://github.com/earendil-works/pi/tree/abe508e1b89912adde45528136c3221eb69acdd7 | 2026-10-09 | [[pi-agent-core\|Pi agent core]] | 对比 1.0.1 release `a7229ddc21810d6245105978033b7df645ecc2f7`；官方 tarball 仓库外只读分析。实际 CLI/core/ai/tui 均为 1.1.0，TS 检查与 Go 构建通过，未跑真实 Squad 回归；取消收尾与 managed 安装身份需适配。 |
 | DeepSeek Harness | git submodule | `deepseek-harness/` | 2026-09-07 | [[deepseek-harness\|DeepSeek Harness]] | HEAD `d347e703908d0406b7a7ef80e3a0e594d86b2215`。整仓即 harness；LLM 缝含 pi-ai 适配器。 |
 | Paseo | git submodule | `paseo/` | 2026-09-16 | [[paseo\|Paseo]] | HEAD `425157595038614a44e2cbf9c393f2e263270b95`。重点参考 provider registry、AgentClient/AgentSession、Pi RPC 与 Generic ACP adapter。 |
 | Pigo | git submodule | `pigo/` | 2026-09-18 | [[pigo\|Pigo]] | HEAD `891d1f372cefa92b5f5a104db20521238ba5a9fe`。Go 语言重实现 Pi；重点对照 Agent loop、Session、stream-json、权限、Skills/Plugins 与 Go Runtime 结构。 |

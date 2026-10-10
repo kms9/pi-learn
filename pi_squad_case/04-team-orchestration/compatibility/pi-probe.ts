@@ -46,7 +46,7 @@ export default function (pi: ExtensionAPI): void {
   pi.on("tool_result", (event) => record(event.type, { tool_name: event.toolName, is_error: event.isError, nested_control_denied: event.content.some((part) => part.type === "text" && part.text === NESTED_DENIED_MARKER) }));
   pi.on("agent_before_settle", (event) => record(event.type, { outcome: event.outcome }));
   pi.on("agent_end", (event, ctx) => record(event.type, { idle: ctx.isIdle(), pending: ctx.hasPendingMessages() }));
-  pi.on("agent_settled", (event, ctx) => record(event.type, { idle: ctx.isIdle(), pending: ctx.hasPendingMessages() }));
+  pi.on("agent_settled", (event, ctx) => record(event.type, { idle: ctx.isIdle(), pending: ctx.hasPendingMessages(), aborted: event.aborted }));
   pi.registerCommand("squad-probe-save", {
     description: "Save redacted schema 2 host compatibility observations",
     async handler(_args, ctx) {

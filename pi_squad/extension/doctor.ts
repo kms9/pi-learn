@@ -3,8 +3,8 @@ import path from "node:path";
 import { createHash } from "node:crypto";
 import { getPackageDir, VERSION, type ExtensionAPI, type ExtensionContext } from "@earendil-works/pi-coding-agent";
 
-export const HOST_PROFILE = "pi-coding-agent/1.0.1";
-export const HOST_VERSION = "1.0.1";
+export const HOST_PROFILE = "pi-coding-agent/1.1.0";
+export const HOST_VERSION = "1.1.0";
 export const REQUIRED_EVENTS = [
   "systemPromptOptions", "context_with_system", "agent_settled", "agent_before_settle",
   "before_provider_request", "session_before_switch", "session_before_fork",
