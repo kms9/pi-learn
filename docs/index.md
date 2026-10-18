@@ -3,7 +3,7 @@ title: pi_case 知识库索引
 type: index
 status: active
 created: 2026-09-07
-updated: 2026-10-09
+updated: 2026-10-18
 tags:
   - project-wiki
   - index
@@ -47,6 +47,7 @@ tags:
 - [[concepts/pi-squad|Pi Squad]] - Herdr + 薄 Extension + Go Controller 的本地协作验证；配置与启动见 `pi_squad/USAGE.md`
 
 ## 决策
+- [[decisions/2026-10-18-dsh-bot-squad-migration|2026-10-18 DS Bot 产品体验优先与 Squad 迁移决策]] — Go Controller、DSH Adapter 和受控群聊。
 
 - [[decisions/2026-10-04-squad-explicit-completion-and-context|2026-10-04 Squad 明确完成与 Leader 上下文方向]] - 取消业务硬截止、等待派发任务明确回传；固定当前上下文、checker 测试用途与后续文档更新。
 
@@ -70,6 +71,7 @@ tags:
 - [[decisions/2026-09-23-p0-identity-fields|2026-09-23 P0 身份字段与 HTTP Registry]]
 
 ## 会话
+- [[sessions/2026-10-18-dsh-bot-migration-planning|2026-10-18 DS Bot 迁移方案与分支主 README 更新]] — 新子模块、分支与实施入口。
 
 - [[sessions/2026-10-09-pi-squad-pi-1.1.0-implementation|2026-10-09 Pi Squad 的 Pi 1.1.0 升级实施与验收]] - 兼容代码已实施，三角色、三轮数字、真实取消与 managed probe 通过；89 项新版本全量验收进行中，尚未收尾。
 
@@ -144,6 +146,7 @@ tags:
 - [[sessions/2026-09-07-harness-pi-vs-dsh|2026-09-07 对照 Pi 与 DeepSeek 的 harness 实现]]
 
 ## 来源
+- [[sources/dsh-bot|DS Bot 源码和迁移扩展点]] — 群聊 Handoff、多模型、记忆、Session 与恢复。
 
 - [[sources/multica-team-runtime|Multica Team Runtime 固定源码参考]]
 
@@ -172,6 +175,11 @@ tags:
 ## 日志
 
 - [[log|Wiki 日志]] - 按时间追加；`grep "^## \[" docs/log.md | tail -5`
+
+## DS Bot 多助手产品与 Squad 策略迁移（dsh_squad_dev 分支）
+
+- [迁移主方案](../dsh_squad_case/MIGRATION_PLAN.md)、[验收设计](../dsh_squad_case/ACCEPTANCE.md)、[阶段入口](../dsh_squad_case/README.md)。
+- `dsh-bot/` 为固定版本上游 submodule；`deepseek-harness/` 保持原来的独立 gitlink。本次仅是迁移规划和源码引入，不表示 M0～M4 已完成。
 
 ## Pi Squad 本地实验（pi_squad_dev 分支）
 

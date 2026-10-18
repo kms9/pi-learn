@@ -3,12 +3,13 @@ title: 会话索引
 type: index
 status: active
 created: 2026-09-07
-updated: 2026-10-09
+updated: 2026-10-18
 tags:
   - project-wiki
 ---
 
 # 会话索引
+- [[2026-10-18-dsh-bot-migration-planning|2026-10-18 DS Bot 迁移方案、分支主说明及上游引入]]
 
 实质性沟通写到这里，文件名 `YYYY-MM-DD-短标题.md`。
 

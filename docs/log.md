@@ -827,3 +827,9 @@ tags:
 - 来源: 用户进度询问；新版本矩阵与本轮 Herdr wA 真实运行。
 - 更新: `docs/sessions/2026-10-09-pi-squad-pi-1.1.0-implementation.md`
 - 说明: 核对时 34 PASS / 9 PARTIAL / 46 NOT_RUN，核心开发和真实宿主验证 12/15；保留未验收边界与失败历史，继续物理崩溃恢复。
+
+## [2026-10-18] decision | DS Bot submodule 与 Squad 迁移实施总说明
+
+- 来源: 用户要求同步 Pi Squad → DS Bot 的实施方案，新增 Fei2411/DeepSeek-Bot 真实 git submodule，并将 `dsh_squad_dev` 分支根 `README.md` 改成后续开发主说明。
+- 更新: `README.md`、`dsh_squad_case/{README,MIGRATION_PLAN,ACCEPTANCE}.md`、`.gitmodules`、`dsh-bot/` gitlink、2026-10-18 决策/会话/来源页、Wiki 索引、开放问题。
+- 说明: 分支源 `pi_squad_dev@f1bb9f47baf92fb99626d8d20504c2787a0e3ac6`，DS Bot pin `e13bc3419d2695a509520d850a07e63f05c34e07`。只同步规划与上游代码引用，M0–M4 与所有 DSH 用例均未实现或验收；原 Pi 89 PASS 不能继承。沿用取消业务 Task 固定硬截止、必要子任务明确回传的决策。

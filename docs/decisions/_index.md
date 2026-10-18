@@ -3,12 +3,13 @@ title: 决策索引
 type: index
 status: active
 created: 2026-09-07
-updated: 2026-10-04
+updated: 2026-10-18
 tags:
   - project-wiki
 ---
 
 # 决策索引
+- [[2026-10-18-dsh-bot-squad-migration|2026-10-18 DS Bot 产品演示与 Squad 迁移边界]]
 
 - [[2026-10-04-squad-pi-1.0.1-tui-scope|2026-10-04 Pi Squad 的 Pi 1.0.1 TUI 范围]]
 - [[2026-10-03-commit-non-dev-artifacts|2026-10-03 提交前先询问非开发材料]]

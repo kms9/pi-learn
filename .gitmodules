@@ -42,3 +42,7 @@
 	path = pigo
 	url = https://github.com/smallnest/pigo.git
 	branch = master
+[submodule "dsh-bot"]
+	path = dsh-bot
+	url = https://github.com/Fei2411/DeepSeek-Bot.git
+	branch = main

@@ -3,7 +3,7 @@ title: 来源索引
 type: index
 status: active
 created: 2026-09-07
-updated: 2026-09-24
+updated: 2026-10-18
 tags:
   - project-wiki
   - sources
@@ -15,6 +15,7 @@ tags:
 - [[llm-wiki-pattern|LLM Wiki 模式]] - Karpathy 模式在本仓库的落地
 - [[pi-agent-core|Pi agent core 与 coding-agent]]
 - [[deepseek-harness|DeepSeek Harness]]
+- [[dsh-bot|DS Bot 源码参考]] — 多助手群聊、多模型、长期记忆和 Squad 扩展入口
 - [[paseo|Paseo]] - 多 provider/harness 的 runtime adapter、session 与事件统一参考
 - [[pigo|Pigo]] - 用 Go 重实现 Pi 的 runtime 对照样本，关注 Agent loop、Session、stream-json、权限与 Skills/Plugins
 - [[herdr-pi-extension-plan|Herdr + Pi Extension 验证方案]] - P0–P7 阶段合同与源码对照评估摘要

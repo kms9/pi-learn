@@ -3,7 +3,7 @@ title: 开放问题
 type: question-log
 status: active
 created: 2026-09-07
-updated: 2026-10-09
+updated: 2026-10-18
 tags:
   - project-wiki
   - questions
@@ -41,3 +41,6 @@ tags:
 | Q25 | 正式任务截止时间是否可配置，续接、yield 等待和排队时是否重算？ | closed | 2026-10-04 用户决定取消业务 Task 固定时间截止，以上层及必要子任务的明确结束回传为准，不改为可配置硬截止。代码尚未实施；可续通信 lease 与业务时限分开。见 [[decisions/2026-10-04-squad-explicit-completion-and-context]]。 |
 | Q26 | 父任务仍有未完成子依赖时提交结果，应拒绝结果还是取消孤儿子任务？ | open | 用户已明确必要子任务未回传时上层不得完成；建议未完成依赖拒绝 completion，并提示先 yield。具体错误/自动处理策略仍待实施设计。当前 parent_yield 无法正常解除，既有 deadline 可能转 needs_review。见 [[concepts/squad-completion-yield-scheduling]]。 |
 | Q27 | Pi Squad 升级到 Pi 1.1.0 的兼容调整与真实验收是否完成？ | open | 2026-10-09 默认 CLI 已为 1.1.0，产品仍限定 1.0.1/TUI。静态差异、实际公共声明类型检查、Go 构建和只读 doctor 已完成；建议先同步 profile、消费 settled.aborted、处理 managed launcher 与 runtime entry 身份，再采集新 probe、跑新版本真实三角色及阶段 04 矩阵。尚未改产品或启动模型验收，旧 PASS 不覆盖 1.1.0。见 [[sessions/2026-10-09-pi-squad-pi-1.1.0-assessment]]。 |
+| Q28 | 固定 DSH 版本能否通过公开 Hooks 证明 Task 输入、nested 工具、真正 settled 和旧 Session/epoch 隔离？ | open | M1 真实探针；不能根据 upstream master API 宣称已通过。 |
+| Q29 | 如何接管 Managed Group 的 `group_relay`、普通消息/定时/自动恢复，不破坏 Free？ | open | 必要时最小 DS Bot Fork seam，防止自由调用绕过 Controller。 |
+| Q30 | 非开发用户的 DS Bot Web、Memory、Secrets 和目录如何隔离？ | open | 首版建议每用户独立环境，不把单个 DSH Home 直接当多租户 SaaS。 |
