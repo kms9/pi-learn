@@ -9,6 +9,7 @@ tags:
 ---
 
 # 决策索引
+- [[2026-10-18-dsh-p0-version-pin|2026-10-18 P0 版本统一：DSH 0.2.1-rc.2 + DS Bot main]]
 - [[2026-10-18-dsh-bot-squad-migration|2026-10-18 DS Bot 产品演示与 Squad 迁移边界]]
 
 - [[2026-10-04-squad-pi-1.0.1-tui-scope|2026-10-04 Pi Squad 的 Pi 1.0.1 TUI 范围]]

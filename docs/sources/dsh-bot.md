@@ -11,7 +11,9 @@ tags: [dsh-bot, source, multi-agent]
 
 - 上游：<https://github.com/Fei2411/DeepSeek-Bot>，`main@e13bc3419d2695a509520d850a07e63f05c34e07`。
 - 本仓 git submodule：`dsh-bot/`；真实插件包在 `dsh-bot/ds-bot/`。
-- 原生 Agent/Session/Tool/Provider 参考：已有 `deepseek-harness/`。
+- 原生 Agent/Session/Tool/Provider 参考：已有 `deepseek-harness/`，2026-10-18 固定为 `dsh-v0.2.1-rc.2`。
+- 2026-10-18 实测：`main@e13bc34` 声明 DSH 0.2.0-rc.2，但在 0.2.1-rc.2 上单元测试 635/635 通过；本仓库在 `probes/versions.lock.json` 中覆盖。上游 `chore/dsh-0.2.1-rc.2@5c6e116` 做同样的升级，未合入。
+- P0 探针证据：`probes/scenarios/`，结论见 `docs/dsh-squad-p0-probe-report-2026-10-18.md`。DS Bot 不对外提供服务（没有 `ctx.provide`），外部插件只能读 `DSH_HOME/bot/state.json` 来推断 Bot↔Session，新 Session 第一步会有归属空窗。
 
 | 源码（相对 dsh-bot/ds-bot/） | 主要功能和迁移关注点 |
 |---|---|

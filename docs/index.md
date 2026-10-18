@@ -47,6 +47,7 @@ tags:
 - [[concepts/pi-squad|Pi Squad]] - Herdr + 薄 Extension + Go Controller 的本地协作验证；配置与启动见 `pi_squad/USAGE.md`
 
 ## 决策
+- [[decisions/2026-10-18-dsh-p0-version-pin|2026-10-18 P0 版本统一：DSH 0.2.1-rc.2 + DS Bot main]] — gitlink、npm 运行时与 DS Bot 声明版本的覆盖。
 - [[decisions/2026-10-18-dsh-bot-squad-migration|2026-10-18 DS Bot 产品体验优先与 Squad 迁移决策]] — Go Controller、DSH Adapter 和受控群聊。
 
 - [[decisions/2026-10-04-squad-explicit-completion-and-context|2026-10-04 Squad 明确完成与 Leader 上下文方向]] - 取消业务硬截止、等待派发任务明确回传；固定当前上下文、checker 测试用途与后续文档更新。
@@ -71,6 +72,7 @@ tags:
 - [[decisions/2026-09-23-p0-identity-fields|2026-09-23 P0 身份字段与 HTTP Registry]]
 
 ## 会话
+- [[sessions/2026-10-18-dsh-p0-probe|2026-10-18 DS Bot + Squad P0 探针实测]] — 六场景全部跑通；实测复评见 `docs/dsh-squad-p0-probe-report-2026-10-18.md`，读代码版见 `docs/dsh-squad-feasibility-2026-10-18.md`。
 - [[sessions/2026-10-18-dsh-bot-migration-planning|2026-10-18 DS Bot 迁移方案与分支主 README 更新]] — 新子模块、分支与实施入口。
 
 - [[sessions/2026-10-09-pi-squad-pi-1.1.0-implementation|2026-10-09 Pi Squad 的 Pi 1.1.0 升级实施与验收]] - 兼容代码已实施，三角色、三轮数字、真实取消与 managed probe 通过；89 项新版本全量验收进行中，尚未收尾。

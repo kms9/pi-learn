@@ -21,10 +21,11 @@ tags: [dsh-bot, squad, migration]
 
 | 阶段 | 目标 | 状态 |
 |---|---|---|
+| P0 | 版本统一 + 只观察探针六场景实测（`probes/`） | DONE（2026-10-18，mock 模型；见 `docs/dsh-squad-p0-probe-report-2026-10-18.md`） |
 | M0 | DS Bot Web 多模型群聊、长期 Bot 与记忆可演示 | NOT_STARTED |
 | M1 | DSH Adapter 精确绑定、正式输入、工具保护和真实收尾 | NOT_STARTED |
 | M2 | 单 Team Task DAG + 产物 + Review/Rework + Acceptance | NOT_STARTED |
 | M3 | Run/任务/审核/恢复 UI 与策略对照 | NOT_STARTED |
 | M4 | 多 Team FIFO、共享 Role、Child/yield 与全量故障恢复 | NOT_STARTED |
 
-**源码 pin**：Pi 迁移源 `pi_squad_dev@f1bb9f47baf92fb99626d8d20504c2787a0e3ac6`；DS Bot `Fei2411/DeepSeek-Bot@e13bc3419d2695a509520d850a07e63f05c34e07`；现有 `deepseek-harness/` 不在本次提交改变 gitlink。M1 的真实 DSH Hook 能力探针是 M2 受控模式的前置条件。
+**源码 pin**：Pi 迁移源 `pi_squad_dev@f1bb9f47baf92fb99626d8d20504c2787a0e3ac6`；DS Bot `Fei2411/DeepSeek-Bot@e13bc3419d2695a509520d850a07e63f05c34e07`；`deepseek-harness/` 于 2026-10-18 固定为 `dsh-v0.2.1-rc.2`（`687f282e86`），见 `probes/versions.lock.json`。M1 的真实 DSH Hook 能力探针是 M2 受控模式的前置条件。

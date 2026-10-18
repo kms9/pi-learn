@@ -833,3 +833,9 @@ tags:
 - 来源: 用户要求同步 Pi Squad → DS Bot 的实施方案，新增 Fei2411/DeepSeek-Bot 真实 git submodule，并将 `dsh_squad_dev` 分支根 `README.md` 改成后续开发主说明。
 - 更新: `README.md`、`dsh_squad_case/{README,MIGRATION_PLAN,ACCEPTANCE}.md`、`.gitmodules`、`dsh-bot/` gitlink、2026-10-18 决策/会话/来源页、Wiki 索引、开放问题。
 - 说明: 分支源 `pi_squad_dev@f1bb9f47baf92fb99626d8d20504c2787a0e3ac6`，DS Bot pin `e13bc3419d2695a509520d850a07e63f05c34e07`。只同步规划与上游代码引用，M0–M4 与所有 DSH 用例均未实现或验收；原 Pi 89 PASS 不能继承。沿用取消业务 Task 固定硬截止、必要子任务明确回传的决策。
+
+## [2026-10-18] session | DS Bot + Squad P0：版本统一与只观察探针实测
+
+- 来源: 用户批准执行 P0；上游 `git ls-remote`/npm dist-tags；本机 bench（npm DSH 0.2.1-rc.2 + DS Bot e13bc34 + mock 模型）实测。
+- 更新: `deepseek-harness` gitlink；`probes/`（探针、bench、驱动、分析、六场景记录）；`docs/dsh-squad-p0-probe-report-2026-10-18.md`；`docs/dsh-squad-feasibility-2026-10-18.md`；会话、决策、来源、开放问题、索引；`dsh_squad_case/README.md`。
+- 说明: DSH 统一为 `dsh-v0.2.1-rc.2`，DS Bot 保持 main（覆盖其声明的 0.2.0-rc.2，单元测试 635/635）。S1–S6 一次干净运行全部 PASS。结论仍为有条件可行：Hook 覆盖全部唤醒路径；归属 seam、结束判定（需读持久日志）、自动重放、自启回合是硬前置。没有接真实模型或 IM。
