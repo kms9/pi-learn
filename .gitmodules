@@ -2,10 +2,6 @@
 	path = pi-dev
 	url = git@github.com:earendil-works/pi.git
 	branch = main
-[submodule "agent-tools"]
-	path = agent-tools
-	url = git@github.com:artmsilva/agent-tools.git
-	branch = main
 [submodule "herdr-pi-extensions"]
 	path = herdr-pi-extensions
 	url = git@github.com:ogulcancelik/pi-extensions.git
