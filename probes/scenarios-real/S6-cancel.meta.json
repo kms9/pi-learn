@@ -1,0 +1,44 @@
+{
+  "id": "S6-cancel",
+  "title": "user stops a member working in the group",
+  "result": "PASS",
+  "startTs": "2026-10-18T10:16:31.929Z",
+  "endTs": "2026-10-18T10:16:40.004Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T10:16:31.930Z",
+      "what": "user asks @Builder for an ~800-character write-up in the group"
+    },
+    {
+      "ts": "2026-10-18T10:16:35.362Z",
+      "what": "stop-member-work"
+    },
+    {
+      "ts": "2026-10-18T10:16:35.399Z",
+      "what": "stop returned",
+      "stopped": true
+    }
+  ],
+  "eventCount": 117,
+  "counts": {
+    "session/event": 54,
+    "agent/inbox/inserted": 5,
+    "agent/status": 6,
+    "agent/inbox/claimed": 5,
+    "agent/pre-step:in": 4,
+    "agent/pre-step:out": 4,
+    "agent/request:in": 4,
+    "agent/request:out": 4,
+    "llm/stream": 5,
+    "agent/assistant-stream": 8,
+    "tools/pre-execute:in": 2,
+    "tools/pre-execute:out": 2,
+    "tools/execute:in": 2,
+    "probe/when-idle": 3,
+    "session/created": 1,
+    "agent/created": 1,
+    "agent/turn-stopping": 3,
+    "tools/execute:out": 2,
+    "tools/result": 2
+  }
+}

@@ -33,6 +33,7 @@
 | 162 | 09:46:12.411 | @研发群(group) | `session/event` | user/message user "派活 40" |
 | 164 | 09:46:12.415 | @研发群(group) | `llm/stream` | msgs=12 tools=55 |
 | 165 | 09:46:12.415 | @研发群(group) | `agent/assistant-stream` |  |
+| 166 | 09:46:12.420 | @研发群(group) | `session/event` | assistant/message turn 3 step 1 |
 | 167 | 09:46:12.420 | @研发群(group) | `agent/assistant-stream` |  |
 | 168 | 09:46:12.421 | @研发群(group) | `session/event` | tool/call turn 3 step 1 |
 | 169 | 09:46:12.421 | @研发群(group) | `tools/pre-execute:in` | group_relay |
@@ -40,7 +41,7 @@
 | 171 | 09:46:12.422 | @研发群(group) | `tools/execute:in` | group_relay |
 | 172 | 09:46:12.431 | Chief@研发群[d53eaccd] ⚠ | `session/created` | new Session |
 | 176 | 09:46:12.433 | Chief@研发群[d53eaccd] ⚠ | `agent/created` | source="startup" |
-| 178 | 09:46:12.439 | Chief@研发群[d53eaccd] ⚠ | `session/event` | model/selection |
+| 178 | 09:46:12.439 | Chief@研发群[d53eaccd] ⚠ | `session/event` | model/selection {"provider":"deepseek-official","model":"deepseek-v4-pro","reasoningEffort":"high"} |
 | 179 | 09:46:12.581 | Chief@研发群[d53eaccd] ⚠ | `session/event` | agent/inbox/spliced next-turn +1 -0 |
 | 180 | 09:46:12.581 | Chief@研发群[d53eaccd] ⚠ | `agent/inbox/inserted` | bot:room "[Group chat "研发群" · your turn] Your own chat with the user s" |
 | 181 | 09:46:12.581 | Chief@研发群[d53eaccd] ⚠ | `agent/status` | running |
@@ -59,6 +60,7 @@
 | 195 | 09:46:12.615 | Chief@研发群[d53eaccd] ⚠ | `session/event` | user/message time-context "Time sampled while preparing turn 1, step 1: 2026-" |
 | 198 | 09:46:12.618 | Chief@研发群[d53eaccd] ⚠ | `llm/stream` | msgs=6 tools=51 |
 | 199 | 09:46:12.618 | Chief@研发群[d53eaccd] ⚠ | `agent/assistant-stream` |  |
+| 201 | 09:46:12.940 | Chief@研发群 | `session/event` | assistant/message turn 1 step 1 |
 | 202 | 09:46:12.941 | Chief@研发群 | `agent/assistant-stream` |  |
 | 203 | 09:46:12.941 | Chief@研发群 | `session/event` | step/end turn 1 step 1 |
 | 204 | 09:46:12.942 | Chief@研发群 | `agent/turn-stopping` | inbox nextStep=0 nextTurn=0 |
@@ -81,6 +83,7 @@
 | 221 | 09:46:13.002 | Researcher@研发群 | `session/event` | user/message bot:room "[Group chat "研发群" · Chief mentioned you] Members: " |
 | 223 | 09:46:13.005 | Researcher@研发群 | `llm/stream` | msgs=10 tools=51 |
 | 224 | 09:46:13.005 | Researcher@研发群 | `agent/assistant-stream` |  |
+| 226 | 09:46:13.327 | Researcher@研发群 | `session/event` | assistant/message turn 3 step 1 |
 | 227 | 09:46:13.327 | Researcher@研发群 | `agent/assistant-stream` |  |
 | 228 | 09:46:13.328 | Researcher@研发群 | `session/event` | tool/call turn 3 step 1 |
 | 229 | 09:46:13.328 | Researcher@研发群 | `tools/pre-execute:in` | glob |
@@ -122,6 +125,7 @@
 | 267 | 09:46:18.122 | @研发群(group) | `session/event` | user/message bot:post "[Group post from Researcher] " |
 | 268 | 09:46:18.123 | @研发群(group) | `llm/stream` | msgs=15 tools=55 |
 | 269 | 09:46:18.123 | @研发群(group) | `agent/assistant-stream` |  |
+| 270 | 09:46:18.127 | @研发群(group) | `session/event` | assistant/message turn 4 step 1 |
 | 271 | 09:46:18.128 | @研发群(group) | `agent/assistant-stream` |  |
 | 272 | 09:46:18.128 | @研发群(group) | `session/event` | tool/call turn 4 step 1 |
 | 273 | 09:46:18.128 | @研发群(group) | `tools/pre-execute:in` | group_relay |

@@ -1,0 +1,48 @@
+{
+  "id": "S8-ptc-nested",
+  "title": "a plain DSH Session on the PTC preset runs nested tool calls",
+  "result": "PASS",
+  "startTs": "2026-10-18T10:15:05.996Z",
+  "endTs": "2026-10-18T10:15:16.744Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T10:15:06.002Z",
+      "what": "presets",
+      "presets": "standard,ptc,minimal,cordis"
+    },
+    {
+      "ts": "2026-10-18T10:15:06.016Z",
+      "what": "created PTC Session; ask for one program that reads two files",
+      "sessionId": "session-0b78b997-8617-47b1-9fd5-8b6711f64bc1",
+      "preset": "ptc"
+    },
+    {
+      "ts": "2026-10-18T10:15:16.744Z",
+      "what": "after",
+      "nested": 2,
+      "preExecuteNested": 2
+    }
+  ],
+  "eventCount": 118,
+  "counts": {
+    "session/created": 1,
+    "session/event": 51,
+    "agent/created": 1,
+    "agent/inbox/inserted": 1,
+    "agent/status": 3,
+    "agent/inbox/claimed": 1,
+    "agent/pre-step:in": 4,
+    "agent/pre-step:out": 4,
+    "agent/request:in": 4,
+    "agent/request:out": 4,
+    "llm/stream": 6,
+    "agent/assistant-stream": 9,
+    "tools/pre-execute:in": 5,
+    "tools/pre-execute:out": 5,
+    "tools/execute:in": 5,
+    "tools/execute:out": 5,
+    "tools/result": 5,
+    "agent/turn-stopping": 2,
+    "probe/when-idle": 2
+  }
+}

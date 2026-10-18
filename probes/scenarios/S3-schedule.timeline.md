@@ -30,6 +30,7 @@
 | 494 | 09:45:17.374 | Reviewer | `session/event` | user/message schedule "[SCHEDULE REMINDER] This is a scheduled message fr" |
 | 495 | 09:45:17.375 | Reviewer | `llm/stream` | msgs=8 tools=51 |
 | 496 | 09:45:17.375 | Reviewer | `agent/assistant-stream` |  |
+| 498 | 09:45:17.688 | Reviewer | `session/event` | assistant/message turn 2 step 1 |
 | 499 | 09:45:17.689 | Reviewer | `agent/assistant-stream` |  |
 | 500 | 09:45:17.690 | Reviewer | `session/event` | step/end turn 2 step 1 |
 | 501 | 09:45:17.690 | Reviewer | `agent/turn-stopping` | inbox nextStep=0 nextTurn=0 |

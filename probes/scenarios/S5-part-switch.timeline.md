@@ -32,6 +32,7 @@
 | 72 | 09:46:01.202 | Researcher | `session/event` | user/message user "长文 30 第1篇" |
 | 74 | 09:46:01.206 | Researcher | `llm/stream` | msgs=8 tools=51 |
 | 75 | 09:46:01.206 | Researcher | `agent/assistant-stream` |  |
+| 77 | 09:46:01.523 | Researcher | `session/event` | assistant/message turn 2 step 1 |
 | 78 | 09:46:01.523 | Researcher | `agent/assistant-stream` |  |
 | 79 | 09:46:01.524 | Researcher | `session/event` | step/end turn 2 step 1 |
 | 80 | 09:46:01.524 | Researcher | `agent/turn-stopping` | inbox nextStep=0 nextTurn=0 |
@@ -53,6 +54,7 @@
 | 97 | 09:46:06.748 | Researcher | `session/event` | user/message user "长文 30 第2篇" |
 | 98 | 09:46:06.749 | Researcher | `llm/stream` | msgs=10 tools=51 |
 | 99 | 09:46:06.749 | Researcher | `agent/assistant-stream` |  |
+| 101 | 09:46:07.068 | Researcher | `session/event` | assistant/message turn 3 step 1 |
 | 102 | 09:46:07.069 | Researcher | `agent/assistant-stream` |  |
 | 103 | 09:46:07.069 | Researcher | `session/event` | step/end turn 3 step 1 |
 | 104 | 09:46:07.070 | Researcher | `agent/turn-stopping` | inbox nextStep=0 nextTurn=0 |
@@ -63,7 +65,7 @@
 | 110 | 09:46:07.395 | Researcher | `llm/stream` | purpose=compaction msgs=12 tools=51 |
 | 112 | 09:46:07.724 | Researcher[0cbdd4f4] ⚠ | `session/created` | new Session |
 | 116 | 09:46:07.726 | Researcher[0cbdd4f4] ⚠ | `agent/created` | source="startup" |
-| 118 | 09:46:07.734 | Researcher[0cbdd4f4] ⚠ | `session/event` | model/selection |
+| 118 | 09:46:07.734 | Researcher[0cbdd4f4] ⚠ | `session/event` | model/selection {"provider":"deepseek-official","model":"deepseek-flash","reasoningEffort":"high"} |
 | 119 | 09:46:07.873 | Researcher[0cbdd4f4] ⚠ | `session/event` | agent/inbox/spliced next-turn +1 -0 |
 | 120 | 09:46:07.874 | Researcher[0cbdd4f4] ⚠ | `agent/inbox/inserted` | bot:handoff "[Handoff · part 2] DS Bot moved your own chat with the user " |
 | 121 | 09:46:07.874 | Researcher[0cbdd4f4] ⚠ | `agent/status` | running |
@@ -82,6 +84,7 @@
 | 135 | 09:46:07.918 | Researcher | `session/event` | user/message time-context "Time sampled while preparing turn 1, step 1: 2026-" |
 | 138 | 09:46:07.921 | Researcher | `llm/stream` | msgs=6 tools=51 |
 | 139 | 09:46:07.921 | Researcher | `agent/assistant-stream` |  |
+| 140 | 09:46:07.925 | Researcher | `session/event` | assistant/message turn 1 step 1 |
 | 141 | 09:46:07.925 | Researcher | `agent/assistant-stream` |  |
 | 142 | 09:46:07.926 | Researcher | `session/event` | step/end turn 1 step 1 |
 | 143 | 09:46:07.926 | Researcher | `agent/turn-stopping` | inbox nextStep=0 nextTurn=0 |

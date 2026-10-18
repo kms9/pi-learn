@@ -1,0 +1,45 @@
+{
+  "id": "S9-fallback",
+  "title": "the Reviewer's model leaves the catalog; which model does its next turn use?",
+  "result": "PASS",
+  "startTs": "2026-10-18T10:17:52.391Z",
+  "endTs": "2026-10-18T10:18:08.461Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T10:17:52.391Z",
+      "what": "restart web host with deepseek-v4-pro removed from the catalog",
+      "model": "deepseek-official/deepseek-v4-pro"
+    },
+    {
+      "ts": "2026-10-18T10:17:59.652Z",
+      "what": "ask Reviewer for one sentence"
+    },
+    {
+      "ts": "2026-10-18T10:18:08.461Z",
+      "what": "after",
+      "configured": "deepseek-official/deepseek-v4-pro",
+      "applied": "deepseek-official/deepseek-flash",
+      "routes": "deepseek-official/deepseek-v4-pro",
+      "failures": 0
+    }
+  ],
+  "eventCount": 34,
+  "counts": {
+    "probe/stop": 1,
+    "probe/start": 1,
+    "session/created": 2,
+    "agent/created": 2,
+    "session/event": 14,
+    "agent/inbox/inserted": 1,
+    "agent/status": 2,
+    "agent/inbox/claimed": 1,
+    "agent/pre-step:in": 1,
+    "agent/pre-step:out": 1,
+    "agent/request:in": 1,
+    "agent/request:out": 1,
+    "llm/stream": 2,
+    "agent/assistant-stream": 2,
+    "agent/turn-stopping": 1,
+    "probe/when-idle": 1
+  }
+}

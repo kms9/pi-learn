@@ -1,0 +1,55 @@
+{
+  "id": "S0-setup",
+  "title": "four Bots on the real model, one group",
+  "result": "PASS",
+  "startTs": "2026-10-18T10:12:24.751Z",
+  "endTs": "2026-10-18T10:12:42.290Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T10:12:24.827Z",
+      "what": "pick Chief model",
+      "model": "deepseek-official/deepseek-flash"
+    },
+    {
+      "ts": "2026-10-18T10:12:31.095Z",
+      "what": "create Researcher",
+      "model": "deepseek-official/deepseek-flash"
+    },
+    {
+      "ts": "2026-10-18T10:12:31.245Z",
+      "what": "create Builder",
+      "model": "deepseek-official/deepseek-flash"
+    },
+    {
+      "ts": "2026-10-18T10:12:31.409Z",
+      "what": "create Reviewer",
+      "model": "deepseek-official/deepseek-v4-pro"
+    },
+    {
+      "ts": "2026-10-18T10:12:38.213Z",
+      "what": "create group 研发群"
+    }
+  ],
+  "eventCount": 157,
+  "counts": {
+    "session/created": 5,
+    "session/event": 90,
+    "agent/created": 5,
+    "agent/inbox/inserted": 4,
+    "agent/status": 8,
+    "agent/inbox/claimed": 4,
+    "agent/pre-step:in": 4,
+    "agent/pre-step:out": 4,
+    "agent/request:in": 4,
+    "agent/request:out": 4,
+    "llm/stream": 4,
+    "agent/assistant-stream": 8,
+    "agent/turn-stopping": 4,
+    "probe/when-idle": 4,
+    "tools/pre-execute:in": 1,
+    "tools/pre-execute:out": 1,
+    "tools/execute:in": 1,
+    "tools/execute:out": 1,
+    "tools/result": 1
+  }
+}

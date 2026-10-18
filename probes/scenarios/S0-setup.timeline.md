@@ -20,7 +20,7 @@
 | | | **host pid 70531** | | |
 | 2 | 09:43:36.492 | Chief[f241c8d1] ⚠ | `session/created` | new Session |
 | 6 | 09:43:36.507 | Chief[f241c8d1] ⚠ | `agent/created` | source="startup" |
-| 8 | 09:43:36.908 | Chief[f241c8d1] ⚠ | `session/event` | model/selection |
+| 8 | 09:43:36.908 | Chief[f241c8d1] ⚠ | `session/event` | model/selection {"provider":"deepseek-official","model":"deepseek-v4-pro","reasoningEffort":"high"} |
 | 9 | 09:43:37.039 | Chief | `session/event` | agent/inbox/spliced next-turn +1 -0 |
 | 10 | 09:43:37.040 | Chief | `agent/inbox/inserted` | bot:kickoff "[Bot team setup] You were just set up as the user's Main Bot" |
 | 11 | 09:43:37.040 | Chief | `agent/status` | running |
@@ -39,6 +39,7 @@
 | 25 | 09:43:37.113 | Chief | `session/event` | user/message time-context "Time sampled while preparing turn 1, step 1: 2026-" |
 | 28 | 09:43:37.118 | Chief | `llm/stream` | msgs=6 tools=51 |
 | 29 | 09:43:37.118 | Chief | `agent/assistant-stream` |  |
+| 31 | 09:43:37.469 | Chief | `session/event` | assistant/message turn 1 step 1 |
 | 32 | 09:43:37.471 | Chief | `agent/assistant-stream` |  |
 | 33 | 09:43:37.471 | Chief | `session/event` | step/end turn 1 step 1 |
 | 34 | 09:43:37.472 | Chief | `agent/turn-stopping` | inbox nextStep=0 nextTurn=0 |
@@ -47,10 +48,10 @@
 | 37 | 09:43:37.476 | Chief | `probe/when-idle` | after 436 ms |
 | 38 | 09:43:40.610 | Researcher[a4a5cb3c] ⚠ | `session/created` | new Session |
 | 42 | 09:43:40.612 | Researcher[a4a5cb3c] ⚠ | `agent/created` | source="startup" |
-| 44 | 09:43:40.619 | Researcher[a4a5cb3c] ⚠ | `session/event` | model/selection |
+| 44 | 09:43:40.619 | Researcher[a4a5cb3c] ⚠ | `session/event` | model/selection {"provider":"deepseek-official","model":"deepseek-flash","reasoningEffort":"high"} |
 | 45 | 09:43:40.661 | Builder[9b37d195] ⚠ | `session/created` | new Session |
 | 49 | 09:43:40.663 | Builder[9b37d195] ⚠ | `agent/created` | source="startup" |
-| 51 | 09:43:40.766 | Builder[9b37d195] ⚠ | `session/event` | model/selection |
+| 51 | 09:43:40.766 | Builder[9b37d195] ⚠ | `session/event` | model/selection {"provider":"deepseek-official","model":"deepseek-v4-pro","reasoningEffort":"high"} |
 | 52 | 09:43:40.798 | Researcher[a4a5cb3c] ⚠ | `session/event` | agent/inbox/spliced next-turn +1 -0 |
 | 53 | 09:43:40.798 | Researcher[a4a5cb3c] ⚠ | `agent/inbox/inserted` | bot:kickoff "[Bot team setup] The user just created you. Greet the user i" |
 | 54 | 09:43:40.798 | Researcher[a4a5cb3c] ⚠ | `agent/status` | running |
@@ -60,7 +61,7 @@
 | 58 | 09:43:40.809 | Researcher[a4a5cb3c] ⚠ | `agent/pre-step:in` | turn 1 step 1 msgs=[bot:kickoff] |
 | 59 | 09:43:40.818 | Reviewer[4ae93109] ⚠ | `session/created` | new Session |
 | 63 | 09:43:40.820 | Reviewer[4ae93109] ⚠ | `agent/created` | source="startup" |
-| 65 | 09:43:40.929 | Reviewer[4ae93109] ⚠ | `session/event` | model/selection |
+| 65 | 09:43:40.929 | Reviewer[4ae93109] ⚠ | `session/event` | model/selection {"provider":"deepseek-official","model":"deepseek-flash","reasoningEffort":"high"} |
 | 66 | 09:43:40.962 | Builder[9b37d195] ⚠ | `session/event` | agent/inbox/spliced next-turn +1 -0 |
 | 67 | 09:43:40.963 | Builder[9b37d195] ⚠ | `agent/inbox/inserted` | bot:kickoff "[Bot team setup] The user just created you. Greet the user i" |
 | 68 | 09:43:40.963 | Builder[9b37d195] ⚠ | `agent/status` | running |
@@ -108,18 +109,21 @@
 | 117 | 09:43:41.157 | Reviewer | `session/event` | user/message time-context "Time sampled while preparing turn 1, step 1: 2026-" |
 | 120 | 09:43:41.160 | Reviewer | `llm/stream` | msgs=6 tools=51 |
 | 121 | 09:43:41.160 | Reviewer | `agent/assistant-stream` |  |
+| 123 | 09:43:41.441 | Researcher | `session/event` | assistant/message turn 1 step 1 |
 | 124 | 09:43:41.442 | Researcher | `agent/assistant-stream` |  |
 | 125 | 09:43:41.442 | Researcher | `session/event` | step/end turn 1 step 1 |
 | 126 | 09:43:41.443 | Researcher | `agent/turn-stopping` | inbox nextStep=0 nextTurn=0 |
 | 127 | 09:43:41.443 | Researcher | `session/event` | turn/end "[object kind]" |
 | 128 | 09:43:41.444 | Researcher | `agent/status` | idle |
 | 129 | 09:43:41.446 | Researcher | `probe/when-idle` | after 647 ms |
+| 131 | 09:43:41.456 | Builder | `session/event` | assistant/message turn 1 step 1 |
 | 132 | 09:43:41.457 | Builder | `agent/assistant-stream` |  |
 | 133 | 09:43:41.457 | Builder | `session/event` | step/end turn 1 step 1 |
 | 134 | 09:43:41.458 | Builder | `agent/turn-stopping` | inbox nextStep=0 nextTurn=0 |
 | 135 | 09:43:41.458 | Builder | `session/event` | turn/end "[object kind]" |
 | 136 | 09:43:41.459 | Builder | `agent/status` | idle |
 | 137 | 09:43:41.460 | Builder | `probe/when-idle` | after 497 ms |
+| 139 | 09:43:41.474 | Reviewer | `session/event` | assistant/message turn 1 step 1 |
 | 140 | 09:43:41.474 | Reviewer | `agent/assistant-stream` |  |
 | 141 | 09:43:41.474 | Reviewer | `session/event` | step/end turn 1 step 1 |
 | 142 | 09:43:41.475 | Reviewer | `agent/turn-stopping` | inbox nextStep=0 nextTurn=0 |

@@ -1,0 +1,52 @@
+{
+  "id": "S7-midturn-switch",
+  "title": "the working folder changes mid-turn; ds-bot rejects the next step and switches part",
+  "result": "PASS",
+  "error": null,
+  "startTs": "2026-10-18T10:15:26.740Z",
+  "endTs": "2026-10-18T10:15:48.272Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T10:15:26.741Z",
+      "what": "ask Builder for a three-read task, one tool call at a time"
+    },
+    {
+      "ts": "2026-10-18T10:15:27.895Z",
+      "what": "first tool done; move Builder to another working folder mid-turn",
+      "altDir": "/workspace/dsh_squad_dev/probes/.run/real-alt-workdir"
+    },
+    {
+      "ts": "2026-10-18T10:15:48.272Z",
+      "what": "after",
+      "rejects": 0,
+      "segments": 1
+    }
+  ],
+  "eventCount": 140,
+  "counts": {
+    "session/event": 58,
+    "agent/inbox/inserted": 2,
+    "agent/status": 4,
+    "agent/inbox/claimed": 2,
+    "agent/pre-step:in": 6,
+    "agent/pre-step:out": 6,
+    "agent/request:in": 6,
+    "agent/request:out": 6,
+    "llm/stream": 8,
+    "agent/assistant-stream": 12,
+    "tools/pre-execute:in": 5,
+    "tools/pre-execute:out": 5,
+    "tools/execute:in": 5,
+    "tools/execute:out": 5,
+    "tools/result": 5,
+    "probe/when-idle": 2,
+    "session/created": 1,
+    "agent/created": 1,
+    "agent/turn-stopping": 1
+  },
+  "rescored": {
+    "from": "FAIL",
+    "to": "PASS",
+    "why": "The original check looked only for a pre-step reject seen by the probe. The recorded sequence shows turn/end {kind:\"blocked\"} (DSH agent-loop: a pre-step reject ends the turn as blocked) right after the folder change, then a fresh part started from a handoff. ds-bot's listener sat outside the probe, so the reject never reached it. Check updated in drive-real.mjs; this run was re-scored from its own events, not re-run."
+  }
+}

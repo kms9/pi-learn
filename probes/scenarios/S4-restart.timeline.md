@@ -31,6 +31,7 @@
 | 516 | 09:45:22.425 | Chief | `session/event` | user/message user "转告 Builder: 慢慢做 25" |
 | 517 | 09:45:22.426 | Chief | `llm/stream` | msgs=19 tools=51 |
 | 518 | 09:45:22.426 | Chief | `agent/assistant-stream` |  |
+| 520 | 09:45:22.740 | Chief | `session/event` | assistant/message turn 5 step 1 |
 | 521 | 09:45:22.741 | Chief | `agent/assistant-stream` |  |
 | 522 | 09:45:22.741 | Chief | `session/event` | tool/call turn 5 step 1 |
 | 523 | 09:45:22.742 | Chief | `tools/pre-execute:in` | message_bot |
@@ -61,6 +62,7 @@
 | 548 | 09:45:22.787 | Chief | `agent/request:out` | deepseek-official/deepseek-v4-pro effort=high |
 | 549 | 09:45:22.789 | Chief | `llm/stream` | msgs=21 tools=51 |
 | 550 | 09:45:22.789 | Chief | `agent/assistant-stream` |  |
+| 552 | 09:45:23.100 | Chief | `session/event` | assistant/message turn 5 step 2 |
 | 553 | 09:45:23.101 | Chief | `agent/assistant-stream` |  |
 | 554 | 09:45:23.101 | Chief | `session/event` | step/end turn 5 step 2 |
 | 555 | 09:45:23.102 | Chief | `agent/turn-stopping` | inbox nextStep=0 nextTurn=0 |
@@ -88,6 +90,7 @@
 | 15 | 09:45:32.675 | Builder | `session/event` | user/message bot:request:resumed "[Message from Chief · DeepSeek Harness restarted w" |
 | 17 | 09:45:32.679 | Builder | `llm/stream` | msgs=11 tools=51 |
 | 18 | 09:45:32.679 | Builder | `agent/assistant-stream` |  |
+| 20 | 09:45:57.722 | Builder | `session/event` | assistant/message turn 4 step 1 |
 | 21 | 09:45:57.723 | Builder | `agent/assistant-stream` |  |
 | 22 | 09:45:57.723 | Builder | `session/event` | step/end turn 4 step 1 |
 | 23 | 09:45:57.724 | Builder | `agent/turn-stopping` | inbox nextStep=0 nextTurn=0 |
@@ -110,6 +113,7 @@
 | 40 | 09:45:57.803 | Chief | `session/event` | user/message bot:reply "[Reply from Builder] 给 Chief 的回复：做完了，用了 25 秒。" |
 | 42 | 09:45:57.807 | Chief | `llm/stream` | msgs=23 tools=51 |
 | 43 | 09:45:57.808 | Chief | `agent/assistant-stream` |  |
+| 45 | 09:45:58.124 | Chief | `session/event` | assistant/message turn 6 step 1 |
 | 46 | 09:45:58.125 | Chief | `agent/assistant-stream` |  |
 | 47 | 09:45:58.126 | Chief | `session/event` | tool/call turn 6 step 1 |
 | 48 | 09:45:58.127 | Chief | `tools/pre-execute:in` | ask_user |

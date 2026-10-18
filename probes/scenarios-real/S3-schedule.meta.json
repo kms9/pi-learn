@@ -1,0 +1,33 @@
+{
+  "id": "S3-schedule",
+  "title": "a scheduled task fires in a Bot chat",
+  "result": "PASS",
+  "startTs": "2026-10-18T10:13:41.991Z",
+  "endTs": "2026-10-18T10:14:53.128Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T10:13:41.992Z",
+      "what": "schedule-create for Reviewer",
+      "at": "2026-10-18T10:14:46.992Z"
+    },
+    {
+      "ts": "2026-10-18T10:14:48.052Z",
+      "what": "Reviewer claimed the reminder"
+    }
+  ],
+  "eventCount": 22,
+  "counts": {
+    "session/event": 9,
+    "agent/inbox/inserted": 1,
+    "agent/status": 2,
+    "agent/inbox/claimed": 1,
+    "agent/pre-step:in": 1,
+    "agent/pre-step:out": 1,
+    "agent/request:in": 1,
+    "agent/request:out": 1,
+    "llm/stream": 1,
+    "agent/assistant-stream": 2,
+    "agent/turn-stopping": 1,
+    "probe/when-idle": 1
+  }
+}

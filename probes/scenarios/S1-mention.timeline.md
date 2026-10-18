@@ -32,6 +32,7 @@
 | 168 | 09:43:47.594 | @研发群(group) | `session/event` | user/message time-context "Time sampled while preparing turn 1, step 1: 2026-" |
 | 171 | 09:43:47.597 | @研发群(group) | `llm/stream` | msgs=6 tools=55 |
 | 172 | 09:43:47.597 | @研发群(group) | `agent/assistant-stream` |  |
+| 173 | 09:43:47.605 | @研发群(group) | `session/event` | assistant/message turn 1 step 1 |
 | 174 | 09:43:47.606 | @研发群(group) | `agent/assistant-stream` |  |
 | 175 | 09:43:47.606 | @研发群(group) | `session/event` | tool/call turn 1 step 1 |
 | 176 | 09:43:47.607 | @研发群(group) | `tools/pre-execute:in` | group_relay |
@@ -39,7 +40,7 @@
 | 178 | 09:43:47.608 | @研发群(group) | `tools/execute:in` | group_relay |
 | 179 | 09:43:47.619 | Researcher@研发群[5c8383fc] ⚠ | `session/created` | new Session |
 | 183 | 09:43:47.621 | Researcher@研发群[5c8383fc] ⚠ | `agent/created` | source="startup" |
-| 185 | 09:43:47.627 | Researcher@研发群[5c8383fc] ⚠ | `session/event` | model/selection |
+| 185 | 09:43:47.627 | Researcher@研发群[5c8383fc] ⚠ | `session/event` | model/selection {"provider":"deepseek-official","model":"deepseek-flash","reasoningEffort":"high"} |
 | 186 | 09:43:47.753 | Researcher@研发群[5c8383fc] ⚠ | `session/event` | agent/inbox/spliced next-turn +1 -0 |
 | 187 | 09:43:47.754 | Researcher@研发群[5c8383fc] ⚠ | `agent/inbox/inserted` | bot:room "[Group chat "研发群" · your turn] Your own chat with the user s" |
 | 188 | 09:43:47.754 | Researcher@研发群[5c8383fc] ⚠ | `agent/status` | running |
@@ -58,6 +59,7 @@
 | 202 | 09:43:47.783 | Researcher@研发群[5c8383fc] ⚠ | `session/event` | user/message time-context "Time sampled while preparing turn 1, step 1: 2026-" |
 | 205 | 09:43:47.786 | Researcher@研发群[5c8383fc] ⚠ | `llm/stream` | msgs=6 tools=51 |
 | 206 | 09:43:47.786 | Researcher@研发群[5c8383fc] ⚠ | `agent/assistant-stream` |  |
+| 208 | 09:43:48.109 | Researcher@研发群 | `session/event` | assistant/message turn 1 step 1 |
 | 209 | 09:43:48.110 | Researcher@研发群 | `agent/assistant-stream` |  |
 | 210 | 09:43:48.110 | Researcher@研发群 | `session/event` | step/end turn 1 step 1 |
 | 211 | 09:43:48.110 | Researcher@研发群 | `agent/turn-stopping` | inbox nextStep=0 nextTurn=0 |

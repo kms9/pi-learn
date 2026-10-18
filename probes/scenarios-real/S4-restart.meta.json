@@ -1,0 +1,52 @@
+{
+  "id": "S4-restart",
+  "title": "host restarts while a Bot streams; ds-bot resumes it",
+  "result": "PASS",
+  "startTs": "2026-10-18T10:16:40.009Z",
+  "endTs": "2026-10-18T10:17:52.383Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T10:16:40.010Z",
+      "what": "ask Chief to have Builder write ~800 characters (message_bot)"
+    },
+    {
+      "ts": "2026-10-18T10:16:44.861Z",
+      "what": "restart web host (SIGTERM, then start)"
+    },
+    {
+      "ts": "2026-10-18T10:16:48.126Z",
+      "what": "host back"
+    },
+    {
+      "ts": "2026-10-18T10:17:52.382Z",
+      "what": "after",
+      "resumed": 1,
+      "replies": 1,
+      "chat": "session-56efa1b6-af39-4813-a628-f4c015cc01db"
+    }
+  ],
+  "eventCount": 422,
+  "counts": {
+    "session/event": 169,
+    "agent/inbox/inserted": 5,
+    "agent/status": 9,
+    "agent/inbox/claimed": 5,
+    "agent/pre-step:in": 20,
+    "agent/pre-step:out": 20,
+    "agent/request:in": 20,
+    "agent/request:out": 20,
+    "llm/stream": 23,
+    "agent/assistant-stream": 39,
+    "tools/pre-execute:in": 15,
+    "tools/pre-execute:out": 15,
+    "tools/execute:in": 15,
+    "tools/execute:out": 15,
+    "tools/result": 15,
+    "agent/turn-stopping": 4,
+    "probe/when-idle": 5,
+    "probe/stop": 1,
+    "probe/start": 1,
+    "session/created": 3,
+    "agent/created": 3
+  }
+}

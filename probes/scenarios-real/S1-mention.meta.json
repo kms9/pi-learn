@@ -1,0 +1,35 @@
+{
+  "id": "S1-mention",
+  "title": "@ one Bot in the group",
+  "result": "PASS",
+  "startTs": "2026-10-18T10:12:42.292Z",
+  "endTs": "2026-10-18T10:12:50.412Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T10:12:42.292Z",
+      "what": "user posts \"@Researcher 用一句话介绍你自己\" in group"
+    }
+  ],
+  "eventCount": 73,
+  "counts": {
+    "session/event": 39,
+    "agent/inbox/inserted": 2,
+    "agent/status": 4,
+    "agent/inbox/claimed": 2,
+    "agent/pre-step:in": 2,
+    "agent/pre-step:out": 2,
+    "agent/request:in": 2,
+    "agent/request:out": 2,
+    "llm/stream": 3,
+    "agent/assistant-stream": 4,
+    "tools/pre-execute:in": 1,
+    "tools/pre-execute:out": 1,
+    "tools/execute:in": 1,
+    "session/created": 1,
+    "agent/created": 1,
+    "agent/turn-stopping": 2,
+    "probe/when-idle": 2,
+    "tools/execute:out": 1,
+    "tools/result": 1
+  }
+}

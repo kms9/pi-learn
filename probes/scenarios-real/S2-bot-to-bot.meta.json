@@ -1,0 +1,39 @@
+{
+  "id": "S2-bot-to-bot",
+  "title": "message_bot, post_to_group, group_relay",
+  "result": "PASS",
+  "startTs": "2026-10-18T10:13:13.982Z",
+  "endTs": "2026-10-18T10:13:41.986Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T10:13:13.983Z",
+      "what": "ask Chief to message Builder (message_bot)"
+    },
+    {
+      "ts": "2026-10-18T10:13:27.724Z",
+      "what": "ask Chief to post in the group (post_to_group → group_relay)"
+    }
+  ],
+  "eventCount": 312,
+  "counts": {
+    "session/event": 135,
+    "agent/inbox/inserted": 8,
+    "agent/status": 16,
+    "agent/inbox/claimed": 8,
+    "agent/pre-step:in": 13,
+    "agent/pre-step:out": 13,
+    "agent/request:in": 13,
+    "agent/request:out": 13,
+    "llm/stream": 17,
+    "agent/assistant-stream": 26,
+    "tools/pre-execute:in": 6,
+    "tools/pre-execute:out": 6,
+    "tools/execute:in": 6,
+    "tools/execute:out": 6,
+    "tools/result": 6,
+    "agent/turn-stopping": 8,
+    "probe/when-idle": 8,
+    "session/created": 2,
+    "agent/created": 2
+  }
+}

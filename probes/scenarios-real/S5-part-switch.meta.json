@@ -1,0 +1,37 @@
+{
+  "id": "S5-part-switch",
+  "title": "context fills between turns; ds-bot moves the chat to a fresh part",
+  "result": "PASS",
+  "startTs": "2026-10-18T10:14:53.131Z",
+  "endTs": "2026-10-18T10:15:04.330Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T10:14:53.133Z",
+      "what": "send Researcher ~10k tokens of notes, round 1"
+    },
+    {
+      "ts": "2026-10-18T10:15:04.330Z",
+      "what": "parts",
+      "segments": 1,
+      "sessionId": "session-ab33548a-fcf7-425b-943f-6598c1a83947",
+      "first": "session-b2bcdf79-7b6b-402b-b324-a96369ff6006"
+    }
+  ],
+  "eventCount": 63,
+  "counts": {
+    "session/event": 32,
+    "agent/inbox/inserted": 2,
+    "agent/status": 4,
+    "agent/inbox/claimed": 2,
+    "agent/pre-step:in": 2,
+    "agent/pre-step:out": 2,
+    "agent/request:in": 2,
+    "agent/request:out": 2,
+    "llm/stream": 5,
+    "agent/assistant-stream": 4,
+    "agent/turn-stopping": 2,
+    "probe/when-idle": 2,
+    "session/created": 1,
+    "agent/created": 1
+  }
+}
