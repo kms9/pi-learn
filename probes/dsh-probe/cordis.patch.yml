@@ -1,0 +1,5 @@
+# Mounts the observe-only probe after ds-bot. It registers listeners only; every
+# waterfall listener returns exactly what next() returned.
+- insert:
+    - id: squad-probe
+      name: dsh-squad-probe
