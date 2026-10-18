@@ -1,0 +1,19 @@
+{
+  "recorded": "2026-10-18",
+  "dsh": {
+    "repo": "https://github.com/deepseek-ai/deepseek-harness",
+    "tag": "dsh-v0.2.1-rc.2",
+    "commit": "687f282e8625c6b8d11ff58211a90524be2e4317",
+    "npm": "0.2.1-rc.2",
+    "note": "upstream master HEAD == tag at record time; the bench runs the npm release of the same tag (the source checkout needs a full monorepo build to run)"
+  },
+  "dsBot": {
+    "repo": "https://github.com/Fei2411/DeepSeek-Bot",
+    "branch": "main",
+    "commit": "e13bc3419d2695a509520d850a07e63f05c34e07",
+    "packageVersion": "0.1.7",
+    "latestTag": "v0.1.7 (939a6635), ancestor of main",
+    "declaredDsh": "0.2.0-rc.2 (ds-bot/dev/harness/package.json on main)",
+    "overrideDsh": "0.2.1-rc.2 (upstream branch chore/dsh-0.2.1-rc.2 @5c6e116 makes the same move; not yet merged)"
+  }
+}
