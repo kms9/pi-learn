@@ -49,6 +49,8 @@ export function openBench({ name, port, mockPort, out, only = [], quietMs = 3000
   }
   const api = (endpoint, payload = {}) => post('/api/bot', endpoint, payload)
   const driver = (endpoint, payload = {}) => post('/api/squad-probe-driver', endpoint, payload)
+  const gate = (endpoint, payload = {}) => post('/api/squad-gate', endpoint, payload)
+  const decisions = () => lines(join(home, 'squad-gate', 'decisions.jsonl'))
   const state = () => readJson(join(home, 'bot', 'state.json'))
   const botNamed = wanted => Object.values(state().bots).find(bot => bot.name === wanted)
   const roomNamed = wanted => Object.values(state().rooms).find(room => room.name === wanted)
@@ -104,7 +106,7 @@ export function openBench({ name, port, mockPort, out, only = [], quietMs = 3000
     return result
   }
 
-  return { home, events, login, api, driver, state, botNamed, roomNamed, send, probeLines, settle, bench, scenario }
+  return { home, events, login, api, driver, gate, decisions, state, botNamed, roomNamed, send, probeLines, settle, bench, scenario }
 }
 
 export const expect = (condition, message) => (condition ? undefined : message)

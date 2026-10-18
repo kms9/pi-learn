@@ -1,0 +1,58 @@
+{
+  "id": "N8-steer-and-fence",
+  "title": "mid-attempt steering is filtered out; a superseded admission and a forged one are held",
+  "result": "PASS",
+  "startTs": "2026-10-18T12:56:20.222Z",
+  "endTs": "2026-10-18T12:56:28.429Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T12:56:20.223Z",
+      "what": "admit Builder: 长任务 6 1",
+      "attemptId": "att-mvdtx6v3-5"
+    },
+    {
+      "ts": "2026-10-18T12:56:20.250Z",
+      "what": "Chief: 插话 Builder: 先停一下 (message_bot now → steer)"
+    },
+    {
+      "ts": "2026-10-18T12:56:21.764Z",
+      "what": "admit two more while it runs",
+      "older": "att-mvdtx6w7-6",
+      "newer": "att-mvdtx6w7-7"
+    },
+    {
+      "ts": "2026-10-18T12:56:21.780Z",
+      "what": "inject a forged squad input"
+    },
+    {
+      "ts": "2026-10-18T12:56:28.416Z",
+      "what": "after",
+      "longVerdict": "settled_completed",
+      "steeredFiltered": 1,
+      "stale": 1,
+      "forgedOrStale": 2,
+      "newerOpened": true
+    }
+  ],
+  "eventCount": 209,
+  "counts": {
+    "session/event": 83,
+    "agent/inbox/inserted": 10,
+    "agent/status": 6,
+    "agent/inbox/claimed": 8,
+    "agent/pre-step:in": 9,
+    "agent/pre-step:out": 9,
+    "agent/request:in": 9,
+    "agent/request:out": 9,
+    "llm/stream": 10,
+    "agent/assistant-stream": 18,
+    "tools/pre-execute:in": 6,
+    "tools/pre-execute:out": 6,
+    "tools/execute:in": 6,
+    "tools/execute:out": 6,
+    "tools/result": 6,
+    "agent/turn-stopping": 3,
+    "probe/when-idle": 3,
+    "agent/inbox/discarded": 2
+  }
+}

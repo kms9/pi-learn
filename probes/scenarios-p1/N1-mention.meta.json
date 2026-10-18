@@ -1,0 +1,36 @@
+{
+  "id": "N1-mention",
+  "title": "@Builder in the group: the relay into Builder's managed Session is held",
+  "result": "PASS",
+  "startTs": "2026-10-18T12:22:55.198Z",
+  "endTs": "2026-10-18T12:49:18.969Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T12:22:55.199Z",
+      "what": "user posts \"@Builder 帮忙看看\" in group"
+    },
+    {
+      "ts": "2026-10-18T12:49:18.966Z",
+      "what": "after",
+      "rejected": 1,
+      "modelCalls": 0
+    }
+  ],
+  "eventCount": 31,
+  "counts": {
+    "session/event": 12,
+    "agent/inbox/inserted": 2,
+    "agent/status": 3,
+    "agent/inbox/claimed": 2,
+    "agent/pre-step:in": 1,
+    "agent/pre-step:out": 1,
+    "agent/request:in": 1,
+    "agent/request:out": 1,
+    "llm/stream": 2,
+    "agent/assistant-stream": 2,
+    "tools/pre-execute:in": 1,
+    "tools/pre-execute:out": 1,
+    "tools/execute:in": 1,
+    "probe/when-idle": 1
+  }
+}

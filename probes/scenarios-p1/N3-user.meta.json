@@ -1,0 +1,31 @@
+{
+  "id": "N3-user",
+  "title": "a user message straight into a managed chat is held",
+  "result": "PASS",
+  "startTs": "2026-10-18T12:53:45.563Z",
+  "endTs": "2026-10-18T12:54:53.645Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T12:54:53.645Z",
+      "what": "after",
+      "rejected": 1
+    }
+  ],
+  "eventCount": 43,
+  "counts": {
+    "session/event": 19,
+    "agent/inbox/inserted": 2,
+    "agent/status": 5,
+    "agent/inbox/claimed": 2,
+    "probe/when-idle": 3,
+    "agent/pre-step:in": 1,
+    "agent/pre-step:out": 1,
+    "agent/request:in": 1,
+    "agent/request:out": 1,
+    "llm/stream": 2,
+    "agent/assistant-stream": 2,
+    "agent/turn-stopping": 2,
+    "tools/execute:out": 1,
+    "tools/result": 1
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "id": "N10-handoff",
+  "title": "a part switch keeps the owner from the first event, and the handoff self-start is held",
+  "result": "PASS",
+  "startTs": "2026-10-18T12:56:33.560Z",
+  "endTs": "2026-10-18T12:56:46.392Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T12:56:33.560Z",
+      "what": "admit Builder: 长文 30 (round 1)",
+      "attemptId": "att-mvdtxh5k-9"
+    },
+    {
+      "ts": "2026-10-18T12:56:40.737Z",
+      "what": "admit Builder: 长文 30 (round 2)",
+      "attemptId": "att-mvdtxmox-10"
+    },
+    {
+      "ts": "2026-10-18T12:56:46.392Z",
+      "what": "after",
+      "switched": true,
+      "ownerAtCreation": {
+        "botId": "session-1db4a1ed-8487-4f6e-b9a8-411f53a307a9",
+        "place": "chat",
+        "partOf": "session-1db4a1ed-8487-4f6e-b9a8-411f53a307a9"
+      },
+      "handoffRejects": 1,
+      "freshModelCalls": 0
+    }
+  ],
+  "eventCount": 154,
+  "counts": {
+    "session/event": 59,
+    "agent/inbox/inserted": 3,
+    "agent/status": 6,
+    "agent/inbox/claimed": 3,
+    "agent/pre-step:in": 7,
+    "agent/pre-step:out": 7,
+    "agent/request:in": 7,
+    "agent/request:out": 7,
+    "llm/stream": 9,
+    "agent/assistant-stream": 14,
+    "tools/pre-execute:in": 5,
+    "tools/pre-execute:out": 5,
+    "tools/execute:in": 5,
+    "tools/execute:out": 5,
+    "tools/result": 5,
+    "agent/turn-stopping": 2,
+    "probe/when-idle": 3,
+    "session/created": 1,
+    "agent/created": 1
+  }
+}

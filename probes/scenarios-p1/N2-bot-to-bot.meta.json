@@ -1,0 +1,44 @@
+{
+  "id": "N2-bot-to-bot",
+  "title": "message_bot and post_to_group into managed Sessions are held; free Bots still talk",
+  "result": "PASS",
+  "startTs": "2026-10-18T12:49:18.994Z",
+  "endTs": "2026-10-18T12:53:45.557Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T12:49:18.996Z",
+      "what": "Chief: 转告 Builder: 请准备构建环境 (message_bot)"
+    },
+    {
+      "ts": "2026-10-18T12:50:45.444Z",
+      "what": "Chief: 群发 研发群: 今天开会 (post_to_group → relay)"
+    },
+    {
+      "ts": "2026-10-18T12:53:45.556Z",
+      "what": "after",
+      "chatRejects": 1,
+      "groupRejects": 1,
+      "freeAnswered": true
+    }
+  ],
+  "eventCount": 158,
+  "counts": {
+    "session/event": 64,
+    "agent/inbox/inserted": 6,
+    "agent/status": 12,
+    "agent/inbox/claimed": 6,
+    "agent/pre-step:in": 6,
+    "agent/pre-step:out": 6,
+    "agent/request:in": 6,
+    "agent/request:out": 6,
+    "llm/stream": 9,
+    "agent/assistant-stream": 12,
+    "tools/pre-execute:in": 3,
+    "tools/pre-execute:out": 3,
+    "tools/execute:in": 3,
+    "probe/when-idle": 6,
+    "tools/execute:out": 3,
+    "tools/result": 3,
+    "agent/turn-stopping": 4
+  }
+}

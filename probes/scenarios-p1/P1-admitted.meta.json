@@ -1,0 +1,39 @@
+{
+  "id": "P1-admitted",
+  "title": "an admitted attempt runs, uses tools, and is judged settled_completed",
+  "result": "PASS",
+  "startTs": "2026-10-18T12:22:50.033Z",
+  "endTs": "2026-10-18T12:22:55.195Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T12:22:50.034Z",
+      "what": "admit Builder: 长任务 2 1",
+      "attemptId": "att-mvdsq3si-1"
+    },
+    {
+      "ts": "2026-10-18T12:22:55.195Z",
+      "what": "verdict",
+      "verdict": "settled_completed"
+    }
+  ],
+  "eventCount": 58,
+  "counts": {
+    "session/event": 21,
+    "agent/inbox/inserted": 1,
+    "agent/status": 2,
+    "agent/inbox/claimed": 1,
+    "agent/pre-step:in": 3,
+    "agent/pre-step:out": 3,
+    "agent/request:in": 3,
+    "agent/request:out": 3,
+    "llm/stream": 3,
+    "agent/assistant-stream": 6,
+    "tools/pre-execute:in": 2,
+    "tools/pre-execute:out": 2,
+    "tools/execute:in": 2,
+    "tools/execute:out": 2,
+    "tools/result": 2,
+    "agent/turn-stopping": 1,
+    "probe/when-idle": 1
+  }
+}

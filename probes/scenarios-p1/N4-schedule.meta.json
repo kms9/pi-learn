@@ -1,0 +1,27 @@
+{
+  "id": "N4-schedule",
+  "title": "a scheduled task due in a managed chat is held",
+  "result": "PASS",
+  "startTs": "2026-10-18T12:54:53.649Z",
+  "endTs": "2026-10-18T12:56:02.747Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T12:54:53.650Z",
+      "what": "schedule-create for Builder",
+      "at": "2026-10-18T12:55:58.650Z"
+    },
+    {
+      "ts": "2026-10-18T12:56:02.747Z",
+      "what": "after",
+      "held": true
+    }
+  ],
+  "eventCount": 9,
+  "counts": {
+    "session/event": 4,
+    "agent/inbox/inserted": 1,
+    "agent/status": 2,
+    "agent/inbox/claimed": 1,
+    "probe/when-idle": 1
+  }
+}

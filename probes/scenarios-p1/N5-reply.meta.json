@@ -1,0 +1,40 @@
+{
+  "id": "N5-reply",
+  "title": "a reply coming back to a managed Bot after its attempt ended is held",
+  "result": "PASS",
+  "startTs": "2026-10-18T12:56:02.752Z",
+  "endTs": "2026-10-18T12:56:07.367Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T12:56:02.752Z",
+      "what": "admit Builder: 转告 Chief: 进度如何",
+      "attemptId": "att-mvdtwtds-2"
+    },
+    {
+      "ts": "2026-10-18T12:56:07.367Z",
+      "what": "after",
+      "verdict": "settled_completed",
+      "replyRejects": 1
+    }
+  ],
+  "eventCount": 69,
+  "counts": {
+    "session/event": 29,
+    "agent/inbox/inserted": 3,
+    "agent/status": 4,
+    "agent/inbox/claimed": 3,
+    "agent/pre-step:in": 3,
+    "agent/pre-step:out": 3,
+    "agent/request:in": 3,
+    "agent/request:out": 3,
+    "llm/stream": 3,
+    "agent/assistant-stream": 6,
+    "tools/pre-execute:in": 1,
+    "tools/pre-execute:out": 1,
+    "tools/execute:in": 1,
+    "tools/execute:out": 1,
+    "tools/result": 1,
+    "agent/turn-stopping": 2,
+    "probe/when-idle": 2
+  }
+}

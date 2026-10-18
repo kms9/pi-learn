@@ -11,6 +11,8 @@
 # file first (DEEPSEEK_BASE_URL, DEEPSEEK_API_KEY); this script never writes either down.
 # DSH speaks the Anthropic Messages protocol, served under <base>/anthropic.
 # CATALOG=flash-only drops deepseek-v4-pro from the model catalog (fallback scenario).
+# SQUAD=1 loads the patched ds-bot (dsh_squad/scripts/prepare-ds-bot.sh) and the Squad
+# gate (dsh_squad/gate) instead of the plain submodule ds-bot.
 set -eu
 NAME=${1:?usage: bench.sh <name> <web-port> <mock-port> [start|stop|reset|status]}
 WEB_PORT=${2:?usage}
@@ -23,6 +25,11 @@ REPO="$(dirname "$PROBES")"
 PLUGIN="$REPO/dsh-bot/ds-bot"
 PROBE="$PROBES/dsh-probe"
 DRIVER="$PROBES/dsh-probe-driver"
+GATE="$REPO/dsh_squad/gate"
+if [ "${SQUAD:-}" = 1 ]; then
+  PLUGIN="$REPO/dsh_squad/.build/ds-bot"
+  [ -f "$PLUGIN/src/host/seam.js" ] || { echo "SQUAD=1 needs the patched ds-bot: run dsh_squad/scripts/prepare-ds-bot.sh" >&2; exit 1; }
+fi
 MODEL=${MODEL:-mock}
 DSH_VERSION=$(node -p "require('$PROBES/versions.lock.json').dsh.npm")
 HARNESS="$PROBES/.run/harness"
@@ -51,16 +58,18 @@ ensure_harness() {
 
 ensure_profile() {
   profile="$HOME_DIR/profiles/web"
-  if [ -f "$profile/package.json" ] && grep -q "\"link:$DRIVER\"" "$profile/package.json"; then return 0; fi
+  if [ "${SQUAD:-}" = 1 ]; then
+    deps="\"ds-bot\": \"link:$PLUGIN\", \"dsh-squad-probe\": \"link:$PROBE\", \"dsh-squad-probe-driver\": \"link:$DRIVER\", \"dsh-squad-gate\": \"link:$GATE\""
+    bundles='"@deepseek-ai/dsh-base", "@deepseek-ai/dsh-web-app", "ds-bot", "dsh-squad-probe", "dsh-squad-probe-driver", "dsh-squad-gate"'
+  else
+    deps="\"ds-bot\": \"link:$PLUGIN\", \"dsh-squad-probe\": \"link:$PROBE\", \"dsh-squad-probe-driver\": \"link:$DRIVER\""
+    bundles='"@deepseek-ai/dsh-base", "@deepseek-ai/dsh-web-app", "ds-bot", "dsh-squad-probe", "dsh-squad-probe-driver"'
+  fi
+  wanted=$(printf '{\n  "name": "dsh-profile-web",\n  "private": true,\n  "dependencies": { %s },\n  "dsh": { "profile": { "bundles": [%s] } }\n}\n' "$deps" "$bundles")
+  # Rewritten (and installed) only when the plugin set changed.
+  if [ -f "$profile/package.json" ] && [ "$(cat "$profile/package.json")" = "$wanted" ]; then return 0; fi
   mkdir -p "$profile"
-  cat > "$profile/package.json" <<EOF
-{
-  "name": "dsh-profile-web",
-  "private": true,
-  "dependencies": { "ds-bot": "link:$PLUGIN", "dsh-squad-probe": "link:$PROBE", "dsh-squad-probe-driver": "link:$DRIVER" },
-  "dsh": { "profile": { "bundles": ["@deepseek-ai/dsh-base", "@deepseek-ai/dsh-web-app", "ds-bot", "dsh-squad-probe", "dsh-squad-probe-driver"] } }
-}
-EOF
+  printf '%s\n' "$wanted" > "$profile/package.json"
   printf 'packages:\n  - .\n\nnodeLinker: hoisted\nautoInstallPeers: false\n' > "$profile/pnpm-workspace.yaml"
   (cd "$profile" && DSH_HOME="$HOME_DIR" pnpm install >/dev/null)
 }
@@ -132,7 +141,7 @@ case "$ACTION" in
   reset)
     stop_one web
     stop_one mock
-    rm -rf "$HOME_DIR/bot" "$HOME_DIR/sessions" "$HOME_DIR/probe" "$HOME_DIR/mock.jsonl" "$HOME_DIR/cookies.txt"
+    rm -rf "$HOME_DIR/bot" "$HOME_DIR/sessions" "$HOME_DIR/probe" "$HOME_DIR/squad-gate" "$HOME_DIR/mock.jsonl" "$HOME_DIR/cookies.txt"
     start
     ;;
   status) status ;;

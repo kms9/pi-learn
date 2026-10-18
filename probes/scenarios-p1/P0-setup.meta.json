@@ -1,0 +1,41 @@
+{
+  "id": "P0-setup",
+  "title": "four Bots, one group; Builder and Reviewer managed",
+  "result": "PASS",
+  "startTs": "2026-10-18T12:22:28.873Z",
+  "endTs": "2026-10-18T12:22:50.029Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T12:22:50.016Z",
+      "what": "manage Builder chat, Builder in the group, Reviewer chat (frozen v4-pro)"
+    },
+    {
+      "ts": "2026-10-18T12:22:50.029Z",
+      "what": "owners at agent/created",
+      "created": 9,
+      "unknown": 0
+    }
+  ],
+  "eventCount": 337,
+  "counts": {
+    "session/created": 9,
+    "session/event": 193,
+    "agent/created": 9,
+    "agent/inbox/inserted": 9,
+    "agent/status": 18,
+    "agent/inbox/claimed": 9,
+    "agent/pre-step:in": 9,
+    "agent/pre-step:out": 9,
+    "agent/request:in": 9,
+    "agent/request:out": 9,
+    "llm/stream": 13,
+    "agent/assistant-stream": 18,
+    "agent/turn-stopping": 9,
+    "probe/when-idle": 9,
+    "tools/pre-execute:in": 1,
+    "tools/pre-execute:out": 1,
+    "tools/execute:in": 1,
+    "tools/execute:out": 1,
+    "tools/result": 1
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "id": "N9-cancel",
+  "title": "a cancelled attempt is settled_aborted, never completed",
+  "result": "PASS",
+  "startTs": "2026-10-18T12:56:28.438Z",
+  "endTs": "2026-10-18T12:56:33.550Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T12:56:30.464Z",
+      "what": "cancel the attempt",
+      "attemptId": "att-mvdtxd7a-8"
+    },
+    {
+      "ts": "2026-10-18T12:56:33.550Z",
+      "what": "after",
+      "verdict": "settled_aborted"
+    }
+  ],
+  "eventCount": 74,
+  "counts": {
+    "session/event": 26,
+    "agent/inbox/inserted": 1,
+    "agent/status": 2,
+    "agent/inbox/claimed": 1,
+    "agent/pre-step:in": 4,
+    "agent/pre-step:out": 4,
+    "agent/request:in": 4,
+    "agent/request:out": 4,
+    "llm/stream": 4,
+    "agent/assistant-stream": 8,
+    "tools/pre-execute:in": 3,
+    "tools/pre-execute:out": 3,
+    "tools/execute:in": 3,
+    "tools/execute:out": 3,
+    "tools/result": 3,
+    "probe/when-idle": 1
+  }
+}

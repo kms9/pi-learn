@@ -1,0 +1,44 @@
+{
+  "id": "N7-stopped",
+  "title": "another Bot stops a running attempt: aborted, and the stop notice is held",
+  "result": "PASS",
+  "startTs": "2026-10-18T12:56:11.482Z",
+  "endTs": "2026-10-18T12:56:20.164Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T12:56:11.482Z",
+      "what": "admit Builder: 长任务 8 1",
+      "attemptId": "att-mvdtx04a-4"
+    },
+    {
+      "ts": "2026-10-18T12:56:13.013Z",
+      "what": "Chief: 叫停 Builder: 暂停一下 (stop_bot)"
+    },
+    {
+      "ts": "2026-10-18T12:56:20.164Z",
+      "what": "after",
+      "verdict": "settled_aborted",
+      "stoppedRejects": 1
+    }
+  ],
+  "eventCount": 129,
+  "counts": {
+    "session/event": 49,
+    "agent/inbox/inserted": 4,
+    "agent/status": 6,
+    "agent/inbox/claimed": 4,
+    "agent/pre-step:in": 6,
+    "agent/pre-step:out": 6,
+    "agent/request:in": 6,
+    "agent/request:out": 6,
+    "llm/stream": 7,
+    "agent/assistant-stream": 12,
+    "tools/pre-execute:in": 4,
+    "tools/pre-execute:out": 4,
+    "tools/execute:in": 4,
+    "tools/execute:out": 4,
+    "tools/result": 4,
+    "probe/when-idle": 2,
+    "agent/turn-stopping": 1
+  }
+}

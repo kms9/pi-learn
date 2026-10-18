@@ -1,0 +1,34 @@
+{
+  "id": "N6-retry",
+  "title": "DS Bot's retry after a tool call written as text is held",
+  "result": "PASS",
+  "startTs": "2026-10-18T12:56:07.372Z",
+  "endTs": "2026-10-18T12:56:11.475Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T12:56:07.372Z",
+      "what": "admit Builder: 写成文字",
+      "attemptId": "att-mvdtwwy4-3"
+    },
+    {
+      "ts": "2026-10-18T12:56:11.475Z",
+      "what": "after",
+      "retryRejects": 1
+    }
+  ],
+  "eventCount": 31,
+  "counts": {
+    "session/event": 13,
+    "agent/inbox/inserted": 2,
+    "agent/status": 4,
+    "agent/inbox/claimed": 2,
+    "agent/pre-step:in": 1,
+    "agent/pre-step:out": 1,
+    "agent/request:in": 1,
+    "agent/request:out": 1,
+    "llm/stream": 1,
+    "agent/assistant-stream": 2,
+    "agent/turn-stopping": 1,
+    "probe/when-idle": 2
+  }
+}

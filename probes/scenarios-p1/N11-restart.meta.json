@@ -1,0 +1,52 @@
+{
+  "id": "N11-restart",
+  "title": "a restart mid-attempt: no resume, no replay, verdict outcome_unknown",
+  "result": "PASS",
+  "startTs": "2026-10-18T12:56:46.402Z",
+  "endTs": "2026-10-18T12:57:04.532Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T12:56:46.402Z",
+      "what": "admit Builder: 长任务 10 1",
+      "attemptId": "att-mvdtxr2a-11"
+    },
+    {
+      "ts": "2026-10-18T12:56:48.925Z",
+      "what": "restart web host (SIGTERM, then start)"
+    },
+    {
+      "ts": "2026-10-18T12:57:04.532Z",
+      "what": "after",
+      "selfStarts": [
+        "resend:false",
+        "resume:false"
+      ],
+      "enteredAfterRestart": 0,
+      "modelCallsAfterRestart": 0,
+      "verdict": "outcome_unknown"
+    }
+  ],
+  "eventCount": 130,
+  "counts": {
+    "session/event": 53,
+    "agent/inbox/inserted": 7,
+    "agent/status": 11,
+    "agent/inbox/claimed": 7,
+    "agent/pre-step:in": 4,
+    "agent/pre-step:out": 4,
+    "agent/request:in": 4,
+    "agent/request:out": 4,
+    "llm/stream": 4,
+    "agent/assistant-stream": 7,
+    "tools/pre-execute:in": 3,
+    "tools/pre-execute:out": 3,
+    "tools/execute:in": 3,
+    "tools/execute:out": 3,
+    "tools/result": 3,
+    "probe/stop": 1,
+    "probe/when-idle": 6,
+    "probe/start": 1,
+    "session/created": 1,
+    "agent/created": 1
+  }
+}

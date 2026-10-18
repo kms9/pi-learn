@@ -1,0 +1,46 @@
+{
+  "id": "N12-model-freeze",
+  "title": "Reviewer's frozen model leaves the catalog: the fallback is refused before any request",
+  "result": "PASS",
+  "startTs": "2026-10-18T12:57:04.542Z",
+  "endTs": "2026-10-18T12:57:18.005Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T12:57:04.542Z",
+      "what": "restart web host with deepseek-v4-pro removed from the catalog"
+    },
+    {
+      "ts": "2026-10-18T12:57:14.842Z",
+      "what": "admit Reviewer: 你好",
+      "attemptId": "att-mvdtyd0a-12"
+    },
+    {
+      "ts": "2026-10-18T12:57:18.005Z",
+      "what": "after",
+      "refused": 1,
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-flash",
+        "effort": "high"
+      },
+      "frozen": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-pro"
+      },
+      "applied": "deepseek-official/deepseek-flash",
+      "modelCalls": 0
+    }
+  ],
+  "eventCount": 17,
+  "counts": {
+    "probe/stop": 1,
+    "probe/start": 1,
+    "session/created": 2,
+    "agent/created": 2,
+    "session/event": 6,
+    "agent/inbox/inserted": 1,
+    "agent/status": 2,
+    "agent/inbox/claimed": 1,
+    "probe/when-idle": 1
+  }
+}
