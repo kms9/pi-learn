@@ -1,0 +1,44 @@
+{
+  "id": "S5-part-switch",
+  "title": "context fills; ds-bot moves the chat to a fresh part",
+  "result": "PASS",
+  "startTs": "2026-10-18T09:46:01.106Z",
+  "endTs": "2026-10-18T09:46:12.338Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T09:46:01.106Z",
+      "what": "user asks Researcher: 长文 30 第1篇"
+    },
+    {
+      "ts": "2026-10-18T09:46:06.713Z",
+      "what": "user asks Researcher: 长文 30 第2篇"
+    },
+    {
+      "ts": "2026-10-18T09:46:12.338Z",
+      "what": "parts",
+      "segments": 1,
+      "sessionId": "session-0cbdd4f4-8c41-4927-96c0-2290d0564958",
+      "firstSession": "session-a4a5cb3c-3c6d-45f8-9d71-f6c354e7e6c9"
+    }
+  ],
+  "eventCount": 90,
+  "counts": {
+    "session/created": 2,
+    "agent/created": 2,
+    "session/event": 43,
+    "agent/inbox/inserted": 3,
+    "agent/status": 6,
+    "agent/inbox/claimed": 3,
+    "agent/pre-step:in": 3,
+    "agent/pre-step:out": 3,
+    "agent/request:in": 3,
+    "agent/request:out": 3,
+    "llm/stream": 7,
+    "agent/assistant-stream": 6,
+    "agent/turn-stopping": 3,
+    "probe/when-idle": 3
+  },
+  "startSeq": {
+    "seq": 0
+  }
+}

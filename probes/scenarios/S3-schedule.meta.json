@@ -1,0 +1,41 @@
+{
+  "id": "S3-schedule",
+  "title": "a scheduled task fires in a Bot chat",
+  "result": "PASS",
+  "startTs": "2026-10-18T09:44:07.339Z",
+  "endTs": "2026-10-18T09:45:22.387Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T09:44:07.340Z",
+      "what": "schedule-create for Reviewer",
+      "at": "2026-10-18T09:45:17.340Z"
+    },
+    {
+      "ts": "2026-10-18T09:44:07.385Z",
+      "what": "created",
+      "created": "{\"available\":true,\"tasks\":[{\"id\":\"schedule-41c1101c-044e-4c43-9fe1-0a67c214d398\",\"kind\":\"at\",\"title\":\"probe check\",\"prompt\":\"定时检查一下进度\",\"scheduledAt\":\"2026-10-18T09:45:17.340Z\",\"sessionId\":\"session-4ae"
+    },
+    {
+      "ts": "2026-10-18T09:45:19.345Z",
+      "what": "reviewer claimed an input after due time"
+    }
+  ],
+  "eventCount": 22,
+  "counts": {
+    "session/event": 9,
+    "agent/inbox/inserted": 1,
+    "agent/status": 2,
+    "agent/inbox/claimed": 1,
+    "agent/pre-step:in": 1,
+    "agent/pre-step:out": 1,
+    "agent/request:in": 1,
+    "agent/request:out": 1,
+    "llm/stream": 1,
+    "agent/assistant-stream": 2,
+    "agent/turn-stopping": 1,
+    "probe/when-idle": 1
+  },
+  "startSeq": {
+    "seq": 0
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "id": "S2-bot-to-bot",
+  "title": "message_bot, post_to_group, group_relay",
+  "result": "PASS",
+  "startTs": "2026-10-18T09:43:53.639Z",
+  "endTs": "2026-10-18T09:44:07.335Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T09:43:53.639Z",
+      "what": "user asks Chief: 转告 Builder: 请准备构建环境 (message_bot)"
+    },
+    {
+      "ts": "2026-10-18T09:44:00.235Z",
+      "what": "user asks Chief: 群发 研发群: 今天下午开会 (post_to_group → group_relay)"
+    }
+  ],
+  "eventCount": 258,
+  "counts": {
+    "session/event": 115,
+    "agent/inbox/inserted": 8,
+    "agent/status": 14,
+    "agent/inbox/claimed": 8,
+    "agent/pre-step:in": 10,
+    "agent/pre-step:out": 10,
+    "agent/request:in": 10,
+    "agent/request:out": 10,
+    "llm/stream": 14,
+    "agent/assistant-stream": 20,
+    "tools/pre-execute:in": 4,
+    "tools/pre-execute:out": 4,
+    "tools/execute:in": 4,
+    "tools/execute:out": 4,
+    "tools/result": 4,
+    "agent/turn-stopping": 8,
+    "probe/when-idle": 7,
+    "session/created": 2,
+    "agent/created": 2
+  },
+  "startSeq": {
+    "seq": 0
+  }
+}

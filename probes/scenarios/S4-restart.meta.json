@@ -1,0 +1,52 @@
+{
+  "id": "S4-restart",
+  "title": "host restarts while a Bot works; ds-bot resumes it",
+  "result": "PASS",
+  "startTs": "2026-10-18T09:45:22.392Z",
+  "endTs": "2026-10-18T09:46:01.101Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T09:45:22.392Z",
+      "what": "user asks Chief: 转告 Builder: 慢慢做 25"
+    },
+    {
+      "ts": "2026-10-18T09:45:23.024Z",
+      "what": "Builder is working"
+    },
+    {
+      "ts": "2026-10-18T09:45:27.025Z",
+      "what": "restart web host (SIGTERM, then start)"
+    },
+    {
+      "ts": "2026-10-18T09:45:30.290Z",
+      "what": "host back"
+    }
+  ],
+  "eventCount": 116,
+  "counts": {
+    "session/event": 43,
+    "agent/inbox/inserted": 4,
+    "agent/status": 7,
+    "agent/inbox/claimed": 4,
+    "agent/pre-step:in": 5,
+    "agent/pre-step:out": 5,
+    "agent/request:in": 5,
+    "agent/request:out": 5,
+    "llm/stream": 6,
+    "agent/assistant-stream": 9,
+    "tools/pre-execute:in": 2,
+    "tools/pre-execute:out": 2,
+    "tools/execute:in": 2,
+    "tools/execute:out": 2,
+    "tools/result": 2,
+    "agent/turn-stopping": 3,
+    "probe/when-idle": 4,
+    "probe/stop": 1,
+    "probe/start": 1,
+    "session/created": 2,
+    "agent/created": 2
+  },
+  "startSeq": {
+    "seq": 0
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "id": "S6-cancel",
+  "title": "user stops a member working in the group",
+  "result": "PASS",
+  "startTs": "2026-10-18T09:46:12.343Z",
+  "endTs": "2026-10-18T09:46:23.067Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T09:46:12.343Z",
+      "what": "user posts \"派活 40\" in group (admin hands a member 40 s of work)"
+    },
+    {
+      "ts": "2026-10-18T09:46:12.978Z",
+      "what": "member working",
+      "bot": "Researcher"
+    },
+    {
+      "ts": "2026-10-18T09:46:17.981Z",
+      "what": "stop-member-work"
+    },
+    {
+      "ts": "2026-10-18T09:46:18.009Z",
+      "what": "stop returned",
+      "stopped": true
+    }
+  ],
+  "eventCount": 137,
+  "counts": {
+    "session/created": 3,
+    "agent/created": 3,
+    "session/event": 59,
+    "agent/inbox/inserted": 4,
+    "agent/status": 6,
+    "agent/inbox/claimed": 4,
+    "agent/pre-step:in": 5,
+    "agent/pre-step:out": 5,
+    "agent/request:in": 5,
+    "agent/request:out": 5,
+    "llm/stream": 7,
+    "agent/assistant-stream": 10,
+    "tools/pre-execute:in": 3,
+    "tools/pre-execute:out": 3,
+    "tools/execute:in": 3,
+    "agent/turn-stopping": 3,
+    "probe/when-idle": 3,
+    "tools/execute:out": 3,
+    "tools/result": 3
+  },
+  "startSeq": {
+    "seq": 0
+  }
+}

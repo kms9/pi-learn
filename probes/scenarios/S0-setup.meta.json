@@ -1,0 +1,53 @@
+{
+  "id": "S0-setup",
+  "title": "four Bots, one group",
+  "result": "PASS",
+  "startTs": "2026-10-18T09:43:36.471Z",
+  "endTs": "2026-10-18T09:43:47.554Z",
+  "actions": [
+    {
+      "ts": "2026-10-18T09:43:36.903Z",
+      "what": "pick Chief model",
+      "model": "deepseek-official/deepseek-v4-pro"
+    },
+    {
+      "ts": "2026-10-18T09:43:40.599Z",
+      "what": "create Researcher",
+      "model": "deepseek-official/deepseek-flash"
+    },
+    {
+      "ts": "2026-10-18T09:43:40.621Z",
+      "what": "create Builder",
+      "model": "deepseek-official/deepseek-v4-pro"
+    },
+    {
+      "ts": "2026-10-18T09:43:40.766Z",
+      "what": "create Reviewer",
+      "model": "deepseek-official/deepseek-flash"
+    },
+    {
+      "ts": "2026-10-18T09:43:44.472Z",
+      "what": "create group 研发群"
+    }
+  ],
+  "eventCount": 150,
+  "counts": {
+    "session/created": 5,
+    "session/event": 88,
+    "agent/created": 5,
+    "agent/inbox/inserted": 4,
+    "agent/status": 8,
+    "agent/inbox/claimed": 4,
+    "agent/pre-step:in": 4,
+    "agent/pre-step:out": 4,
+    "agent/request:in": 4,
+    "agent/request:out": 4,
+    "llm/stream": 4,
+    "agent/assistant-stream": 8,
+    "agent/turn-stopping": 4,
+    "probe/when-idle": 4
+  },
+  "startSeq": {
+    "seq": 0
+  }
+}
