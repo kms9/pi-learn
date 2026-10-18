@@ -51,3 +51,4 @@ tags:
 | Q35 | 有外部插件在 ds-bot 链之外放行步骤时，tool guard 和 step 审计能否真正拦住？ | open | P1 负例里没有触发过；需要一个专门的「外层插件直接 enter」负例。 |
 | Q36 | 被 Gate 扣留的输入交给 Controller 后，如何分类、重新投递或丢弃？ | open | 目前只存在 Gate 内存里，重启就丢。与 Run Guidance、Clarification 分类一起在 M2 设计。 |
 | Q37 | `rewake`（拒绝后重新唤醒）依赖的 DSH 行为能否保持到正式版？ | open | 「拒绝会结束 driver 循环」「followup 会唤醒 driver」都是 0.2.1-rc.2 的实测行为；升级时重新验证，或请求 DSH 提供原生的「拒绝但保留 inbox」。 |
+| Q38 | M0→M4 开发规划中的 12 个决策点（Controller 放哪、补丁还是插件、协议版本、多租户、界面范围、M0 试用时间、真实 key 时间、Artifact 存储、版本升级、中间回归、业务案例、Memory 冻结） | open | 待用户拍板。见 `docs/dsh-squad-dev-plan-2026-10-18.md` §3。 |

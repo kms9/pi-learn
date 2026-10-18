@@ -14,6 +14,7 @@ tags: [dsh-bot, squad, migration]
 ## 文档
 
 - **[MIGRATION_PLAN.md](MIGRATION_PLAN.md)**：架构、TR-01～TR-18 能力映射、代码参考、接口、M0～M4 实施顺序。
+- **[开发规划](../docs/dsh-squad-dev-plan-2026-10-18.md)**：M0→M4 工作包、关键路径、决策点、统一测试对应关系（2026-10-18 草案）。
 - **[ACCEPTANCE.md](ACCEPTANCE.md)**：实际用例、故障负例、退出门和可重复对照实验。
 - [迁移决策](../docs/decisions/2026-10-18-dsh-bot-squad-migration.md)。
 - [DS Bot 源码](../dsh-bot/)（真实插件位于 `dsh-bot/ds-bot/`）。

@@ -851,3 +851,9 @@ tags:
 - 来源: 用户批准的 P1 任务；mock 模型 bench（DSH 0.2.1-rc.2 + 打补丁的 ds-bot + `dsh_squad/gate`）。
 - 更新: `dsh_squad/`（补丁、构建脚本、Gate、单测、README）；`probes/{drive-p1.mjs,lib.mjs,bench.sh}`、`probes/scenarios-p1/`；报告 §1/§8/§9；P1 会话、决策；Q29、Q34 关闭，Q33 更新，新增 Q35–Q37；索引；`dsh_squad_case/README.md`。
 - 说明: DSH 没有改动；ds-bot 一个补丁（+152/−9）。ds-bot 单测 638/638，Gate 18/18，负例 14/14。第一轮发现并修复了三个问题（拒绝后排队输入卡住、harness 自己插入的输入、轮询造成的判定竞态）。没有使用真实模型。
+
+## [2026-10-18] session | DS Bot + Squad M0→M4 开发规划
+
+- 来源: 用户要求只做规划：先把 M0–M4 开发完再统一测试，中间只做编译和单测；`dsh_squad_case/{MIGRATION_PLAN,ACCEPTANCE}.md`、P0/P1 报告、`feat/dsh-p1-seam` 代码现状。
+- 更新: `docs/dsh-squad-dev-plan-2026-10-18.md`（新）、`docs/index.md`、Q38、`dsh_squad_case/README.md`。
+- 说明: 共 28 个工作包，约 93 人日，关键路径约 50 人日（加余量约 60）；mermaid 依赖图；决策点 D1–D12 待拍板；T 阶段逐项对应 ACCEPTANCE 28 项。发现 `scheduler/dispatch.go:136` 仍有业务 120 秒硬截止，列为 M1-6。没有写代码。
