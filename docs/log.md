@@ -839,3 +839,9 @@ tags:
 - 来源: 用户批准执行 P0；上游 `git ls-remote`/npm dist-tags；本机 bench（npm DSH 0.2.1-rc.2 + DS Bot e13bc34 + mock 模型）实测。
 - 更新: `deepseek-harness` gitlink；`probes/`（探针、bench、驱动、分析、六场景记录）；`docs/dsh-squad-p0-probe-report-2026-10-18.md`；`docs/dsh-squad-feasibility-2026-10-18.md`；会话、决策、来源、开放问题、索引；`dsh_squad_case/README.md`。
 - 说明: DSH 统一为 `dsh-v0.2.1-rc.2`，DS Bot 保持 main（覆盖其声明的 0.2.0-rc.2，单元测试 635/635）。S1–S6 一次干净运行全部 PASS。结论仍为有条件可行：Hook 覆盖全部唤醒路径；归属 seam、结束判定（需读持久日志）、自动重放、自启回合是硬前置。没有接真实模型或 IM。
+
+## [2026-10-18] session | P0 真实 DeepSeek 模型复跑与补测
+
+- 来源: 用户提供的 DeepSeek 凭据（只 source，不落盘）；`MODEL=real` bench（DSH 0.2.1-rc.2 → `<base>/anthropic`）。
+- 更新: `probes/{bench.sh,lib.mjs,drive.mjs,drive-real.mjs,tokens.mjs,analyze.mjs,dsh-probe/,dsh-probe-driver/}`、`probes/scenarios-real/`、报告 §1/§3A/§5/§7、P0 会话、Q32 关闭、新增 Q34。
+- 说明: S0–S9 全部 PASS（S7 按自身事件重判）。新增风险：H7 pre-step 顺序不可控；重放带真实副作用；静默模型回退升为高；workDir 连锁切段；被取消的调用不计 usage。PTC 嵌套调用可见，风险降低。约 106 万 token（85% cache read）。key 不在仓库和记录中（已 grep 检查）。

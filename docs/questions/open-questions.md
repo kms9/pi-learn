@@ -45,5 +45,6 @@ tags:
 | Q29 | 如何接管 Managed Group 的 `group_relay`、普通消息/定时/自动恢复，不破坏 Free？ | open | P0 实测：群 relay（在 llm/stream 合成）、message_bot、post_to_group、DSH 原生定时、resume 重投、切段 handoff 都经过目标 Session 的 pre-step，可以统一拦截；但新 Session 第一步无法从公开状态归属到 Bot（21% 事件无法归属）。所以 seam 至少要提供 `ownerOf(sessionId)`，并能关闭受控 Session 的 resume/handoff 自启。 |
 | Q30 | 非开发用户的 DS Bot Web、Memory、Secrets 和目录如何隔离？ | open | 首版建议每用户独立环境，不把单个 DSH Home 直接当多租户 SaaS。 |
 | Q31 | 记忆整理等辅助模型调用（P0 中约占调用数的 35%，多数不带 `purpose`）如何计入 Task 成本？ | open | 建议 Adapter 按 session 和是否有活跃回合区分；请 ds-bot 给记忆整理加 purpose 标签。 |
-| Q32 | 回合内（mid-turn）切段、PTC 嵌套调用、默认模型回退，在受控 Session 下的行为是什么？ | open | P0 都没触发到；放在 P1 补场景。 |
+| Q32 | 回合内（mid-turn）切段、PTC 嵌套调用、默认模型回退，在受控 Session 下的行为是什么？ | closed | 2026-10-18 真实模型实测：①回合内切段 → `turn/end blocked`，新 part 由 handoff 自启并重做已完成的步骤；②嵌套调用在 tools/pre-execute 可见，`rootCallId` 指向 run_code；③模型下架后 Session 被静默切到默认模型，Bot 配置不变、没有通知。见 `docs/dsh-squad-p0-probe-report-2026-10-18.md` §3A。 |
 | Q33 | ds-bot 归属 seam 走上游 PR 还是本仓库最小 Fork 补丁？ | open | P1 先做本仓库补丁原型；同时在上游 `docs/plans/` 提设计。 |
+| Q34 | Squad Gate 如何保证在 `agent/pre-step` 中的位置，不被 ds-bot 或其他插件先 reject 或先放行？ | open | 真实模型实测：ds-bot 的切段 reject 发生在探针外层，探针看不到。候选：ds-bot seam 显式调用 Gate；或请求 DSH 提供有序优先级。 |
