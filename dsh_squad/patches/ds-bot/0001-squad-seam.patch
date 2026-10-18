@@ -1,0 +1,274 @@
+diff --git a/index.js b/index.js
+index 7ba683c..0c3843b 100644
+--- a/index.js
++++ b/index.js
+@@ -4,6 +4,7 @@
+ import { join } from 'node:path'
+ import * as diagnostics from './src/host/diagnostics.js'
+ import * as store from './src/host/store.js'
++import * as seam from './src/host/seam.js'
+ import * as models from './src/host/models.js'
+ import * as permissions from './src/host/permissions.js'
+ import * as turns from './src/host/turns.js'
+@@ -41,7 +42,7 @@ export const inject = ['llm', 'tools', 'systemPrompt', 'sessionController', 'ses
+ // the functions other modules call; they call them through `rt` at run time, never during
+ // install. Listeners run and tools are listed in registration order, so this order holds:
+ // usage meters model requests after every listener that rewrites them.
+-const MODULES = [diagnostics, store, models, permissions, turns, handoffs, delivery, roster, folders, agents, prompt, timeContext, tools, chatIndex, groups, approvals, resume, memory, parts, images, secrets, connectors, capabilities, schedules, browser, usage, update, dshUpdate, channel]
++const MODULES = [diagnostics, store, seam, models, permissions, turns, handoffs, delivery, roster, folders, agents, prompt, timeContext, tools, chatIndex, groups, approvals, resume, memory, parts, images, secrets, connectors, capabilities, schedules, browser, usage, update, dshUpdate, channel]
+ 
+ export function apply(ctx, config = {}) {
+   createRuntime(ctx, config)
+diff --git a/src/host/groups.js b/src/host/groups.js
+index 57ec081..efd3435 100644
+--- a/src/host/groups.js
++++ b/src/host/groups.js
+@@ -188,7 +188,7 @@ export function install(rt) {
+       await rt.ensureCapabilities(known)
+       return { id: known, brief: undefined }
+     }
+-    const id = await rt.createSession(`${member.name} · ${room.name}`, { dir: rt.workDirOf({ botId: member.id, roomId: room.id }) })
++    const id = await rt.createSession(`${member.name} · ${room.name}`, { dir: rt.workDirOf({ botId: member.id, roomId: room.id }), owner: { botId: member.id, roomId: room.id, place: 'group-member' } })
+     // While the Session was made the member may have left or been deleted, the group been
+     // deleted, or another turn made the member's Session first: the new one is not kept.
+     // Undefined means the member is gone from the group.
+diff --git a/src/host/parts.js b/src/host/parts.js
+index aedd77b..6b42fe4 100644
+--- a/src/host/parts.js
++++ b/src/host/parts.js
+@@ -778,7 +778,7 @@ export function install(rt) {
+     if (signal.aborted) throw signal.reason
+     const dir = rt.workDirOf(job)
+     const intended = dir !== undefined && await rt.isFolder(dir) ? dir : rt.teamFolder()
+-    const freshId = await rt.createSession(room ? `${bot.name} · ${room.name}` : bot.name, { dir })
++    const freshId = await rt.createSession(room ? `${bot.name} · ${room.name}` : bot.name, { dir, owner: { botId: bot.id, ...(room ? { roomId: room.id } : {}), place: room ? 'group-member' : 'chat', partOf: session.id } })
+     const picked = await freshRoute(bot, session)
+     if (picked !== undefined) await selectRoute(bot, freshId, picked)
+     await rt.applyPermission(bot, freshId, room)
+@@ -842,7 +842,8 @@ export function install(rt) {
+   // Runs first: an earlier part hands its input on, a part past the hard line makes
+   // room before the step (condensed in place, or it stops and goes on in a fresh
+   // part), and the backend's own pre-step listener sees the wrapper.
+-  ctx.on('agent/pre-step', async (payload, next) => {
++  // A Squad gate sees each step first (seam.js), wherever its own plugin loaded.
++  ctx.on('agent/pre-step', (payload, next) => rt.seam.preStep(payload, async () => {
+     await rt.load()
+     const { agent } = payload
+     const past = rt.pastOwners.get(agent.id)
+@@ -868,7 +869,7 @@ export function install(rt) {
+     if (lines === undefined || tokens === undefined || tokens < lines.hard || !grown(agent.id, tokens, lines) || readOnly()) return next()
+     if (await decide(agent, { midTurn: payload.step > 1 }) === 'compact' && await condense(agent, lines, { inTurn: true, signal: payload.signal })) return next()
+     return switchBeforeStep(agent, payload, { hard: true })
+-  }, { prepend: true })
++  }), { prepend: true })
+ 
+   // `messages` left the inbox for this step, so the switch carries them along.
+   function switchBeforeStep(agent, payload, options) {
+diff --git a/src/host/resume.js b/src/host/resume.js
+index 11ba454..529d60a 100644
+--- a/src/host/resume.js
++++ b/src/host/resume.js
+@@ -230,10 +230,13 @@ export function install(rt) {
+     firstTurn = undefined
+     for (const [sessionId, list] of Object.entries(dropped)) {
+       if (!Array.isArray(list)) continue
++      // A Session a Squad gate holds is not sent anything again on its own.
++      if (!rt.seam.allows(sessionId, 'resend', { count: list.length })) continue
+       await resendQueued(sessionId, list).catch(error => rt.warn('ds-bot: sending again what %s was sent failed: %s', sessionId, error))
+     }
+     taken = undefined
+     for (const [sessionId, record] of cut) {
++      if (!rt.seam.allows(sessionId, 'resume', { botId: record.botId, roomId: record.roomId })) continue
+       await resumeTurn(sessionId, record).catch(error => rt.warn('ds-bot: picking up the turn of %s failed: %s', sessionId, error))
+     }
+   }
+diff --git a/src/host/roster.js b/src/host/roster.js
+index 1475afe..ad5efb8 100644
+--- a/src/host/roster.js
++++ b/src/host/roster.js
+@@ -43,7 +43,9 @@ export function install(rt) {
+ 
+   // `dir` is a working folder outside the team workspace. Such a Session is made by cwd
+   // alone, so it joins no DSH workspace and the user's own project lists stay as they are.
+-  async function createSession(title, { dir } = {}) {
++  // `owner` (see seam.js) names the Bot and place the Session will speak for; its id is
++  // reserved first, so the owner is known from the Session's first event.
++  async function createSession(title, { dir, owner } = {}) {
+     // A Bot's tools run here too; while another dsh holds the team, a new Session would
+     // belong to no saved Bot.
+     const readOnly = rt.readOnly()
+@@ -51,7 +53,14 @@ export function install(rt) {
+     const usable = dir !== undefined && await rt.isFolder(dir)
+     if (dir !== undefined && !usable) rt.warn('ds-bot: the working folder %s is gone; %s starts in the team workspace', dir, title)
+     const place = usable ? { cwd: dir } : { workspaceId: await ensureWorkspace() }
+-    const { sessionId } = await ctx.sessionController.create({ ...place, ...await botPreset() })
++    const reserved = owner === undefined ? undefined : rt.seam.reserve(owner)
++    let sessionId
++    try {
++      ({ sessionId } = await ctx.sessionController.create({ ...place, ...await botPreset(), ...(reserved ? { sessionId: reserved } : {}) }))
++    } catch (error) {
++      if (reserved) rt.seam.release(reserved)
++      throw error
++    }
+     const agent = await rt.resolveAgent(sessionId)
+     await ctx.sessionTitle.rename(agent.session, title)
+     return sessionId
+@@ -110,7 +119,7 @@ export function install(rt) {
+     const modelRef = model ? await rt.resolveModel(model) : pickModel ? undefined : await rt.defaultModel()
+     const effortId = modelRef !== undefined && effort !== undefined ? await rt.resolveEffort(modelRef, effort) : undefined
+     const dir = workDir === undefined || workDir === null ? undefined : await rt.cleanWorkDir(workDir)
+-    const id = await createSession(cleanName, { dir })
++    const id = await createSession(cleanName, { dir, owner: sessionId => ({ botId: sessionId, place: 'chat' }) })
+     try {
+       state.bots[id] = {
+         id,
+@@ -332,7 +341,7 @@ export function install(rt) {
+     const title = custom || autoRoomName(members)
+     // The group's own Session only relays, so it stays in the team workspace; the
+     // group's folder is for its members' Sessions.
+-    const id = await createSession(title)
++    const id = await createSession(title, { owner: sessionId => ({ roomId: sessionId, place: 'group-own' }) })
+     try {
+       // A member deleted while the Session was made stays out, and the group is checked
+       // again as it is written.
+diff --git a/src/host/seam.js b/src/host/seam.js
+new file mode 100644
+index 0000000..8998b69
+--- /dev/null
++++ b/src/host/seam.js
+@@ -0,0 +1,70 @@
++// Squad seam: what a separate Squad gate plugin needs from DS Bot, and nothing more. DS
++// Bot keeps working the same when no gate attaches.
++//
++// - ownerOf(sessionId): the Bot and place a Session speaks for. A Session DS Bot makes
++//   gets its id here before DSH creates it (reserve), so its owner is known from its
++//   very first event (agent/created), not only once state.json is saved.
++// - preStep: DS Bot's own outermost pre-step listener (parts.js) hands every step to the
++//   gate first, so the gate's place in the chain does not depend on plugin order.
++// - allows(sessionId, what): DS Bot asks before it starts work on its own ('resume').
++// - createMessage / resolveAgent / chatOf / groupSessionOf: what the gate needs to put an
++//   admitted input into a Bot Session the way DS Bot does.
++import { randomUUID } from 'node:crypto'
++import { createUserMessage } from '@deepseek-ai/dsh-llm'
++
++export const SEAM_VERSION = 1
++
++export function install(rt) {
++  const { ctx } = rt
++  /** @type {Map<string, {botId?:string, roomId?:string, place:string, partOf?:string}>} */
++  const declared = new Map()
++  let gate
++
++  function ownerOf(sessionId) {
++    if (typeof sessionId !== 'string') return undefined
++    const chat = rt.chatOwners?.get(sessionId)
++    if (chat !== undefined) return { botId: chat, place: 'chat' }
++    const group = rt.groupOwners?.get(sessionId)
++    if (group !== undefined) return { botId: group.botId, roomId: group.roomId, place: 'group-member' }
++    if (rt.roomOf?.(sessionId) !== undefined) return { roomId: sessionId, place: 'group-own' }
++    const past = rt.pastOwners?.get(sessionId)
++    if (past !== undefined) return { ...past, place: 'past-part' }
++    return declared.get(sessionId)
++  }
++
++  // `owner` may be a function of the new id: a Bot's id is its first Session's id. Only
++  // a gate reads owners this early, so without one DSH picks the id as it always did.
++  function reserve(owner) {
++    if (gate === undefined) return undefined
++    const sessionId = `session-${randomUUID()}`
++    declared.set(sessionId, typeof owner === 'function' ? owner(sessionId) : owner)
++    return sessionId
++  }
++  const release = sessionId => declared.delete(sessionId)
++
++  // The team is loaded before the gate looks: right after a start, a resumed step can
++  // come before state.json is read, and an unknown owner would pass as unmanaged.
++  const preStep = async (payload, inner) => {
++    if (gate?.preStep === undefined) return inner()
++    await rt.load()
++    return gate.preStep(payload, inner)
++  }
++  const allows = (sessionId, what, detail) => (gate?.allows === undefined ? true : gate.allows(sessionId, what, detail) !== false)
++
++  const api = {
++    version: SEAM_VERSION,
++    ownerOf,
++    attachGate(next) {
++      gate = next
++      return () => { if (gate === next) gate = undefined }
++    },
++    createMessage: ({ text, source }) => createUserMessage({ content: [{ type: 'text', text }], source }),
++    resolveAgent: sessionId => rt.resolveAgent(sessionId),
++    chatOf: botId => rt.chatOf(botId),
++    groupSessionOf: (roomId, botId) => rt.roomOf(roomId)?.sessions?.[botId],
++    botOf: botId => rt.botOf(botId),
++    ready: () => rt.load(),
++  }
++  ctx.provide?.('dsBotSeam', api)
++  rt.seam = { reserve, release, preStep, allows, ownerOf }
++}
+diff --git a/test/squad-seam.test.js b/test/squad-seam.test.js
+new file mode 100644
+index 0000000..c9be4a9
+--- /dev/null
++++ b/test/squad-seam.test.js
+@@ -0,0 +1,59 @@
++import { test } from 'node:test'
++import assert from 'node:assert/strict'
++import { install } from '../src/host/seam.js'
++
++const runtime = () => {
++  const provided = {}
++  const rt = {
++    ctx: { provide: (name, value) => { provided[name] = value } },
++    chatOwners: new Map([['chat-1', 'bot-1']]),
++    groupOwners: new Map([['grp-1', { botId: 'bot-1', roomId: 'room-1' }]]),
++    pastOwners: new Map([['old-1', { botId: 'bot-1' }]]),
++    roomOf: id => (id === 'room-1' ? { id } : undefined),
++    load: async () => {},
++  }
++  install(rt)
++  return { rt, seam: provided.dsBotSeam }
++}
++
++test('without a gate the seam changes nothing', async () => {
++  const { rt, seam } = runtime()
++  assert.equal(seam.version, 1)
++  assert.equal(rt.seam.reserve({ botId: 'bot-1', place: 'chat' }), undefined)
++  assert.equal(await rt.seam.preStep({}, async () => 'inner'), 'inner')
++  assert.equal(rt.seam.allows('chat-1', 'resume'), true)
++})
++
++test('owners come from DS Bot state, and from a reservation before DSH makes the Session', () => {
++  const { rt, seam } = runtime()
++  assert.deepEqual(seam.ownerOf('chat-1'), { botId: 'bot-1', place: 'chat' })
++  assert.deepEqual(seam.ownerOf('grp-1'), { botId: 'bot-1', roomId: 'room-1', place: 'group-member' })
++  assert.deepEqual(seam.ownerOf('room-1'), { roomId: 'room-1', place: 'group-own' })
++  assert.deepEqual(seam.ownerOf('old-1'), { botId: 'bot-1', place: 'past-part' })
++  assert.equal(seam.ownerOf('unknown'), undefined)
++  const detach = seam.attachGate({})
++  const id = rt.seam.reserve(sessionId => ({ botId: sessionId, place: 'chat' }))
++  assert.match(id, /^session-[0-9a-f-]{36}$/)
++  assert.deepEqual(seam.ownerOf(id), { botId: id, place: 'chat' })
++  rt.seam.release(id)
++  assert.equal(seam.ownerOf(id), undefined)
++  detach()
++  assert.equal(rt.seam.reserve({ place: 'chat' }), undefined)
++})
++
++test('an attached gate decides each step and each self-started piece of work', async () => {
++  const { rt, seam } = runtime()
++  const seen = []
++  seam.attachGate({
++    preStep: async (payload, inner) => (payload.step === 1 ? { kind: 'reject' } : inner()),
++    allows: (sessionId, what) => { seen.push([sessionId, what]); return what !== 'resume' },
++  })
++  assert.deepEqual(await rt.seam.preStep({ step: 1 }, async () => 'inner'), { kind: 'reject' })
++  assert.equal(await rt.seam.preStep({ step: 2 }, async () => 'inner'), 'inner')
++  assert.equal(rt.seam.allows('chat-1', 'resume'), false)
++  assert.equal(rt.seam.allows('chat-1', 'resend'), true)
++  assert.deepEqual(seen, [['chat-1', 'resume'], ['chat-1', 'resend']])
++  const message = seam.createMessage({ text: 'hi', source: { kind: 'squad', attemptId: 'a1', fence: 1 } })
++  assert.equal(message.role, 'user')
++  assert.deepEqual(message.source, { kind: 'squad', attemptId: 'a1', fence: 1 })
++})
