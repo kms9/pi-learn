@@ -1,0 +1,11 @@
+{
+  "name": "dsh-squad-probe-driver",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Test-only DSH plugin for the P0 bench: creates a plain (non-Bot) Session on a chosen agent preset and prompts it, so nested PTC calls can be observed",
+  "type": "module",
+  "main": "index.js",
+  "exports": { ".": "./index.js", "./package.json": "./package.json" },
+  "license": "Apache-2.0",
+  "dsh": { "bundle": { "patch": "./cordis.patch.yml" } }
+}

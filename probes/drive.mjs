@@ -6,114 +6,19 @@
 //
 // It talks to DS Bot only through its documented /api/bot channel, the way ds-bot's own
 // dev/smoke.mjs does, and restarts the web host through probes/bench.sh.
-import { execFileSync } from 'node:child_process'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { join } from 'node:path'
+import { PROBES, expect, lines, openBench, sleep, until } from './lib.mjs'
 
 const [name, port, mockPort, ...only] = process.argv.slice(2)
 if (!name || !port || !mockPort) {
   console.error('usage: node probes/drive.mjs <bench-name> <web-port> <mock-port> [scenario ...]')
   process.exit(2)
 }
-const PROBES = dirname(fileURLToPath(import.meta.url))
-const HOME = join(PROBES, '.run', name)
-const OUT = join(PROBES, 'scenarios')
-const EVENTS = join(HOME, 'probe', 'events.jsonl')
-const BASE = `http://127.0.0.1:${port}`
-const QUIET_MS = 3000
-const STEP_TIMEOUT_MS = 180_000
-mkdirSync(OUT, { recursive: true })
-
-const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
-const readJson = path => JSON.parse(readFileSync(path, 'utf8'))
-const lines = path => (existsSync(path) ? readFileSync(path, 'utf8').split('\n').filter(Boolean).map(line => JSON.parse(line)) : [])
-const mockCalls = () => lines(join(HOME, 'mock.jsonl')).length
-
-let cookie
-async function login() {
-  const log = readFileSync(join(HOME, 'web.log'), 'utf8')
-  const url = log.match(new RegExp(`http://127\\.0\\.0\\.1:${port}/\\?token=[^\\s]+`))?.[0]
-  if (!url) throw new Error('no login URL in web.log')
-  const response = await fetch(url, { redirect: 'manual' })
-  const cookies = response.headers.getSetCookie().map(entry => entry.split(';')[0])
-  if (cookies.length === 0) throw new Error(`login returned no cookie (${response.status})`)
-  cookie = cookies.join('; ')
-}
-async function api(endpoint, payload = {}) {
-  const response = await fetch(`${BASE}/api/bot`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', cookie },
-    body: JSON.stringify({ endpoint, payload }),
-  })
-  const result = await response.json()
-  if (!result.ok) throw new Error(`${endpoint}: ${result.error?.message ?? JSON.stringify(result)}`)
-  return result.value
-}
-const state = () => readJson(join(HOME, 'bot', 'state.json'))
-const botNamed = wanted => Object.values(state().bots).find(bot => bot.name === wanted)
-const roomNamed = wanted => Object.values(state().rooms).find(room => room.name === wanted)
-const send = (sessionId, text) => api('send', { sessionId, text })
-
-// Quiet: no Bot shows an activity and the mock has taken no call for QUIET_MS.
-async function settle(timeout = STEP_TIMEOUT_MS) {
-  const deadline = Date.now() + timeout
-  let calls = mockCalls()
-  let since = Date.now()
-  while (Date.now() < deadline) {
-    await sleep(500)
-    const { activity = {} } = await api('state')
-    const now = mockCalls()
-    if (now !== calls || Object.keys(activity).length > 0) {
-      calls = now
-      since = Date.now()
-    } else if (Date.now() - since >= QUIET_MS) {
-      return true
-    }
-  }
-  return false
-}
-async function until(check, timeout = 60_000, every = 300) {
-  const deadline = Date.now() + timeout
-  while (Date.now() < deadline) {
-    const value = await check()
-    if (value) return value
-    await sleep(every)
-  }
-  return undefined
-}
-const bench = action => execFileSync(join(PROBES, 'bench.sh'), [name, port, mockPort, action], { encoding: 'utf8', env: process.env })
-
-// One scenario: its actions are logged with times, then the probe lines in its window.
-async function scenario(id, title, run) {
-  if (only.length > 0 && !only.includes(id)) return
-  const actions = []
-  const act = (what, extra = {}) => { actions.push({ ts: new Date().toISOString(), what, ...extra }); console.log(`  ${id}: ${what}`) }
-  const startSeq = { pid: undefined, seq: 0 }
-  const before = lines(EVENTS)
-  const startTs = new Date().toISOString()
-  let result = 'PASS'
-  let error
-  console.log(`== ${id} ${title}`)
-  try {
-    const checks = await run(act)
-    if (checks?.length > 0) { result = 'FAIL'; error = checks.join('; ') }
-  } catch (caught) {
-    result = 'FAIL'
-    error = String(caught?.stack ?? caught)
-  }
-  const endTs = new Date().toISOString()
-  const after = lines(EVENTS)
-  const events = after.slice(before.length).filter(line => line.ts >= startTs)
-  writeFileSync(join(OUT, `${id}.jsonl`), events.map(line => JSON.stringify(line)).join('\n') + '\n')
-  const counts = {}
-  for (const line of events) counts[line.event] = (counts[line.event] ?? 0) + 1
-  writeFileSync(join(OUT, `${id}.meta.json`), `${JSON.stringify({ id, title, result, error, startTs, endTs, actions, eventCount: events.length, counts, startSeq }, null, 2)}\n`)
-  console.log(`   ${result} ${events.length} events${error ? ` — ${error}` : ''}`)
-}
+const b = openBench({ name, port, mockPort, out: join(PROBES, 'scenarios'), only })
+const { login, api, state, botNamed, roomNamed, send, settle, bench, scenario } = b
+const EVENTS = b.events
 
 await login()
-const expect = (condition, message) => (condition ? undefined : message)
 
 // Setup: Chief plus three Bots on two different model routes, one four-member group.
 await scenario('S0-setup', 'four Bots, one group', async (act) => {

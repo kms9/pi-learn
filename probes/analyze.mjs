@@ -2,14 +2,17 @@
 // event (inbox, step admission, model route, tool dispatch, turn end, idle, session log
 // lines that matter), with the Bot/group each Session belongs to.
 //
-//   node probes/analyze.mjs [scenario ...]
+//   node probes/analyze.mjs [--dir scenarios-real] [scenario ...]
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const DIR = join(dirname(fileURLToPath(import.meta.url)), 'scenarios')
-const only = process.argv.slice(2)
-const KEPT_SESSION_TYPES = new Set(['turn/start', 'turn/end', 'step/start', 'step/end', 'tool/call', 'tool/result', 'user/message', 'agent/inbox/spliced', 'model/selection', 'compaction/start', 'compaction/end', 'turn/interrupted'])
+// `--dir scenarios-real` reads another run's records.
+const args = process.argv.slice(2)
+const dirAt = args.indexOf('--dir')
+const DIR = join(dirname(fileURLToPath(import.meta.url)), dirAt === -1 ? 'scenarios' : args[dirAt + 1])
+const only = dirAt === -1 ? args : args.filter((_, index) => index !== dirAt && index !== dirAt + 1)
+const KEPT_SESSION_TYPES = new Set(['assistant/message', 'turn/start', 'turn/end', 'step/start', 'step/end', 'tool/call', 'tool/result', 'user/message', 'agent/inbox/spliced', 'model/selection', 'compaction/start', 'compaction/end', 'turn/interrupted'])
 
 // Unknown Sessions get stable short names; a Session the probe could not attribute when the
 // line was written is marked with `?`, which is itself a finding (the seam gap).
@@ -57,8 +60,10 @@ function describe(line) {
     case 'session/event': {
       const data = line.data ?? {}
       if (line.type === 'user/message') return `${line.type} ${src(line.source)} "${(line.text ?? '').replace(/\s+/g, ' ').slice(0, 50)}"`
-      if (line.type === 'turn/end') return `${line.type} ${JSON.stringify(data.reason ?? '')}`
+      if (line.type === 'turn/end') return `${line.type} ${JSON.stringify(line.reason ?? data.reason ?? '')}`
       if (line.type === 'agent/inbox/spliced') return `${line.type} ${data.target} +${Array.isArray(data.inserted) ? data.inserted.length : String(data.inserted ?? '').replace(/\D/g, '') || 0} -${data.removedCount ?? 0}`
+      if (line.type === 'assistant/message' && line.usage) return `${line.type} in=${line.usage.inputTokens} cache=${line.usage.cacheReadTokens} out=${line.usage.outputTokens}`
+      if (line.type === 'model/selection') return `${line.type} ${JSON.stringify(line.data ?? {})}`
       return `${line.type}${data.turn !== undefined ? ` turn ${data.turn}` : ''}${data.step !== undefined ? ` step ${data.step}` : ''}`
     }
     case 'session/created':

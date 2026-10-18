@@ -1,0 +1,5 @@
+# Test-only: an /api/squad-probe-driver route for the P0 bench. Not part of the probe,
+# which only observes; this plugin creates and prompts Sessions on request.
+- insert:
+    - id: squad-probe-driver
+      name: dsh-squad-probe-driver

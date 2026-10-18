@@ -65,6 +65,10 @@ export function apply(ctx, config = {}) {
   const out = config.out ?? process.env.DSH_PROBE_OUT ?? join(dshHome, 'probe', 'events.jsonl')
   mkdirSync(dirname(out), { recursive: true })
   let seq = 0
+  // Nothing secret should reach a line, but a provider error or an echoed header could
+  // carry a key; every line is scrubbed of the configured key and of anything key-shaped.
+  const secrets = ['DEEPSEEK_API_KEY', 'ANTHROPIC_API_KEY', 'OPENAI_API_KEY'].map(key => process.env[key]).filter(value => typeof value === 'string' && value.length >= 8)
+  const redact = text => secrets.reduce((acc, value) => acc.split(value).join('[REDACTED]'), text).replace(/\bsk-[A-Za-z0-9_-]{16,}/g, 'sk-[REDACTED]')
 
   // DS Bot keeps the Bot <-> Session map in its private runtime; the only way an outside
   // plugin can name a Session's Bot is to read the plugin's state file. That is the seam
@@ -116,7 +120,7 @@ export function apply(ctx, config = {}) {
       ...data,
     }
     try {
-      appendFileSync(out, `${JSON.stringify(line)}\n`)
+      appendFileSync(out, `${redact(JSON.stringify(line))}\n`)
     } catch {
       // The probe must never break the host.
     }
@@ -226,6 +230,9 @@ export function apply(ctx, config = {}) {
       eventSeq: event?.seq,
       ...(data?.source ? { source: brief(data.source, 1) } : {}),
       ...(event?.type === 'user/message' ? { text: messageSummary(data)?.text } : {}),
+      // Token use of each settled model attempt, kept whole for the cost tables.
+      ...(event?.type === 'assistant/message' && data?.usage ? { usage: brief(data.usage, 1) } : {}),
+      ...(event?.type === 'turn/end' ? { reason: brief(data?.reason, 2) } : {}),
       data: brief(data, 1),
     })
   })
