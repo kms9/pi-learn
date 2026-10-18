@@ -845,3 +845,9 @@ tags:
 - 来源: 用户提供的 DeepSeek 凭据（只 source，不落盘）；`MODEL=real` bench（DSH 0.2.1-rc.2 → `<base>/anthropic`）。
 - 更新: `probes/{bench.sh,lib.mjs,drive.mjs,drive-real.mjs,tokens.mjs,analyze.mjs,dsh-probe/,dsh-probe-driver/}`、`probes/scenarios-real/`、报告 §1/§3A/§5/§7、P0 会话、Q32 关闭、新增 Q34。
 - 说明: S0–S9 全部 PASS（S7 按自身事件重判）。新增风险：H7 pre-step 顺序不可控；重放带真实副作用；静默模型回退升为高；workDir 连锁切段；被取消的调用不计 usage。PTC 嵌套调用可见，风险降低。约 106 万 token（85% cache read）。key 不在仓库和记录中（已 grep 检查）。
+
+## [2026-10-18] session | DS Bot + Squad P1：seam 原型与受控负例
+
+- 来源: 用户批准的 P1 任务；mock 模型 bench（DSH 0.2.1-rc.2 + 打补丁的 ds-bot + `dsh_squad/gate`）。
+- 更新: `dsh_squad/`（补丁、构建脚本、Gate、单测、README）；`probes/{drive-p1.mjs,lib.mjs,bench.sh}`、`probes/scenarios-p1/`；报告 §1/§8/§9；P1 会话、决策；Q29、Q34 关闭，Q33 更新，新增 Q35–Q37；索引；`dsh_squad_case/README.md`。
+- 说明: DSH 没有改动；ds-bot 一个补丁（+152/−9）。ds-bot 单测 638/638，Gate 18/18，负例 14/14。第一轮发现并修复了三个问题（拒绝后排队输入卡住、harness 自己插入的输入、轮询造成的判定竞态）。没有使用真实模型。

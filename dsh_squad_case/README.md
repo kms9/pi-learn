@@ -22,6 +22,7 @@ tags: [dsh-bot, squad, migration]
 | 阶段 | 目标 | 状态 |
 |---|---|---|
 | P0 | 版本统一 + 只观察探针六场景实测（`probes/`） | DONE（2026-10-18，mock 模型；见 `docs/dsh-squad-p0-probe-report-2026-10-18.md`） |
+| P1 | seam 原型：会话归属、固定拦截点、关闭续跑和自启、组合判定结束、冻结模型（`dsh_squad/`） | DONE（2026-10-18，mock 模型，负例 14/14；报告 §9） |
 | M0 | DS Bot Web 多模型群聊、长期 Bot 与记忆可演示 | NOT_STARTED |
 | M1 | DSH Adapter 精确绑定、正式输入、工具保护和真实收尾 | NOT_STARTED |
 | M2 | 单 Team Task DAG + 产物 + Review/Rework + Acceptance | NOT_STARTED |

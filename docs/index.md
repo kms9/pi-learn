@@ -47,6 +47,7 @@ tags:
 - [[concepts/pi-squad|Pi Squad]] - Herdr + 薄 Extension + Go Controller 的本地协作验证；配置与启动见 `pi_squad/USAGE.md`
 
 ## 决策
+- [[decisions/2026-10-18-dsh-p1-seam-as-patch|2026-10-18 seam 以补丁形式实现，Gate 由 ds-bot 自己的链调用]] — 不 fork；不挂 Gate 时与上游一致。
 - [[decisions/2026-10-18-dsh-p0-version-pin|2026-10-18 P0 版本统一：DSH 0.2.1-rc.2 + DS Bot main]] — gitlink、npm 运行时与 DS Bot 声明版本的覆盖。
 - [[decisions/2026-10-18-dsh-bot-squad-migration|2026-10-18 DS Bot 产品体验优先与 Squad 迁移决策]] — Go Controller、DSH Adapter 和受控群聊。
 
@@ -72,6 +73,7 @@ tags:
 - [[decisions/2026-09-23-p0-identity-fields|2026-09-23 P0 身份字段与 HTTP Registry]]
 
 ## 会话
+- [[sessions/2026-10-18-dsh-p1-seam|2026-10-18 DS Bot + Squad P1 seam 原型]] — 负例 14/14；代码在 `dsh_squad/`，结果在报告 §9。
 - [[sessions/2026-10-18-dsh-p0-probe|2026-10-18 DS Bot + Squad P0 探针实测]] — 六场景全部跑通；实测复评见 `docs/dsh-squad-p0-probe-report-2026-10-18.md`，读代码版见 `docs/dsh-squad-feasibility-2026-10-18.md`。
 - [[sessions/2026-10-18-dsh-bot-migration-planning|2026-10-18 DS Bot 迁移方案与分支主 README 更新]] — 新子模块、分支与实施入口。
 

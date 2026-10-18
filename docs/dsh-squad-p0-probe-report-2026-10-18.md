@@ -23,6 +23,8 @@ tags:
 
 ## 1. 结论
 
+> **P1 更新（2026-10-18）**：seam 原型已实现，用 mock 模型跑受控负例 14/14 通过，见 [§9](#9-p1seam-原型与受控负例)。§5 中 H2、H3、H5、H6、H7 和 M2→H 现在都有了能拦住的实现；剩余风险见 §9.4。
+
 **仍是「有条件可行」，条件比读代码时更清楚：**
 
 - **DSH 公开 Hook 足够做「看见」和「拦截」**。每次唤醒模型都经过 `agent/inbox/*` 和 `agent/pre-step`；每次模型路由都能在 `agent/request` 看到 provider/model/effort；每次工具调用都经过 `tools/pre-execute → tools/execute → tools/result`。DS Bot 的群聊转发和 DSH 原生定时任务也都走这条路，没有发现绕开 Hook 的唤醒路径。
@@ -210,6 +212,9 @@ tags:
 
 ## 8. 复现方式
 
+> P1 的复现方式见 [§9.5](#95-复现)。
+
+
 ```bash
 # 需要 node>=22.19、pnpm 11（或用 corepack/npx pnpm@11.28.5）
 CONTEXT_WINDOW=100000 CHECK_RATIO=0.45 probes/bench.sh p0 3197 8897 reset
@@ -219,3 +224,74 @@ probes/bench.sh p0 3197 8897 stop
 ```
 
 详见 `probes/README.md`。
+
+## 9. P1：seam 原型与受控负例
+
+**范围**：
+- 分支 `feat/dsh-p1-seam`，只用 mock 模型。用户已作废真实 key，本阶段没有调用真实模型。
+- 代码在 `dsh_squad/`：ds-bot 补丁 `patches/ds-bot/0001-squad-seam.patch`，Gate 插件 `gate/`。
+- 负例驱动 `probes/drive-p1.mjs`；记录在 `probes/scenarios-p1/`，每个用例有 `.jsonl`、`.meta.json`、`.gate.jsonl` 三个文件。
+
+### 9.1 改了哪些上游代码
+
+**DSH：没有改动。** **ds-bot：只有一个补丁**，子模块仍钉在 `e13bc34`；`dsh_squad/scripts/prepare-ds-bot.sh` 从子模块导出代码再打补丁。补丁共 +152/−9 行，其中新文件 `src/host/seam.js` 70 行、`test/squad-seam.test.js` 59 行。对原有文件的改动：
+
+| 文件 | 改动 |
+|---|---|
+| `index.js` | 加载 `seam` 模块（+2/−1） |
+| `src/host/roster.js` | `createSession` 增加 `owner` 参数：先分配 sessionId 并登记归属，再调 `session.create({sessionId})`。新 Bot 和群自身会话的创建处都传 owner（+13/−4） |
+| `src/host/groups.js` | 群成员会话创建时传 owner（+1/−1） |
+| `src/host/parts.js` | 新 part 创建时传 owner（含 `partOf`）；最外层 pre-step 监听改为 `rt.seam.preStep(payload, 原函数体)`（+4/−3） |
+| `src/host/resume.js` | resend、resume 之前先问 `rt.seam.allows`（+3） |
+
+没挂 Gate 时，补丁后的 ds-bot 行为与上游一致：不预分配 id，`preStep` 直接放行。ds-bot 单测 **638/638**（上游 635 条加 seam 3 条），lint 无错误。Gate 单测 **18/18**，其中 4 条是回放 P0 的真实记录（mock S1、S4、S6，real S8）。
+
+### 9.2 五项要求的实现与负例结果
+
+| 要求 | 实现 | 负例（mock） | 结果 |
+|---|---|---|---|
+| ① 会话创建时同步提供 `ownerOf` | seam 先生成 id 并登记 owner，再交给 DSH 创建 | P0-setup、N10：创建了 13 个会话，`agent/created` 时 owner 为空的 **0 个**（P0 是 21–25% 无法归属）；新 part 在创建时就带 `partOf` | PASS |
+| ② 位置固定的拦截点，覆盖全部唤醒入口 | ds-bot 自己最外层的 pre-step 先交给 Gate，Gate 对每条唤醒分类判定 | N1 @Bot（group-relay）、N2 message_bot / post_to_group、N3 用户直发、N4 定时、N5 回复回传、N6 retry、N7 stopped、N10 handoff、N11 resume/resend：**全部扣留**，被拒步数 17、扣留输入 18 条；这期间受控会话**没有一次**到达模型；未受控的 Bot 照常回复 | PASS |
+| ② 续：attempt 进行中插进来的输入 | 从本步中过滤，attempt 继续 | N8：Chief 用 `插话` 发来的 message_bot 被过滤，长任务照常完成（settled_completed） | PASS |
+| ② 续：准入的 fence | 只有带当前 fence 的准入才能开启 attempt | N8：被新准入取代的旧准入 → `stale_fence`；伪造的准入 → `unknown_attempt`；最新的准入正常开启 | PASS |
+| ③ 关闭自动续跑和自启回合 | `allowResume` / `allowSelfStart` 默认关闭；resume.js 动手前先问 `allows` | N11：重启后 `resend:false`、`resume:false`，Builder **0 次进入步骤、0 次模型调用**（没有重放）；N10：handoff 自启被拒，新 part 0 次模型调用 | PASS |
+| ④ 组合判定结束 | 实时 `turn/end` + 持久日志的 kind + call/result 配对 + 实时派发数归零 + 审批数归零 | P1、N5、N8：`settled_completed`（每次都要先经过 `awaiting_durable`）；N7（被另一个 Bot 用 stop_bot 叫停）、N9（Controller 取消）：`settled_aborted`；N11：`outcome_unknown` | PASS |
+| ⑤ 冻结模型后拒绝 fallback | pre-step 读 `modelSelection` 投影；`agent/request` 时再查一次 | N12：v4-pro 从目录移除后，ds-bot 在后台把 Reviewer 切到 flash；Gate 在 pre-step 以 `model_mismatch` 拒绝，**0 次模型调用** | PASS |
+
+第一轮运行（修复之前）暴露了三个问题，修复后整套重跑全部通过：
+
+1. **被拒的步骤会结束 DSH 的 driver 循环**：inbox 里还在排队的输入要等下一次唤醒，导致 N8 至 N11 互相卡住。修复：拒绝后 Gate 把还在排队的输入经 `followup()` 重新放回，从而唤醒 driver（`rewake`），每条各自走一次判定。
+2. **DSH 自己也会往运行中的回合插输入**（`repeat-tool-reminder` guard）：这是新发现的一种唤醒来源。处理：`harness:*` 类输入只能延续正在运行的 attempt，不能开启新的。
+3. **判定器的竞态**：结束前的一次轮询读了持久日志（当时为空），被记成「已确认」，结果短暂显示 `outcome_unknown`。修复：attempt 还在运行时的空读不算确认。三个问题都补了单测。
+
+### 9.3 相对 P0 风险清单的变化
+
+| 风险 | P0 结论 | P1 之后 |
+|---|---|---|
+| H2 归属 | 21–25% 无法归属 | **已解决（原型）**：创建时即可查到，空窗为 0 |
+| H3、H6 入口绕过、自启回合 | 需要 seam | **已拦住**：已知的 12 类唤醒都经同一个判定点，负例全部扣留 |
+| H7 pre-step 顺序 | Gate 可能被别的监听先拒或先放 | **缓解**：Gate 由 ds-bot 自己的链调用，与 Gate 插件的加载顺序无关；外层还有单调 tool guard 和 step 审计兜底 |
+| H4 结束判定 | 单一信号不可靠 | **已实现组合判定**，取消、叫停、重启三种情况都判对 |
+| H5 重放 | 真实模型下会产生副作用 | **已拦住**：受控会话重启后 0 次重放 |
+| M2→H 静默回退 | 实测存在 | **已拦住**：发请求前就拒绝 |
+
+### 9.4 剩余风险
+
+1. **两个兜底没有实际触发过**：tool guard 和 step 审计在本轮负例里都没被触发，因为主判定点拦住了全部输入。它们只有代码，还缺「外部插件绕过 ds-bot 链」的专门负例。
+2. **被扣留的输入只存在内存里**：Gate 重启后就丢了，也还没有交给 Controller 决定重新投递或丢弃（Run Guidance、Clarification 的分类属于 M2）。
+3. **`rewake` 依赖 DSH 内部行为**：「拒绝会结束 driver 循环」「`followup` 会唤醒 driver」都是 0.2.1-rc.2 的实测行为，不是文档承诺的契约，升级 DSH 后必须重新验证。
+4. **补丁需要跟着上游走**：补丁改的是 `parts.js`、`roster.js`、`resume.js` 这些上游变动频繁的文件。上游 dev 已领先 main 92 个提交，每次升级都要跑 `prepare-ds-bot.sh --test`。长期还是要按上游流程提 PR（Q33）。
+5. **只验证了 mock 模型**：真实模型下 tool call 的时序、多步回合、审批，以及 PTC 嵌套调用中 Gate 与 `rootCallId` 的配合，都需要换新 key 后复测。
+6. **还没接 Go Controller**：`/api/squad-gate` 只是测试用的替身。准入令牌的签发、`binding_epoch`、持久化，以及与 Controller 的 CAS 和 Outbox 对齐，属于 M1 的剩余工作。
+7. **群自身会话不受管**：relay 本身不调用模型，所以不受管；但它会在成员被拒后照常结束本轮（N1），群里看到的是「没人回复」。用户可见的提示还要设计。
+
+### 9.5 复现
+
+```bash
+dsh_squad/scripts/prepare-ds-bot.sh --test           # 打补丁并跑 ds-bot 单测（638）
+(cd dsh_squad/gate && npm test)                      # Gate 单测（18）
+SQUAD=1 MOCK_DELAY_MS=600 CONTEXT_WINDOW=100000 CHECK_RATIO=0.45 probes/bench.sh p1 3201 8901 reset
+node probes/drive-p1.mjs p1 3201 8901                 # 14 个用例，约 13 分钟
+probes/bench.sh p1 3201 8901 stop
+```
+

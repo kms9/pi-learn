@@ -42,9 +42,12 @@ tags:
 | Q26 | 父任务仍有未完成子依赖时提交结果，应拒绝结果还是取消孤儿子任务？ | open | 用户已明确必要子任务未回传时上层不得完成；建议未完成依赖拒绝 completion，并提示先 yield。具体错误/自动处理策略仍待实施设计。当前 parent_yield 无法正常解除，既有 deadline 可能转 needs_review。见 [[concepts/squad-completion-yield-scheduling]]。 |
 | Q27 | Pi Squad 升级到 Pi 1.1.0 的兼容调整与真实验收是否完成？ | open | 2026-10-09 默认 CLI 已为 1.1.0，产品仍限定 1.0.1/TUI。静态差异、实际公共声明类型检查、Go 构建和只读 doctor 已完成；建议先同步 profile、消费 settled.aborted、处理 managed launcher 与 runtime entry 身份，再采集新 probe、跑新版本真实三角色及阶段 04 矩阵。尚未改产品或启动模型验收，旧 PASS 不覆盖 1.1.0。见 [[sessions/2026-10-09-pi-squad-pi-1.1.0-assessment]]。 |
 | Q28 | 固定 DSH 版本能否通过公开 Hooks 证明 Task 输入、nested 工具、真正 settled 和旧 Session/epoch 隔离？ | open | 2026-10-18 P0（DSH 0.2.1-rc.2，只观察）：输入和工具可以——全部唤醒经过 inbox/pre-step，工具经过 pre-execute/execute/result。settled 不能只靠 Hook：`whenIdle` 在关机时也会 resolve；被取消的回合没有 turn-stopping；`interrupted` 只在重新打开时写进持久日志，不实时发出。nested（PTC）和 epoch 隔离未测。见 `docs/dsh-squad-p0-probe-report-2026-10-18.md`。 |
-| Q29 | 如何接管 Managed Group 的 `group_relay`、普通消息/定时/自动恢复，不破坏 Free？ | open | P0 实测：群 relay（在 llm/stream 合成）、message_bot、post_to_group、DSH 原生定时、resume 重投、切段 handoff 都经过目标 Session 的 pre-step，可以统一拦截；但新 Session 第一步无法从公开状态归属到 Bot（21% 事件无法归属）。所以 seam 至少要提供 `ownerOf(sessionId)`，并能关闭受控 Session 的 resume/handoff 自启。 |
+| Q29 | 如何接管 Managed Group 的 `group_relay`、普通消息/定时/自动恢复，不破坏 Free？ | closed | 2026-10-18 P1 原型：seam 补丁让 ds-bot 自己的 pre-step 先交给 Gate，12 类唤醒统一判定；resume.js 动手前先问 Gate。未受控的 Bot 照常工作（N2）。见 [[decisions/2026-10-18-dsh-p1-seam-as-patch]]。 |
 | Q30 | 非开发用户的 DS Bot Web、Memory、Secrets 和目录如何隔离？ | open | 首版建议每用户独立环境，不把单个 DSH Home 直接当多租户 SaaS。 |
 | Q31 | 记忆整理等辅助模型调用（P0 中约占调用数的 35%，多数不带 `purpose`）如何计入 Task 成本？ | open | 建议 Adapter 按 session 和是否有活跃回合区分；请 ds-bot 给记忆整理加 purpose 标签。 |
 | Q32 | 回合内（mid-turn）切段、PTC 嵌套调用、默认模型回退，在受控 Session 下的行为是什么？ | closed | 2026-10-18 真实模型实测：①回合内切段 → `turn/end blocked`，新 part 由 handoff 自启并重做已完成的步骤；②嵌套调用在 tools/pre-execute 可见，`rootCallId` 指向 run_code；③模型下架后 Session 被静默切到默认模型，Bot 配置不变、没有通知。见 `docs/dsh-squad-p0-probe-report-2026-10-18.md` §3A。 |
-| Q33 | ds-bot 归属 seam 走上游 PR 还是本仓库最小 Fork 补丁？ | open | P1 先做本仓库补丁原型；同时在上游 `docs/plans/` 提设计。 |
-| Q34 | Squad Gate 如何保证在 `agent/pre-step` 中的位置，不被 ds-bot 或其他插件先 reject 或先放行？ | open | 真实模型实测：ds-bot 的切段 reject 发生在探针外层，探针看不到。候选：ds-bot seam 显式调用 Gate；或请求 DSH 提供有序优先级。 |
+| Q33 | ds-bot 归属 seam 走上游 PR 还是本仓库最小 Fork 补丁？ | open | P1 先在本仓库用补丁实现（`dsh_squad/patches/ds-bot/`，+152/−9），没有 fork。下一步按上游流程在 `docs/plans/` 提设计 PR。 |
+| Q34 | Squad Gate 如何保证在 `agent/pre-step` 中的位置，不被 ds-bot 或其他插件先 reject 或先放行？ | closed | P1：Gate 由 ds-bot 自己最外层的 pre-step 调用，与 Gate 插件的加载顺序无关；外层另有单调 tool guard 和 step 审计兜底（尚未实际触发，见 Q35）。 |
+| Q35 | 有外部插件在 ds-bot 链之外放行步骤时，tool guard 和 step 审计能否真正拦住？ | open | P1 负例里没有触发过；需要一个专门的「外层插件直接 enter」负例。 |
+| Q36 | 被 Gate 扣留的输入交给 Controller 后，如何分类、重新投递或丢弃？ | open | 目前只存在 Gate 内存里，重启就丢。与 Run Guidance、Clarification 分类一起在 M2 设计。 |
+| Q37 | `rewake`（拒绝后重新唤醒）依赖的 DSH 行为能否保持到正式版？ | open | 「拒绝会结束 driver 循环」「followup 会唤醒 driver」都是 0.2.1-rc.2 的实测行为；升级时重新验证，或请求 DSH 提供原生的「拒绝但保留 inbox」。 |

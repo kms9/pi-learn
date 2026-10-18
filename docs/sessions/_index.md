@@ -9,6 +9,7 @@ tags:
 ---
 
 # 会话索引
+- [[2026-10-18-dsh-p1-seam|2026-10-18 DS Bot + Squad P1：seam 原型与受控负例]]
 - [[2026-10-18-dsh-p0-probe|2026-10-18 DS Bot + Squad P0：版本统一与只观察探针实测]]
 - [[2026-10-18-dsh-bot-migration-planning|2026-10-18 DS Bot 迁移方案、分支主说明及上游引入]]
 
