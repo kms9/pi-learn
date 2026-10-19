@@ -75,6 +75,7 @@ tags:
 
 ## 会话
 - `docs/dsh-squad-dev-plan-2026-10-18.md` — 2026-10-18 M0→M4 开发规划：工作包、关键路径、决策点 D1–D12、与 ACCEPTANCE 28 项的对应（D1–D12 已于 2026-10-19 拍板）。
+- [[sessions/2026-10-19-dsh-m3-squad-page|2026-10-19 DS Bot + Squad M3：Squad 页面与对照实验]] — DS Bot 内的 Squad 页面、配置编辑、投影桥、对照实验；drive-m3 18/18、ui-check 9/9。
 - [[sessions/2026-10-19-dsh-m2-team-run|2026-10-19 DS Bot + Squad M2：单 Team 在群里跑完整 Run]] — Leader/审核/返工、Artifact、Run Guidance、数学课件案例；drive-m2 12/12。
 - [[sessions/2026-10-19-dsh-m0-launcher|2026-10-19 DS Bot + Squad M0：按项目目录一键启动与预置团队]] — `dsh_squad/deploy/dsh-squad`；drive-m0 12/12。
 - [[sessions/2026-10-19-dsh-m1-adapter|2026-10-19 DS Bot + Squad M1：Controller 迁移与 DSH Adapter]] — `dsh_squad/controller`、`squad/3`、`dsh_squad/adapter`；mock 回归 drive-p1 14/14、drive-m1 7/7。

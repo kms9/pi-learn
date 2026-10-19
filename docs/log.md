@@ -881,3 +881,9 @@ tags:
 - 来源: 按规划继续开发；分支 `feat/dsh-m2`；mock 模型。
 - 更新: `dsh_squad/controller`（artifact 存储与接口、guidance 分类、测试）、`dsh_squad/adapter`（bind-team、leader 模式、`squad_decide`/`squad_review`、文件提交、Run 状态与指导）、seam v3 补丁、`dsh_squad/cases/math`、`probes/{squad-mock,drive-m2}.mjs`、`dsh_squad/USAGE.md`、规划进度、会话页、Q41/Q42。
 - 说明: 数学课件 Run 端到端：派发、独立审核、退回 → 返工 → 复审、Leader 完成、课件为沙箱 Artifact、群消息成为 Run Guidance。回归 `drive-m2` 12/12、`drive-m0` 12/12、`drive-p1` 14/14、`drive-m1` 7/7、`check.sh` 通过。D12 Memory 快照、M2-6 界面 iframe 留到 M3。ACCEPTANCE 仍为 NOT_RUN；回归结果文件未提交。
+
+## [2026-10-19] session | DS Bot + Squad M3 完成：Squad 页面与对照实验
+
+- 来源: 用户要求按规划继续 M3；分支 `feat/dsh-m3`；mock 模型、无头 Chrome。
+- 更新: `dsh_squad/controller`（配置编辑接口、`on_completion`、自动升版本）、seam v4、`dsh_squad/adapter`（`ui/*` 宿主路由、记忆只读、连接失败上报、客户端导出）、`dsh_squad/client`（新）、`dsh_squad/experiments/run.mjs`（新）、`probes/{drive-m3,ui-check}.mjs`、`dsh_squad/{USAGE,README}.md`、规划进度、会话页、Q43。
+- 说明: DS Bot 页面里可以建小队和规则、开始 Run、看依赖图和成果、处理三类按钮与恢复卡、看实验报告。浏览器实跑发现并修复配置版本冲突无提示、overlay 重复渲染等问题。回归 `drive-m3` 18/18、`ui-check` 9/9、`drive-m2` 12/12、`drive-m0` 12/12、`drive-p1` 14/14、`drive-m1` 7/7、`check.sh` 通过。ACCEPTANCE 仍为 NOT_RUN；回归结果、实验报告和截图未提交。

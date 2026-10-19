@@ -50,7 +50,8 @@ tags:
 | M1 | 开发完成（2026-10-19） | M1-1～M1-7 落地；M1-8 完成持久化与上报，Q35「外层插件绕过」负例未做。编译 + 单测通过（`check.sh`）；mock 回归 `drive-p1` 14/14、`drive-m1` 7/7。切段重绑只有实现没有端到端负例（Q39）。不是验收结论，ACCEPTANCE 各项仍为 NOT_RUN |
 | M0 | 开发完成（2026-10-19） | M0-1～M0-3 落地：`dsh_squad/deploy/dsh-squad up/down/status/provision`，预置四个 Bot（`deepseek-flash`、effort high）、群「小队群」、团队记忆。里程碑回归 `drive-m0` 12/12、`drive-p1` 14/14、`drive-m1` 7/7。非开发用户试用按 D6 放在 T 阶段 |
 | M2 | 开发完成（2026-10-19） | M2-1～M2-5 落地：`bind-team` 把 Team 绑到一个群（缺的 Bot 自动创建），Leader 用 `squad_decide`、审核用 `squad_review`，退回 → 返工 → 复审 → Leader 完成；Artifact 存 Controller hash 目录（D8）；群里说的话在 Run 中变成 Run Guidance；数学课件案例 `dsh_squad/cases/math`。M2-6 只做到服务端隔离（CSP sandbox、禁网络），界面 iframe 在 M3（Q42）。Memory 快照只读（D12）未做，放到 M3-3 对照实验一起做。回归：`drive-m2` 12/12、`drive-m0` 12/12、`drive-p1` 14/14、`drive-m1` 7/7、`check.sh` 通过 |
-| M3、M4、T | 未开始 | — |
+| M3 | 开发完成（2026-10-19） | M3-1 投影桥（宿主路由 `ui/view`、`ui/events`，前端只认 Controller 快照，epoch 变化或事件越过就重读）；M3-2 Squad 页面（DS Bot 客户端插件 `dsh_squad/client`：开始 Run、任务依赖图、三类按钮分开且绑定版本、恢复卡、审核结论、Artifact 隔离预览、群内状态条）；M3-3 对照实验 S/A/B/C 与报告页；M3-4 小队/角色/流程表单编辑，经 Controller 校验并自动升版本。D12 只做到受控任务内记忆只读（Q43）。回归：`drive-m3` 18/18、无头 Chrome `ui-check` 9/9、`drive-m2` 12/12、`drive-m0` 12/12、`drive-p1` 14/14、`drive-m1` 7/7、`check.sh` 通过 |
+| M4、T | 未开始 | — |
 
 ## 0. 起点：已经有什么
 
