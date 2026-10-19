@@ -715,6 +715,8 @@ export function apply(ctx, config = {}) {
         log('ui/approval', { approvalId: entry.id, attemptId: entry.attemptId, choice: body.choice })
         return true
       }
+      case 'bind-team':
+        return handle('bind-team', { teamId: String(body.teamId ?? '') })
       case 'config':
         return asOperator('GET', '/v2/config')
       case 'config-save':
