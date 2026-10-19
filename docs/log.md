@@ -887,3 +887,9 @@ tags:
 - 来源: 用户要求按规划继续 M3；分支 `feat/dsh-m3`；mock 模型、无头 Chrome。
 - 更新: `dsh_squad/controller`（配置编辑接口、`on_completion`、自动升版本）、seam v4、`dsh_squad/adapter`（`ui/*` 宿主路由、记忆只读、连接失败上报、客户端导出）、`dsh_squad/client`（新）、`dsh_squad/experiments/run.mjs`（新）、`probes/{drive-m3,ui-check}.mjs`、`dsh_squad/{USAGE,README}.md`、规划进度、会话页、Q43。
 - 说明: DS Bot 页面里可以建小队和规则、开始 Run、看依赖图和成果、处理三类按钮与恢复卡、看实验报告。浏览器实跑发现并修复配置版本冲突无提示、overlay 重复渲染等问题。回归 `drive-m3` 18/18、`ui-check` 9/9、`drive-m2` 12/12、`drive-m0` 12/12、`drive-p1` 14/14、`drive-m1` 7/7、`check.sh` 通过。ACCEPTANCE 仍为 NOT_RUN；回归结果、实验报告和截图未提交。
+
+## [2026-10-19] session | DS Bot + Squad M4 完成：多小队协同与完整恢复；M0–M4 开发完成
+
+- 来源: 用户要求按规划推进 M4；分支 `feat/dsh-m4`；mock 模型、无头 Chrome。
+- 更新: `dsh_squad/controller`（小队范围的角色 runtime、接纳时切换负责人、测试：共用审核、子任务续接、Controller 崩溃恢复）、`dsh_squad/adapter`（续接、带 segment 的请求 id、事件串行与冲突重读、回执先发、独立心跳）、`dsh_squad/client`（恢复卡：迟到结果、重新安排、换人；排队显示）、`dsh_squad/cases/m4`、`probes/drive-m4.mjs`、`dsh_squad/USAGE.md`、规划进度、会话页、Q44/Q45。
+- 说明: 全量 mock 回归 `drive-m4` 13/13、`drive-m3` 18/18、`ui-check` 9/9、`drive-m2` 12/12、`drive-m0` 12/12、`drive-p1` 14/14、`drive-m1` 7/7、`check.sh` 通过。几次失败都对应测试机挂起（日志 4～13 分钟空白），重跑通过。M0–M4 全部开发完成，下一步 T 阶段统一测试；ACCEPTANCE 仍为 NOT_RUN。回归结果文件未提交。
