@@ -56,6 +56,7 @@ func fixtureProject(t *testing.T) string {
 	b, _ := json.Marshal(team)
 	writeFile(t, filepath.Join(base, "teams/math/team.json"), string(b))
 	writeFile(t, filepath.Join(base, "teams/math/instructions.md"), "Teach one math idea.\n")
+	writeFile(t, filepath.Join(base, "teams/math/workflows/lesson.json"), `{"schema_version":1,"workflow_id":"lesson","steps":[{"id":"build","role_ref":"builder","kind":"execute","goal":"build the lesson","depends_on":[]}]}`)
 	return root
 }
 
@@ -117,6 +118,28 @@ func (h *harness) register(agentID, role, botID, roomID, session string) Princip
 		h.t.Fatal(err)
 	}
 	p, err := h.svc.Authenticate(h.ctx, runtimeToken(agentID), agentID)
+	if err != nil {
+		h.t.Fatal(err)
+	}
+	return p
+}
+
+// registerLeader binds chief as the Leader of Team math, in the Team's group.
+func (h *harness) registerLeader() Principal {
+	h.t.Helper()
+	caps := map[string]bool{}
+	for _, name := range RequiredCapabilities {
+		caps[name] = true
+	}
+	_, err := h.svc.Register(h.ctx, Register{
+		Host:    Host{Profile: project.HostProfile, HostID: "host-1", BotID: "bot-chief", RoomID: "room-math", Place: "group-member"},
+		AgentID: "chief", RuntimeID: "11111111-1111-4111-8111-999999999999", SessionID: "sess-chief", RuntimeToken: runtimeToken("chief"),
+		Mode: "leader", TeamID: "math", Activity: "idle", Capabilities: caps, AvailableTools: []string{"read"},
+	})
+	if err != nil {
+		h.t.Fatal(err)
+	}
+	p, err := h.svc.Authenticate(h.ctx, runtimeToken("chief"), "chief")
 	if err != nil {
 		h.t.Fatal(err)
 	}
@@ -337,4 +360,161 @@ func TestArtifactsAreStoredByHashAndCitedByResults(t *testing.T) {
 	if _, _, err := h.svc.ArtifactContent("../../etc/passwd"); err == nil {
 		t.Fatal("a non-hash name must be refused")
 	}
+}
+
+// run drives every runtime's dispatch to its end, answering through answer.
+func (h *harness) settleAll(runtimes map[string]Principal, answer func(name string, a task.Attempt, c task.Contract) (task.Attempt, bool)) {
+	h.t.Helper()
+	for round := 0; round < 40; round++ {
+		h.tick()
+		moved := false
+		for name, p := range runtimes {
+			out, err := h.svc.Dispatches(h.ctx, p)
+			if err != nil || len(out) == 0 {
+				continue
+			}
+			a := out[0]["attempt"].(task.Attempt)
+			c := out[0]["task"].(task.Contract)
+			if a.State != "admitted" {
+				continue
+			}
+			for _, step := range []string{"adapter_received", "injection_requested", "input_observed"} {
+				a = h.must(h.event(p, a, AttemptEvent{Type: step}))
+			}
+			a, ok := answer(name, a, c)
+			if !ok {
+				continue
+			}
+			h.must(h.event(p, a, AttemptEvent{Type: "settled", Idle: true, Outcome: "completed"}))
+			moved = true
+		}
+		if !moved {
+			h.tick()
+			return
+		}
+	}
+}
+
+func TestRunReviewRejectReworkAccept(t *testing.T) {
+	h := newHarness(t)
+	runtimes := map[string]Principal{
+		"chief":    h.registerLeader(),
+		"builder":  h.register("math-builder", "builder", "bot-builder", "room-math", "sess-b"),
+		"reviewer": h.register("math-reviewer", "reviewer", "bot-reviewer", "room-math", "sess-r"),
+	}
+	r, err := h.svc.CreateRun(h.ctx, h.op, CreateRun{RequestID: "run1", TeamID: "math", Goal: "teach fractions", WorkflowID: "lesson"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	reviews := 0
+	var trace []string
+	answer := func(name string, a task.Attempt, c task.Contract) (task.Attempt, bool) {
+		trace = append(trace, name+":"+c.Kind)
+		switch c.Kind {
+		case "leader_step":
+			run := h.runOf(r.ID)
+			action, steps := "wait", []project.Step(nil)
+			if rejected := h.rejectedWithoutRework(r.ID); rejected != "" {
+				action = "dispatch"
+				steps = []project.Step{{ID: "rework-1", RoleRef: "builder", Kind: "rework", ReworkOf: rejected, Goal: "fix the lesson", DependsOn: []project.Dependency{}}}
+			} else if h.allAccepted(r.ID) {
+				action = "complete"
+			}
+			if _, err := h.svc.Decide(h.ctx, runtimes["chief"], r.ID, Decision{RequestID: "d-" + a.ID[:16], ExpectedRevision: run.Revision, AttemptID: a.ID, Action: action, Tasks: steps, Note: action}); err != nil {
+				t.Fatalf("decide %s: %v", action, err)
+			}
+			got, err := h.attemptOf(a.ID)
+			return got, err == nil
+		case "review":
+			reviews++
+			decision := "accepted"
+			if reviews == 1 {
+				decision = "rejected"
+			}
+			value, _ := json.Marshal(map[string]any{"decision": decision, "reason": "checked", "candidates": c.Refs})
+			return h.must(h.event(runtimes[name], a, AttemptEvent{Type: "result_proposed", Result: &task.Result{GoalRevision: c.AppliedRevision, Value: value, Artifacts: []task.Artifact{}, Refs: []project.ResultRef{}}})), true
+		default:
+			return h.must(h.event(runtimes[name], a, AttemptEvent{Type: "result_proposed", Result: &task.Result{GoalRevision: c.AppliedRevision, Value: json.RawMessage(`{"answer":"lesson"}`), Artifacts: []task.Artifact{}, Refs: []project.ResultRef{}}})), true
+		}
+	}
+	h.settleAll(runtimes, answer)
+	final := h.runOf(r.ID)
+	if final.Phase != "completed" {
+		t.Fatalf("run phase %s after %v; blockers %+v", final.Phase, trace, final.Blockers)
+	}
+	if reviews != 2 {
+		t.Fatalf("%d reviews, want 2 (reject then accept): %v", reviews, trace)
+	}
+}
+
+func (h *harness) runOf(id string) task.Run {
+	var r task.Run
+	if err := h.svc.Store.Transaction(h.ctx, func(tx *sql.Tx) error {
+		var err error
+		r, err = task.LoadRun(tx, id)
+		return err
+	}); err != nil {
+		h.t.Fatal(err)
+	}
+	return r
+}
+
+func (h *harness) attemptOf(id string) (task.Attempt, error) {
+	var a task.Attempt
+	err := h.svc.Store.Transaction(h.ctx, func(tx *sql.Tx) error {
+		var err error
+		a, err = task.LoadAttempt(tx, id)
+		return err
+	})
+	return a, err
+}
+
+func (h *harness) runTasks(runID string) []task.Contract {
+	var out []task.Contract
+	if err := h.svc.Store.Transaction(h.ctx, func(tx *sql.Tx) error {
+		all, err := readTasks(tx)
+		for _, c := range all {
+			if c.RunID != nil && *c.RunID == runID && c.Kind != "leader_step" {
+				out = append(out, c)
+			}
+		}
+		return err
+	}); err != nil {
+		h.t.Fatal(err)
+	}
+	return out
+}
+
+func (h *harness) rejectedWithoutRework(runID string) string {
+	tasks := h.runTasks(runID)
+	for _, c := range tasks {
+		if c.Kind == "review" || c.Acceptance == nil || c.Acceptance.Decision != "rejected" || c.SupersededBy != "" {
+			continue
+		}
+		pending := false
+		for _, other := range tasks {
+			if other.ReworkOf == c.ID {
+				pending = true
+			}
+		}
+		if !pending {
+			return c.ID
+		}
+	}
+	return ""
+}
+
+func (h *harness) allAccepted(runID string) bool {
+	for _, c := range h.runTasks(runID) {
+		if c.Kind == "review" || c.SupersededBy != "" {
+			if c.Kind == "review" && !task.Terminal(c.State) {
+				return false
+			}
+			continue
+		}
+		if c.State != "completed" || c.Acceptance == nil || c.Acceptance.Decision != "accepted" {
+			return false
+		}
+	}
+	return true
 }

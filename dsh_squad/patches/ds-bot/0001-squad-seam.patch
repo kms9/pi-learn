@@ -20,10 +20,20 @@ index 7ba683c..0c3843b 100644
  export function apply(ctx, config = {}) {
    createRuntime(ctx, config)
 diff --git a/src/host/groups.js b/src/host/groups.js
-index 57ec081..efd3435 100644
+index 57ec081..a17df18 100644
 --- a/src/host/groups.js
 +++ b/src/host/groups.js
-@@ -188,7 +188,7 @@ export function install(rt) {
+@@ -181,6 +181,9 @@ export function install(rt) {
+   // A member's group Session, created on its first turn there. A new one starts with
+   // a fresh look at the log and a brief of the member's own chat; the brief is the
+   // first message, so it stays fixed and the prefix stays cacheable.
++  // Exported for the Squad seam, which opens a managed member's Session ahead of its
++  // first turn.
++  rt.groupSessionFor = (room, member) => groupSessionFor(room, member)
+   async function groupSessionFor(room, member) {
+     room.sessions ??= {}
+     const known = room.sessions[member.id]
+@@ -188,7 +191,7 @@ export function install(rt) {
        await rt.ensureCapabilities(known)
        return { id: known, brief: undefined }
      }
@@ -133,10 +143,10 @@ index 1475afe..ad5efb8 100644
        // again as it is written.
 diff --git a/src/host/seam.js b/src/host/seam.js
 new file mode 100644
-index 0000000..28bba01
+index 0000000..f8c55b7
 --- /dev/null
 +++ b/src/host/seam.js
-@@ -0,0 +1,75 @@
+@@ -0,0 +1,86 @@
 +// Squad seam: what a separate Squad gate plugin needs from DS Bot, and nothing more. DS
 +// Bot keeps working the same when no gate attaches.
 +//
@@ -150,11 +160,13 @@ index 0000000..28bba01
 +//   admitted input into a Bot Session the way DS Bot does.
 +// - defineTool / bots: the gate's task tools are made with the DSH tools DS Bot itself
 +//   resolves, and the gate can map Bots by name.
++// - createBot / createRoom / ensureGroupSession: a Team bound to a group gets its Bots,
++//   its group and each member's group Session the way the web page would make them.
 +import { randomUUID } from 'node:crypto'
 +import { createUserMessage } from '@deepseek-ai/dsh-llm'
 +import { defineTool } from '@deepseek-ai/dsh-tools'
 +
-+export const SEAM_VERSION = 2
++export const SEAM_VERSION = 3
 +
 +export function install(rt) {
 +  const { ctx } = rt
@@ -207,6 +219,15 @@ index 0000000..28bba01
 +    botOf: botId => rt.botOf(botId),
 +    bots: () => Object.values(rt.state?.bots ?? {}),
 +    defineTool,
++    rooms: () => Object.values(rt.state?.rooms ?? {}),
++    createBot: options => rt.createBot(options),
++    createRoom: options => rt.createRoom(options),
++    ensureGroupSession: async (roomId, botId) => {
++      const room = rt.roomOf(roomId)
++      const member = rt.botOf(botId)
++      if (room === undefined || member === undefined || !room.members.includes(botId)) return undefined
++      return (await rt.groupSessionFor(room, member))?.id
++    },
 +    ready: () => rt.load(),
 +  }
 +  ctx.provide?.('dsBotSeam', api)
@@ -214,10 +235,10 @@ index 0000000..28bba01
 +}
 diff --git a/test/squad-seam.test.js b/test/squad-seam.test.js
 new file mode 100644
-index 0000000..a312b20
+index 0000000..071c927
 --- /dev/null
 +++ b/test/squad-seam.test.js
-@@ -0,0 +1,61 @@
+@@ -0,0 +1,62 @@
 +import { test } from 'node:test'
 +import assert from 'node:assert/strict'
 +import { install } from '../src/host/seam.js'
@@ -238,7 +259,8 @@ index 0000000..a312b20
 +
 +test('without a gate the seam changes nothing', async () => {
 +  const { rt, seam } = runtime()
-+  assert.equal(seam.version, 2)
++  assert.equal(seam.version, 3)
++  assert.equal(typeof seam.ensureGroupSession, 'function')
 +  assert.equal(typeof seam.defineTool, 'function')
 +  assert.ok(Array.isArray(seam.bots()))
 +  assert.equal(rt.seam.reserve({ botId: 'bot-1', place: 'chat' }), undefined)
