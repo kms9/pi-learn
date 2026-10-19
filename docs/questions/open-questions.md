@@ -56,3 +56,4 @@ tags:
 | Q40 | `needs_review`（如缺结果、宿主重启）的 attempt 会一直占住该 Bot，直到 operator `reconcile`；非开发用户在界面上怎么完成这一步？ | open | Controller 设计如此（不自动释放未知执行）。界面上的恢复卡在 M3-2/M4-3。 |
 | Q41 | 依赖某个任务的下游任务，在该任务被退回、返工后，仍指向旧版本（Controller 不把依赖和 refs 转到返工任务）。数学案例的「检查」只能依赖「制作」的 `execution_completed`，检查的是首版。 | open | 2026-10-19 M2 发现。选项：Controller 在返工通过时改写下游依赖；或由 Leader 为返工后的版本补派检查。M4 或 T 前决定。 |
 | Q42 | Artifact 预览与 DS Bot 同主机不同端口：Cookie 按主机共享。现在靠 CSP `sandbox`（不透明源，读不到 Cookie）和 `default-src 'none'`（不能发请求）隔离。M3 的界面 iframe 是否还要换成不同主机名（如 `localhost` 对 `127.0.0.1`）？ | open | 2026-10-19 M2-6；浏览器自动化验证放在 T 阶段（DSH-M2-07）。 |
+| Q43 | D12「正式 Run 开始时 Memory 快照只读」只做到受控会话在任务里不能 `remember`/`forget`。同一时间 Free 模式的会话（如在私聊里的 Chief）仍可改团队记忆，正式 Run 后续步骤会读到新内容；也没有在 Run 开始时记录记忆的哈希。 | open | 2026-10-19 M3。若对照实验需要严格冻结：Run 开始时复制记忆为只读快照并让受控会话读快照，或实验期间锁定团队记忆写入。 |

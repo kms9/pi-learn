@@ -1,6 +1,6 @@
 # DSH Squad 使用说明
 
-DS Bot（DSH 宿主）+ Squad Controller 的配置与启动。只写已经能用的功能；进度见 `docs/dsh-squad-dev-plan-2026-10-18.md`。已完成 **M1（DSH Adapter）**、**M0（一键启动与预置团队）**、**M2（单 Team 交付）**：按项目目录一条命令启动 DS Bot + Controller；一个 Team 绑定到一个群，按 Workflow 跑完整 Run（派发、独立审核、退回返工、Leader 完成）。界面在 M3；目前用宿主路由和 Controller HTTP 接口操作。
+DS Bot（DSH 宿主）+ Squad Controller 的配置与启动。只写已经能用的功能；进度见 `docs/dsh-squad-dev-plan-2026-10-18.md`。已完成 **M1（DSH Adapter）**、**M0（一键启动与预置团队）**、**M2（单 Team 交付）**、**M3（界面与对照实验）**：按项目目录一条命令启动 DS Bot + Controller；在 DS Bot 页面里建小队、定规则、开始 Run、看进度和成果、处理审核与恢复；对照实验工具。多 Team 协同在 M4。
 
 固定版本（D9）：DSH `0.2.1-rc.2`，ds-bot `e13bc34` 加 `patches/ds-bot/0001-squad-seam.patch`。
 
@@ -20,6 +20,23 @@ dsh_squad/deploy/dsh-squad down ~/my-project
 - `--port N` 改网页端口（默认 3400）。`--mock` 每次 `up` 都要带；不带时需要 `DEEPSEEK_API_KEY`（可选 `DEEPSEEK_BASE_URL`，默认 `https://api.deepseek.com`），key 不会写到磁盘。
 - `provision` 可重复执行，已有的 Bot 和群不会重复创建；所有 Bot 用 `deepseek-flash`、推理强度 high（D7）。
 - 这时所有 Bot 都是 Free 模式：正常私聊、群聊、`@Bot`、记忆，Adapter 不接管任何会话。让某个 Bot 受控见第 5 节。
+
+## 0.1 在 DS Bot 页面里用 Squad（M3）
+
+左下角「小队」按钮打开 Squad 页面，三个标签：
+
+- **运行**：选小队和流程、写目标、点「开始」（没绑定群的小队会自动建群并绑定）。左边是 Run 列表；右边是选中 Run 的详情：
+  - **任务依赖图**：每个任务的角色、状态、审核结论；被退回的版本虚线框，返工用红色虚线连接。
+  - 三类需要你处理的卡片分开显示：**需要你回答**（Run 暂停或受阻时，写给 Leader 的说明）、**需要你批准工具**（受控成员等待的工具审批）、**需要你验收成果**（验收方式为人工的任务）。每张卡片都绑定它画出来时的版本，任务已经变了会被拒绝，请刷新后再操作。
+  - **需要恢复**：执行状态不确定的任务。先勾选「我确认这次执行已经停止」再释放，之后可以重试或取消。
+  - **成果文件**：每个版本都在，标出已通过、待审核、已被返工取代；HTML 点「预览」在隔离窗口里打开（另一个主机名、沙箱，读不到 DS Bot 的登录和数据）。
+  - 随时可以给 Leader 补充说明，或取消 Run。
+- **小队与规则**：不用写文件就能新建、修改小队（成员角色、Leader、验收方式、审核角色、默认流程、说明）、角色（说明与工作规则）、流程（步骤、角色、先后顺序和开始条件）。「检查」只校验不保存；「保存」由 Controller 校验整个配置后才写入，改小队的说明或流程会自动升版本；别人先改过同一个文件会提示重新读取。
+- **实验报告**：对照实验的结果（见第 10 节）。
+
+绑定了小队的群，输入框上方有一条状态：当前 Run 进度和「查看进度」。页面上方如果出现黄色提示，说明有成员没连上 Controller，并写明原因。
+
+页面只通过 DS Bot 自己的登录访问宿主；operator 凭据留在宿主上，不会发给浏览器。
 
 ## 1. 准备（手动）
 
@@ -124,6 +141,17 @@ curl -X POST "$ENDPOINT/v2/tasks/direct" \
 **人工验收**（`acceptance_policy.mode` 为 `human` 的任务）：`POST /v2/tasks/<id>/acceptance {"request_id","expected_revision","decision","result_hash","note"}`，`result_hash` 和 `expected_revision` 必须是当前版本，旧卡片会被拒绝。
 
 **案例**：`dsh_squad/cases/math/`（数学知识点课件），用法见其 README。
+
+## 10. 对照实验（M3-3）
+
+```bash
+node dsh_squad/experiments/run.mjs --mock --groups S,A,B,C --repeats 1 --publish ~/my-project
+DEEPSEEK_API_KEY=... node dsh_squad/experiments/run.mjs --repeats 3 --publish ~/my-project
+```
+
+同一个任务（`--goal`，默认数学课件）用四种做法各跑一遍：S 单个 Agent、A DS Bot 自由协作、B Squad 任务 DAG（完成即通过，不审核）、C Squad DAG + 独立审核。每组每次都在新的项目目录里起一对新的 DS Bot + Controller，互不继承 Bot、记忆和结果（D12）；所有组用同一个模型（D7）。Token 和调用次数取自 DS Bot 的用量账本，含记忆、摘要等辅助调用。报告写到 `dsh_squad/experiments/reports/`，`--publish` 时同时放进该项目，在「实验报告」标签里看。mock 跑出的报告会标明「数字不代表真实效果」。
+
+正式 Run 里受控会话的记忆是只读的：可以 `recall`，不能 `remember`/`forget`（D12）。
 
 ## 9. 故障时
 
