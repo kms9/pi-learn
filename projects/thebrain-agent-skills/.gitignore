@@ -1,0 +1,14 @@
+# Local credentials and runtime state
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+.local/
+.artifacts/
+reports/private/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+brainctl
+.DS_Store
