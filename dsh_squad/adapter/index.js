@@ -204,7 +204,7 @@ export function apply(ctx, config = {}) {
     const out = await client.register({
       host: { profile: HOST_PROFILE, host_id: hostId, bot_id: binding.botId, ...(binding.roomId ? { room_id: binding.roomId } : {}), place: binding.roomId ? 'group-member' : 'chat' },
       agent_id: c.agentId, runtime_id: c.runtimeId, session_id: sessionId, previous_session_id: previous ?? '',
-      runtime_token: c.token, mode: c.mode ?? 'role', ...(c.mode === 'leader' ? { team_id: c.teamId } : { role_id: c.roleId, role_hash: roleHash(c.roleId) }), activity: 'idle',
+      runtime_token: c.token, mode: c.mode ?? 'role', ...(c.mode === 'leader' ? { team_id: c.teamId } : { role_id: c.roleId, role_hash: roleHash(c.roleId), ...(c.teamId ? { team_id: c.teamId } : {}) }), activity: 'idle',
       capabilities: CAPABILITIES, available_tools: ['read', 'grep', 'find', 'ls', 'write', 'edit'],
     })
     c.binding = out.binding
@@ -297,6 +297,9 @@ export function apply(ctx, config = {}) {
           bindingErrors.delete(key)
         } catch (error) {
           lost(error)
+          // The Controller moved this binding on (a Primary switch, a release): the
+          // next tick registers again and gets the current one.
+          if (error?.code === 'BINDING_CHANGED' || error?.code === 'UNAUTHORIZED') binding.controller.binding = undefined
           bindingErrors.set(key, { botId: binding.botId, agentId: binding.controller.agentId, code: error?.code ?? null, message: String(error?.message ?? error), at: new Date().toISOString() })
           log('controller/error', { key, code: error?.code ?? null, error: String(error?.message ?? error) })
         }
@@ -794,7 +797,7 @@ export function apply(ctx, config = {}) {
           if (sessionId === undefined) throw new Error(`no group Session for ${member.name}`)
           const frozen = typeof member.bot.model === 'string' && member.bot.model.includes('/') ? { provider: member.bot.model.split('/')[0], model: member.bot.model.split('/').slice(1).join('/') } : undefined
           const agentId = member.leader ? member.id : `${teamId}-${member.id}`
-          await handle('manage', { botId: member.bot.id, roomId: room.id, agentId, ...(member.leader ? { mode: 'leader', teamId } : { roleId: member.id }), ...(frozen ? { frozen } : {}) })
+          await handle('manage', { botId: member.bot.id, roomId: room.id, agentId, ...(member.leader ? { mode: 'leader', teamId } : { roleId: member.id, teamId }), ...(frozen ? { frozen } : {}) })
           bound.push({ name: member.name, botId: member.bot.id, agentId, sessionId, leader: member.leader === true })
         }
         state.teams = { ...(state.teams ?? {}), [teamId]: { roomId: room.id, members: bound } }

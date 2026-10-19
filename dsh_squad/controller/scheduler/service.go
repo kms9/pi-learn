@@ -300,8 +300,20 @@ func (s *Service) Register(ctx context.Context, q Register) (Instance, error) {
 		return result, err
 	}
 	if q.Mode == "role" {
-		if _, ok := snapshot.Roles[q.RoleID]; !ok || q.TeamID != "" {
-			return result, task.Reject("INVALID_ROLE", "unknown role or unexpected team")
+		if _, ok := snapshot.Roles[q.RoleID]; !ok {
+			return result, task.Reject("INVALID_ROLE", "unknown role")
+		}
+		// A role runtime may serve one Team (M4-1): the same Bot in another Team's group
+		// is another runtime of the same role, and a Run of that Team uses it.
+		if q.TeamID != "" {
+			t, ok := snapshot.Teams[q.TeamID]
+			member := false
+			for _, m := range t.Config.Members {
+				member = member || m.RoleRef == q.RoleID
+			}
+			if !ok || !member {
+				return result, task.Reject("INVALID_ROLE", "the Team does not have this role")
+			}
 		}
 	} else if q.Mode == "leader" {
 		t, ok := snapshot.Teams[q.TeamID]

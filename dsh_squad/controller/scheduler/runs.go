@@ -208,6 +208,11 @@ func (s *Service) admitRuns(tx *sql.Tx) error {
 				return err
 			}
 		}
+		for role := range roleSet(r) {
+			if err := s.primaryForTeam(tx, role, r.TeamID); err != nil {
+				return err
+			}
+		}
 		r.Admitted = true
 		r.Phase = "planning"
 		r.Revision++
@@ -274,4 +279,94 @@ func resolveStep(ids map[string]string, id string) string {
 		return resolved
 	}
 	return id
+}
+
+// primaryForTeam makes the runtime that serves this Team the role's Primary while the
+// Team's Run owns the role (M4-1). A role shared by two Teams is one Bot with a Session
+// in each Team's group; the Run admitted for a Team works in that Team's group. The Run
+// owns the role exclusively, so no other Run's work is moved; an old Primary that
+// still holds an execution keeps the role.
+func (s *Service) primaryForTeam(tx *sql.Tx, role, team string) error {
+	rows, err := tx.Query(`SELECT agent_id FROM instances WHERE mode='role' AND role_id=? AND team_id=? AND revoked=0`, role, team)
+	if err != nil {
+		return err
+	}
+	var candidates []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			rows.Close()
+			return err
+		}
+		candidates = append(candidates, id)
+	}
+	err = rows.Err()
+	rows.Close()
+	if err != nil {
+		return err
+	}
+	var target *Instance
+	for _, id := range candidates {
+		i, err := loadInstance(tx, id)
+		if err != nil {
+			return err
+		}
+		if s.Online(i) {
+			target = &i
+			break
+		}
+	}
+	if target == nil {
+		return nil
+	}
+	var owner sql.NullString
+	var epoch int64
+	if err := tx.QueryRow(`SELECT agent_id,epoch FROM primary_bindings WHERE role_id=?`, role).Scan(&owner, &epoch); err != nil && err != sql.ErrNoRows {
+		return err
+	}
+	if owner.String == target.Binding.AgentID {
+		return nil
+	}
+	if owner.Valid && owner.String != "" {
+		var busy int
+		if err := tx.QueryRow(`SELECT count(*) FROM attempts WHERE agent_id=? AND cleanup!='released'`, owner.String).Scan(&busy); err != nil {
+			return err
+		}
+		if busy > 0 {
+			return nil
+		}
+		old, err := loadInstance(tx, owner.String)
+		if err != nil {
+			return err
+		}
+		old.Binding.PrimaryEpoch = 0
+		old.Binding.BindingEpoch++
+		var hash string
+		if err := tx.QueryRow(`SELECT token_hash FROM instances WHERE agent_id=?`, owner.String).Scan(&hash); err != nil {
+			return err
+		}
+		if err := saveInstance(tx, old, hash); err != nil {
+			return err
+		}
+	}
+	history, _ := json.Marshal(map[string]any{"agent_id": owner.String, "epoch": epoch, "reason": "team_run_admitted", "team_id": team})
+	if _, err := tx.Exec(`INSERT INTO binding_history(kind,entity_id,body,at) VALUES('role',?,?,?)`, role, string(history), fault.Now().Format(time.RFC3339Nano)); err != nil {
+		return err
+	}
+	if _, err := tx.Exec(`INSERT INTO primary_bindings VALUES(?,?,1,1) ON CONFLICT(role_id) DO UPDATE SET agent_id=excluded.agent_id,epoch=primary_bindings.epoch+1,revision=primary_bindings.revision+1`, role, target.Binding.AgentID); err != nil {
+		return err
+	}
+	if err := tx.QueryRow(`SELECT epoch FROM primary_bindings WHERE role_id=?`, role).Scan(&epoch); err != nil {
+		return err
+	}
+	target.Binding.PrimaryEpoch = epoch
+	target.Binding.BindingEpoch++
+	var hash string
+	if err := tx.QueryRow(`SELECT token_hash FROM instances WHERE agent_id=?`, target.Binding.AgentID).Scan(&hash); err != nil {
+		return err
+	}
+	if err := saveInstance(tx, *target, hash); err != nil {
+		return err
+	}
+	return task.EventTx(tx, "primary_switched", role, epoch, map[string]string{"agent_id": target.Binding.AgentID, "team_id": team, "previous": owner.String})
 }
