@@ -141,17 +141,34 @@ function AcceptCard({ card }) {
 }
 
 function RecoverCard({ card }) {
-  const { task, attempt } = card
+  const { task, attempt, late = [], others = [], primary } = card
   const [confirm, setConfirm] = useState(false)
+  const body = extra => ({ request_id: requestId('recover'), expected_revision: card.expectedRevision, ...extra })
   return h('div', { className: 'sq-card' },
     h('h3', null, '需要恢复'),
-    h('div', null, `${KIND[task.kind] ?? task.kind} · ${task.role_id}：${TASK_STATE[task.state] ?? task.state}${attempt?.error ? `（${attempt.error}）` : ''}`),
-    h('div', { className: 'sq-muted' }, '不确定这次执行是否真的停下时，不会自动重来。确认它已经停止后再释放；释放后可以重试或取消。'),
-    attempt ? h('label', { className: 'sq-row' }, h('input', { type: 'checkbox', checked: confirm, onChange: event => setConfirm(event.target.checked) }), '我确认这次执行已经停止') : null,
+    h('div', null, `${KIND[task.kind] ?? task.kind} · ${task.role_id}：${TASK_STATE[task.state] ?? task.state}${attempt?.error ? `（${attempt.error}）` : ''}${(task.blockers ?? []).length ? ` · ${(task.blockers ?? []).map(blocker => blocker.kind).join('、')}` : ''}`),
+    attempt ? h(Fragment, null,
+      h('div', { className: 'sq-muted' }, '不确定这次执行是否真的停下时，不会自动重来。确认它已经停止后再释放，之后可以重试、采用迟到的结果或取消。'),
+      h('label', { className: 'sq-row' }, h('input', { type: 'checkbox', checked: confirm, onChange: event => setConfirm(event.target.checked) }), '我确认这次执行已经停止'),
+      h('button', { className: 'sq-btn', disabled: !confirm, onClick: () => act('确认已停止', 'operate', { kind: 'attempt', id: attempt.attempt_id, op: 'reconcile', body: { request_id: requestId('reconcile'), expected_revision: attempt.revision, expected_runtime: attempt.target?.runtime_id, note: '在 Squad 页面确认已停止', confirm_stopped: true } }) }, '确认已停止')) : null,
+    late.length > 0 ? h('div', null,
+      h('div', null, `执行被隔离后又收到 ${late.length} 份结果（已拒绝，保留为证据）：`),
+      late.map(row => h('div', { key: row.seq, className: 'sq-row' },
+        h('span', { className: 'sq-muted' }, `#${row.seq} · ${row.source} · ${String(row.at ?? '').slice(0, 19).replace('T', ' ')}`),
+        h('button', { className: 'sq-btn', disabled: Boolean(attempt), onClick: () => act('采用迟到的结果', 'operate', { kind: 'task', id: task.task_id, op: 'recover', body: body({ evidence: `evidence:${row.seq}`, note: '在 Squad 页面采用迟到的结果' }) }) }, '采用这个结果')))) : null,
+    others.length > 0 && attempt === undefined ? h('div', null,
+      h('div', null, `${task.role_id} 现在由 ${primary?.primary_agent_id || '（无人）'} 负责，可以换成：`),
+      others.map(agent => h('button', { key: agent.binding.agent_id, className: 'sq-btn', onClick: async () => {
+        await act(`换成 ${agent.binding.agent_id}`, 'operate', { kind: 'role', id: task.role_id, op: 'promote', body: { request_id: requestId('promote'), expected_revision: primary?.revision ?? 0, expected_runtime: (snapshotAgent(primary?.primary_agent_id)?.binding?.runtime_id) ?? '', agent_id: agent.binding.agent_id } })
+      } }, agent.binding.agent_id))) : null,
     h('div', { className: 'sq-row' },
-      attempt ? h('button', { className: 'sq-btn', disabled: !confirm, onClick: () => act('确认已停止', 'operate', { kind: 'attempt', id: attempt.attempt_id, op: 'reconcile', body: { request_id: requestId('reconcile'), expected_revision: attempt.revision, expected_runtime: attempt.target?.runtime_id, note: '在 Squad 页面确认已停止', confirm_stopped: true } }) }, '确认已停止') : null,
-      h('button', { className: 'sq-btn', disabled: Boolean(attempt), onClick: () => act('重试', 'operate', { kind: 'task', id: task.task_id, op: 'retry', body: { request_id: requestId('retry'), expected_revision: card.expectedRevision, note: '在 Squad 页面重试' } }) }, '重试'),
-      h('button', { className: 'sq-btn', 'data-kind': 'danger', onClick: () => act('取消任务', 'operate', { kind: 'task', id: task.task_id, op: 'cancel', body: { request_id: requestId('cancel'), expected_revision: card.expectedRevision, note: '在 Squad 页面取消' } }) }, '取消任务')))
+      h('button', { className: 'sq-btn', disabled: Boolean(attempt), onClick: () => act(card.attempts > 0 ? '重试' : '换人重新安排', 'operate', { kind: 'task', id: task.task_id, op: card.attempts > 0 ? 'retry' : 'rebind', body: body({ rebind_current: true, note: '在 Squad 页面处理' }) }) }, card.attempts > 0 ? '重试' : '按当前负责人重新安排'),
+      h('button', { className: 'sq-btn', 'data-kind': 'danger', onClick: () => act('取消任务', 'operate', { kind: 'task', id: task.task_id, op: 'cancel', body: body({ note: '在 Squad 页面取消' }) }) }, '取消任务')))
+}
+
+// The current Primary's runtime id, for the role swap's expected_runtime.
+function snapshotAgent(agentId) {
+  return (store.get().projection.snapshot?.views?.agents ?? []).find(agent => agent.binding?.agent_id === agentId)
 }
 
 function ReviewCard({ card }) {

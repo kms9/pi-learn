@@ -71,9 +71,17 @@ export function cardsOf(snapshot, runId, approvals = []) {
     if (task.kind !== 'leader_step' && task.state === 'completed' && task.acceptance == null && task.acceptance_policy?.mode === 'human' && task.result) {
       cards.push({ type: 'accept', key: `accept:${task.task_id}:${task.revision}`, task, expectedRevision: task.revision, resultHash: task.result.hash })
     }
-    if (task.state === 'needs_review' || (task.state === 'interrupted' && attemptsOf(snapshot, task.task_id).some(attempt => attempt.cleanup_state !== 'released'))) {
-      const attempt = attemptsOf(snapshot, task.task_id).filter(candidate => candidate.cleanup_state !== 'released').at(-1)
-      cards.push({ type: 'recover', key: `recover:${task.task_id}:${task.revision}`, task, attempt, expectedRevision: task.revision })
+    const blockedOnBinding = (task.blockers ?? []).some(blocker => ['primary_offline', 'binding_changed'].includes(blocker.kind))
+    if (task.state === 'needs_review' || (task.state === 'interrupted' && attemptsOf(snapshot, task.task_id).some(attempt => attempt.cleanup_state !== 'released')) || (blockedOnBinding && task.kind !== 'leader_step')) {
+      const attempts = attemptsOf(snapshot, task.task_id)
+      const attempt = attempts.filter(candidate => candidate.cleanup_state !== 'released').at(-1)
+      const ids = new Set(attempts.map(candidate => candidate.attempt_id))
+      // Results that arrived after their execution was fenced off, kept as evidence.
+      const late = (snapshot?.views?.evidence ?? []).filter(row => ids.has(row.attempt_id) && row.disposition === 'rejected_late_or_stale')
+      // Runtimes of the same role that could take the work over (role swap).
+      const primary = (snapshot?.views?.roles ?? []).find(role => role.role_id === task.role_id)
+      const others = (snapshot?.views?.agents ?? []).filter(agent => agent.role_id === task.role_id && agent.mode === 'role' && agent.presence === 'online' && agent.binding?.agent_id !== primary?.primary_agent_id)
+      cards.push({ type: 'recover', key: `recover:${task.task_id}:${task.revision}`, task, attempt, attempts: attempts.length, late, primary, others, expectedRevision: task.revision })
     }
     if (task.kind === 'review' && task.state === 'completed' && task.result?.value?.decision) {
       cards.push({ type: 'review', key: `review:${task.task_id}`, task, verdict: task.result.value })

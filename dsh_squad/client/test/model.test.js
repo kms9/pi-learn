@@ -49,6 +49,7 @@ test('cards: accept for human results, recover, review verdicts, approvals, each
   assert.equal(of('accept')[0].expectedRevision, 6)
   assert.equal(of('accept')[0].resultHash, 'h6')
   assert.equal(of('recover')[0].attempt.attempt_id, 'attempt-x')
+  assert.deepEqual(of('recover')[0].late, [])
   assert.equal(of('review')[0].verdict.decision, 'rejected')
   assert.equal(of('approve')[0].expectedRevision, 9)
   assert.equal(of('answer').length, 0)
@@ -60,6 +61,23 @@ test('a review reads as what it reviews', async () => {
   const { goalOf } = await import('../src/model.js')
   assert.match(goalOf(tasks[1], tasks), /^审核「undefined」|^审核/)
   assert.equal(goalOf(tasks[0], tasks), tasks[0].goal)
+})
+
+test('a recovery card offers the late result and the other runtimes of the role', async () => {
+  const { cardsOf } = await import('../src/model.js')
+  const views = {
+    runs: [run],
+    tasks: [{ task_id: 'task-z', run_id: 'run-1', kind: 'execute', role_id: 'builder', state: 'needs_review', revision: 3, dependencies: [], blockers: [{ kind: 'primary_offline' }] }],
+    attempts: [{ attempt_id: 'attempt-z', task_id: 'task-z', cleanup_state: 'released', revision: 4 }],
+    evidence: [{ seq: 7, attempt_id: 'attempt-z', disposition: 'rejected_late_or_stale' }],
+    roles: [{ role_id: 'builder', primary_agent_id: 'a-builder' }],
+    agents: [{ mode: 'role', role_id: 'builder', presence: 'online', binding: { agent_id: 'b-builder' } }, { mode: 'role', role_id: 'builder', presence: 'online', binding: { agent_id: 'a-builder' } }],
+  }
+  const [card] = cardsOf({ views }, 'run-1').filter(candidate => candidate.type === 'recover')
+  assert.equal(card.attempt, undefined)
+  assert.equal(card.attempts, 1)
+  assert.equal(card.late[0].seq, 7)
+  assert.deepEqual(card.others.map(agent => agent.binding.agent_id), ['b-builder'])
 })
 
 test('artifacts list every version, the rejected one marked as superseded', () => {

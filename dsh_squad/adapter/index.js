@@ -692,7 +692,7 @@ export function apply(ctx, config = {}) {
   const previewBase = () => {
     try { return discover(projectRoot).endpoint.replace('//127.0.0.1:', '//localhost:') } catch { return null }
   }
-  const OPERATIONS = { run: ['cancel', 'resume', 'guidance'], task: ['cancel', 'retry', 'amend', 'accept', 'reject'], attempt: ['reconcile'] }
+  const OPERATIONS = { run: ['cancel', 'resume', 'guidance'], task: ['cancel', 'retry', 'rebind', 'recover', 'amend', 'accept', 'reject'], attempt: ['reconcile'], role: ['promote'] }
   const managedApprovals = () => {
     const sessions = new Map(Object.values(state.attempts).filter(attempt => attempt.controlled && attempt.verdict?.verdict === 'running').map(attempt => [attempt.sessionId, attempt]))
     return (seam.approvals?.() ?? []).filter(entry => sessions.has(entry.sessionId)).map(entry => ({ ...entry, attemptId: sessions.get(entry.sessionId).attemptId, taskId: sessions.get(entry.sessionId).taskId }))

@@ -647,3 +647,84 @@ func TestChildYieldContinuesTheSameAttempt(t *testing.T) {
 		t.Fatalf("child %s", got.State)
 	}
 }
+
+// DSH-M4-03: the Controller crashes mid-attempt. The restart holds the work; the old
+// attempt's late result is refused and kept as evidence; after the operator confirms the
+// stop, one task adopts the late result and another is retried on a new attempt.
+func TestControllerCrashRecovery(t *testing.T) {
+	h := newHarness(t)
+	h.svc.Config.MaxParallel = 2
+	h.svc.Config.DirectTargets = []string{"builder-bot", "reviewer-bot"}
+	h.register("builder-bot", "builder", "bot-builder", "", "sess-1")
+	h.register("reviewer-bot", "reviewer", "bot-reviewer", "", "sess-2")
+	adopt, err := h.svc.CreateTask(h.ctx, h.op, CreateTask{RequestID: "r1", Target: "builder-bot", Goal: "page"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	again, err := h.svc.CreateTask(h.ctx, h.op, CreateTask{RequestID: "r2", Target: "reviewer-bot", Goal: "check"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	h.tick()
+	a1 := h.startRunning(h.principal("builder-bot"))
+	a2 := h.startRunning(h.principal("reviewer-bot"))
+
+	// The crash: a new Controller process on the same database.
+	restarted, err := New(h.ctx, h.svc.Store, h.svc.Project, h.svc.Config, operatorToken)
+	if err != nil {
+		t.Fatal(err)
+	}
+	restarted.ArtifactDir = h.svc.ArtifactDir
+	h.svc = restarted
+	if got := h.taskOf(adopt.ID); got.State != "needs_review" {
+		t.Fatalf("after the restart the task is %s, want needs_review", got.State)
+	}
+	// The runtimes come back (heartbeat), and the old attempt's result arrives late.
+	for _, id := range []string{"builder-bot", "reviewer-bot"} {
+		p := h.principal(id)
+		if _, err := h.svc.Heartbeat(h.ctx, p, p.Binding, "idle"); err != nil {
+			t.Fatal(err)
+		}
+	}
+	builder := h.principal("builder-bot")
+	_, err = h.svc.AttemptEvent(h.ctx, builder, a1.ID, AttemptEvent{RequestID: "late", Type: "result_proposed", ExpectedRevision: a1.Revision, Segment: a1.Segment, FencingToken: a1.FencingToken, ControllerEpoch: a1.ControllerEpoch,
+		Result: &task.Result{GoalRevision: 1, Value: json.RawMessage(`{"answer":"late page"}`), Artifacts: []task.Artifact{}, Refs: []project.ResultRef{}}})
+	if err == nil {
+		t.Fatal("a result from before the restart must be refused")
+	}
+	var evidence int64
+	if err := h.svc.Store.DB.QueryRow(`SELECT seq FROM attempt_evidence WHERE attempt_id=? AND disposition='rejected_late_or_stale'`, a1.ID).Scan(&evidence); err != nil {
+		t.Fatalf("the late result was not kept: %v", err)
+	}
+	// The operator confirms both executions stopped.
+	for _, a := range []task.Attempt{a1, a2} {
+		current, _ := h.attemptOf(a.ID)
+		if _, err := h.svc.Operate(h.ctx, h.op, "attempt", a.ID, "reconcile", Operation{RequestID: "rec-" + a.ID[:12], ExpectedRevision: current.Revision, ExpectedRuntime: current.Target.RuntimeID, Note: "the host was checked", ConfirmStopped: true}); err != nil {
+			t.Fatalf("reconcile: %v", err)
+		}
+	}
+	// One task adopts the late result it already produced.
+	c := h.taskOf(adopt.ID)
+	if _, err := h.svc.Operate(h.ctx, h.op, "task", adopt.ID, "recover", Operation{RequestID: "recover-1", ExpectedRevision: c.Revision, Evidence: fmt.Sprintf("evidence:%d", evidence), Note: "the page was finished before the crash"}); err != nil {
+		t.Fatalf("recover: %v", err)
+	}
+	if got := h.taskOf(adopt.ID); got.Result == nil || string(got.Result.Value) != `{"answer":"late page"}` {
+		t.Fatalf("recovered result %+v (state %s)", got.Result, got.State)
+	}
+	// The other is retried: a new attempt, and it completes.
+	c = h.taskOf(again.ID)
+	if _, err := h.svc.Operate(h.ctx, h.op, "task", again.ID, "retry", Operation{RequestID: "retry-1", ExpectedRevision: c.Revision, RebindCurrent: true, Note: "run it again"}); err != nil {
+		t.Fatalf("retry: %v", err)
+	}
+	h.tick()
+	reviewer := h.principal("reviewer-bot")
+	a3 := h.startRunning(reviewer)
+	if a3.ID == a2.ID || a3.RetryOf != a2.ID {
+		t.Fatalf("retry made %s (retry of %s), want a new attempt after %s", a3.ID, a3.RetryOf, a2.ID)
+	}
+	a3 = h.must(h.event(reviewer, a3, AttemptEvent{Type: "result_proposed", Result: &task.Result{GoalRevision: 1, Value: json.RawMessage(`{"answer":"checked"}`), Artifacts: []task.Artifact{}, Refs: []project.ResultRef{}}}))
+	h.must(h.event(reviewer, a3, AttemptEvent{Type: "settled", Idle: true, Outcome: "completed"}))
+	if got := h.taskOf(again.ID); got.State != "completed" || len(got.AttemptIDs) != 2 {
+		t.Fatalf("retried task %s with %d attempts", got.State, len(got.AttemptIDs))
+	}
+}

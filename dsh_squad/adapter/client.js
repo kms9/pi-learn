@@ -100,9 +100,15 @@ function cardsOf(snapshot, runId, approvals = []) {
     if (task.kind !== "leader_step" && task.state === "completed" && task.acceptance == null && task.acceptance_policy?.mode === "human" && task.result) {
       cards.push({ type: "accept", key: `accept:${task.task_id}:${task.revision}`, task, expectedRevision: task.revision, resultHash: task.result.hash });
     }
-    if (task.state === "needs_review" || task.state === "interrupted" && attemptsOf(snapshot, task.task_id).some((attempt) => attempt.cleanup_state !== "released")) {
-      const attempt = attemptsOf(snapshot, task.task_id).filter((candidate) => candidate.cleanup_state !== "released").at(-1);
-      cards.push({ type: "recover", key: `recover:${task.task_id}:${task.revision}`, task, attempt, expectedRevision: task.revision });
+    const blockedOnBinding = (task.blockers ?? []).some((blocker) => ["primary_offline", "binding_changed"].includes(blocker.kind));
+    if (task.state === "needs_review" || task.state === "interrupted" && attemptsOf(snapshot, task.task_id).some((attempt) => attempt.cleanup_state !== "released") || blockedOnBinding && task.kind !== "leader_step") {
+      const attempts = attemptsOf(snapshot, task.task_id);
+      const attempt = attempts.filter((candidate) => candidate.cleanup_state !== "released").at(-1);
+      const ids = new Set(attempts.map((candidate) => candidate.attempt_id));
+      const late = (snapshot?.views?.evidence ?? []).filter((row) => ids.has(row.attempt_id) && row.disposition === "rejected_late_or_stale");
+      const primary = (snapshot?.views?.roles ?? []).find((role) => role.role_id === task.role_id);
+      const others = (snapshot?.views?.agents ?? []).filter((agent) => agent.role_id === task.role_id && agent.mode === "role" && agent.presence === "online" && agent.binding?.agent_id !== primary?.primary_agent_id);
+      cards.push({ type: "recover", key: `recover:${task.task_id}:${task.revision}`, task, attempt, attempts: attempts.length, late, primary, others, expectedRevision: task.revision });
     }
     if (task.kind === "review" && task.state === "completed" && task.result?.value?.decision) {
       cards.push({ type: "review", key: `review:${task.task_id}`, task, verdict: task.result.value });
@@ -417,23 +423,50 @@ function AcceptCard({ card }) {
   );
 }
 function RecoverCard({ card }) {
-  const { task, attempt } = card;
+  const { task, attempt, late = [], others = [], primary } = card;
   const [confirm, setConfirm] = (0, import_react2.useState)(false);
+  const body = (extra) => ({ request_id: requestId("recover"), expected_revision: card.expectedRevision, ...extra });
   return (0, import_react2.createElement)(
     "div",
     { className: "sq-card" },
     (0, import_react2.createElement)("h3", null, "需要恢复"),
-    (0, import_react2.createElement)("div", null, `${KIND[task.kind] ?? task.kind} · ${task.role_id}：${TASK_STATE[task.state] ?? task.state}${attempt?.error ? `（${attempt.error}）` : ""}`),
-    (0, import_react2.createElement)("div", { className: "sq-muted" }, "不确定这次执行是否真的停下时，不会自动重来。确认它已经停止后再释放；释放后可以重试或取消。"),
-    attempt ? (0, import_react2.createElement)("label", { className: "sq-row" }, (0, import_react2.createElement)("input", { type: "checkbox", checked: confirm, onChange: (event) => setConfirm(event.target.checked) }), "我确认这次执行已经停止") : null,
+    (0, import_react2.createElement)("div", null, `${KIND[task.kind] ?? task.kind} · ${task.role_id}：${TASK_STATE[task.state] ?? task.state}${attempt?.error ? `（${attempt.error}）` : ""}${(task.blockers ?? []).length ? ` · ${(task.blockers ?? []).map((blocker) => blocker.kind).join("、")}` : ""}`),
+    attempt ? (0, import_react2.createElement)(
+      import_react2.Fragment,
+      null,
+      (0, import_react2.createElement)("div", { className: "sq-muted" }, "不确定这次执行是否真的停下时，不会自动重来。确认它已经停止后再释放，之后可以重试、采用迟到的结果或取消。"),
+      (0, import_react2.createElement)("label", { className: "sq-row" }, (0, import_react2.createElement)("input", { type: "checkbox", checked: confirm, onChange: (event) => setConfirm(event.target.checked) }), "我确认这次执行已经停止"),
+      (0, import_react2.createElement)("button", { className: "sq-btn", disabled: !confirm, onClick: () => act("确认已停止", "operate", { kind: "attempt", id: attempt.attempt_id, op: "reconcile", body: { request_id: requestId("reconcile"), expected_revision: attempt.revision, expected_runtime: attempt.target?.runtime_id, note: "在 Squad 页面确认已停止", confirm_stopped: true } }) }, "确认已停止")
+    ) : null,
+    late.length > 0 ? (0, import_react2.createElement)(
+      "div",
+      null,
+      (0, import_react2.createElement)("div", null, `执行被隔离后又收到 ${late.length} 份结果（已拒绝，保留为证据）：`),
+      late.map((row) => (0, import_react2.createElement)(
+        "div",
+        { key: row.seq, className: "sq-row" },
+        (0, import_react2.createElement)("span", { className: "sq-muted" }, `#${row.seq} · ${row.source} · ${String(row.at ?? "").slice(0, 19).replace("T", " ")}`),
+        (0, import_react2.createElement)("button", { className: "sq-btn", disabled: Boolean(attempt), onClick: () => act("采用迟到的结果", "operate", { kind: "task", id: task.task_id, op: "recover", body: body({ evidence: `evidence:${row.seq}`, note: "在 Squad 页面采用迟到的结果" }) }) }, "采用这个结果")
+      ))
+    ) : null,
+    others.length > 0 && attempt === void 0 ? (0, import_react2.createElement)(
+      "div",
+      null,
+      (0, import_react2.createElement)("div", null, `${task.role_id} 现在由 ${primary?.primary_agent_id || "（无人）"} 负责，可以换成：`),
+      others.map((agent) => (0, import_react2.createElement)("button", { key: agent.binding.agent_id, className: "sq-btn", onClick: async () => {
+        await act(`换成 ${agent.binding.agent_id}`, "operate", { kind: "role", id: task.role_id, op: "promote", body: { request_id: requestId("promote"), expected_revision: primary?.revision ?? 0, expected_runtime: snapshotAgent(primary?.primary_agent_id)?.binding?.runtime_id ?? "", agent_id: agent.binding.agent_id } });
+      } }, agent.binding.agent_id))
+    ) : null,
     (0, import_react2.createElement)(
       "div",
       { className: "sq-row" },
-      attempt ? (0, import_react2.createElement)("button", { className: "sq-btn", disabled: !confirm, onClick: () => act("确认已停止", "operate", { kind: "attempt", id: attempt.attempt_id, op: "reconcile", body: { request_id: requestId("reconcile"), expected_revision: attempt.revision, expected_runtime: attempt.target?.runtime_id, note: "在 Squad 页面确认已停止", confirm_stopped: true } }) }, "确认已停止") : null,
-      (0, import_react2.createElement)("button", { className: "sq-btn", disabled: Boolean(attempt), onClick: () => act("重试", "operate", { kind: "task", id: task.task_id, op: "retry", body: { request_id: requestId("retry"), expected_revision: card.expectedRevision, note: "在 Squad 页面重试" } }) }, "重试"),
-      (0, import_react2.createElement)("button", { className: "sq-btn", "data-kind": "danger", onClick: () => act("取消任务", "operate", { kind: "task", id: task.task_id, op: "cancel", body: { request_id: requestId("cancel"), expected_revision: card.expectedRevision, note: "在 Squad 页面取消" } }) }, "取消任务")
+      (0, import_react2.createElement)("button", { className: "sq-btn", disabled: Boolean(attempt), onClick: () => act(card.attempts > 0 ? "重试" : "换人重新安排", "operate", { kind: "task", id: task.task_id, op: card.attempts > 0 ? "retry" : "rebind", body: body({ rebind_current: true, note: "在 Squad 页面处理" }) }) }, card.attempts > 0 ? "重试" : "按当前负责人重新安排"),
+      (0, import_react2.createElement)("button", { className: "sq-btn", "data-kind": "danger", onClick: () => act("取消任务", "operate", { kind: "task", id: task.task_id, op: "cancel", body: body({ note: "在 Squad 页面取消" }) }) }, "取消任务")
     )
   );
+}
+function snapshotAgent(agentId) {
+  return (store.get().projection.snapshot?.views?.agents ?? []).find((agent) => agent.binding?.agent_id === agentId);
 }
 function ReviewCard({ card }) {
   const target = card.task.dependencies?.[0]?.task_id;
