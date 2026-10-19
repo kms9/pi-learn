@@ -11,6 +11,9 @@
 # file first (DEEPSEEK_BASE_URL, DEEPSEEK_API_KEY); this script never writes either down.
 # DSH speaks the Anthropic Messages protocol, served under <base>/anthropic.
 # CATALOG=flash-only drops deepseek-v4-pro from the model catalog (fallback scenario).
+# SQUAD_MOCK=1 puts probes/squad-mock.mjs on the mock port (ds-bot's mock moves to port
+# +1000 behind it), so Squad task turns call the task tools. DSH_SQUAD_PROJECT, when set,
+# reaches the host through the environment: the adapter then connects to that project's Controller.
 # SQUAD=1 loads the patched ds-bot (dsh_squad/scripts/prepare-ds-bot.sh) and the Squad
 # adapter (dsh_squad/adapter) instead of the plain submodule ds-bot.
 set -eu
@@ -117,8 +120,16 @@ start() {
   ensure_harness
   ensure_profile
   write_overlay
+  inner=$MOCK_PORT
+  if [ "${SQUAD_MOCK:-}" = 1 ]; then
+    inner=$((MOCK_PORT + 1000))
+    if [ "$MODEL" != real ] && ! alive squad-mock; then
+      (MOCK_PORT="$MOCK_PORT" MOCK_INNER_PORT="$inner" MOCK_DELAY_MS="${MOCK_DELAY_MS:-300}" MOCK_LOG="$HOME_DIR/mock.jsonl" \
+        setsid node "$PROBES/squad-mock.mjs" </dev/null >"$HOME_DIR/squad-mock.out" 2>&1 & echo $! >"$HOME_DIR/squad-mock.pid")
+    fi
+  fi
   if [ "$MODEL" != real ] && ! alive mock; then
-    (cd "$PLUGIN" && MOCK_PORT="$MOCK_PORT" MOCK_DELAY_MS="${MOCK_DELAY_MS:-300}" MOCK_LOG="$HOME_DIR/mock.jsonl" \
+    (cd "$PLUGIN" && MOCK_PORT="$inner" MOCK_DELAY_MS="${MOCK_DELAY_MS:-300}" MOCK_LOG="$HOME_DIR/mock.jsonl" \
       setsid node dev/mock-llm.mjs "$HOME_DIR" </dev/null >"$HOME_DIR/mock.out" 2>&1 & echo $! >"$HOME_DIR/mock.pid")
   fi
   alive web || start_web
@@ -126,7 +137,8 @@ start() {
 }
 
 status() {
-  for name in mock web; do
+  for name in mock squad-mock web; do
+    [ "$name" = squad-mock ] && [ ! -f "$HOME_DIR/squad-mock.pid" ] && continue
     if alive $name; then echo "$name: running (pid $(cat "$HOME_DIR/$name.pid"))"; else echo "$name: stopped"; fi
   done
   echo "home: $HOME_DIR  web: http://127.0.0.1:$WEB_PORT  mock: $MOCK_PORT  dsh: $DSH_VERSION"
@@ -137,10 +149,11 @@ case "$ACTION" in
   # Only the web host: the restart scenario keeps the mock and the data.
   restart-web) stop_one web; write_overlay; start_web; status ;;
   kill-web) [ -f "$HOME_DIR/web.pid" ] && kill -KILL "-$(cat "$HOME_DIR/web.pid")" 2>/dev/null; rm -f "$HOME_DIR/web.pid"; status ;;
-  stop) stop_one web; stop_one mock; status ;;
+  stop) stop_one web; stop_one mock; stop_one squad-mock; status ;;
   reset)
     stop_one web
     stop_one mock
+    stop_one squad-mock
     rm -rf "$HOME_DIR/bot" "$HOME_DIR/sessions" "$HOME_DIR/probe" "$HOME_DIR/squad-adapter" "$HOME_DIR/mock.jsonl" "$HOME_DIR/cookies.txt"
     start
     ;;

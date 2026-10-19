@@ -1,5 +1,6 @@
 // A front for ds-bot's scripted mock (dev/mock-llm.mjs): requests from a Session that
-// runs a Squad task (its system prompt has the "# Squad task" section) are answered
+// runs a Squad task (its system prompt has the "# Squad task" section; DSH sends the
+// prompt in the messages as well as in `system`) are answered
 // here, everything else is passed on to the ds-bot mock unchanged.
 //
 //   MOCK_PORT=<front> MOCK_INNER_PORT=<ds-bot mock> node probes/squad-mock.mjs
@@ -30,8 +31,9 @@ function sse(res, payload) {
 
 // The task this turn works on, and the tool calls it already made since the task input.
 export function squadTurn(body) {
-  if (!/^# Squad task$/m.test(systemText(body.system))) return undefined
   const messages = body.messages ?? []
+  const prompt = [systemText(body.system), ...messages.map(message => textOf(message.content))].join('\n')
+  if (!/^# Squad task$/m.test(prompt)) return undefined
   let start = -1
   for (let i = messages.length - 1; i >= 0; i -= 1) {
     if (messages[i].role === 'user' && /Squad task (task-[0-9a-f]+): /.test(textOf(messages[i].content))) { start = i; break }

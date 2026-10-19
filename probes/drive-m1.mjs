@@ -69,6 +69,7 @@ async function ctl(method, path, body) {
 const snapshot = () => ctl('GET', '/v2/snapshot')
 const taskOf = id => ctl('GET', `/v2/tasks/${id}`)
 const attemptOf = id => ctl('GET', `/v2/attempts/${id}`)
+const reconcile = (attempt, note) => ctl('POST', `/v2/attempts/${attempt.attempt_id}/reconcile`, { request_id: `reconcile-${attempt.attempt_id}`, expected_revision: attempt.revision, expected_runtime: attempt.target.runtime_id, note, confirm_stopped: true })
 let requestSeq = 0
 const createTask = (target, goal, requestId = `m1-${Date.now().toString(36)}-${++requestSeq}`) =>
   ctl('POST', '/v2/tasks/direct', { request_id: requestId, target, kind: 'execute', goal, write_set: [], dependencies: [], refs: [] })
@@ -165,6 +166,8 @@ try {
     const done = await waitTask(t.task_id, ['completed', 'needs_review', 'interrupted', 'failed'])
     const attempt = done?.attempt_ids?.length ? await attemptOf(done.attempt_ids.at(-1)) : undefined
     act('after', { state: done?.state, attemptState: attempt?.state, error: attempt?.error })
+    // needs_review keeps builder-bot reserved until an operator attests the stop.
+    if (attempt !== undefined) await reconcile(attempt, 'test: the turn ended without a result')
     return [expect(done?.state === 'needs_review', `task ended ${done?.state}`), expect(attempt?.error === 'RESULT_MISSING', `attempt error ${attempt?.error}`)].filter(Boolean)
   })
 
