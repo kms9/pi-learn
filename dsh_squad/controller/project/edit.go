@@ -110,6 +110,19 @@ func ApplyConfigEdits(root string, edits []ConfigEdit, validateOnly bool) (Snaps
 			return Snapshot{}, err
 		}
 	}
+	// A Team's configuration is frozen by config_version: changing any of its files
+	// (instructions, a workflow) under the same version would be refused when the next
+	// Run or runtime freezes it. The version moves on with the change.
+	bumps, err := versionBumps(scratch, current, edits)
+	if err != nil {
+		return Snapshot{}, err
+	}
+	for _, e := range bumps {
+		if err := applyEdit(scratch, e); err != nil {
+			return Snapshot{}, err
+		}
+	}
+	edits = append(edits, bumps...)
 	if _, err := Load(scratch); err != nil {
 		return Snapshot{}, fmt.Errorf("CONFIG_INVALID: %w", err)
 	}
@@ -147,4 +160,67 @@ func writeConfigFile(root, rel, content string) error {
 		return err
 	}
 	return AtomicWrite(path, []byte(content), 0o644)
+}
+
+var configVersion = regexp.MustCompile(`"config_version"\s*:\s*(\d+)`)
+
+// versionBumps returns, for each Team whose files the edits touch without raising its
+// config_version, an edit of its team.json with the version one higher (in scratch).
+func versionBumps(scratch string, current []ConfigFile, edits []ConfigEdit) ([]ConfigEdit, error) {
+	before := map[string]string{}
+	for _, f := range current {
+		before[f.Path] = f.Content
+	}
+	touched := map[string]bool{}
+	for _, e := range edits {
+		if parts := strings.Split(e.Path, "/"); parts[0] == "teams" && !e.Delete {
+			touched[parts[1]] = true
+		}
+	}
+	out := []ConfigEdit{}
+	for team := range touched {
+		path := "teams/" + team + "/team.json"
+		old, existed := before[path]
+		if !existed {
+			continue
+		}
+		b, err := os.ReadFile(filepath.Join(scratch, ".agents", "dshsquad", "teams", team, "team.json"))
+		if err != nil {
+			return nil, err
+		}
+		now := string(b)
+		oldVersion, newVersion := configVersion.FindStringSubmatch(old), configVersion.FindStringSubmatch(now)
+		if oldVersion == nil || newVersion == nil || newVersion[1] != oldVersion[1] {
+			continue
+		}
+		var n int
+		fmt.Sscanf(newVersion[1], "%d", &n)
+		bumped := configVersion.ReplaceAllString(now, fmt.Sprintf(`"config_version": %d`, n+1))
+		hash := ""
+		for _, f := range current {
+			if f.Path == path {
+				hash = f.Hash
+			}
+		}
+		replaced := false
+		for i := range edits {
+			if edits[i].Path == path {
+				replaced = true
+			}
+		}
+		if replaced {
+			// The edit itself carries team.json: raise the version in it instead.
+			for i := range edits {
+				if edits[i].Path == path {
+					edits[i].Content = bumped
+				}
+			}
+			if err := writeConfigFile(scratch, path, bumped); err != nil {
+				return nil, err
+			}
+			continue
+		}
+		out = append(out, ConfigEdit{Path: path, Content: bumped, ExpectedHash: hash})
+	}
+	return out, nil
 }

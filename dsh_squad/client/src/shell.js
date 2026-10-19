@@ -1,6 +1,6 @@
 // The frame of the Squad page: the sidebar button, the console overlay with its tabs,
 // the preview window, messages, and the strip above a bound group's composer.
-import { createElement as h, useEffect } from 'react'
+import { createElement as h, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { RUN_PHASE, runsOf, tasksOf, terminal } from './model.js'
 import { RunDetail, RunList } from './runs.js'
@@ -24,6 +24,11 @@ function Banner() {
   const connected = useStore(state => state.connected)
   const stale = useStore(state => state.projection.stale && state.projection.snapshot !== null)
   const error = useStore(state => state.projection.error)
+  const failures = useStore(state => state.errors ?? [])
+  if (failures.length > 0) {
+    const why = { CONFIG_VERSION_CONFLICT: '小队配置改过但版本号没变，请在「小队与规则」里保存一次（会自动升版本）', ROLE_SNAPSHOT_MISMATCH: '角色说明改过，正在重新登记' }
+    return h('div', { className: 'sq-banner' }, `有 ${failures.length} 个成员没能接上 Controller：${failures.slice(0, 3).map(failure => `${failure.agentId}（${why[failure.code] ?? failure.message}）`).join('；')}`)
+  }
   if (connected === false) return h('div', { className: 'sq-banner' }, '还没连上 Squad Controller：请用 dsh_squad/deploy/dsh-squad up 启动这个项目。')
   if (stale) return h('div', { className: 'sq-banner' }, `连接中断，正在重新读取最新状态…${error ? `（${error}）` : ''}`)
   return null
@@ -70,9 +75,20 @@ function Toast() {
   return toast ? h('div', { className: 'sq-toast', role: 'status' }, toast.text) : null
 }
 
+// The shell can mount an overlay slot more than once (one per layout); only the first
+// mounted copy draws, so the console never appears twice.
+let owner = null
 export function SquadOverlay() {
   const isOpen = useStore(state => state.open)
   const preview = useStore(state => state.preview)
+  const [self] = useState(() => Symbol('overlay'))
+  const [, redraw] = useState(0)
+  useEffect(() => {
+    if (owner === null) owner = self
+    redraw(n => n + 1)
+    return () => { if (owner === self) owner = null }
+  }, [])
+  if (owner !== self) return null
   return createPortal(h('div', { 'data-squad': 'overlay' }, isOpen ? h(Console) : null, preview ? h(Preview, { preview }) : null, h(Toast)), document.body)
 }
 

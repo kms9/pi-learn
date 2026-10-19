@@ -282,6 +282,8 @@ export function apply(ctx, config = {}) {
     else if (active.dispatch !== undefined && active.opened) await advanceReceipts(binding, active).catch(() => {})
   }
 
+  /** @type {Map<string, {botId:string, agentId:string, code:string|null, message:string, at:string}>} the last failure per binding */
+  const bindingErrors = new Map()
   let ticking = false
   async function tick() {
     if (ticking || connect() === undefined) return
@@ -292,8 +294,10 @@ export function apply(ctx, config = {}) {
         if (binding.controller === undefined) continue
         try {
           await tickBinding(key, binding)
+          bindingErrors.delete(key)
         } catch (error) {
           lost(error)
+          bindingErrors.set(key, { botId: binding.botId, agentId: binding.controller.agentId, code: error?.code ?? null, message: String(error?.message ?? error), at: new Date().toISOString() })
           log('controller/error', { key, code: error?.code ?? null, error: String(error?.message ?? error) })
         }
       }
@@ -685,7 +689,7 @@ export function apply(ctx, config = {}) {
       case 'view': {
         if (connect() === undefined) return { connected: false, projectRoot: projectRoot ?? null }
         const snapshot = await client.snapshot()
-        return { connected: true, snapshot, teams: state.teams ?? {}, approvals: managedApprovals(), previewBase: previewBase() }
+        return { connected: true, snapshot, teams: state.teams ?? {}, approvals: managedApprovals(), previewBase: previewBase(), errors: [...bindingErrors.values()] }
       }
       case 'events': {
         if (connect() === undefined) return { connected: false }

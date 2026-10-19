@@ -199,7 +199,8 @@ var store = createStore({
   previewBase: null,
   connected: null,
   toast: null,
-  preview: null
+  preview: null,
+  errors: []
 });
 function useStore(select) {
   return (0, import_react.useSyncExternalStore)(store.subscribe, () => select(store.get()));
@@ -211,7 +212,7 @@ var timer = null;
 var running = false;
 async function refresh() {
   const view = await call("view");
-  store.set((state) => view.connected === false ? { ...state, connected: false } : { ...state, connected: true, projection: acceptSnapshot(state.projection, view.snapshot), teams: view.teams ?? {}, approvals: view.approvals ?? [], previewBase: view.previewBase });
+  store.set((state) => view.connected === false ? { ...state, connected: false } : { ...state, connected: true, projection: acceptSnapshot(state.projection, view.snapshot), teams: view.teams ?? {}, approvals: view.approvals ?? [], previewBase: view.previewBase, errors: view.errors ?? [] });
 }
 async function step() {
   const { projection } = store.get();
@@ -918,6 +919,11 @@ function Banner() {
   const connected = useStore((state) => state.connected);
   const stale = useStore((state) => state.projection.stale && state.projection.snapshot !== null);
   const error = useStore((state) => state.projection.error);
+  const failures = useStore((state) => state.errors ?? []);
+  if (failures.length > 0) {
+    const why = { CONFIG_VERSION_CONFLICT: "小队配置改过但版本号没变，请在「小队与规则」里保存一次（会自动升版本）", ROLE_SNAPSHOT_MISMATCH: "角色说明改过，正在重新登记" };
+    return (0, import_react5.createElement)("div", { className: "sq-banner" }, `有 ${failures.length} 个成员没能接上 Controller：${failures.slice(0, 3).map((failure) => `${failure.agentId}（${why[failure.code] ?? failure.message}）`).join("；")}`);
+  }
   if (connected === false) return (0, import_react5.createElement)("div", { className: "sq-banner" }, "还没连上 Squad Controller：请用 dsh_squad/deploy/dsh-squad up 启动这个项目。");
   if (stale) return (0, import_react5.createElement)("div", { className: "sq-banner" }, `连接中断，正在重新读取最新状态…${error ? `（${error}）` : ""}`);
   return null;
@@ -977,9 +983,20 @@ function Toast() {
   }, [toast2]);
   return toast2 ? (0, import_react5.createElement)("div", { className: "sq-toast", role: "status" }, toast2.text) : null;
 }
+var owner = null;
 function SquadOverlay() {
   const isOpen = useStore((state) => state.open);
   const preview = useStore((state) => state.preview);
+  const [self] = (0, import_react5.useState)(() => /* @__PURE__ */ Symbol("overlay"));
+  const [, redraw] = (0, import_react5.useState)(0);
+  (0, import_react5.useEffect)(() => {
+    if (owner === null) owner = self;
+    redraw((n) => n + 1);
+    return () => {
+      if (owner === self) owner = null;
+    };
+  }, []);
+  if (owner !== self) return null;
   return (0, import_react_dom.createPortal)((0, import_react5.createElement)("div", { "data-squad": "overlay" }, isOpen ? (0, import_react5.createElement)(Console) : null, preview ? (0, import_react5.createElement)(Preview, { preview }) : null, (0, import_react5.createElement)(Toast)), document.body);
 }
 function GroupDock({ sessionId }) {

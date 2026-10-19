@@ -81,6 +81,17 @@ func TestConfigEditsAreValidatedBeforeWriting(t *testing.T) {
 	if b, _ := os.ReadFile(filepath.Join(root, ".agents/dshsquad/teams/math/instructions.md")); string(b) != "Teach.\n" {
 		t.Fatal("validate_only wrote the file")
 	}
+	// Changing a Team's instructions moves its config_version on, so the frozen
+	// snapshot of the old version is never contradicted.
+	versionBefore := snap.Teams["math"].Config.ConfigVersion
+	snap, err = ApplyConfigEdits(root, []ConfigEdit{{Path: "teams/math/instructions.md", Content: "New.\n", ExpectedHash: hash["teams/math/instructions.md"]}}, false)
+	if err != nil || snap.Teams["math"].Config.ConfigVersion != versionBefore+1 {
+		t.Fatalf("config_version %d after an instructions edit (was %d): %v", snap.Teams["math"].Config.ConfigVersion, versionBefore, err)
+	}
+	files, _ = ConfigFiles(root)
+	for _, f := range files {
+		hash[f.Path] = f.Hash
+	}
 	// Deleting a role the Team still names is refused.
 	if _, err := ApplyConfigEdits(root, []ConfigEdit{{Path: "roles/reviewer/role.md", ExpectedHash: hash["roles/reviewer/role.md"], Delete: true}, {Path: "roles/reviewer/agents.md", ExpectedHash: hash["roles/reviewer/agents.md"], Delete: true}}, false); err == nil {
 		t.Fatal("deleting a role in use must be refused")
