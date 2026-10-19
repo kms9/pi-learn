@@ -1,6 +1,6 @@
 # DSH Squad 使用说明
 
-DS Bot（DSH 宿主）+ Squad Controller 的配置与启动。只写已经能用的功能；进度见 `docs/dsh-squad-dev-plan-2026-10-18.md`。已完成 **M1（DSH Adapter）** 和 **M0（一键启动与预置团队）**：按项目目录一条命令启动 DS Bot + Controller；正式 Task 能从 Controller 派发到受控 Bot、执行、上报结束。界面、Run/Team 工作流在后续里程碑。
+DS Bot（DSH 宿主）+ Squad Controller 的配置与启动。只写已经能用的功能；进度见 `docs/dsh-squad-dev-plan-2026-10-18.md`。已完成 **M1（DSH Adapter）**、**M0（一键启动与预置团队）**、**M2（单 Team 交付）**：按项目目录一条命令启动 DS Bot + Controller；一个 Team 绑定到一个群，按 Workflow 跑完整 Run（派发、独立审核、退回返工、Leader 完成）。界面在 M3；目前用宿主路由和 Controller HTTP 接口操作。
 
 固定版本（D9）：DSH `0.2.1-rc.2`，ds-bot `e13bc34` 加 `patches/ds-bot/0001-squad-seam.patch`。
 
@@ -100,7 +100,30 @@ curl -X POST "$ENDPOINT/v2/tasks/direct" \
 
 受控会话的系统提示里有 `# Squad task` 段（角色、团队说明、任务、可用工具），其 hash 记在 Adapter 日志。
 
-## 8. 故障时
+## 8. Team 与 Run（单 Team）
+
+**把 Team 绑到一个群**（宿主路由 `POST /api/squad-adapter`，`{"endpoint":"bind-team","payload":{"teamId":"math"}}`，可选 `roomId`）：
+
+- Leader（`team.json` 的 `leader.agent_ref`，如 `chief` → Bot「Chief」）和每个角色（`builder` → Bot「Builder」）各对应一个 Bot；没有的自动创建（说明取自 `role.md`，模型跟 Leader 的 Bot 一致）。
+- 群默认叫「<team> 小队」，没有就创建；每个成员在群里的会话提前打开，并各自注册为 Controller runtime（Leader 用 leader 模式，角色的 agent id 为 `<team>-<role>`）。
+- 一个群对应一个 Team；一个 Team 同时只有一个 active Run。
+
+**开始一个 Run**（operator）：`POST /v2/runs {"request_id","team_id","goal","workflow_id"?}`，不给 `workflow_id` 用 Team 的 `default_workflow`。之后：
+
+- Controller 按依赖派发 Workflow 的步骤；`acceptance_policy.mode` 为 `review` 时，每个结果自动生成一个审核任务，交给 `reviewer_ref` 指定的角色（作者与审核者必须不同）。
+- 审核用 `squad_review`（通过/退回 + 理由），它会精确引用被审的结果版本。
+- Leader 每次 Run 状态变化都会收到一个 Leader 步骤，系统提示里有「Run status」和用户在群里说的话，用 `squad_decide` 决定：`dispatch`（如对退回的任务派 `rework`）、`wait`、`complete`。`complete` 要通过最终关卡：所有业务任务通过、没有未收尾的执行。
+- 被退回的版本保留，返工是新任务（`superseded_by` 指向返工）。
+
+**群里说话**：Run 进行中，用户在 Team 的群里（或直接对成员）说的话会被扣留，并作为 Run Guidance 交给 Leader（同一句只记一次）；没有进行中的 Run 时保持 `pending`。
+
+**提交文件（Artifact）**：`squad_submit_result` 可带 `file_name`、`file_content`、`file_type`。文件存进 Controller 的内容寻址目录（`.dsh-squad/controller/artifacts/sha256/<hash>`，只写一次），结果以 `artifact:sha256/<hash>` 引用。`GET /v2/artifacts/sha256/<hash>` 读回；HTML 带 `Content-Security-Policy: sandbox` 且禁止任何网络请求，脚本拿不到 DS Bot 的 Cookie 或接口。
+
+**人工验收**（`acceptance_policy.mode` 为 `human` 的任务）：`POST /v2/tasks/<id>/acceptance {"request_id","expected_revision","decision","result_hash","note"}`，`result_hash` 和 `expected_revision` 必须是当前版本，旧卡片会被拒绝。
+
+**案例**：`dsh_squad/cases/math/`（数学知识点课件），用法见其 README。
+
+## 9. 故障时
 
 - 宿主重启：进行中的 attempt 上报 `host_restart`，Controller 把任务置为 `interrupted`，不自动重放，等 operator `POST /v2/attempts/<id>/reconcile`。
 - 无法确认结束（`outcome_unknown`）：同上，原因 `outcome_unknown`。

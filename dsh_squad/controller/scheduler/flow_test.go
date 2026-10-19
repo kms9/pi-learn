@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -549,5 +550,38 @@ func TestUserMessagesBecomeRunGuidanceOnce(t *testing.T) {
 	}
 	if err := h.svc.Store.DB.QueryRow(`SELECT disposition FROM held_inputs WHERE input_id='m2'`).Scan(&disposition); err != nil || disposition != "guidance:"+r.ID {
 		t.Fatalf("during the Run: %s %v", disposition, err)
+	}
+}
+
+// DSH-M2-04: an acceptance card shown for one result version cannot approve another.
+func TestAcceptanceBindsTheExactResultVersion(t *testing.T) {
+	h := newHarness(t)
+	builder := h.register("builder-bot", "builder", "bot-builder", "", "sess-1")
+	c, err := h.svc.CreateTask(h.ctx, h.op, CreateTask{RequestID: "r1", Target: "builder-bot", Goal: "a page"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	h.tick()
+	a := h.startRunning(builder)
+	a = h.must(h.event(builder, a, AttemptEvent{Type: "result_proposed", Result: &task.Result{GoalRevision: 1, Value: json.RawMessage(`{"answer":"v1"}`), Artifacts: []task.Artifact{}, Refs: []project.ResultRef{}}}))
+	h.must(h.event(builder, a, AttemptEvent{Type: "settled", Idle: true, Outcome: "completed"}))
+	done := h.taskOf(c.ID)
+	stale := AcceptanceRequest{RequestID: "acc-1", ExpectedRevision: done.Revision, Decision: "accepted", ResultHash: strings.Repeat("0", 64), Note: "looks fine"}
+	if _, err := h.svc.RecordAcceptance(h.ctx, h.op, c.ID, stale); err == nil || err.(*task.Error).Code != "RESULT_VERSION_CONFLICT" {
+		t.Fatalf("an old result hash must be refused, got %v", err)
+	}
+	old := AcceptanceRequest{RequestID: "acc-2", ExpectedRevision: done.Revision - 1, Decision: "accepted", ResultHash: done.Result.Hash, Note: "looks fine"}
+	if _, err := h.svc.RecordAcceptance(h.ctx, h.op, c.ID, old); err == nil {
+		t.Fatal("a stale expected_revision must be refused")
+	}
+	current := AcceptanceRequest{RequestID: "acc-3", ExpectedRevision: done.Revision, Decision: "accepted", ResultHash: done.Result.Hash, Note: "looks fine"}
+	if _, err := h.svc.RecordAcceptance(h.ctx, h.op, c.ID, current); err != nil {
+		t.Fatal(err)
+	}
+	if got := h.taskOf(c.ID); got.Acceptance == nil || got.Acceptance.Decision != "accepted" || got.Acceptance.ResultHash != done.Result.Hash {
+		t.Fatalf("acceptance %+v", got.Acceptance)
+	}
+	if _, err := h.svc.RecordAcceptance(h.ctx, builder, c.ID, current); err == nil {
+		t.Fatal("a runtime cannot accept its own work")
 	}
 }
