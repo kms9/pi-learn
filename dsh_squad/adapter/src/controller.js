@@ -49,6 +49,10 @@ export function createClient({ endpoint, controllerId, fetch = globalThis.fetch,
     hold: (runtime, input) => call('POST', '/v2/agents/held-inputs', { runtime, body: { ...input, binding: runtime.binding } }),
     task: (runtime, taskId) => call('GET', `/v2/tasks/${encodeURIComponent(taskId)}`, { runtime }),
     createChild: (runtime, parentId, body) => call('POST', `/v2/tasks/${encodeURIComponent(parentId)}/children`, { runtime, body }),
+    snapshot: () => call('GET', '/v2/snapshot'),
+    run: (runtime, runId) => call('GET', `/v2/runs/${encodeURIComponent(runId)}`, { runtime }),
+    decide: (runtime, runId, body) => call('POST', `/v2/runs/${encodeURIComponent(runId)}/decisions`, { runtime, body }),
+    uploadArtifact: (runtime, body) => call('POST', '/v2/artifacts', { runtime, body }),
     clarify: (runtime, attemptId, body) => call('POST', `/v2/attempts/${encodeURIComponent(attemptId)}/clarify`, { runtime, body }),
   }
 }

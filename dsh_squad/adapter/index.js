@@ -32,6 +32,7 @@ import { createClient, discover } from './src/controller.js'
 import { endReport, nextReceipt, resultValue } from './src/reports.js'
 import { contextHash, taskSection } from './src/context.js'
 import { refusal, TASK_TOOLS } from './src/toolset.js'
+import { runStatus } from './src/run.js'
 
 export const name = 'dsh-squad-adapter'
 export const inject = ['dsBotSeam', 'sessions', 'connection', 'tools', 'systemPrompt']
@@ -203,8 +204,8 @@ export function apply(ctx, config = {}) {
     const out = await client.register({
       host: { profile: HOST_PROFILE, host_id: hostId, bot_id: binding.botId, ...(binding.roomId ? { room_id: binding.roomId } : {}), place: binding.roomId ? 'group-member' : 'chat' },
       agent_id: c.agentId, runtime_id: c.runtimeId, session_id: sessionId, previous_session_id: previous ?? '',
-      runtime_token: c.token, mode: 'role', role_id: c.roleId, activity: 'idle',
-      capabilities: CAPABILITIES, role_hash: roleHash(c.roleId), available_tools: ['read', 'grep', 'find', 'ls', 'write', 'edit'],
+      runtime_token: c.token, mode: c.mode ?? 'role', ...(c.mode === 'leader' ? { team_id: c.teamId } : { role_id: c.roleId, role_hash: roleHash(c.roleId) }), activity: 'idle',
+      capabilities: CAPABILITIES, available_tools: ['read', 'grep', 'find', 'ls', 'write', 'edit'],
     })
     c.binding = out.binding
     save()
@@ -222,6 +223,11 @@ export function apply(ctx, config = {}) {
     }
   }
 
+  async function refreshRun(runId) {
+    const snap = await client.snapshot().catch(() => undefined)
+    return snap === undefined ? undefined : runStatus(snap.views?.tasks ?? [], runId)
+  }
+
   async function takeDispatch(key, binding, dispatch) {
     const a = dispatch.attempt
     const t = dispatch.task
@@ -234,6 +240,7 @@ export function apply(ctx, config = {}) {
       taskId: t.task_id, verdict: { verdict: 'dispatched', why: 'received from the Controller' },
       dispatch: { revision: a.revision, segment: a.segment_id, fence: a.fencing_token, epoch: a.controller_epoch, receipts: [], delivered: false, task: t, attempt: a },
     }
+    if (t.kind === 'leader_step') record.dispatch.run = await refreshRun(t.run_id)
     state.attempts[a.attempt_id] = record
     save()
     await advanceReceipts(binding, record)
@@ -482,7 +489,7 @@ export function apply(ctx, config = {}) {
   // ---- Task context (M1-5) ----------------------------------------------------------
   function sectionFor(sessionId) {
     const attempt = attemptOf(sessionId) ?? Object.values(state.attempts).find(candidate => candidate.sessionId === sessionId && candidate.controlled && !ENDED.has(candidate.verdict?.verdict))
-    return attempt?.dispatch === undefined ? '' : taskSection({ task: attempt.dispatch.task, attempt: attempt.dispatch.attempt })
+    return attempt?.dispatch === undefined ? '' : taskSection({ task: attempt.dispatch.task, attempt: attempt.dispatch.attempt, run: attempt.dispatch.run })
   }
   ctx.effect(() => ctx.systemPrompt.section({
     name: 'squad-task',
@@ -510,6 +517,11 @@ export function apply(ctx, config = {}) {
       async run({ attempt, runtime }) {
         const t = attempt.dispatch.task
         const lines = [`task ${t.task_id} (${t.kind}): ${t.goal}`]
+        if (t.kind === 'leader_step') {
+          attempt.dispatch.run = await refreshRun(t.run_id)
+          save()
+          lines.push(...(attempt.dispatch.run?.lines ?? []), `summary: ${attempt.dispatch.run?.summary ?? 'unavailable'}`)
+        }
         if (t.acceptance_criteria) lines.push(`acceptance: ${JSON.stringify(t.acceptance_criteria)}`)
         for (const ref of t.refs ?? []) {
           const input = await client.task(runtime, ref.task_id).catch(error => ({ error }))
@@ -521,15 +533,71 @@ export function apply(ctx, config = {}) {
     {
       name: 'squad_submit_result',
       description: 'Submit the result of your Squad task. Give a JSON object when the task asks for one, otherwise your answer as text. Call it once, at the end; the task is finished only when this is accepted.',
-      parameters: { result: { type: 'string', required: true, description: 'The result: a JSON object, or plain text' } },
-      async run({ attempt, binding }, args) {
+      parameters: {
+        result: { type: 'string', required: true, description: 'The result: a JSON object, or plain text' },
+        file_name: { type: 'string', description: 'With file_content: the name of a file you hand in with the result (for example lesson.html)' },
+        file_content: { type: 'string', description: 'The full content of that file' },
+        file_type: { type: 'string', enum: ['text/html', 'text/markdown', 'text/plain', 'application/json', 'text/csv', 'image/svg+xml'], description: 'Its media type (default text/plain)' },
+      },
+      async run({ attempt, binding, runtime }, args) {
         const value = resultValue(args.result)
         if (value === undefined) return 'Write a result first.'
         const t = attempt.dispatch.task
+        const artifacts = []
+        if (typeof args.file_content === 'string' && args.file_content !== '') {
+          // Immutable and hashed by the Controller (D8); the result cites it by hash.
+          artifacts.push(await client.uploadArtifact(runtime, { name: String(args.file_name ?? 'result.txt'), media_type: String(args.file_type ?? 'text/plain'), content_base64: Buffer.from(args.file_content, 'utf8').toString('base64') }))
+        }
+        await advanceReceipts(binding, attempt)
+        await sendEvent(binding, attempt, `result-${attempt.attemptId}`, { type: 'result_proposed', result: { revision: 0, goal_revision: t.applied_revision, attempt_id: '', agent_id: '', value, artifacts, refs: [], hash: '' } })
+        save()
+        return `Result recorded${artifacts.length > 0 ? ` with ${artifacts[0].name} (${artifacts[0].sha256.slice(0, 12)})` : ''}. End your turn now; the task is reviewed after it settles.`
+      },
+    },
+    {
+      name: 'squad_review',
+      description: 'Give your verdict on the results this review task covers. accepted when they meet the task, rejected with what must change. Call it once, at the end.',
+      parameters: {
+        decision: { type: 'string', required: true, enum: ['accepted', 'rejected'], description: 'Your verdict' },
+        reason: { type: 'string', required: true, description: 'Why; for rejected, what must change' },
+      },
+      async run({ attempt, binding }, args) {
+        const t = attempt.dispatch.task
+        if (t.kind !== 'review') return 'This is not a review task; use squad_submit_result.'
+        // The verdict names exactly the versions this review was given (pinned refs).
+        const candidates = (t.refs ?? []).map(ref => ({ task_id: ref.task_id, result_revision: ref.result_revision, hash: ref.hash, length: ref.length ?? 0 }))
+        const value = { decision: String(args.decision), reason: String(args.reason ?? '').trim() || '(no reason)', candidates }
         await advanceReceipts(binding, attempt)
         await sendEvent(binding, attempt, `result-${attempt.attemptId}`, { type: 'result_proposed', result: { revision: 0, goal_revision: t.applied_revision, attempt_id: '', agent_id: '', value, artifacts: [], refs: [], hash: '' } })
         save()
-        return 'Result recorded. End your turn now; the task is reviewed after it settles.'
+        return `Verdict ${value.decision} recorded. End your turn now.`
+      },
+    },
+    {
+      name: 'squad_decide',
+      description: 'As the Run Leader, make this step\'s decision: dispatch new tasks, wait, or complete the Run. Call it once, then end your turn.',
+      parameters: {
+        action: { type: 'string', required: true, enum: ['dispatch', 'wait', 'complete'], description: 'The decision' },
+        note: { type: 'string', description: 'Why' },
+        tasks: { type: 'string', description: 'For dispatch: a JSON array of steps, each {"id","role_ref","kind","goal","depends_on":[],"rework_of"?}' },
+      },
+      async run({ attempt, binding, runtime }, args) {
+        const t = attempt.dispatch.task
+        if (t.kind !== 'leader_step') return 'Only a Leader step decides for the Run.'
+        let tasks = []
+        if (args.action === 'dispatch') {
+          try { tasks = JSON.parse(String(args.tasks ?? '[]')) } catch { return 'tasks must be a JSON array of steps.' }
+          if (!Array.isArray(tasks) || tasks.length === 0) return 'dispatch needs at least one step in tasks.'
+          tasks = tasks.map(step => ({ ...step, depends_on: Array.isArray(step.depends_on) ? step.depends_on : [] }))
+        }
+        await advanceReceipts(binding, attempt)
+        const run = await client.run(runtime, t.run_id)
+        await client.decide(runtime, t.run_id, { request_id: `decide-${attempt.attemptId}`, expected_revision: run.revision, attempt_id: attempt.attemptId, action: String(args.action), tasks, note: String(args.note ?? '') })
+        // The decision is the step's result at the Controller; the attempt moved on.
+        const current = await client.call('GET', `/v2/attempts/${encodeURIComponent(attempt.attemptId)}`, { runtime })
+        attempt.dispatch.revision = current.revision
+        save()
+        return `Decision ${args.action} recorded. End your turn now.`
       },
     },
     {
@@ -607,12 +675,57 @@ export function apply(ctx, config = {}) {
         const key = keyOf(body)
         const previous = state.bindings[key]
         const controller = body.agentId === undefined ? undefined
-          : { agentId: body.agentId, roleId: body.roleId, runtimeId: previous?.controller?.runtimeId ?? randomUUID(), token: previous?.controller?.token ?? `${randomUUID()}${randomUUID()}`, binding: previous?.controller?.binding }
+          : { agentId: body.agentId, roleId: body.roleId, mode: body.mode === 'leader' ? 'leader' : 'role', teamId: body.teamId, runtimeId: previous?.controller?.runtimeId ?? randomUUID(), token: previous?.controller?.token ?? `${randomUUID()}${randomUUID()}`, binding: previous?.controller?.binding }
         state.bindings[key] = { botId: body.botId, ...(body.roomId ? { roomId: body.roomId } : {}), fence: previous?.fence ?? 0, ...(body.frozen ? { frozen: body.frozen } : {}), policy: body.policy ?? {}, ...(controller ? { controller } : {}) }
         save()
         log('manage', { key, botId: body.botId, roomId: body.roomId ?? null, agentId: body.agentId ?? null, roleId: body.roleId ?? null, frozen: body.frozen ?? null })
         setTimeout(() => void tick().catch(() => {}), 0)
         return { key, binding: { ...state.bindings[key], controller: controller ? { agentId: controller.agentId, roleId: controller.roleId } : undefined } }
+      }
+      // A Team works in one group (M2-2): its Leader and each Role get a Bot (made when
+      // missing, named after the id: chief → Chief), all in the group, each with its
+      // group Session managed as its own Controller runtime.
+      case 'bind-team': {
+        if (projectRoot === undefined) throw new Error('no Controller project (DSH_SQUAD_PROJECT)')
+        const teamId = String(body.teamId ?? '')
+        if (!/^[a-z][a-z0-9-]*$/.test(teamId)) throw new Error('teamId required')
+        const team = JSON.parse(readFileSync(join(projectRoot, '.agents/dshsquad/teams', teamId, 'team.json'), 'utf8'))
+        const display = id => id.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ')
+        const members = [{ id: team.leader.agent_ref, leader: true }, ...team.members.map(member => ({ id: member.role_ref }))]
+        const lead = seam.bots().find(bot => bot.name === display(team.leader.agent_ref))
+        for (const member of members) {
+          member.name = display(member.id)
+          let bot = seam.bots().find(candidate => candidate.name === member.name)
+          if (bot === undefined) {
+            const doc = member.leader ? '' : readFileSync(join(projectRoot, '.agents/dshsquad/roles', member.id, 'role.md'), 'utf8')
+            const description = doc.match(/^description:\s*(.+)$/m)?.[1]?.trim() ?? member.id
+            const instructions = doc.split(/^---$/m).slice(2).join('---').trim() || description
+            bot = await seam.createBot({ name: member.name, role: description.slice(0, 60), instructions, ...(lead?.model ? { model: lead.model, effort: lead.effort } : {}) })
+            log('team/bot-created', { teamId, name: member.name, botId: bot.id })
+          }
+          member.bot = bot
+        }
+        const roomName = `${teamId} 小队`
+        let room = body.roomId ? seam.rooms().find(candidate => candidate.id === body.roomId) : seam.rooms().find(candidate => candidate.name === roomName)
+        if (room === undefined) {
+          room = await seam.createRoom({ name: roomName, members: members.map(member => member.bot.id), admin: members[0].bot.id })
+          log('team/room-created', { teamId, roomId: room.id, name: roomName })
+        }
+        const missing = members.filter(member => !room.members.includes(member.bot.id))
+        if (missing.length > 0) throw new Error(`not in ${room.name}: ${missing.map(member => member.name).join(', ')}`)
+        const bound = []
+        for (const member of members) {
+          const sessionId = await seam.ensureGroupSession(room.id, member.bot.id)
+          if (sessionId === undefined) throw new Error(`no group Session for ${member.name}`)
+          const frozen = typeof member.bot.model === 'string' && member.bot.model.includes('/') ? { provider: member.bot.model.split('/')[0], model: member.bot.model.split('/').slice(1).join('/') } : undefined
+          const agentId = member.leader ? member.id : `${teamId}-${member.id}`
+          await handle('manage', { botId: member.bot.id, roomId: room.id, agentId, ...(member.leader ? { mode: 'leader', teamId } : { roleId: member.id }), ...(frozen ? { frozen } : {}) })
+          bound.push({ name: member.name, botId: member.bot.id, agentId, sessionId, leader: member.leader === true })
+        }
+        state.teams = { ...(state.teams ?? {}), [teamId]: { roomId: room.id, members: bound } }
+        save()
+        log('team/bound', { teamId, roomId: room.id, members: bound.map(member => member.agentId) })
+        return { teamId, roomId: room.id, roomName: room.name, members: bound }
       }
       case 'unmanage': {
         const key = keyOf(body)
@@ -656,6 +769,7 @@ export function apply(ctx, config = {}) {
           bindings: Object.fromEntries(Object.entries(state.bindings).map(([key, binding]) => [key, { ...binding, controller: binding.controller ? { agentId: binding.controller.agentId, roleId: binding.controller.roleId, binding: binding.controller.binding } : undefined }])),
           attempts: Object.fromEntries(Object.entries(state.attempts).map(([id, attempt]) => [id, { sessionId: attempt.sessionId, turn: attempt.turn, verdict: attempt.verdict, controlled: attempt.controlled === true, taskId: attempt.taskId, receipts: attempt.dispatch?.receipts, contextHash: attempt.contextHash }])),
           active: Object.fromEntries(activeBySession),
+          teams: state.teams ?? {},
           held: Object.entries(state.held).map(([id, entry]) => ({ id, sessionId: entry.sessionId, wake: entry.wake, why: entry.why, at: entry.at })),
           outbox: state.outbox.map(entry => ({ kind: entry.kind, requestId: entry.requestId })),
           controller: projectRoot === undefined ? null : { projectRoot, connected: client !== undefined },

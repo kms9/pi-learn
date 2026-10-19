@@ -90,3 +90,32 @@ test('the client sends squad/3 headers and the exact binding', async () => {
     server.close()
   }
 })
+
+test('the Leader sees each task and what is left to decide', async () => {
+  const { runStatus } = await import('../src/run.js')
+  const base = { run_id: 'run-1', goal: 'g' }
+  const build = { ...base, task_id: 'task-b', kind: 'execute', role_id: 'builder', state: 'completed', acceptance: { decision: 'rejected' } }
+  const review = { ...base, task_id: 'task-r', kind: 'review', role_id: 'reviewer', state: 'completed', result: { value: { decision: 'rejected', reason: 'too short' } } }
+  let status = runStatus([build, review, { ...base, task_id: 'task-l', kind: 'leader_step', state: 'running' }], 'run-1')
+  assert.equal(status.lines.length, 2)
+  assert.deepEqual(status.rejected.map(item => item.taskId), ['task-b'])
+  assert.match(status.summary, /dispatch rework/)
+  const rework = { ...base, task_id: 'task-w', kind: 'rework', role_id: 'builder', rework_of: 'task-b', state: 'running' }
+  status = runStatus([build, review, rework], 'run-1')
+  assert.equal(status.rejected.length, 0)
+  assert.match(status.summary, /still open: wait/)
+  status = runStatus([{ ...build, superseded_by: 'task-w' }, review, { ...rework, state: 'completed', acceptance: { decision: 'accepted' } }], 'run-1')
+  assert.equal(status.done, true)
+  assert.match(status.summary, /complete the Run/)
+  assert.equal(runStatus([], 'run-1').done, false)
+})
+
+test('a Leader step and a review get their own instructions', () => {
+  const attempt = { attempt_no: 1, context: { role: { name: 'chief' }, allowed_tools: [] } }
+  const leader = taskSection({ task: { task_id: 'task-l', kind: 'leader_step', goal: 'teach', refs: [] }, attempt, run: { lines: ['- task-b | execute'], summary: 'wait' } })
+  assert.match(leader, /## Run status/)
+  assert.match(leader, /squad_decide/)
+  const review = taskSection({ task: { task_id: 'task-r', kind: 'review', goal: 'check', refs: [] }, attempt })
+  assert.match(review, /squad_review/)
+  assert.doesNotMatch(review, /squad_submit_result once/)
+})

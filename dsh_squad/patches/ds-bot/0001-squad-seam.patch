@@ -143,10 +143,10 @@ index 1475afe..ad5efb8 100644
        // again as it is written.
 diff --git a/src/host/seam.js b/src/host/seam.js
 new file mode 100644
-index 0000000..f8c55b7
+index 0000000..1818e61
 --- /dev/null
 +++ b/src/host/seam.js
-@@ -0,0 +1,86 @@
+@@ -0,0 +1,88 @@
 +// Squad seam: what a separate Squad gate plugin needs from DS Bot, and nothing more. DS
 +// Bot keeps working the same when no gate attaches.
 +//
@@ -226,6 +226,8 @@ index 0000000..f8c55b7
 +      const room = rt.roomOf(roomId)
 +      const member = rt.botOf(botId)
 +      if (room === undefined || member === undefined || !room.members.includes(botId)) return undefined
++      // A group that never had a round has no read marks yet; groupSessionFor clears one.
++      room.seen ??= {}
 +      return (await rt.groupSessionFor(room, member))?.id
 +    },
 +    ready: () => rt.load(),

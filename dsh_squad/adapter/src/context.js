@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto'
 
 const clip = (text, max) => (text.length > max ? `${text.slice(0, max)}\n…(truncated)` : text)
 
-export function taskSection({ task, attempt }) {
+export function taskSection({ task, attempt, run }) {
   if (task === undefined || attempt === undefined) return ''
   const ctx = attempt.context ?? {}
   const role = ctx.role ?? {}
@@ -18,6 +18,12 @@ export function taskSection({ task, attempt }) {
   if (role.working_rules) lines.push('', '## Working rules', clip(role.working_rules, 4000))
   if (ctx.team_instructions) lines.push('', '## Team instructions', clip(ctx.team_instructions, 4000))
   lines.push('', '## Task', `- task: ${task.task_id} (${task.kind}), attempt ${attempt.attempt_no}`, `- goal: ${task.goal}`)
+  if (task.kind === 'leader_step') return leaderLines(lines, task, run)
+  if (task.kind === 'review') {
+    lines.push('- you review the results listed as inputs; read them with squad_task')
+    lines.push('', '## How to finish', '- Call squad_review once with decision accepted or rejected and the reason; rejected needs what to change.', '- Do not rewrite the work yourself.')
+    return lines.join('\n')
+  }
   if (task.acceptance_criteria) lines.push(`- acceptance: ${JSON.stringify(task.acceptance_criteria)}`)
   if (task.expected_output) lines.push(`- result must match this JSON schema: ${JSON.stringify(task.expected_output)}`)
   if ((task.refs ?? []).length > 0) lines.push(`- inputs: results of ${task.refs.map(ref => `${ref.task_id}@${ref.result_revision}`).join(', ')}; read them with squad_task`)
@@ -35,3 +41,23 @@ export function taskSection({ task, attempt }) {
 }
 
 export const contextHash = text => createHash('sha256').update(text).digest('hex')
+
+// A Leader step: the Run's tasks, and the three decisions it can make.
+function leaderLines(lines, task, run) {
+  lines.push('', '## Run status')
+  if (run === undefined) lines.push('- (status unavailable: call squad_task)')
+  else {
+    lines.push(...(run.lines.length > 0 ? run.lines : ['- no business tasks yet']))
+    lines.push(`- summary: ${run.summary}`)
+  }
+  lines.push(
+    '',
+    '## How to decide',
+    '- You lead this Run. Call squad_decide exactly once:',
+    '  - "dispatch" with new tasks (for a rejected task: kind "rework", rework_of its id, the same role);',
+    '  - "wait" while tasks are still running;',
+    '  - "complete" when every business task is accepted.',
+    '- Then end your turn.',
+  )
+  return lines.join('\n')
+}
