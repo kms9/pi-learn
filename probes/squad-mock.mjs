@@ -83,7 +83,7 @@ export function plan({ goal = '', calls, kind = 'execute', summary = '', results
   const delegate = goal.match(/派给\s*([a-z][a-z0-9-]*)/)
   // A continuation (the children reported back) finishes like a plain task.
   if (delegate !== null && !/（继续/.test(goal)) {
-    if (!done('squad_delegate')) return tool('squad_delegate', { role: delegate[1], goal: `子任务：${goal}` })
+    if (!done('squad_delegate')) return tool('squad_delegate', { role: delegate[1], goal: `子任务：${goal.replace(/派给\s*[a-z][a-z0-9-]*/, '交给你')}` })
     if (!done('squad_yield')) return tool('squad_yield', { reason: 'waiting for the child' })
     return [{ type: 'text', text: '等待子任务。' }]
   }

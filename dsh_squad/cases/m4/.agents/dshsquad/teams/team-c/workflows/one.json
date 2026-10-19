@@ -1,0 +1,1 @@
+{ "schema_version": 1, "workflow_id": "one", "steps": [ { "id": "work", "role_ref": "maker", "kind": "execute", "goal": "出三道分数练习题，派给 auditor 核对答案后再交", "depends_on": [] } ] }

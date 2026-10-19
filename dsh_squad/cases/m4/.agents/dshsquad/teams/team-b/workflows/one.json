@@ -1,0 +1,1 @@
+{ "schema_version": 1, "workflow_id": "one", "steps": [ { "id": "work", "role_ref": "editor", "kind": "execute", "goal": "把分数讲义改得更易读", "depends_on": [] } ] }

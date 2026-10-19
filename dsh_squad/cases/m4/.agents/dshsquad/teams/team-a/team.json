@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "team_id": "team-a",
+  "config_version": 1,
+  "leader": { "agent_ref": "lead-a" },
+  "members": [
+    { "role_ref": "author", "responsibility": "完成主要工作" },
+    { "role_ref": "reviewer", "responsibility": "独立审核" }
+  ],
+  "instructions_file": "instructions.md",
+  "default_workflow": "one",
+  "policy": {
+    "run_admission": "fifo_single_active",
+    "max_parallel_tasks": 2,
+    "max_delegate_depth": 2,
+    "max_total_tasks": 12,
+    "max_attempts_per_task": 3,
+    "allowed_tools": ["read"],
+    "writable_roots": [],
+    "acceptance_policy": { "mode": "review", "reviewer_ref": "reviewer", "child_policy": "separate" }
+  }
+}

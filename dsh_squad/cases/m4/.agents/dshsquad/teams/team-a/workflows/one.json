@@ -1,0 +1,1 @@
+{ "schema_version": 1, "workflow_id": "one", "steps": [ { "id": "work", "role_ref": "author", "kind": "execute", "goal": "写一页分数讲义", "depends_on": [] } ] }

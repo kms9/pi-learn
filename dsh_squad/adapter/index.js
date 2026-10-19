@@ -665,6 +665,9 @@ export function apply(ctx, config = {}) {
           const found = toolContext(exec)
           if (found.error) return found.error
           try {
+            // The Controller only takes these from a running attempt: the receipt chain
+            // (sent on the next tick otherwise) goes out first.
+            await advanceReceipts(found.binding, found.attempt)
             const text = await tool.run(found, args ?? {})
             log('task-tool', { tool: tool.name, attemptId: found.attempt.attemptId })
             return text
