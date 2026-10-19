@@ -133,10 +133,10 @@ index 1475afe..ad5efb8 100644
        // again as it is written.
 diff --git a/src/host/seam.js b/src/host/seam.js
 new file mode 100644
-index 0000000..8998b69
+index 0000000..28bba01
 --- /dev/null
 +++ b/src/host/seam.js
-@@ -0,0 +1,70 @@
+@@ -0,0 +1,75 @@
 +// Squad seam: what a separate Squad gate plugin needs from DS Bot, and nothing more. DS
 +// Bot keeps working the same when no gate attaches.
 +//
@@ -148,10 +148,13 @@ index 0000000..8998b69
 +// - allows(sessionId, what): DS Bot asks before it starts work on its own ('resume').
 +// - createMessage / resolveAgent / chatOf / groupSessionOf: what the gate needs to put an
 +//   admitted input into a Bot Session the way DS Bot does.
++// - defineTool / bots: the gate's task tools are made with the DSH tools DS Bot itself
++//   resolves, and the gate can map Bots by name.
 +import { randomUUID } from 'node:crypto'
 +import { createUserMessage } from '@deepseek-ai/dsh-llm'
++import { defineTool } from '@deepseek-ai/dsh-tools'
 +
-+export const SEAM_VERSION = 1
++export const SEAM_VERSION = 2
 +
 +export function install(rt) {
 +  const { ctx } = rt
@@ -202,6 +205,8 @@ index 0000000..8998b69
 +    chatOf: botId => rt.chatOf(botId),
 +    groupSessionOf: (roomId, botId) => rt.roomOf(roomId)?.sessions?.[botId],
 +    botOf: botId => rt.botOf(botId),
++    bots: () => Object.values(rt.state?.bots ?? {}),
++    defineTool,
 +    ready: () => rt.load(),
 +  }
 +  ctx.provide?.('dsBotSeam', api)
@@ -209,10 +214,10 @@ index 0000000..8998b69
 +}
 diff --git a/test/squad-seam.test.js b/test/squad-seam.test.js
 new file mode 100644
-index 0000000..c9be4a9
+index 0000000..a312b20
 --- /dev/null
 +++ b/test/squad-seam.test.js
-@@ -0,0 +1,59 @@
+@@ -0,0 +1,61 @@
 +import { test } from 'node:test'
 +import assert from 'node:assert/strict'
 +import { install } from '../src/host/seam.js'
@@ -233,7 +238,9 @@ index 0000000..c9be4a9
 +
 +test('without a gate the seam changes nothing', async () => {
 +  const { rt, seam } = runtime()
-+  assert.equal(seam.version, 1)
++  assert.equal(seam.version, 2)
++  assert.equal(typeof seam.defineTool, 'function')
++  assert.ok(Array.isArray(seam.bots()))
 +  assert.equal(rt.seam.reserve({ botId: 'bot-1', place: 'chat' }), undefined)
 +  assert.equal(await rt.seam.preStep({}, async () => 'inner'), 'inner')
 +  assert.equal(rt.seam.allows('chat-1', 'resume'), true)

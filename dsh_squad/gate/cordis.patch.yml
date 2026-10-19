@@ -1,5 +1,0 @@
-# Mounts the Squad gate after ds-bot. It needs the dsBotSeam service, which only the
-# patched ds-bot (dsh_squad/patches/ds-bot) provides; without it the gate stays waiting.
-- insert:
-    - id: squad-gate
-      name: dsh-squad-gate

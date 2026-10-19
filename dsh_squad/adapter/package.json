@@ -1,0 +1,21 @@
+{
+  "name": "dsh-squad-adapter",
+  "version": "0.2.0",
+  "private": true,
+  "description": "DSH Adapter for Squad: holds managed DS Bot Sessions to Controller admissions (squad/3) through the ds-bot seam patch",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json"
+  },
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "node --test \"test/*.test.js\""
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

@@ -12,7 +12,7 @@
 # DSH speaks the Anthropic Messages protocol, served under <base>/anthropic.
 # CATALOG=flash-only drops deepseek-v4-pro from the model catalog (fallback scenario).
 # SQUAD=1 loads the patched ds-bot (dsh_squad/scripts/prepare-ds-bot.sh) and the Squad
-# gate (dsh_squad/gate) instead of the plain submodule ds-bot.
+# adapter (dsh_squad/adapter) instead of the plain submodule ds-bot.
 set -eu
 NAME=${1:?usage: bench.sh <name> <web-port> <mock-port> [start|stop|reset|status]}
 WEB_PORT=${2:?usage}
@@ -25,7 +25,7 @@ REPO="$(dirname "$PROBES")"
 PLUGIN="$REPO/dsh-bot/ds-bot"
 PROBE="$PROBES/dsh-probe"
 DRIVER="$PROBES/dsh-probe-driver"
-GATE="$REPO/dsh_squad/gate"
+GATE="$REPO/dsh_squad/adapter"
 if [ "${SQUAD:-}" = 1 ]; then
   PLUGIN="$REPO/dsh_squad/.build/ds-bot"
   [ -f "$PLUGIN/src/host/seam.js" ] || { echo "SQUAD=1 needs the patched ds-bot: run dsh_squad/scripts/prepare-ds-bot.sh" >&2; exit 1; }
@@ -59,8 +59,8 @@ ensure_harness() {
 ensure_profile() {
   profile="$HOME_DIR/profiles/web"
   if [ "${SQUAD:-}" = 1 ]; then
-    deps="\"ds-bot\": \"link:$PLUGIN\", \"dsh-squad-probe\": \"link:$PROBE\", \"dsh-squad-probe-driver\": \"link:$DRIVER\", \"dsh-squad-gate\": \"link:$GATE\""
-    bundles='"@deepseek-ai/dsh-base", "@deepseek-ai/dsh-web-app", "ds-bot", "dsh-squad-probe", "dsh-squad-probe-driver", "dsh-squad-gate"'
+    deps="\"ds-bot\": \"link:$PLUGIN\", \"dsh-squad-probe\": \"link:$PROBE\", \"dsh-squad-probe-driver\": \"link:$DRIVER\", \"dsh-squad-adapter\": \"link:$GATE\""
+    bundles='"@deepseek-ai/dsh-base", "@deepseek-ai/dsh-web-app", "ds-bot", "dsh-squad-probe", "dsh-squad-probe-driver", "dsh-squad-adapter"'
   else
     deps="\"ds-bot\": \"link:$PLUGIN\", \"dsh-squad-probe\": \"link:$PROBE\", \"dsh-squad-probe-driver\": \"link:$DRIVER\""
     bundles='"@deepseek-ai/dsh-base", "@deepseek-ai/dsh-web-app", "ds-bot", "dsh-squad-probe", "dsh-squad-probe-driver"'
@@ -141,7 +141,7 @@ case "$ACTION" in
   reset)
     stop_one web
     stop_one mock
-    rm -rf "$HOME_DIR/bot" "$HOME_DIR/sessions" "$HOME_DIR/probe" "$HOME_DIR/squad-gate" "$HOME_DIR/mock.jsonl" "$HOME_DIR/cookies.txt"
+    rm -rf "$HOME_DIR/bot" "$HOME_DIR/sessions" "$HOME_DIR/probe" "$HOME_DIR/squad-adapter" "$HOME_DIR/mock.jsonl" "$HOME_DIR/cookies.txt"
     start
     ;;
   status) status ;;

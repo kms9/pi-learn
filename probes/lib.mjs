@@ -49,8 +49,8 @@ export function openBench({ name, port, mockPort, out, only = [], quietMs = 3000
   }
   const api = (endpoint, payload = {}) => post('/api/bot', endpoint, payload)
   const driver = (endpoint, payload = {}) => post('/api/squad-probe-driver', endpoint, payload)
-  const gate = (endpoint, payload = {}) => post('/api/squad-gate', endpoint, payload)
-  const decisions = () => lines(join(home, 'squad-gate', 'decisions.jsonl'))
+  const gate = (endpoint, payload = {}) => post('/api/squad-adapter', endpoint, payload)
+  const decisions = () => lines(join(home, 'squad-adapter', 'decisions.jsonl'))
   const state = () => readJson(join(home, 'bot', 'state.json'))
   const botNamed = wanted => Object.values(state().bots).find(bot => bot.name === wanted)
   const roomNamed = wanted => Object.values(state().rooms).find(room => room.name === wanted)
