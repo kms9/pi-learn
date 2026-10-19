@@ -261,3 +261,40 @@ func TestOneBotPlaceIsOneRuntime(t *testing.T) {
 		t.Fatalf("want INVALID_HOST, got %v", err)
 	}
 }
+
+func TestHeldInputIsKeptOnce(t *testing.T) {
+	h := newHarness(t)
+	builder := h.register("builder-bot", "builder", "bot-builder", "room-1", "sess-1")
+	q := HeldInput{RequestID: "h1", Binding: builder.Binding, InputID: "msg-1", Wake: "group-relay", Why: "no_admission", Text: "@Builder help"}
+	if _, err := h.svc.Hold(h.ctx, builder, q); err != nil {
+		t.Fatal(err)
+	}
+	q.RequestID = "h2"
+	if _, err := h.svc.Hold(h.ctx, builder, q); err != nil {
+		t.Fatal(err)
+	}
+	var n int
+	if err := h.svc.Store.DB.QueryRow(`SELECT COUNT(*) FROM held_inputs`).Scan(&n); err != nil || n != 1 {
+		t.Fatalf("held rows %d %v", n, err)
+	}
+	if _, err := h.svc.Hold(h.ctx, h.op, q); err == nil {
+		t.Fatal("operator must not report held inputs")
+	}
+}
+
+func TestHostRestartInterruptsTheAttempt(t *testing.T) {
+	h := newHarness(t)
+	builder := h.register("builder-bot", "builder", "bot-builder", "", "sess-1")
+	c, err := h.svc.CreateTask(h.ctx, h.op, CreateTask{RequestID: "r1", Target: "builder-bot", Goal: "work"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	h.tick()
+	h.startRunning(builder)
+	if err := h.svc.Interrupt(h.ctx, builder, Interruption{RequestID: "i1", Binding: builder.Binding, Reason: "outcome_unknown"}); err != nil {
+		t.Fatal(err)
+	}
+	if got := h.taskOf(c.ID); got.State != "interrupted" {
+		t.Fatalf("task state %s", got.State)
+	}
+}

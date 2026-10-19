@@ -206,6 +206,24 @@ func (s *Server) operationRoutes(v *gin.RouterGroup) {
 		}
 		c.JSON(200, map[string]string{"state": "interrupted"})
 	})
+	v.POST("/agents/held-inputs", func(c *gin.Context) {
+		p, err := s.principal(c)
+		if err != nil {
+			teamError(c, err)
+			return
+		}
+		var q scheduler.HeldInput
+		if err := decodeTeam(c, &q); err != nil {
+			teamError(c, err)
+			return
+		}
+		out, err := s.team.Hold(c.Request.Context(), p, q)
+		if err != nil {
+			teamError(c, err)
+			return
+		}
+		c.JSON(200, out)
+	})
 	v.POST("/runs/:id/decisions", func(c *gin.Context) {
 		p, err := s.principal(c)
 		if err != nil {

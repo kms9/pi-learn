@@ -50,6 +50,7 @@ func Read(ctx context.Context, db *sql.DB, heartbeatTimeout ...time.Duration) (S
 		{"events", `SELECT json_object('seq',seq,'type',type,'entity_id',entity_id,'revision',revision,'server_time',server_time,'details',json(details)) FROM events ORDER BY seq DESC LIMIT 200`},
 		{"waits", `SELECT json_object('waiter',waiter,'resource',resource,'owner',owner,'revision',revision,'reason',reason,'since',since) FROM wait_edges ORDER BY since`},
 		{"capacity", `SELECT json_object('attempt_id',attempt_id,'agent_id',agent_id,'team_id',team_id,'segment_id',segment_id,'fencing_token',fencing,'expires_at',expires_at) FROM execution_leases ORDER BY attempt_id`},
+		{"held_inputs", `SELECT body FROM held_inputs ORDER BY at DESC LIMIT 200`},
 		{"evidence", `SELECT json_object('seq',seq,'attempt_id',attempt_id,'source',source,'disposition',disposition,'at',at) FROM attempt_evidence ORDER BY seq DESC LIMIT 100`},
 	} {
 		rows, err := tx.Query(entry.query)

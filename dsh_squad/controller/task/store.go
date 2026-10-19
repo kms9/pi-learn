@@ -51,6 +51,7 @@ func (s *Store) Migrate(ctx context.Context) error {
 		`CREATE TABLE IF NOT EXISTS outbox(event_seq INTEGER PRIMARY KEY REFERENCES events(seq),published INTEGER NOT NULL DEFAULT 0)`,
 		`CREATE TABLE IF NOT EXISTS clarifications(id TEXT PRIMARY KEY,child_attempt TEXT NOT NULL,parent_attempt TEXT NOT NULL,question TEXT NOT NULL,root_id TEXT NOT NULL,answer TEXT NOT NULL,state TEXT NOT NULL)`,
 		`CREATE UNIQUE INDEX IF NOT EXISTS one_child_clarification ON clarifications(child_attempt) WHERE state!='answered'`,
+		`CREATE TABLE IF NOT EXISTS held_inputs(input_id TEXT PRIMARY KEY,agent_id TEXT NOT NULL,disposition TEXT NOT NULL,body TEXT NOT NULL,at TEXT NOT NULL)`,
 		`CREATE TABLE IF NOT EXISTS recovery_actions(seq INTEGER PRIMARY KEY AUTOINCREMENT,actor TEXT NOT NULL,action TEXT NOT NULL,target TEXT NOT NULL,body TEXT NOT NULL,at TEXT NOT NULL)`,
 	} {
 		if _, err := tx.ExecContext(ctx, q); err != nil {

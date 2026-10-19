@@ -116,7 +116,10 @@ func (s *Service) Interrupt(ctx context.Context, p Principal, q Interruption) er
 		return task.Reject("BINDING_CHANGED", "lifecycle binding mismatch")
 	}
 	switch reason {
-	case "manual_interference", "manual_compaction", "session_changed", "extension_reload":
+	case "manual_interference", "manual_compaction", "session_changed", "extension_reload",
+		// DSH host: the host restarted mid-attempt, or the adapter could not
+		// confirm how the attempt ended. Both need an explicit reconcile.
+		"host_restart", "outcome_unknown":
 	default:
 		return task.Reject("INVALID_REASON", reason)
 	}
