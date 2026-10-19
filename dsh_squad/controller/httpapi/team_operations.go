@@ -5,11 +5,13 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kms9/pi-learn/dsh_squad/controller/project"
 	"github.com/kms9/pi-learn/dsh_squad/controller/scheduler"
 	"github.com/kms9/pi-learn/dsh_squad/controller/task"
 )
@@ -205,6 +207,42 @@ func (s *Server) operationRoutes(v *gin.RouterGroup) {
 			return
 		}
 		c.JSON(200, map[string]string{"state": "interrupted"})
+	})
+	v.POST("/artifacts", func(c *gin.Context) {
+		p, err := s.principal(c)
+		if err != nil {
+			teamError(c, err)
+			return
+		}
+		body, err := io.ReadAll(http.MaxBytesReader(c.Writer, c.Request.Body, 12*1024*1024))
+		if err != nil {
+			teamError(c, err)
+			return
+		}
+		var q scheduler.ArtifactUpload
+		if err := project.DecodeStrict(body, &q); err != nil {
+			teamError(c, err)
+			return
+		}
+		out, err := s.team.StoreArtifact(c.Request.Context(), p, q)
+		if err != nil {
+			teamError(c, err)
+			return
+		}
+		c.JSON(200, out)
+	})
+	// Reading back is unauthenticated like the snapshot, and only on loopback. HTML is
+	// served sandboxed: no scripts reach this or any other origin's state (M2-6).
+	v.GET("/artifacts/sha256/:hash", func(c *gin.Context) {
+		b, mediaType, err := s.team.ArtifactContent(c.Param("hash"))
+		if err != nil {
+			teamError(c, err)
+			return
+		}
+		c.Header("X-Content-Type-Options", "nosniff")
+		c.Header("Content-Security-Policy", "sandbox allow-scripts; default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; form-action 'none'")
+		c.Header("Cache-Control", "private, max-age=31536000, immutable")
+		c.Data(200, mediaType, b)
 	})
 	v.POST("/agents/held-inputs", func(c *gin.Context) {
 		p, err := s.principal(c)

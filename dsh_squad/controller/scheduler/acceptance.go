@@ -18,7 +18,7 @@ import (
 
 func (s *Service) validateArtifacts(c task.Contract, r task.Result) error {
 	for _, ref := range r.Artifacts {
-		p, err := project.CanonicalResource(s.Project.Root, ref.Path)
+		p, err := s.artifactFile(ref.Path)
 		if err != nil {
 			return err
 		}
@@ -227,7 +227,7 @@ func (s *Service) check(ref string, r task.Result) (bool, string, error) {
 	if len(r.Artifacts) != 1 {
 		return false, "exactly one numeric input artifact required", nil
 	}
-	p, err := project.CanonicalResource(s.Project.Root, r.Artifacts[0].Path)
+	p, err := s.artifactFile(r.Artifacts[0].Path)
 	if err != nil {
 		return false, "", err
 	}
@@ -285,7 +285,7 @@ func (s *Service) normalizeResult(tx *sql.Tx, r *task.Result) error {
 	r.Artifacts = append([]task.Artifact{}, r.Artifacts...)
 	r.Refs = append([]project.ResultRef{}, r.Refs...)
 	for n, ref := range r.Artifacts {
-		p, err := project.CanonicalResource(s.Project.Root, ref.Path)
+		p, err := s.artifactFile(ref.Path)
 		if err != nil {
 			return err
 		}
@@ -299,7 +299,9 @@ func (s *Service) normalizeResult(tx *sql.Tx, r *task.Result) error {
 		if ref.Length != 0 && ref.Length != st.Size() {
 			return task.Reject("ARTIFACT_LENGTH_CHANGED", ref.Path)
 		}
-		r.Artifacts[n].Path = p
+		if !strings.HasPrefix(ref.Path, ArtifactScheme) {
+			r.Artifacts[n].Path = p
+		}
 		r.Artifacts[n].Length = st.Size()
 	}
 	for n, ref := range r.Refs {

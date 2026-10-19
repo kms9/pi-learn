@@ -78,6 +78,10 @@ func serve(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return err
 	}
+	team.ArtifactDir = cfg.ArtifactDir
+	if team.ArtifactDir == "" {
+		team.ArtifactDir = filepath.Join(rt.Directory, "artifacts")
+	}
 	if rotate {
 		if err := team.Store.Transaction(ctx, func(tx *sql.Tx) error {
 			return task.EventTx(tx, "operator_credential_rotated", rt.Discovery.ControllerID, team.Epoch, map[string]string{"actor": "local_operator@startup", "token": "redacted"})

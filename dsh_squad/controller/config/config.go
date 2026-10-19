@@ -26,6 +26,7 @@ type Config struct {
 	HeartbeatTimeout time.Duration
 	URL              string
 	ProjectRoot      string
+	ArtifactDir      string
 	MaxParallelTasks int
 	LeaseTTL         time.Duration
 	DirectCallers    []string
@@ -48,6 +49,7 @@ func Load(cmd *cobra.Command) (Config, error) {
 	v.SetDefault("heartbeat-timeout", DefaultTimeout.String())
 	v.SetDefault("url", DefaultURL)
 	v.SetDefault("project-root", "")
+	v.SetDefault("artifact-dir", "")
 	v.SetDefault("max-parallel-tasks", 2)
 	v.SetDefault("lease-ttl", "30s")
 	v.SetDefault("direct.allowed_tools", []string{"read", "grep", "find", "ls"})
@@ -107,7 +109,7 @@ func Load(cmd *cobra.Command) (Config, error) {
 		}
 	}
 	return Config{
-		ProjectRoot: v.GetString("project-root"), MaxParallelTasks: capacity, LeaseTTL: v.GetDuration("lease-ttl"), DirectCallers: v.GetStringSlice("direct.allowed_callers"), DirectTargets: v.GetStringSlice("direct.allowed_targets"), DirectTools: v.GetStringSlice("direct.allowed_tools"),
+		ProjectRoot: v.GetString("project-root"), ArtifactDir: strings.TrimSpace(v.GetString("artifact-dir")), MaxParallelTasks: capacity, LeaseTTL: v.GetDuration("lease-ttl"), DirectCallers: v.GetStringSlice("direct.allowed_callers"), DirectTargets: v.GetStringSlice("direct.allowed_targets"), DirectTools: v.GetStringSlice("direct.allowed_tools"),
 		Listen:           listen,
 		DB:               db,
 		HeartbeatTimeout: timeout,
@@ -116,7 +118,7 @@ func Load(cmd *cobra.Command) (Config, error) {
 }
 
 func applyChangedFlags(cmd *cobra.Command, v *viper.Viper) error {
-	for _, name := range []string{"project-root", "max-parallel-tasks", "lease-ttl"} {
+	for _, name := range []string{"project-root", "max-parallel-tasks", "lease-ttl", "artifact-dir"} {
 		if f := cmd.Flags().Lookup(name); f != nil && f.Changed {
 			v.Set(name, f.Value.String())
 		}

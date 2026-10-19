@@ -30,7 +30,10 @@ type Service struct {
 	Epoch        int64
 	Config       Config
 	OperatorHash string
+	// ArtifactDir is the content-addressed artifact store (D8); empty disables it.
+	ArtifactDir string
 }
+
 // Host says where a runtime lives (squad/3). One DSH host process runs many
 // runtimes: one per managed (Bot, place), each registered on its own.
 type Host struct {

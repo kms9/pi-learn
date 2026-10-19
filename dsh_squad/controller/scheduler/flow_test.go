@@ -83,6 +83,7 @@ func newHarness(t *testing.T) *harness {
 	if err != nil {
 		t.Fatal(err)
 	}
+	svc.ArtifactDir = filepath.Join(t.TempDir(), "artifacts")
 	op, err := svc.Authenticate(ctx, operatorToken, "")
 	if err != nil {
 		t.Fatal(err)
@@ -296,5 +297,44 @@ func TestHostRestartInterruptsTheAttempt(t *testing.T) {
 	}
 	if got := h.taskOf(c.ID); got.State != "interrupted" {
 		t.Fatalf("task state %s", got.State)
+	}
+}
+
+func TestArtifactsAreStoredByHashAndCitedByResults(t *testing.T) {
+	h := newHarness(t)
+	builder := h.register("builder-bot", "builder", "bot-builder", "", "sess-1")
+	if _, err := h.svc.StoreArtifact(h.ctx, builder, ArtifactUpload{Name: "x.html", MediaType: "text/html", Content: []byte("<p>x</p>")}); err == nil {
+		t.Fatal("an upload without a running attempt must be refused")
+	}
+	c, err := h.svc.CreateTask(h.ctx, h.op, CreateTask{RequestID: "r1", Target: "builder-bot", Goal: "make a page"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	h.tick()
+	a := h.startRunning(builder)
+	page := []byte("<!doctype html><p>1/2 + 1/4</p>")
+	art, err := h.svc.StoreArtifact(h.ctx, builder, ArtifactUpload{Name: "../lesson.html", MediaType: "text/html", Content: page})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if art.Path != ArtifactScheme+art.SHA256 || art.Length != int64(len(page)) || art.Name != "lesson.html" {
+		t.Fatalf("artifact %+v", art)
+	}
+	again, err := h.svc.StoreArtifact(h.ctx, builder, ArtifactUpload{Name: "other.html", MediaType: "text/html", Content: page})
+	if err != nil || again.SHA256 != art.SHA256 {
+		t.Fatalf("same bytes, same artifact: %+v %v", again, err)
+	}
+	b, mediaType, err := h.svc.ArtifactContent(art.SHA256)
+	if err != nil || string(b) != string(page) || mediaType != "text/html" {
+		t.Fatalf("read back %q %s %v", b, mediaType, err)
+	}
+	a = h.must(h.event(builder, a, AttemptEvent{Type: "result_proposed", Result: &task.Result{GoalRevision: 1, Value: json.RawMessage(`{"answer":"page"}`), Artifacts: []task.Artifact{art}, Refs: []project.ResultRef{}}}))
+	h.must(h.event(builder, a, AttemptEvent{Type: "settled", Idle: true, Outcome: "completed"}))
+	got := h.taskOf(c.ID)
+	if got.State != "completed" || len(got.Result.Artifacts) != 1 || got.Result.Artifacts[0].Path != art.Path {
+		t.Fatalf("task %s artifacts %+v", got.State, got.Result)
+	}
+	if _, _, err := h.svc.ArtifactContent("../../etc/passwd"); err == nil {
+		t.Fatal("a non-hash name must be refused")
 	}
 }

@@ -135,9 +135,11 @@ type Attempt struct {
 	Revision          int64     `json:"revision"`
 }
 type Artifact struct {
-	Length int64  `json:"length"`
-	Path   string `json:"path"`
-	SHA256 string `json:"sha256"`
+	Length    int64  `json:"length"`
+	Path      string `json:"path"`
+	SHA256    string `json:"sha256"`
+	Name      string `json:"name,omitempty"`
+	MediaType string `json:"media_type,omitempty"`
 }
 type Result struct {
 	Revision     int64               `json:"revision"`

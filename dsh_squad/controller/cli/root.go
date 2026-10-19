@@ -51,6 +51,7 @@ func newRoot() *cobra.Command {
 	root.PersistentFlags().String("config", "", "optional Viper config file")
 	root.PersistentFlags().String("listen", "", "HTTP listen address")
 	root.PersistentFlags().String("db", "", "SQLite database path")
+	root.PersistentFlags().String("artifact-dir", "", "content-addressed artifact store (default: <runtime>/artifacts)")
 	root.PersistentFlags().Duration("heartbeat-timeout", 0, "mark an agent offline after this much silence")
 	root.PersistentFlags().String("url", "", "controller base URL for client commands")
 

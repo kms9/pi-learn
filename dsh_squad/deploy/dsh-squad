@@ -106,7 +106,7 @@ ensure_profile() {
 
 start_controller() {
   alive controller && return 0
-  (setsid "$CONTROLLER_BIN" serve --project-root "$PROJECT" --db "$STATE/controller/state.sqlite" \
+  (setsid "$CONTROLLER_BIN" serve --project-root "$PROJECT" --db "$STATE/controller/state.sqlite" --artifact-dir "$STATE/controller/artifacts" \
     </dev/null >"$STATE/logs/controller.log" 2>&1 & echo $! >"$RUN/controller.pid")
   wait_for 30 "the Controller" controller_up
 }
