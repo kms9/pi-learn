@@ -53,6 +53,8 @@ test('cards: accept for human results, recover, review verdicts, approvals, each
   assert.equal(of('review')[0].verdict.decision, 'rejected')
   assert.equal(of('approve')[0].expectedRevision, 9)
   assert.equal(of('answer').length, 0)
+  const queued = cardsOf({ views: { ...snapshot.views, runs: [{ ...run, blockers: [{ kind: 'role_busy' }], waiting_roles: [{ role_id: 'reviewer', owner_team_id: 'team-a' }] }] } }, 'run-1')
+  assert.equal(queued.filter(card => card.type === 'answer').length, 0, 'queueing is not a question')
   const held = cardsOf({ views: { ...snapshot.views, runs: [{ ...run, recovery_hold: true }] } }, 'run-1')
   assert.equal(held.filter(card => card.type === 'answer').length, 1)
 })

@@ -2,7 +2,7 @@
 import { createElement as h, Fragment, useState } from 'react'
 import { call, requestId } from './api.js'
 import { refreshNow } from './feed.js'
-import { KIND, RUN_PHASE, TASK_STATE, artifactsOf, cardsOf, goalOf, graphOf, runsOf, short, tasksOf, terminal } from './model.js'
+import { KIND, RUN_PHASE, TASK_STATE, artifactsOf, cardsOf, goalOf, graphOf, runsOf, short, tasksOf, terminal, waitingOf } from './model.js'
 import { store, toast, useStore } from './store.js'
 
 const TONE = { completed: 'ok', accepted: 'ok', running: 'warn', needs_review: 'bad', failed: 'bad', interrupted: 'bad', rejected: 'bad', cancelled: 'bad' }
@@ -67,7 +67,7 @@ export function RunList() {
       return h('button', { key: run.run_id, className: 'sq-item', 'data-on': run.run_id === runId || undefined, onClick: () => store.set(state => ({ ...state, runId: run.run_id })) },
         h('div', null, chip(RUN_PHASE[run.phase] ?? run.phase, TONE[run.phase]), h('span', { className: 'sq-muted' }, run.team_id)),
         h('div', null, run.goal),
-        h('div', { className: 'sq-muted' }, `${done}/${tasks.length} 个任务完成 · ${short(run.run_id)}`))
+        h('div', { className: 'sq-muted' }, `${done}/${tasks.length} 个任务完成 · ${short(run.run_id)}${waitingOf(run).length ? ' · 排队中' : ''}`))
     }))
 }
 
@@ -195,6 +195,7 @@ export function RunDetail({ runId }) {
     h('div', { className: 'sq-card' },
       h('div', { className: 'sq-row' }, chip(RUN_PHASE[run.phase] ?? run.phase, TONE[run.phase]), h('strong', null, run.goal)),
       h('div', { className: 'sq-muted' }, `小队 ${run.team_id} · ${short(run.run_id)} · 第 ${run.revision} 版${(run.guidance ?? []).length ? ` · 已有 ${run.guidance.length} 条补充说明` : ''}`),
+      waitingOf(run).length > 0 ? h('div', null, chip('排队中', 'warn'), waitingOf(run).join('；'), '，对方结束后自动开始。') : null,
       terminal(run.phase) ? null : h('div', { className: 'sq-row' },
         h('input', { className: 'sq-input', style: { flex: 1 }, placeholder: '给 Leader 补充说明（例如：例子用披萨）', value: guide, onChange: event => setGuide(event.target.value) }),
         h('button', { className: 'sq-btn', disabled: guide.trim() === '', onClick: () => { void act('补充说明', 'operate', { kind: 'run', id: run.run_id, op: 'guidance', body: { request_id: requestId('guide'), expected_revision: run.revision, note: guide.trim() } }); setGuide('') } }, '发送'),

@@ -136,13 +136,34 @@ export function apply(ctx, config = {}) {
     else enqueue({ kind: 'interrupt', key: attempt.key, attemptId: attempt.attemptId, requestId: `interrupt-${attempt.attemptId}-${attempt.dispatch?.segment ?? 1}`, reason: end.reason })
   }
 
-  async function sendEvent(binding, attempt, requestId, body) {
+  // Events of one attempt go out one at a time: each carries the revision the last one
+  // left (a lease renewal from the loop and a tool's result must not race).
+  const sending = new Map()
+  function sendEvent(binding, attempt, requestId, body) {
+    const previous = sending.get(attempt.attemptId) ?? Promise.resolve()
+    const next = previous.catch(() => {}).then(() => sendEventNow(binding, attempt, requestId, body))
+    sending.set(attempt.attemptId, next)
+    return next
+  }
+  async function sendEventNow(binding, attempt, requestId, body) {
     const runtime = runtimeOf(binding)
     const dispatch = attempt.dispatch
-    const out = await client.attemptEvent(runtime, attempt.attemptId, {
+    const send = () => client.attemptEvent(runtime, attempt.attemptId, {
       request_id: requestId, expected_revision: dispatch.revision, segment_id: dispatch.segment,
       fencing_token: dispatch.fence, controller_epoch: dispatch.epoch, ...body,
     })
+    let out
+    try {
+      out = await send()
+    } catch (error) {
+      if (error?.code !== 'REVISION_CONFLICT') throw error
+      // The Controller moved the attempt on (an earlier event whose answer was lost):
+      // read it again, and send once more only if it is still this segment and fence.
+      const current = await client.call('GET', `/v2/attempts/${encodeURIComponent(attempt.attemptId)}`)
+      if (current.segment_id !== dispatch.segment || current.fencing_token !== dispatch.fence) throw error
+      dispatch.revision = current.revision
+      out = await send()
+    }
     dispatch.revision = out.revision
     return out
   }

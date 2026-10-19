@@ -1,6 +1,6 @@
 # DSH Squad 使用说明
 
-DS Bot（DSH 宿主）+ Squad Controller 的配置与启动。只写已经能用的功能；进度见 `docs/dsh-squad-dev-plan-2026-10-18.md`。已完成 **M1（DSH Adapter）**、**M0（一键启动与预置团队）**、**M2（单 Team 交付）**、**M3（界面与对照实验）**：按项目目录一条命令启动 DS Bot + Controller；在 DS Bot 页面里建小队、定规则、开始 Run、看进度和成果、处理审核与恢复；对照实验工具。多 Team 协同在 M4。
+DS Bot（DSH 宿主）+ Squad Controller 的配置与启动。只写已经能用的功能；进度见 `docs/dsh-squad-dev-plan-2026-10-18.md`。已完成 **M1（DSH Adapter）**、**M0（一键启动与预置团队）**、**M2（单 Team 交付）**、**M3（界面与对照实验）**、**M4（多小队协同与完整恢复）**：按项目目录一条命令启动 DS Bot + Controller；在 DS Bot 页面里建小队、定规则、开始 Run、看进度和成果、处理审核与恢复；多个小队可以共用角色；子任务与暂停续接；崩溃后的恢复；对照实验工具。下一步是统一测试（T 阶段）。
 
 固定版本（D9）：DSH `0.2.1-rc.2`，ds-bot `e13bc34` 加 `patches/ds-bot/0001-squad-seam.patch`。
 
@@ -141,6 +141,27 @@ curl -X POST "$ENDPOINT/v2/tasks/direct" \
 **人工验收**（`acceptance_policy.mode` 为 `human` 的任务）：`POST /v2/tasks/<id>/acceptance {"request_id","expected_revision","decision","result_hash","note"}`，`result_hash` 和 `expected_revision` 必须是当前版本，旧卡片会被拒绝。
 
 **案例**：`dsh_squad/cases/math/`（数学知识点课件），用法见其 README。
+
+## 11. 多个小队（M4）
+
+- **共用角色**：两个小队的成员里都有同一个角色（如 `reviewer`）时，`bind-team` 让同一个 Bot 在每个小队的群里各有一个会话，各自注册为该角色在这个小队的 runtime（agent id `<team>-<role>`）。哪个小队的 Run 开始，哪个小队的 runtime 就成为这个角色的负责人（Primary），工作在该小队自己的群里进行。
+- **原子排队**：一个 Run 开始前要一次拿到它所有角色；有角色被别的 Run 占着时整个 Run 排队等待（先来先到），占用的 Run 结束后自动开始。没有共用角色的小队并行。页面上排队的 Run 会显示在等哪个角色、被哪个 Run 占着。
+- **Leader**：每个小队的 Leader 是独立身份（`leader.agent_ref` 不能两个小队共用），对应各自的 Bot（如 `lead-a` → Bot「Lead A」）。
+- **子任务与续接**：成员可以用 `squad_delegate` 把一部分交给本小队另一个角色，再 `squad_yield` 暂停；暂停时不占并发名额。子任务回传后，原来那次执行在同一个 attempt 里接着做（新的 segment 和 fence），旧 segment 的消息一律作废。子任务没回传前，父任务不能提交结果。小队可设 `child_policy: inherit_parent`，子任务的成果随父任务一起验收。
+- **案例**：`dsh_squad/cases/m4`（A、B 共用 reviewer，C 独立且同时只做一件事），脚本 `node probes/drive-m4.mjs`。
+
+## 12. 完整恢复（M4）
+
+「需要恢复」卡片覆盖这些情况：
+
+| 情况 | 你看到的 | 怎么处理 |
+|---|---|---|
+| DS Bot 宿主重启、无法确认结束 | 任务「已中断」，原因 `host_restart`/`outcome_unknown` | 勾选「我确认这次执行已经停止」→「确认已停止」→「重试」或取消 |
+| Controller 重启或崩溃 | Run 暂停（需要你回答：确认继续），任务「需人工处理」 | 同上逐个确认、重试；再在 Run 上「确认继续」 |
+| 迟到的结果 | 卡片列出「执行被隔离后又收到的结果」 | 确认已停止后可「采用这个结果」，不必重做 |
+| 角色换人 | 负责人离线，任务等待 | 卡片列出同角色在线的其他 runtime，点击换人；没有执行的任务点「按当前负责人重新安排」 |
+
+不确定的执行不会自动重来；每一步都绑定卡片画出来时的版本。
 
 ## 10. 对照实验（M3-3）
 

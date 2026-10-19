@@ -93,8 +93,11 @@ export function cardsOf(snapshot, runId, approvals = []) {
       cards.push({ type: 'approve', key: `approve:${entry.id}`, approval: entry, attemptId: entry.attemptId, expectedRevision: attempt?.revision })
     }
   }
-  if (run && !terminal(run.phase) && (run.recovery_hold || (run.blockers ?? []).length > 0)) {
-    cards.push({ type: 'answer', key: `answer:${run.run_id}:${run.revision}`, run, expectedRevision: run.revision, why: run.recovery_hold ? 'Controller 重启后 Run 暂停，需要确认后继续' : (run.blockers ?? []).map(blocker => blocker.kind).join('、') })
+  // Waiting for another Run's role (role_busy, earlier_run) is queueing, not a question:
+  // the Run header says what it waits for. Only a held Run asks the user.
+  const asks = (run?.blockers ?? []).filter(blocker => !['role_busy', 'earlier_run', 'active_run'].includes(blocker.kind))
+  if (run && !terminal(run.phase) && (run.recovery_hold || asks.length > 0)) {
+    cards.push({ type: 'answer', key: `answer:${run.run_id}:${run.revision}`, run, expectedRevision: run.revision, why: run.recovery_hold ? 'Controller 重启后 Run 暂停，需要确认后继续' : asks.map(blocker => blocker.kind).join('、') })
   }
   return cards
 }
@@ -117,5 +120,8 @@ export function goalOf(task, tasks = []) {
   const target = tasks.find(candidate => candidate.task_id === task.dependencies?.[0]?.task_id)
   return target ? `审核「${target.role_id}」的结果：${target.goal}` : '独立审核'
 }
+
+/** What a queued Run waits for, in words; empty when it does not wait on another Run. */
+export const waitingOf = run => (run?.waiting_roles ?? []).map(wait => `等待角色 ${wait.role_id}（被小队 ${wait.owner_team_id} 的 Run 占用）`)
 
 export const short = id => String(id ?? '').replace(/^(task|run|attempt)-/, '').slice(0, 8)

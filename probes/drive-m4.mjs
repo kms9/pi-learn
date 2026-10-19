@@ -69,7 +69,14 @@ try {
     return ['team-a', 'team-b', 'team-c'].every(team => TERMINAL.includes(r(team).phase)) ? state : undefined
   }, 600_000, 1000)
   check(done !== undefined && ['team-a', 'team-b', 'team-c'].every(team => r(team).phase === 'completed'), 'all three Runs complete', ['team-a', 'team-b', 'team-c'].map(team => r(team)?.phase))
-  const events = state.events ?? []
+  // The snapshot keeps only the latest events; the feed has them all.
+  const events = []
+  for (let after = 0; ;) {
+    const page = (await ui('events', { after })).events ?? []
+    if (page.length === 0) break
+    events.push(...page)
+    after = page.at(-1).seq
+  }
   const seqOf = (type, id) => events.filter(event => event.type === type && event.entity_id === id).map(event => event.seq)
   const aEnd = Math.max(...seqOf('leader_decision', runs['team-a'].run_id), 0)
   const bStart = Math.min(...seqOf('run_admitted', runs['team-b'].run_id), Infinity)
@@ -122,7 +129,9 @@ try {
     const current = (await views(ui)).tasks.find(candidate => candidate.task_id === task.task_id)
     return TERMINAL.includes(current?.state) ? current : undefined
   }, 120_000, 1000)
-  check(recovered?.state === 'completed' && recovered.attempt_ids.length === 2, 'confirmed stopped, retried, and completed on a second attempt', recovered && { state: recovered.state, attempts: recovered.attempt_ids.length })
+  const last = recovered ?? (await views(ui)).tasks.find(candidate => candidate.task_id === task.task_id)
+  const lastAttempts = last ? (await views(ui)).attempts.filter(candidate => candidate.task_id === task.task_id).map(candidate => `${candidate.state}/${candidate.receipt}/${candidate.error ?? ''}`) : []
+  check(recovered?.state === 'completed' && recovered.attempt_ids.length === 2, 'confirmed stopped, retried, and completed on a second attempt', last && { state: last.state, blockers: last.blockers, attempts: lastAttempts })
 } catch (error) {
   check(false, `error: ${error.message}`)
 } finally {

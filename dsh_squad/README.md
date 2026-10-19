@@ -39,6 +39,7 @@ node probes/drive-m1.mjs m1 3301 8911                       # 真 Controller + A
 node probes/drive-m0.mjs 3420                               # 一键启动、预置团队、Free 模式、重启（mock）
 node probes/drive-m2.mjs 3430                               # 数学课件 Run：审核、退回返工、Leader 完成（mock）
 node probes/drive-m3.mjs 3450                               # 页面的宿主路由：配置、开始、版本校验、Controller 重启（mock）
+node probes/drive-m4.mjs 3470                               # 三个小队：共用审核排队、子任务续接、Controller 崩溃恢复（mock）
 PUPPETEER_CORE=<dir> node probes/ui-check.mjs <project> <prefix>   # 页面在无头 Chrome 里（需先 up 一个数学案例项目）
 ```
 

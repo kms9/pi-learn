@@ -120,8 +120,9 @@ function cardsOf(snapshot, runId, approvals = []) {
       cards.push({ type: "approve", key: `approve:${entry.id}`, approval: entry, attemptId: entry.attemptId, expectedRevision: attempt?.revision });
     }
   }
-  if (run && !terminal(run.phase) && (run.recovery_hold || (run.blockers ?? []).length > 0)) {
-    cards.push({ type: "answer", key: `answer:${run.run_id}:${run.revision}`, run, expectedRevision: run.revision, why: run.recovery_hold ? "Controller 重启后 Run 暂停，需要确认后继续" : (run.blockers ?? []).map((blocker) => blocker.kind).join("、") });
+  const asks = (run?.blockers ?? []).filter((blocker) => !["role_busy", "earlier_run", "active_run"].includes(blocker.kind));
+  if (run && !terminal(run.phase) && (run.recovery_hold || asks.length > 0)) {
+    cards.push({ type: "answer", key: `answer:${run.run_id}:${run.revision}`, run, expectedRevision: run.revision, why: run.recovery_hold ? "Controller 重启后 Run 暂停，需要确认后继续" : asks.map((blocker) => blocker.kind).join("、") });
   }
   return cards;
 }
@@ -139,6 +140,7 @@ function goalOf(task, tasks = []) {
   const target = tasks.find((candidate) => candidate.task_id === task.dependencies?.[0]?.task_id);
   return target ? `审核「${target.role_id}」的结果：${target.goal}` : "独立审核";
 }
+var waitingOf = (run) => (run?.waiting_roles ?? []).map((wait) => `等待角色 ${wait.role_id}（被小队 ${wait.owner_team_id} 的 Run 占用）`);
 var short = (id) => String(id ?? "").replace(/^(task|run|attempt)-/, "").slice(0, 8);
 
 // src/runs.js
@@ -325,7 +327,7 @@ function RunList() {
         { key: run.run_id, className: "sq-item", "data-on": run.run_id === runId || void 0, onClick: () => store.set((state) => ({ ...state, runId: run.run_id })) },
         (0, import_react2.createElement)("div", null, chip(RUN_PHASE[run.phase] ?? run.phase, TONE[run.phase]), (0, import_react2.createElement)("span", { className: "sq-muted" }, run.team_id)),
         (0, import_react2.createElement)("div", null, run.goal),
-        (0, import_react2.createElement)("div", { className: "sq-muted" }, `${done}/${tasks.length} 个任务完成 · ${short(run.run_id)}`)
+        (0, import_react2.createElement)("div", { className: "sq-muted" }, `${done}/${tasks.length} 个任务完成 · ${short(run.run_id)}${waitingOf(run).length ? " · 排队中" : ""}`)
       );
     })
   );
@@ -498,6 +500,7 @@ function RunDetail({ runId }) {
       { className: "sq-card" },
       (0, import_react2.createElement)("div", { className: "sq-row" }, chip(RUN_PHASE[run.phase] ?? run.phase, TONE[run.phase]), (0, import_react2.createElement)("strong", null, run.goal)),
       (0, import_react2.createElement)("div", { className: "sq-muted" }, `小队 ${run.team_id} · ${short(run.run_id)} · 第 ${run.revision} 版${(run.guidance ?? []).length ? ` · 已有 ${run.guidance.length} 条补充说明` : ""}`),
+      waitingOf(run).length > 0 ? (0, import_react2.createElement)("div", null, chip("排队中", "warn"), waitingOf(run).join("；"), "，对方结束后自动开始。") : null,
       terminal(run.phase) ? null : (0, import_react2.createElement)(
         "div",
         { className: "sq-row" },
