@@ -112,9 +112,9 @@ DS Bot 的 `groups.js` 会合成 `group_relay` 工具调用，对成员 Group Se
 ### M0：完整 DS Bot 产品基线
 
 - 选定真正兼容的 DSH/DS Bot 发布版本，固化 SHA/lockfile。
-- 创建 Chief、Researcher、Builder、Reviewer 四长期 Bot，至少两个不同 Provider/模型、一个群聊和 Memory。
+- 创建 Chief、Researcher、Builder、Reviewer 四长期 Bot、一个群聊和 Memory。（2026-10-19 D7：真实测试只用 DeepSeek `deepseek-flash`，不再要求至少两个 Provider。）
 - 验证普通 Handoff、`@Bot`、Web 访问与会话持久化，用户无需进入终端。
-- 默认每位试用者独立 Host/数据域；不能将 DS Bot 单实例假定为完成了多租户授权。
+- 部署模型（2026-10-19 D4）：一个项目目录 = 一个 DS Bot 宿主 + 一个独立 Controller，每人自己部署，提供按项目目录一键启动配对；不做一个宿主多用户，也不做多租户鉴权。
 - **退出门**：真实非开发用户完成自由协作任务及可用性反馈，不宣称 Squad 能力迁移完成。
 
 ### M1：DSH Adapter（M2 硬前置）

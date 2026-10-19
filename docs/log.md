@@ -857,3 +857,9 @@ tags:
 - 来源: 用户要求只做规划：先把 M0–M4 开发完再统一测试，中间只做编译和单测；`dsh_squad_case/{MIGRATION_PLAN,ACCEPTANCE}.md`、P0/P1 报告、`feat/dsh-p1-seam` 代码现状。
 - 更新: `docs/dsh-squad-dev-plan-2026-10-18.md`（新）、`docs/index.md`、Q38、`dsh_squad_case/README.md`。
 - 说明: 共 28 个工作包，约 93 人日，关键路径约 50 人日（加余量约 60）；mermaid 依赖图；决策点 D1–D12 待拍板；T 阶段逐项对应 ACCEPTANCE 28 项。发现 `scheduler/dispatch.go:136` 仍有业务 120 秒硬截止，列为 M1-6。没有写代码。
+
+## [2026-10-19] decision | DS Bot + Squad 开发决策 D1–D12 拍板
+
+- 来源: 用户对 `docs/dsh-squad-dev-plan-2026-10-18.md` §3 的答复。
+- 更新: 规划新增「决策记录」节并调整工作包与工作量（约 93 → 105 人日）；`docs/decisions/2026-10-19-dsh-squad-dev-decisions.md`；`dsh_squad_case/{ACCEPTANCE,MIGRATION_PLAN}.md`（DSH-M0-02 单模型、D4 部署模型）；Q33 暂缓、Q38 关闭；索引。
+- 说明: Controller 迁到 `dsh_squad/controller` 独立演进，`pi_squad` 不再维护；协议 `squad/3`；一个项目目录配一个 DS Bot + Controller；最终版界面做在 DS Bot 客户端插件里；开发期全 mock，最终只用 `deepseek-flash` 做真实测试。执行顺序 M1 → M0 → M2 → M3 → M4 → T，每个里程碑末跑 mock 回归。

@@ -1,9 +1,9 @@
 ---
 title: DS Bot + Squad M0→M4 开发规划
 type: process
-status: draft
+status: active
 created: 2026-10-18
-updated: 2026-10-18
+updated: 2026-10-19
 tags:
   - dsh-bot
   - pi-squad
@@ -12,15 +12,36 @@ tags:
 
 # DS Bot + Squad M0→M4 开发规划（2026-10-18）
 
-> **只是规划，没有写代码。**
+> **2026-10-19：D1–D12 已拍板**，见 [§决策记录](#决策记录2026-10-19)。下面的工作包和工作量已按决定调整；§3 保留原始选项表备查。
 >
-> **前提**：用户决定先把 M0 到 M4 全部开发完成（直到 M4 多 Team 协同能完整跑通），再统一做测试和验收。中间阶段只做最低限度的验证：能编译、单测能过。不再做 P0/P1 那样的负例测试轮。
+> **前提**：用户决定先把 M0 到 M4 全部开发完成（直到 M4 多 Team 协同能完整跑通），再统一做测试和验收。中间阶段只要求编译和单测通过；每个里程碑结束时用现有 mock 自动化（`drive-p1.mjs` 等）回归一次（D10）。不再做 P0/P1 那样的新负例测试轮。
 >
 > **依据**：
 > - [`dsh_squad_case/MIGRATION_PLAN.md`](../dsh_squad_case/MIGRATION_PLAN.md)（M0–M4、TR-01～TR-18）
 > - [`dsh_squad_case/ACCEPTANCE.md`](../dsh_squad_case/ACCEPTANCE.md)（28 项）
 > - [P0/P1 报告](dsh-squad-p0-probe-report-2026-10-18.md)，尤其是 §9
 > - `feat/dsh-p1-seam` 上的现有代码：`dsh_squad/`（ds-bot seam 补丁、Squad Gate）、`probes/`、`pi_squad/controller/`
+
+## 决策记录（2026-10-19）
+
+用户于 2026-10-19 对 §3 的 D1–D12 拍板如下。与原建议不同的地方加粗。
+
+| ID | 决定 | 对工作包的影响 |
+|---|---|---|
+| D1 | **今后以 DS Bot 为主要验证对象，不再关注 pi_squad。Go Controller 及相关 Go 代码全部迁移到 `dsh_squad/` 下，不与 pi_squad 共用；pi_squad 不再维护。**（原建议 A 共用，改为 B 复制后独立演进） | M1-1 改为「迁移到 `dsh_squad/controller`、换 module 路径、去掉 Pi 宿主 profile、只保留 DSH profile」；不再要求 Pi 路径能编译；后续所有 Controller 包都在新位置 |
+| D2 | 补丁只做 seam（归属 + 拦截），界面做成独立的 DSH 客户端插件。**暂不向上游提 PR**，先完成我们自己的验证。不维护 fork | M1-8 去掉「起草上游 PR」；M3-2 以客户端插件交付 |
+| D3 | 新定义协议版本 `squad/3` | M1-2 按 `squad/3` 设计，新头 `X-Squad-*`，不兼容 `pi-squad/2` 数据 |
+| D4 | **不做一个宿主多用户。部署模型：一个项目目录 = 一个 DS Bot（DSH 宿主）+ 一个对应的独立 Controller；以后每个人自己部署。** 要做「按项目目录一键启动 DS Bot + Controller 配对」，不做多租户鉴权 | M0-2 从「每位试用者开通/回收」改为「按项目目录一键启动配对」；X-3 只做单部署内的凭据分层，不做多租户 |
+| D5 | **要最终版界面**：任务依赖图、Artifact 预览、Review/恢复卡、三类按钮、实验报告页；直接做在 DS Bot 现有界面里，不另做独立网站 | M3-2 从「A + 部分 B」扩为完整 B，工作量 8 → 12 |
+| D6 | **产品目标是非开发用户能完整使用 Squad**：能设定规则（Team/Workflow/Role）、启动小队、在界面看到进度、支持多个 Team。非开发用户试用放到 Squad 功能完成之后 | 新增 M3-4「规则配置与小队启动界面」；试用移到 T 阶段末尾 |
+| D7 | 开发阶段全部用 mock；全部开发完成后才做真实测试，**只接 DeepSeek API（`https://api.deepseek.com`）的 `deepseek-flash`（thinking enabled，`reasoning_effort` high）**。不再要求两家 Provider，相关验收按单模型调整并注明。key 届时由用户提供 | M0-3 预置团队只用一个模型；ACCEPTANCE DSH-M0-02 改为单模型路由与冻结检查；M3-3 对照实验固定单模型 |
+| D8 | Artifact 存储取最简单可行方案：Controller 的 hash 目录。用户关注产品能力，不关注过程产出物本身，不多投入 | M2-3 用 `<runtime>/artifacts/sha256/<hash>`，不做 DSH attachments 集成 |
+| D9 | 固定 DSH 0.2.1-rc.2、DS Bot `e13bc34`；以后定期评估上游最新版本，没有破坏性更新就不升级 | 风险 4 降级；不安排「T 前升级一次」 |
+| D10 | 里程碑结束用 mock 自动化测试回归；真实模型测试在全部开发完成后进行 | 新增 X-4「里程碑 mock 回归」：每个里程碑末跑 `drive-p1.mjs` 等现有驱动，并保持它们随代码演进可运行 |
+| D11 | 沿用数学知识点课件案例 | M2-5 不变 |
+| D12 | 正式 Run 开始时 Memory 快照只读；对照实验每组用全新 Team | M2-1 做快照只读视图；M3-3 每组新建 Team |
+
+**执行顺序**（用户要求）：从 `feat/dsh-dev-plan` 切 `feat/dsh-m1`，按 M1 → M0 → M2 → M3 → M4 → T 推进。M0 不再等试用者（D6），且 M0-2 的配对启动依赖 M1-1 迁移后的 Controller，所以排在 M1 之后。每个里程碑结束：编译 + 单测 + mock 回归，在 `docs/log.md` 记录。
 
 ## 0. 起点：已经有什么
 
@@ -43,15 +64,16 @@ tags:
 |---|---|---|---|---|---|
 | X-1 | 一条命令完成构建和最低验证 | `dsh_squad/scripts/check.sh`：Go 构建与单测、Gate 单测、补丁应用并跑 ds-bot 单测；可选接入 GitHub Actions | 本仓库 | — | 1 |
 | X-2 | 使用说明 | `dsh_squad/USAGE.md`：配置、启动、会话内命令和工具。AGENTS.md 要求的「能用的功能同步写进使用说明」照此执行 | 本仓库 | 随各包更新 | 0.5/里程碑 |
-| X-3 | 凭据与权限分层 | Controller operator 凭据、runtime 凭据、浏览器 cookie 三者隔离的约定和实现 | Controller、Adapter | M1-3 | 1.5 |
+| X-3 | 凭据与权限分层 | 单部署内（D4）Controller operator 凭据、runtime 凭据、浏览器 cookie 三者隔离的约定和实现；不做多租户 | Controller、Adapter | M1-3 | 1 |
+| X-4 | 里程碑 mock 回归（D10） | 每个里程碑末跑一次 `drive-p1.mjs` 等现有 mock 驱动；Gate 演进为 Adapter 后保留测试替身入口或同步改驱动，保证驱动一直能跑 | `probes/` | 各里程碑 | 0.5/里程碑 |
 
 ### M0：完整的 DS Bot 产品基线
 
 | ID | 目标 | 产物 | 仓库 / 模块 | 依赖 | 人日 |
 |---|---|---|---|---|---|
-| M0-1 | 固定可分发的栈 | 启动器：固定 DSH 0.2.1-rc.2 加打补丁的 ds-bot。M0 只用 Free 模式，Gate 默认不挂。提供 compose 或脚本，独立 `DSH_HOME` | `dsh_squad/deploy/` | — | 2 |
-| M0-2 | 试用者环境 | 每位试用者一个独立宿主或数据域（端口、`DSH_HOME`、token 登录、可选 TLS），加开通和回收脚本 | `dsh_squad/deploy/` | M0-1、**D4** | 2 |
-| M0-3 | 预置团队 | 自动创建 Chief、Researcher、Builder、Reviewer 四个 Bot（至少两个 Provider）、一个群聊、初始 Memory | `dsh_squad/deploy/provision.mjs`（经 `/api/bot`） | M0-1、**D7** | 1 |
+| M0-1 | 固定可分发的栈 | 启动器：固定 DSH 0.2.1-rc.2 加打补丁的 ds-bot（D9）。Free 模式下 Adapter 不接管任何会话。提供脚本，独立 `DSH_HOME` | `dsh_squad/deploy/` | — | 2 |
+| M0-2 | 按项目目录一键启动配对（D4） | `dsh-squad up <项目目录>`：在该目录下的 `.dsh-squad/` 放 `DSH_HOME`、Controller 数据库和 discovery，启动一个 DS Bot 宿主 + 一个 Controller，互相发现；`down`/`status`。不做多租户鉴权 | `dsh_squad/deploy/` | M0-1、M1-1 | 2 |
+| M0-3 | 预置团队 | 自动创建 Chief、Researcher、Builder、Reviewer 四个 Bot、一个群聊、初始 Memory。开发期用 mock；真实测试只用 DeepSeek `deepseek-flash`（thinking、effort high，D7） | `dsh_squad/deploy/provision.mjs`（经 `/api/bot`） | M0-1 | 1 |
 
 M0 小计约 5 人日。
 
@@ -59,27 +81,27 @@ M0 小计约 5 人日。
 
 | ID | 目标 | 产物 | 仓库 / 模块 | 依赖 | 人日 |
 |---|---|---|---|---|---|
-| M1-1 | Controller 与宿主无关 | `hostprofile` 抽象，`pi-coding-agent/1.1.0` 和 `dsh/0.2.1-rc.2+ds-bot/<sha>` 两个 profile；doctor/probe 按 profile 分支；DSH 侧用独立 DB 和数据域 | `pi_squad/controller/project`（或新位置，**D1**） | **D1** | 3 |
-| M1-2 | 宿主协议 | `squad/3`，或在 `pi-squad/2` 上加 host 字段（**D3**）。一个宿主进程内有多个 runtime：每个受控（Bot, 位置）各自注册、各自拿凭据，绑定 `binding_epoch`；导出 schema | Controller `httpapi/agent`、`protocol/` | M1-1、**D3** | 3 |
+| M1-1 | Controller 迁移到 DSH | 把 `pi_squad/controller` 复制到 `dsh_squad/controller`（新 module 路径，独立演进，D1）；去掉 Pi 宿主 profile 和 managed 安装检查，只保留 `dsh/0.2.1-rc.2+ds-bot/e13bc34` profile；doctor/probe 改为检查 DSH/ds-bot；独立 DB 和数据域 | `dsh_squad/controller` | — | 3 |
+| M1-2 | 宿主协议 | `squad/3`（D3）。一个宿主进程内有多个 runtime：每个受控（Bot, 位置）各自注册、各自拿凭据，绑定 `binding_epoch`；导出 schema | `dsh_squad/controller` `httpapi/agent`、`dsh_squad/protocol/` | M1-1 | 3 |
 | M1-3 | Gate 变成 Adapter | 用 Controller 客户端替换测试路由，负责：注册和心跳；拉取派发（SSE 或轮询）；签发准入（`attempt_id`、`segment_id`、`fence`、`epoch`）；上报 AttemptEvent（opened、tool、result_proposed、settled、interrupted、`outcome_unknown`）。被扣留的输入持久化后交给 Controller（Q36） | `dsh_squad/gate` → `dsh_squad/adapter` | M1-2 | 6 |
 | M1-4 | Bot 的正式任务工具 | 在受控会话里注册：提交结果（结构化）、yield/child、clarify、读当前任务。把 `pi_squad/extension/task-tools.ts` 的语义移植到 `ctx.tools.register`；只在活动 attempt 内可用 | `dsh_squad/adapter` | M1-3 | 4 |
 | M1-5 | 上下文组装 | 受控会话的 role、team、task 段落（移植 `context-assembly.ts`），用 Agent 作用域的 `systemPrompt.section`；记录上下文 hash | `dsh_squad/adapter` | M1-3 | 2 |
 | M1-6 | 取消业务硬截止 | 删掉 `dispatch.go` 的 120 秒 `DeadlineAt` 及其让祖先失败的逻辑；必要子任务明确回传之后才允许完成；通信 lease 保留 | Controller `scheduler/` | — | 1.5 |
 | M1-7 | 切段、重启与重新绑定 | part 切换上报为 `binding_epoch+1`；重启后读持久日志对账，结果进 `outcome_unknown`；接通 operator 的 reconcile/rebind 入口 | Adapter、Controller `scheduler/recovery` | M1-3 | 3 |
-| M1-8 | seam 补丁收尾 | 扣留队列持久化，rewake 稳定（Q37），兜底路径补齐（Q35）；按 **D2** 决定是否起草上游 PR | `dsh_squad/patches/ds-bot` | M1-3、**D2** | 2 |
+| M1-8 | seam 补丁收尾 | 扣留队列持久化，rewake 稳定（Q37），兜底路径补齐（Q35）。暂不提上游 PR（D2） | `dsh_squad/patches/ds-bot`、Adapter | M1-3 | 1.5 |
 
-M1 小计约 24.5 人日。
+M1 小计约 24 人日。
 
 ### M2：单 Team 真实交付
 
 | ID | 目标 | 产物 | 仓库 / 模块 | 依赖 | 人日 |
 |---|---|---|---|---|---|
-| M2-1 | 配置导入与 Run 冻结 | 读 `.agents/pisquad/roles`、`team.json`、Workflow，生成 Role 到 Bot 的映射（缺的 Bot 自动创建）。Run 冻结模型、工具、上下文 hash 和 Memory 视图（**D12**） | Controller `project/`、Adapter | M1-1、M1-5 | 4 |
+| M2-1 | 配置导入与 Run 冻结 | 读项目目录下的 Role、`team.json`、Workflow，生成 Role 到 Bot 的映射（缺的 Bot 自动创建）。Run 冻结模型、工具、上下文 hash；Memory 在 Run 开始时快照为只读视图（D12） | Controller `project/`、Adapter | M1-1、M1-5 | 4 |
 | M2-2 | 群聊受控模式 | 群设置 Managed 开关（一个群对应一个 Team，一个 Team 同时只有一个 active Run）。群里的用户消息分成通知、Run Guidance、修改、澄清，交给 Controller | Adapter、seam（群消息入口） | M1-3、M2-1 | 4 |
-| M2-3 | DAG 派发与 Artifact | 按依赖和容量派发到 Bot；不可变 Artifact（`artifact_id`、`content_hash`、`result_revision`），存放位置由 **D8** 定 | Controller `scheduler/dispatch`、Adapter | M1-4、M2-1 | 4 |
+| M2-3 | DAG 派发与 Artifact | 按依赖和容量派发到 Bot；不可变 Artifact（`artifact_id`、`content_hash`、`result_revision`），存在 Controller 的 hash 目录（D8） | Controller `scheduler/dispatch`、Adapter | M1-4、M2-1 | 4 |
 | M2-4 | Review、返工、验收 | 独立 Reviewer 审查精确的结果版本；被拒时新增 rework 和 re-review 节点；Final Gate。主要复用 `scheduler/{reviews,acceptance,invalidation}` | Controller、Adapter | M2-3 | 3 |
-| M2-5 | 业务案例 | 数学知识点：研究、课件实现、格式检查、教学审核、返工复审、交付。Team、Workflow、Role 模板（**D11**） | `dsh_squad/cases/` | M2-1 | 2 |
-| M2-6 | 课件预览隔离 | 独立 origin 的 sandbox iframe，读不到 DS Bot 的 cookie 和控制接口 | ds-bot 客户端或独立页面（**D5**） | M2-3 | 2 |
+| M2-5 | 业务案例 | 数学知识点：研究、课件实现、格式检查、教学审核、返工复审、交付。Team、Workflow、Role 模板（D11） | `dsh_squad/cases/` | M2-1 | 2 |
+| M2-6 | 课件预览隔离 | 独立 origin 的 sandbox iframe，读不到 DS Bot 的 cookie 和控制接口 | DS Bot 客户端插件（D5） | M2-3 | 2 |
 
 M2 小计约 19 人日。
 
@@ -88,10 +110,11 @@ M2 小计约 19 人日。
 | ID | 目标 | 产物 | 仓库 / 模块 | 依赖 | 人日 |
 |---|---|---|---|---|---|
 | M3-1 | 投影桥 | Controller 的 Snapshot 和 Events 经宿主通道送到浏览器；SSE 断档就重新取快照；前端不自建状态机 | Adapter（宿主通道）、Controller `projection/` | M2-4 | 3 |
-| M3-2 | Run 界面 | 启动 Run，展示 Task/DAG、等待、Artifact 预览、Review 和恢复卡片。「回答问题」「批准工具」「验收成果」分成三类按钮，都绑定 `expected_revision` | ds-bot 客户端（补丁或独立客户端插件，**D2**、**D5**） | M3-1 | 8 |
-| M3-3 | 对照实验工具 | S、A、B、C（D 在 M4 之后）五组固定配置；指标采集（含辅助调用和被取消调用的成本，M8/M11）；报告生成 | `dsh_squad/experiments/`、复用 `probes/tokens.mjs` | M2-4、M3-1 | 5 |
+| M3-2 | Run 界面（最终版，D5） | 在 DS Bot 现有界面里：启动 Run，任务依赖图（DAG）、等待、Artifact 预览、Review 和恢复卡片、实验报告页。「回答问题」「批准工具」「验收成果」分成三类按钮，都绑定 `expected_revision` | DS Bot 客户端插件 `dsh_squad/client`（D2） | M3-1 | 12 |
+| M3-3 | 对照实验工具 | S、A、B、C（D 在 M4 之后）五组固定配置，单模型 `deepseek-flash`（D7），每组新建 Team（D12）；指标采集（含辅助调用和被取消调用的成本，M8/M11）；报告生成，供 M3-2 的报告页展示 | `dsh_squad/experiments/`、复用 `probes/tokens.mjs` | M2-4、M3-1 | 4 |
+| M3-4 | 规则配置与小队启动（D6） | 非开发用户在 DS Bot 界面里新建/编辑 Team、Workflow、Role（写回项目目录配置，经 Controller 校验）；Team 列表支持多个 Team；从群里启动小队并跳到进度页 | 客户端插件、Controller `project/` 写接口 | M2-1、M3-1 | 5 |
 
-M3 小计约 16 人日。
+M3 小计约 26 人日。
 
 ### M4：高级协同治理
 
@@ -106,9 +129,9 @@ M4 小计约 14 人日。
 
 ### T：统一测试与验收
 
-见 §4。约 10 人日；非开发用户试用的日历时间另计。
+见 §4。约 10 人日；非开发用户试用（D6，放在 Squad 功能完成之后）的日历时间另计。
 
-**合计**：约 93 人日（X 约 5、M0 5、M1 24.5、M2 19、M3 16、M4 14、T 10）。按 §2 的并行方式，关键路径约 60 人日。
+**合计**：约 105 人日（X 约 7、M0 5、M1 24、M2 19、M3 26、M4 14、T 10）。按 §2 的并行方式，关键路径约 54 人日，加余量约 65 人日。（原 93 人日；增加来自 D5 最终版界面 +4、D6 规则配置界面 +5、D10 里程碑回归 +2.5，减少来自 D4、D2、D7。）
 
 ## 2. 关键路径与执行顺序
 
@@ -137,6 +160,7 @@ flowchart LR
   subgraph M3[M3 界面/实验]
     M31[M3-1 投影桥] --> M32[M3-2 Run 界面]
     M31 --> M33[M3-3 实验工具]
+    M31 --> M34[M3-4 规则配置/启动]
   end
   subgraph M4[M4 多 Team]
     M41[M4-1 多 Team/共享 Role] --> M42[M4-2 Child/yield/续接]
@@ -154,6 +178,8 @@ flowchart LR
   M44 --> T[T 统一测试/验收]
   M33 --> T
   M02 --> T
+  M34 --> T
+  M11 --> M02
   M03 --> T
   M16 --> M23
 
@@ -161,19 +187,18 @@ flowchart LR
   class M11,M12,M13,M14,M23,M24,M31,M32,M43,M44,T crit
 ```
 
-**关键路径**（红色）：M1-1 → M1-2 → M1-3 → M1-4 → M2-3 → M2-4 → M3-1 → M3-2 → M4-3 → M4-4 → T，约 3+3+6+4+4+3+3+8+4+2+10 ≈ **50 人日**。加上 D1–D3 的等待和联调余量，约 60 人日。
+**关键路径**（红色）：M1-1 → M1-2 → M1-3 → M1-4 → M2-3 → M2-4 → M3-1 → M3-2 → M4-3 → M4-4 → T，约 3+3+6+4+4+3+3+12+4+2+10 ≈ **54 人日**。加联调余量约 65 人日。
 
-**建议执行顺序**（同一行可并行）：
+**执行顺序**（2026-10-19 拍板后，同一行可并行）：
 
-1. **第 1 周**：拍板 D1、D2、D3；M1-1、M1-6；X-1。M0-1 可以穿插在等待决策的间隙里做。
-2. **第 2–3 周**：M1-2 → M1-3（最大的包）；收尾时并行做 M1-5、M1-8。
-3. **第 4 周**：M1-4、M1-7；M2-1、M2-5（模板可以和代码同时写）。
-4. **第 5–6 周**：M2-3 → M2-4；并行 M2-2、M2-6。如果 D6 选择提前试用，M0-2、M0-3 在这里完成，交给试用者。
-5. **第 7–8 周**：M3-1 → M3-2；并行 M3-3。
-6. **第 9–10 周**：M4-1 → M4-2；M4-3（依赖 M3-2 的卡片）；M4-4。
-7. **第 11–12 周**：T 统一测试，修复，再回归一轮。
+1. **M1**：M1-1、M1-6、X-1 → M1-2 → M1-3（最大的包）→ M1-4、M1-5、M1-7、M1-8。末尾 X-4 回归。
+2. **M0**：M0-1 → M0-2（配对启动，依赖 M1-1）、M0-3。末尾 X-4 回归。
+3. **M2**：M2-1、M2-5 → M2-3 → M2-4；并行 M2-2、M2-6。末尾 X-4 回归。
+4. **M3**：M3-1 → M3-2；并行 M3-3、M3-4。末尾 X-4 回归。
+5. **M4**：M4-1 → M4-2；M4-3（依赖 M3-2 的卡片）；M4-4。末尾 X-4 回归。
+6. **T**：统一测试（真实模型只用 `deepseek-flash`，key 届时由用户提供），修复，再回归一轮；最后安排非开发用户试用。
 
-## 3. 需要用户拍板的决策点
+## 3. 决策点原始选项（已于 2026-10-19 拍板，见决策记录）
 
 | ID | 问题 | 选项 | 建议 | 影响 |
 |---|---|---|---|---|
@@ -202,7 +227,7 @@ flowchart LR
 | ACCEPTANCE | 内容 | 实现包 | 测试方式 | 可复用 |
 |---|---|---|---|---|
 | DSH-M0-01 | 只用 Web，四 Bot 群聊 | M0-1、M0-3 | 非开发用户试用 + 手动检查 | — |
-| DSH-M0-02 | 不同 Provider 路由正确 | M0-3 | 真实模型（两个 Provider）+ 探针 `agent/request` | P0 real 的路由记录方法 |
+| DSH-M0-02 | 模型路由正确（D7 改为单模型：`deepseek-flash`、thinking、effort high） | M0-3 | 真实模型 + 探针 `agent/request` | P0 real 的路由记录方法 |
 | DSH-M0-03 | `@Bot`、普通 Handoff、记忆 | M0 | mock 自动化 + 试用 | P0 S1、S2 |
 | DSH-M0-04 | 刷新、重启、跨试用者隔离 | M0-2 | 自动化（重启）+ 两个试用环境交叉检查 | P0 S4 |
 | DSH-M1-01 | 正式 Task 全链路证据 | M1-3、M1-4 | mock 自动化 | P1 P1-admitted |
@@ -233,9 +258,9 @@ flowchart LR
 **T 阶段的估算与顺序**：
 1. 扩展自动化驱动，补齐证据字段：2 人日。
 2. mock 全量（约 20 项）：2 人日。
-3. 真实模型（M0-02、M1-08、M2-02、M3-03、M3-04）：2 人日，外加 token 预算。
+3. 真实模型（M0-02、M1-08、M2-02、M3-03、M3-04），只用 DeepSeek `deepseek-flash`：2 人日，外加 token 预算。
 4. 界面手动（M2-04、M2-07、M3-01、M3-02）：1 人日。
-5. 非开发用户试用（M0-01～04）：1 人日准备 + 试用日历时间。
+5. 非开发用户试用（M0-01～04 及 D6 的完整 Squad 使用）：1 人日准备 + 试用日历时间，在 Squad 功能全部完成之后。
 6. 修复和回归：2 人日起。
 
 合计约 **10 人日**；修复所需时间取决于中间阶段积累了多少问题（见 D10）。
@@ -244,6 +269,6 @@ flowchart LR
 
 1. **推迟测试，问题会集中爆发**：P1 第一轮的三个问题都属于「能编译、单测也过，但真实宿主上不对」。T 阶段的修复时间可能明显超过估算，D10 的建议就是为了降低这个风险。
 2. **Adapter（M1-3）是最大的不确定点**：Controller 原本按「一个 Pi 进程一个 runtime」设计，现在要支持同一进程里多个 runtime 和 epoch，可能牵出 Controller 的修改。
-3. **界面规模**：M3-2 按 D5 的选项，工作量可能在 5 到 15 人日之间。
-4. **上游变化**：D9 选择钉死版本，但 T 阶段升级时可能要重做补丁。
+3. **界面规模**：D5 选最终版、D6 加规则配置，M3 是第二大里程碑（约 26 人日），且全部在 DS Bot 客户端插件里实现，受其扩展点限制。
+4. **上游变化**：D9 钉死版本，只在定期评估发现无破坏性更新时才考虑升级；`rewake` 等依赖 rc.2 行为的点（Q37）随升级重测。
 5. **试用的组织工作**（D4、D6）不在开发者控制范围内，可能拖长日历时间。

@@ -3,12 +3,13 @@ title: 决策索引
 type: index
 status: active
 created: 2026-09-07
-updated: 2026-10-18
+updated: 2026-10-19
 tags:
   - project-wiki
 ---
 
 # 决策索引
+- [[2026-10-19-dsh-squad-dev-decisions|2026-10-19 DS Bot + Squad 开发决策 D1–D12]]
 - [[2026-10-18-dsh-p1-seam-as-patch|2026-10-18 seam 以补丁形式实现，Gate 由 ds-bot 自己的链调用]]
 - [[2026-10-18-dsh-p0-version-pin|2026-10-18 P0 版本统一：DSH 0.2.1-rc.2 + DS Bot main]]
 - [[2026-10-18-dsh-bot-squad-migration|2026-10-18 DS Bot 产品演示与 Squad 迁移边界]]

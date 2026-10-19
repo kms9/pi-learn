@@ -22,7 +22,7 @@ tags: [dsh-bot, acceptance, evaluation]
 | ID | 场景 | 通过要求 |
 |---|---|---|
 | DSH-M0-01 | 用户只打开 Web 使用四 Bot 群聊 | 不需要 Pi/Herdr/Go 命令行 |
-| DSH-M0-02 | Chief/Reviewer 配置不同 Provider 模型 | 实际模型路由各自正确 |
+| DSH-M0-02 | Bot 配置的模型路由（2026-10-19 D7 改为单模型：DeepSeek `deepseek-flash`，thinking、effort high；不再要求两家 Provider） | 实际模型路由与配置一致，冻结后不静默回退 |
 | DSH-M0-03 | `@Bot` / 普通 Handoff / 长期记忆 | 交互和回传正常，无正式 Squad Task |
 | DSH-M0-04 | 页面刷新、宿主重启、不同试用者 | Session 历史正常且不存在跨用户数据暴露 |
 

@@ -46,9 +46,9 @@ tags:
 | Q30 | 非开发用户的 DS Bot Web、Memory、Secrets 和目录如何隔离？ | open | 首版建议每用户独立环境，不把单个 DSH Home 直接当多租户 SaaS。 |
 | Q31 | 记忆整理等辅助模型调用（P0 中约占调用数的 35%，多数不带 `purpose`）如何计入 Task 成本？ | open | 建议 Adapter 按 session 和是否有活跃回合区分；请 ds-bot 给记忆整理加 purpose 标签。 |
 | Q32 | 回合内（mid-turn）切段、PTC 嵌套调用、默认模型回退，在受控 Session 下的行为是什么？ | closed | 2026-10-18 真实模型实测：①回合内切段 → `turn/end blocked`，新 part 由 handoff 自启并重做已完成的步骤；②嵌套调用在 tools/pre-execute 可见，`rootCallId` 指向 run_code；③模型下架后 Session 被静默切到默认模型，Bot 配置不变、没有通知。见 `docs/dsh-squad-p0-probe-report-2026-10-18.md` §3A。 |
-| Q33 | ds-bot 归属 seam 走上游 PR 还是本仓库最小 Fork 补丁？ | open | P1 先在本仓库用补丁实现（`dsh_squad/patches/ds-bot/`，+152/−9），没有 fork。下一步按上游流程在 `docs/plans/` 提设计 PR。 |
+| Q33 | ds-bot 归属 seam 走上游 PR 还是本仓库最小 Fork 补丁？ | deferred | P1 先在本仓库用补丁实现（`dsh_squad/patches/ds-bot/`，+152/−9），没有 fork。2026-10-19 D2：暂不向上游提 PR，先完成自己的验证。 |
 | Q34 | Squad Gate 如何保证在 `agent/pre-step` 中的位置，不被 ds-bot 或其他插件先 reject 或先放行？ | closed | P1：Gate 由 ds-bot 自己最外层的 pre-step 调用，与 Gate 插件的加载顺序无关；外层另有单调 tool guard 和 step 审计兜底（尚未实际触发，见 Q35）。 |
 | Q35 | 有外部插件在 ds-bot 链之外放行步骤时，tool guard 和 step 审计能否真正拦住？ | open | P1 负例里没有触发过；需要一个专门的「外层插件直接 enter」负例。 |
 | Q36 | 被 Gate 扣留的输入交给 Controller 后，如何分类、重新投递或丢弃？ | open | 目前只存在 Gate 内存里，重启就丢。与 Run Guidance、Clarification 分类一起在 M2 设计。 |
 | Q37 | `rewake`（拒绝后重新唤醒）依赖的 DSH 行为能否保持到正式版？ | open | 「拒绝会结束 driver 循环」「followup 会唤醒 driver」都是 0.2.1-rc.2 的实测行为；升级时重新验证，或请求 DSH 提供原生的「拒绝但保留 inbox」。 |
-| Q38 | M0→M4 开发规划中的 12 个决策点（Controller 放哪、补丁还是插件、协议版本、多租户、界面范围、M0 试用时间、真实 key 时间、Artifact 存储、版本升级、中间回归、业务案例、Memory 冻结） | open | 待用户拍板。见 `docs/dsh-squad-dev-plan-2026-10-18.md` §3。 |
+| Q38 | M0→M4 开发规划中的 12 个决策点（Controller 放哪、补丁还是插件、协议版本、多租户、界面范围、M0 试用时间、真实 key 时间、Artifact 存储、版本升级、中间回归、业务案例、Memory 冻结） | closed | 2026-10-19 用户拍板，见 `docs/decisions/2026-10-19-dsh-squad-dev-decisions.md` 与规划「决策记录」节。 |
