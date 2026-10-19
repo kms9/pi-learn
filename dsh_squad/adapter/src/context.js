@@ -49,6 +49,7 @@ function leaderLines(lines, task, run) {
   else {
     lines.push(...(run.lines.length > 0 ? run.lines : ['- no business tasks yet']))
     lines.push(`- summary: ${run.summary}`)
+    if ((run.guidance ?? []).length > 0) lines.push('', '## What the user asked during the Run', ...run.guidance.map(text => `- ${text}`), '- Take it into account in the tasks you dispatch.')
   }
   lines.push(
     '',

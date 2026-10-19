@@ -225,7 +225,7 @@ export function apply(ctx, config = {}) {
 
   async function refreshRun(runId) {
     const snap = await client.snapshot().catch(() => undefined)
-    return snap === undefined ? undefined : runStatus(snap.views?.tasks ?? [], runId)
+    return snap === undefined ? undefined : runStatus(snap.views?.tasks ?? [], runId, (snap.views?.runs ?? []).find(run => run.run_id === runId))
   }
 
   async function takeDispatch(key, binding, dispatch) {

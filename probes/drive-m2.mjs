@@ -72,6 +72,10 @@ try {
 
   console.log('== M2-run a lesson Run from start to delivery')
   const created = (await ctl('POST', '/v2/runs', { request_id: `m2-${Date.now().toString(36)}`, team_id: 'math', goal: '认识分数：分数的意义与读写（五年级）' })).out
+  // The user speaks in the Team's group during the Run (M2-2): held from the managed
+  // Sessions, then Run Guidance at the Controller, once.
+  const advice = '例子请用切披萨来讲'
+  await host('/api/bot', 'send', { sessionId: bound.roomId, text: advice })
   const finished = await until(async () => {
     const r = (await ctl('GET', `/v2/runs/${created.run_id}`)).out
     return ['completed', 'failed', 'cancelled', 'interrupted'].includes(r.phase) ? r : undefined
@@ -97,6 +101,9 @@ try {
     const csp = page.headers.get('content-security-policy') ?? ''
     check(String(page.out).includes('认识分数') && /sandbox/.test(csp) && /default-src 'none'/.test(csp), 'the page is served sandboxed, with no network (DSH-M2-07)', csp)
   }
+  check((finished?.guidance ?? []).filter(text => text.includes(advice)).length === 1, 'the group message became Run Guidance once (M2-2)', finished?.guidance)
+  const held = ((await ctl('GET', '/v2/snapshot')).out.views.held_inputs ?? []).filter(row => (row.text ?? '').includes(advice))
+  check(held.length >= 1 && held.every(row => row.disposition === `guidance:${created.run_id}`), 'every held copy is marked as guidance for this Run', held.map(row => row.disposition))
   const leaderSteps = tasks.filter(task => task.kind === 'leader_step')
   check(leaderSteps.every(task => task.state === 'completed'), 'every Leader step settled', leaderSteps.map(task => task.state))
   const squad = lines(join(PROJECT, '.dsh-squad/logs/mock.jsonl')).filter(line => line.squad)

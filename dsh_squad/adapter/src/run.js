@@ -5,7 +5,7 @@
 
 const short = id => String(id ?? '').slice(0, 13)
 
-export function runStatus(tasks, runId) {
+export function runStatus(tasks, runId, run) {
   const own = (tasks ?? []).filter(task => task.run_id === runId && task.kind !== 'leader_step')
   const lines = own.map((task) => {
     const acceptance = task.acceptance?.decision ?? 'none'
@@ -27,6 +27,9 @@ export function runStatus(tasks, runId) {
   })
   return {
     lines,
+    // What the user said to the Team during the Run (held messages the Controller
+    // turned into Run Guidance).
+    guidance: (run?.guidance ?? []).map(text => String(text).slice(0, 400)),
     rejected: rejected.map(task => ({ taskId: task.task_id, roleId: task.role_id, goal: task.goal })),
     open: open.length,
     done,

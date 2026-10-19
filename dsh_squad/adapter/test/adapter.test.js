@@ -108,6 +108,7 @@ test('the Leader sees each task and what is left to decide', async () => {
   assert.equal(status.done, true)
   assert.match(status.summary, /complete the Run/)
   assert.equal(runStatus([], 'run-1').done, false)
+  assert.deepEqual(runStatus([], 'run-1', { guidance: ['use pizza'] }).guidance, ['use pizza'])
 })
 
 test('a Leader step and a review get their own instructions', () => {

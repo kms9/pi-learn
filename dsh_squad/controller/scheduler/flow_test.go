@@ -518,3 +518,36 @@ func (h *harness) allAccepted(runID string) bool {
 	}
 	return true
 }
+
+func TestUserMessagesBecomeRunGuidanceOnce(t *testing.T) {
+	h := newHarness(t)
+	h.registerLeader()
+	builder := h.register("math-builder", "builder", "bot-builder", "room-math", "sess-b")
+	reviewer := h.register("math-reviewer", "reviewer", "bot-reviewer", "room-math", "sess-r")
+	before := HeldInput{RequestID: "h0", Binding: builder.Binding, InputID: "m0", Wake: "group-relay", Why: "no_admission", Text: "hello before the Run"}
+	if _, err := h.svc.Hold(h.ctx, builder, before); err != nil {
+		t.Fatal(err)
+	}
+	r, err := h.svc.CreateRun(h.ctx, h.op, CreateRun{RequestID: "run1", TeamID: "math", Goal: "teach fractions", WorkflowID: "lesson"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	h.tick()
+	for i, p := range []Principal{builder, reviewer} {
+		q := HeldInput{RequestID: "h" + string(rune('1'+i)), Binding: p.Binding, InputID: "m" + string(rune('1'+i)), Wake: "group-relay", Why: "no_admission", Text: "please use pizza examples"}
+		if _, err := h.svc.Hold(h.ctx, p, q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	got := h.runOf(r.ID)
+	if len(got.Guidance) != 1 || got.Guidance[0] != "please use pizza examples" {
+		t.Fatalf("guidance %v", got.Guidance)
+	}
+	var disposition string
+	if err := h.svc.Store.DB.QueryRow(`SELECT disposition FROM held_inputs WHERE input_id='m0'`).Scan(&disposition); err != nil || disposition != "pending" {
+		t.Fatalf("before the Run: %s %v", disposition, err)
+	}
+	if err := h.svc.Store.DB.QueryRow(`SELECT disposition FROM held_inputs WHERE input_id='m2'`).Scan(&disposition); err != nil || disposition != "guidance:"+r.ID {
+		t.Fatalf("during the Run: %s %v", disposition, err)
+	}
+}
