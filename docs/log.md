@@ -863,3 +863,9 @@ tags:
 - 来源: 用户对 `docs/dsh-squad-dev-plan-2026-10-18.md` §3 的答复。
 - 更新: 规划新增「决策记录」节并调整工作包与工作量（约 93 → 105 人日）；`docs/decisions/2026-10-19-dsh-squad-dev-decisions.md`；`dsh_squad_case/{ACCEPTANCE,MIGRATION_PLAN}.md`（DSH-M0-02 单模型、D4 部署模型）；Q33 暂缓、Q38 关闭；索引。
 - 说明: Controller 迁到 `dsh_squad/controller` 独立演进，`pi_squad` 不再维护；协议 `squad/3`；一个项目目录配一个 DS Bot + Controller；最终版界面做在 DS Bot 客户端插件里；开发期全 mock，最终只用 `deepseek-flash` 做真实测试。执行顺序 M1 → M0 → M2 → M3 → M4 → T，每个里程碑末跑 mock 回归。
+
+## [2026-10-19] session | DS Bot + Squad M1 完成：Controller 迁到 dsh_squad、squad/3、DSH Adapter
+
+- 来源: 用户 D1–D12 决定与「直接开始 M1」的要求；分支 `feat/dsh-m1`；mock 模型 bench。
+- 更新: `dsh_squad/{controller,protocol,adapter,USAGE.md,README.md,scripts/check.sh}`、`dsh_squad/patches/ds-bot/0001-squad-seam.patch`（seam v2）、`probes/{bench.sh,lib.mjs,squad-mock.mjs,drive-m1.mjs}`、根 `AGENTS.md`（D1 说明）、规划「进度」节、会话页、Q35/Q36 更新、新增 Q39/Q40。
+- 说明: M1-1～M1-7 落地，M1-8 完成扣留输入持久化与上报（外层插件绕过负例未做）。`check.sh` 通过（Adapter 25/25、ds-bot 638/638）；里程碑 mock 回归 `drive-p1` 14/14、`drive-m1` 7/7。只是开发期回归，ACCEPTANCE 各项仍为 NOT_RUN。回归结果文件（`probes/scenarios-p1/`、`scenarios-m1/`）未提交。

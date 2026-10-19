@@ -48,7 +48,9 @@ tags:
 | Q32 | 回合内（mid-turn）切段、PTC 嵌套调用、默认模型回退，在受控 Session 下的行为是什么？ | closed | 2026-10-18 真实模型实测：①回合内切段 → `turn/end blocked`，新 part 由 handoff 自启并重做已完成的步骤；②嵌套调用在 tools/pre-execute 可见，`rootCallId` 指向 run_code；③模型下架后 Session 被静默切到默认模型，Bot 配置不变、没有通知。见 `docs/dsh-squad-p0-probe-report-2026-10-18.md` §3A。 |
 | Q33 | ds-bot 归属 seam 走上游 PR 还是本仓库最小 Fork 补丁？ | deferred | P1 先在本仓库用补丁实现（`dsh_squad/patches/ds-bot/`，+152/−9），没有 fork。2026-10-19 D2：暂不向上游提 PR，先完成自己的验证。 |
 | Q34 | Squad Gate 如何保证在 `agent/pre-step` 中的位置，不被 ds-bot 或其他插件先 reject 或先放行？ | closed | P1：Gate 由 ds-bot 自己最外层的 pre-step 调用，与 Gate 插件的加载顺序无关；外层另有单调 tool guard 和 step 审计兜底（尚未实际触发，见 Q35）。 |
-| Q35 | 有外部插件在 ds-bot 链之外放行步骤时，tool guard 和 step 审计能否真正拦住？ | open | P1 负例里没有触发过；需要一个专门的「外层插件直接 enter」负例。 |
-| Q36 | 被 Gate 扣留的输入交给 Controller 后，如何分类、重新投递或丢弃？ | open | 目前只存在 Gate 内存里，重启就丢。与 Run Guidance、Clarification 分类一起在 M2 设计。 |
+| Q35 | 有外部插件在 ds-bot 链之外放行步骤时，tool guard 和 step 审计能否真正拦住？ | open | P1 负例里没有触发过。M1 起 tool guard 还按合同限制工具（drive-m1 M1-guard：bash 被拒），但「外层插件直接 enter」的负例仍未做。 |
+| Q36 | 被 Gate 扣留的输入交给 Controller 后，如何分类、重新投递或丢弃？ | open | 2026-10-19 M1：Adapter 持久化扣留的输入并上报 `POST /v2/agents/held-inputs`，Controller 存为 `pending`（快照 `held_inputs`）。分类与处理（Run Guidance、Clarification、新 Task、丢弃）仍在 M2-2。 |
 | Q37 | `rewake`（拒绝后重新唤醒）依赖的 DSH 行为能否保持到正式版？ | open | 「拒绝会结束 driver 循环」「followup 会唤醒 driver」都是 0.2.1-rc.2 的实测行为；升级时重新验证，或请求 DSH 提供原生的「拒绝但保留 inbox」。 |
 | Q38 | M0→M4 开发规划中的 12 个决策点（Controller 放哪、补丁还是插件、协议版本、多租户、界面范围、M0 试用时间、真实 key 时间、Artifact 存储、版本升级、中间回归、业务案例、Memory 冻结） | closed | 2026-10-19 用户拍板，见 `docs/decisions/2026-10-19-dsh-squad-dev-decisions.md` 与规划「决策记录」节。 |
+| Q39 | DS Bot 切段（新 part 会话）发生在正式 attempt 中时，重新注册与 epoch+1 的路径是否在真实宿主上按设计工作？ | open | M1 已实现：Adapter 发现绑定会话变化就带 `previous_session_id` 重新注册，Controller 以 `session_changed` 中断旧 attempt。端到端还没有负例（drive-m1 未覆盖），留给 T 阶段或 M4-3。 |
+| Q40 | `needs_review`（如缺结果、宿主重启）的 attempt 会一直占住该 Bot，直到 operator `reconcile`；非开发用户在界面上怎么完成这一步？ | open | Controller 设计如此（不自动释放未知执行）。界面上的恢复卡在 M3-2/M4-3。 |

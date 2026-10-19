@@ -75,6 +75,7 @@ tags:
 
 ## 会话
 - `docs/dsh-squad-dev-plan-2026-10-18.md` — 2026-10-18 M0→M4 开发规划：工作包、关键路径、决策点 D1–D12、与 ACCEPTANCE 28 项的对应（D1–D12 已于 2026-10-19 拍板）。
+- [[sessions/2026-10-19-dsh-m1-adapter|2026-10-19 DS Bot + Squad M1：Controller 迁移与 DSH Adapter]] — `dsh_squad/controller`、`squad/3`、`dsh_squad/adapter`；mock 回归 drive-p1 14/14、drive-m1 7/7。
 - [[sessions/2026-10-18-dsh-p1-seam|2026-10-18 DS Bot + Squad P1 seam 原型]] — 负例 14/14；代码在 `dsh_squad/`，结果在报告 §9。
 - [[sessions/2026-10-18-dsh-p0-probe|2026-10-18 DS Bot + Squad P0 探针实测]] — 六场景全部跑通；实测复评见 `docs/dsh-squad-p0-probe-report-2026-10-18.md`，读代码版见 `docs/dsh-squad-feasibility-2026-10-18.md`。
 - [[sessions/2026-10-18-dsh-bot-migration-planning|2026-10-18 DS Bot 迁移方案与分支主 README 更新]] — 新子模块、分支与实施入口。

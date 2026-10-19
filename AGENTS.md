@@ -153,6 +153,8 @@ python3 scripts/sync-zh.py --accept <source> --record-head
 
 Controller 的 Go 版本和库边界在 `pi_squad/controller/AGENTS.md`。Gin、Resty、Viper、Cobra、Bubble Tea 只用于该目录。
 
+**2026-10-19 起（决策 D1）**：以 DS Bot 为主要验证对象，`pi_squad/` 不再维护。Go Controller 已迁到 `dsh_squad/controller`（规范见该目录 `AGENTS.md`），上述 Go 库也可用于该目录。DS Bot + Squad 的使用说明是 `dsh_squad/USAGE.md`，能用的功能同一次改动写进去；最低验证 `dsh_squad/scripts/check.sh`。
+
 检查 `pi_squad` 插件时先读 `pi_squad/AGENTS.md`。新检查前先关掉上次留下的测试 workspace，再新开 workspace。至少启动三个不同角色的 Pi，启动 cwd 用当前项目目录以检查其中的 `.agents/roles`（阶段 04 落地后为 `.agents/pisquad/roles`），并打开对应该 Controller 的 Dashboard。不要用外部 tmux，也不要用一堆脚本代替看 pane。
 
 ## Agent 协作边界
