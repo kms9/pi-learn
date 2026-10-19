@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -164,7 +165,7 @@ func (h *harness) dispatched(p Principal) task.Attempt {
 }
 
 func (h *harness) event(p Principal, a task.Attempt, q AttemptEvent) (task.Attempt, error) {
-	q.RequestID = q.Type + "-" + a.ID[:16]
+	q.RequestID = fmt.Sprintf("%s-%s-%d", q.Type, a.ID[:16], a.Segment)
 	q.ExpectedRevision = a.Revision
 	q.Segment = a.Segment
 	q.FencingToken = a.FencingToken
@@ -583,5 +584,66 @@ func TestAcceptanceBindsTheExactResultVersion(t *testing.T) {
 	}
 	if _, err := h.svc.RecordAcceptance(h.ctx, builder, c.ID, current); err == nil {
 		t.Fatal("a runtime cannot accept its own work")
+	}
+}
+
+// DSH-M4-02: with room for one execution, a parent yields to its child and continues in
+// the same Attempt afterwards, on a new segment and fence.
+func TestChildYieldContinuesTheSameAttempt(t *testing.T) {
+	h := newHarness(t)
+	h.svc.Config.MaxParallel = 1
+	builder := h.register("builder-bot", "builder", "bot-builder", "", "sess-1")
+	reviewer := h.register("reviewer-bot", "reviewer", "bot-reviewer", "", "sess-2")
+	h.svc.Config.DirectTargets = []string{"reviewer-bot"}
+	parent, err := h.svc.CreateTask(h.ctx, h.op, CreateTask{RequestID: "r1", Target: "builder-bot", Goal: "delegate a check"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	h.tick()
+	a := h.startRunning(builder)
+	firstSegment, firstFence := a.Segment, a.FencingToken
+	current := h.taskOf(parent.ID)
+	child, err := h.svc.CreateTask(h.ctx, builder, CreateTask{RequestID: "c1", ParentID: parent.ID, Target: "reviewer-bot", Goal: "check", ExpectedRevision: current.Revision})
+	if err != nil {
+		t.Fatal(err)
+	}
+	h.tick()
+	if out, _ := h.svc.Dispatches(h.ctx, reviewer); len(out) != 0 {
+		t.Fatal("the child must wait while the parent runs (capacity 1)")
+	}
+	a, _ = h.attemptOf(a.ID)
+	a = h.must(h.event(builder, a, AttemptEvent{Type: "yield"}))
+	a = h.must(h.event(builder, a, AttemptEvent{Type: "settled", Idle: true, Outcome: "completed"}))
+	if a.State != "suspended" {
+		t.Fatalf("parent attempt %s after yield", a.State)
+	}
+	h.tick()
+	ca := h.startRunning(reviewer)
+	ca = h.must(h.event(reviewer, ca, AttemptEvent{Type: "result_proposed", Result: &task.Result{GoalRevision: 1, Value: json.RawMessage(`{"answer":"fine"}`), Artifacts: []task.Artifact{}, Refs: []project.ResultRef{}}}))
+	h.must(h.event(reviewer, ca, AttemptEvent{Type: "settled", Idle: true, Outcome: "completed"}))
+	h.tick()
+	h.tick()
+	out, err := h.svc.Dispatches(h.ctx, builder)
+	if err != nil || len(out) != 1 {
+		t.Fatalf("parent not dispatched again: %v %v", out, err)
+	}
+	resumed := out[0]["attempt"].(task.Attempt)
+	if resumed.ID != a.ID || resumed.Segment != firstSegment+1 || resumed.FencingToken == firstFence || resumed.State != "admitted" {
+		t.Fatalf("want the same attempt on segment %d with a new fence, got %s segment %d fence %d (was %d) %s", firstSegment+1, resumed.ID, resumed.Segment, resumed.FencingToken, firstFence, resumed.State)
+	}
+	// An event of the old segment is stale now.
+	if _, err := h.svc.AttemptEvent(h.ctx, builder, a.ID, AttemptEvent{RequestID: "old", Type: "renew", ExpectedRevision: resumed.Revision, Segment: firstSegment, FencingToken: firstFence, ControllerEpoch: resumed.ControllerEpoch}); err == nil {
+		t.Fatal("an event of the old segment must be refused")
+	}
+	for _, step := range []string{"adapter_received", "injection_requested", "input_observed"} {
+		resumed = h.must(h.event(builder, resumed, AttemptEvent{Type: step}))
+	}
+	resumed = h.must(h.event(builder, resumed, AttemptEvent{Type: "result_proposed", Result: &task.Result{GoalRevision: 1, Value: json.RawMessage(`{"answer":"checked"}`), Artifacts: []task.Artifact{}, Refs: []project.ResultRef{}}}))
+	h.must(h.event(builder, resumed, AttemptEvent{Type: "settled", Idle: true, Outcome: "completed"}))
+	if got := h.taskOf(parent.ID); got.State != "completed" || len(got.AttemptIDs) != 1 {
+		t.Fatalf("parent %s with %d attempts", got.State, len(got.AttemptIDs))
+	}
+	if got := h.taskOf(child.ID); got.State != "completed" {
+		t.Fatalf("child %s", got.State)
 	}
 }

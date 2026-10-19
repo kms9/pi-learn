@@ -132,8 +132,8 @@ export function apply(ctx, config = {}) {
   function queueEnd(attempt) {
     const end = endReport(attempt.verdict, { hostRestarted: attempt.hostChanged })
     if (end === undefined) return
-    if (end.kind === 'settled') enqueue({ kind: 'event', key: attempt.key, attemptId: attempt.attemptId, requestId: `settled-${attempt.attemptId}`, body: { type: 'settled', idle: true, pending: false, outcome: end.outcome } })
-    else enqueue({ kind: 'interrupt', key: attempt.key, attemptId: attempt.attemptId, requestId: `interrupt-${attempt.attemptId}`, reason: end.reason })
+    if (end.kind === 'settled') enqueue({ kind: 'event', key: attempt.key, attemptId: attempt.attemptId, requestId: `settled-${attempt.attemptId}-${attempt.dispatch?.segment ?? 1}`, body: { type: 'settled', idle: true, pending: false, outcome: end.outcome } })
+    else enqueue({ kind: 'interrupt', key: attempt.key, attemptId: attempt.attemptId, requestId: `interrupt-${attempt.attemptId}-${attempt.dispatch?.segment ?? 1}`, reason: end.reason })
   }
 
   async function sendEvent(binding, attempt, requestId, body) {
@@ -187,7 +187,7 @@ export function apply(ctx, config = {}) {
     for (;;) {
       const step = nextReceipt(dispatch.receipts, { delivered: dispatch.delivered, opened: attempt.opened === true })
       if (step === undefined) return
-      await sendEvent(binding, attempt, `${step}-${attempt.attemptId}`, { type: step })
+      await sendEvent(binding, attempt, `${step}-${attempt.attemptId}-${attempt.dispatch.segment}`, { type: step })
       dispatch.receipts.push(step)
       save()
     }
@@ -231,7 +231,11 @@ export function apply(ctx, config = {}) {
   async function takeDispatch(key, binding, dispatch) {
     const a = dispatch.attempt
     const t = dispatch.task
-    if (state.attempts[a.attempt_id] !== undefined || state.admissions[a.attempt_id] !== undefined) return
+    const known = state.attempts[a.attempt_id]
+    // The same attempt on a higher segment is a continuation (M4-2): its children have
+    // reported back and it goes on in the same context, under a new fence.
+    const continuing = known !== undefined && known.dispatch !== undefined && a.segment_id > known.dispatch.segment
+    if ((known !== undefined && !continuing) || state.admissions[a.attempt_id] !== undefined) return
     const sessionId = sessionFor(binding)
     if (sessionId === undefined) return
     const record = {
@@ -248,8 +252,9 @@ export function apply(ctx, config = {}) {
     binding.fence = a.fencing_token
     state.admissions[a.attempt_id] = { key, fence: a.fencing_token, sessionId, at: new Date().toISOString() }
     save()
-    log('admit', { attemptId: a.attempt_id, key, fence: a.fencing_token, sessionId, taskId: t.task_id })
-    await deliver(sessionId, `Squad task ${t.task_id}: ${t.goal}`, { kind: 'squad', attemptId: a.attempt_id, fence: a.fencing_token })
+    log('admit', { attemptId: a.attempt_id, key, fence: a.fencing_token, sessionId, taskId: t.task_id, segment: a.segment_id, continuing })
+    const text = continuing ? `Squad task ${t.task_id}: ${t.goal}\n（继续：你等待的子任务已经回传，用 squad_task 查看结果，然后完成并提交）` : `Squad task ${t.task_id}: ${t.goal}`
+    await deliver(sessionId, text, { kind: 'squad', attemptId: a.attempt_id, fence: a.fencing_token })
     record.dispatch.delivered = true
     save()
     await advanceReceipts(binding, record)
@@ -530,6 +535,11 @@ export function apply(ctx, config = {}) {
           lines.push(...(attempt.dispatch.run?.lines ?? []), `summary: ${attempt.dispatch.run?.summary ?? 'unavailable'}`)
         }
         if (t.acceptance_criteria) lines.push(`acceptance: ${JSON.stringify(t.acceptance_criteria)}`)
+        for (const dep of t.dependencies ?? []) {
+          if ((t.refs ?? []).some(ref => ref.task_id === dep.task_id)) continue
+          const input = await client.task(runtime, dep.task_id).catch(error => ({ error }))
+          lines.push(input.error ? `waited for ${dep.task_id}: unavailable` : `waited for ${dep.task_id} (${input.state}): ${JSON.stringify(input.result?.value ?? null)}`)
+        }
         for (const ref of t.refs ?? []) {
           const input = await client.task(runtime, ref.task_id).catch(error => ({ error }))
           lines.push(input.error ? `input ${ref.task_id}: unavailable (${input.error.code ?? input.error})` : `input ${ref.task_id} (revision ${input.result?.revision}): ${JSON.stringify(input.result?.value ?? null)}`)
@@ -556,7 +566,7 @@ export function apply(ctx, config = {}) {
           artifacts.push(await client.uploadArtifact(runtime, { name: String(args.file_name ?? 'result.txt'), media_type: String(args.file_type ?? 'text/plain'), content_base64: Buffer.from(args.file_content, 'utf8').toString('base64') }))
         }
         await advanceReceipts(binding, attempt)
-        await sendEvent(binding, attempt, `result-${attempt.attemptId}`, { type: 'result_proposed', result: { revision: 0, goal_revision: t.applied_revision, attempt_id: '', agent_id: '', value, artifacts, refs: [], hash: '' } })
+        await sendEvent(binding, attempt, `result-${attempt.attemptId}-${attempt.dispatch.segment}`, { type: 'result_proposed', result: { revision: 0, goal_revision: t.applied_revision, attempt_id: '', agent_id: '', value, artifacts, refs: [], hash: '' } })
         save()
         return `Result recorded${artifacts.length > 0 ? ` with ${artifacts[0].name} (${artifacts[0].sha256.slice(0, 12)})` : ''}. End your turn now; the task is reviewed after it settles.`
       },
@@ -575,7 +585,7 @@ export function apply(ctx, config = {}) {
         const candidates = (t.refs ?? []).map(ref => ({ task_id: ref.task_id, result_revision: ref.result_revision, hash: ref.hash, length: ref.length ?? 0 }))
         const value = { decision: String(args.decision), reason: String(args.reason ?? '').trim() || '(no reason)', candidates }
         await advanceReceipts(binding, attempt)
-        await sendEvent(binding, attempt, `result-${attempt.attemptId}`, { type: 'result_proposed', result: { revision: 0, goal_revision: t.applied_revision, attempt_id: '', agent_id: '', value, artifacts: [], refs: [], hash: '' } })
+        await sendEvent(binding, attempt, `result-${attempt.attemptId}-${attempt.dispatch.segment}`, { type: 'result_proposed', result: { revision: 0, goal_revision: t.applied_revision, attempt_id: '', agent_id: '', value, artifacts: [], refs: [], hash: '' } })
         save()
         return `Verdict ${value.decision} recorded. End your turn now.`
       },
@@ -599,7 +609,7 @@ export function apply(ctx, config = {}) {
         }
         await advanceReceipts(binding, attempt)
         const run = await client.run(runtime, t.run_id)
-        await client.decide(runtime, t.run_id, { request_id: `decide-${attempt.attemptId}`, expected_revision: run.revision, attempt_id: attempt.attemptId, action: String(args.action), tasks, note: String(args.note ?? '') })
+        await client.decide(runtime, t.run_id, { request_id: `decide-${attempt.attemptId}-${attempt.dispatch.segment}`, expected_revision: run.revision, attempt_id: attempt.attemptId, action: String(args.action), tasks, note: String(args.note ?? '') })
         // The decision is the step's result at the Controller; the attempt moved on.
         const current = await client.call('GET', `/v2/attempts/${encodeURIComponent(attempt.attemptId)}`, { runtime })
         attempt.dispatch.revision = current.revision
