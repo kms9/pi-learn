@@ -102,4 +102,12 @@ export function artifactsOf(tasks) {
   return out.reverse()
 }
 
+// A review's goal is the Controller's instruction to the reviewer; people read what it
+// reviews instead.
+export function goalOf(task, tasks = []) {
+  if (task.kind !== 'review') return task.goal
+  const target = tasks.find(candidate => candidate.task_id === task.dependencies?.[0]?.task_id)
+  return target ? `审核「${target.role_id}」的结果：${target.goal}` : '独立审核'
+}
+
 export const short = id => String(id ?? '').replace(/^(task|run|attempt)-/, '').slice(0, 8)

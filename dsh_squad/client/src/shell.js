@@ -38,7 +38,12 @@ function Console() {
   const tab = useStore(state => state.tab)
   const runId = useStore(state => state.runId)
   useEffect(() => {
-    const onKey = event => { if (event.key === 'Escape') close() }
+    // Escape closes the preview first, then the console.
+    const onKey = (event) => {
+      if (event.key !== 'Escape') return
+      if (store.get().preview) store.set(state => ({ ...state, preview: null }))
+      else close()
+    }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])

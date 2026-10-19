@@ -128,6 +128,11 @@ function artifactsOf(tasks) {
   }
   return out.reverse();
 }
+function goalOf(task, tasks = []) {
+  if (task.kind !== "review") return task.goal;
+  const target = tasks.find((candidate) => candidate.task_id === task.dependencies?.[0]?.task_id);
+  return target ? `审核「${target.role_id}」的结果：${target.goal}` : "独立审核";
+}
 var short = (id) => String(id ?? "").replace(/^(task|run|attempt)-/, "").slice(0, 8);
 
 // src/runs.js
@@ -345,15 +350,16 @@ function RunGraph({ tasks }) {
       graph.nodes.map(({ task }) => {
         const p = at.get(task.task_id);
         const decision = task.acceptance?.decision ?? (task.kind === "review" ? task.result?.value?.decision : void 0);
+        const goal = goalOf(task, tasks);
         return (0, import_react2.createElement)(
           "g",
           { key: task.task_id, transform: `translate(${p.x},${p.y})` },
-          (0, import_react2.createElement)("title", null, `${task.goal}
+          (0, import_react2.createElement)("title", null, `${goal}
 ${task.task_id}`),
           (0, import_react2.createElement)("rect", { width: NODE_W, height: NODE_H, rx: 8, fill: fill[task.state] ?? "#f4f6ff", stroke: task.superseded_by ? "#c62828" : "#bbb", strokeDasharray: task.superseded_by ? "4 3" : void 0 }),
           (0, import_react2.createElement)("text", { x: 8, y: 18 }, `${KIND[task.kind] ?? task.kind} · ${task.role_id}`),
           (0, import_react2.createElement)("text", { x: 8, y: 34 }, `${TASK_STATE[task.state] ?? task.state}${decision ? ` · ${decision === "accepted" ? "通过" : "退回"}` : ""}`),
-          (0, import_react2.createElement)("text", { x: 8, y: 48, fill: "#888" }, task.goal.length > 14 ? `${task.goal.slice(0, 14)}…` : task.goal)
+          (0, import_react2.createElement)("text", { x: 8, y: 48, fill: "#888" }, goal.length > 14 ? `${goal.slice(0, 14)}…` : goal)
         );
       })
     )
@@ -493,18 +499,19 @@ function RunDetail({ runId }) {
       "div",
       { className: "sq-section" },
       (0, import_react2.createElement)("h2", null, "全部任务"),
+      (0, import_react2.createElement)("div", { className: "sq-muted" }, `Leader 已做 ${tasks.filter((task) => task.kind === "leader_step").length} 次决定（不在表中）`),
       (0, import_react2.createElement)(
         "table",
         { className: "sq-table" },
         (0, import_react2.createElement)("thead", null, (0, import_react2.createElement)("tr", null, ["类型", "角色", "状态", "验收", "目标"].map((label) => (0, import_react2.createElement)("th", { key: label }, label)))),
-        (0, import_react2.createElement)("tbody", null, tasks.map((task) => (0, import_react2.createElement)(
+        (0, import_react2.createElement)("tbody", null, tasks.filter((task) => task.kind !== "leader_step").map((task) => (0, import_react2.createElement)(
           "tr",
           { key: task.task_id },
           (0, import_react2.createElement)("td", null, KIND[task.kind] ?? task.kind),
           (0, import_react2.createElement)("td", null, task.role_id || "—"),
           (0, import_react2.createElement)("td", null, chip(TASK_STATE[task.state] ?? task.state, TONE[task.state])),
           (0, import_react2.createElement)("td", null, task.acceptance ? chip(task.acceptance.decision === "accepted" ? "通过" : "退回", TONE[task.acceptance.decision]) : "—"),
-          (0, import_react2.createElement)("td", null, task.goal)
+          (0, import_react2.createElement)("td", null, goalOf(task, tasks))
         )))
       )
     )
@@ -933,7 +940,9 @@ function Console() {
   const runId = useStore((state) => state.runId);
   (0, import_react5.useEffect)(() => {
     const onKey = (event) => {
-      if (event.key === "Escape") close();
+      if (event.key !== "Escape") return;
+      if (store.get().preview) store.set((state) => ({ ...state, preview: null }));
+      else close();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -1039,7 +1048,7 @@ var CSS = `
 .sq-item{border:1px solid var(--sq-line);border-radius:10px;padding:8px 10px;background:var(--sq-panel);cursor:pointer;text-align:left;font:inherit;color:inherit}
 .sq-item[data-on]{border-color:var(--sq-accent);box-shadow:0 0 0 1px var(--sq-accent)}
 .sq-muted{color:var(--sq-muted);font-size:12px}
-.sq-chip{display:inline-block;padding:1px 8px;border-radius:999px;background:var(--sq-chip);font-size:12px;margin-right:6px}
+.sq-chip{display:inline-block;white-space:nowrap;padding:1px 8px;border-radius:999px;background:var(--sq-chip);font-size:12px;margin-right:6px}
 .sq-chip[data-tone=ok]{color:var(--sq-ok)}.sq-chip[data-tone=warn]{color:var(--sq-warn)}.sq-chip[data-tone=bad]{color:var(--sq-bad)}
 .sq-card{border:1px solid var(--sq-line);border-radius:12px;background:var(--sq-panel);padding:12px 14px;display:flex;flex-direction:column;gap:8px}
 .sq-card h3{margin:0;font-size:14px}

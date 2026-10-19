@@ -2,7 +2,7 @@
 import { createElement as h, Fragment, useState } from 'react'
 import { call, requestId } from './api.js'
 import { refreshNow } from './feed.js'
-import { KIND, RUN_PHASE, TASK_STATE, artifactsOf, cardsOf, graphOf, runsOf, short, tasksOf, terminal } from './model.js'
+import { KIND, RUN_PHASE, TASK_STATE, artifactsOf, cardsOf, goalOf, graphOf, runsOf, short, tasksOf, terminal } from './model.js'
 import { store, toast, useStore } from './store.js'
 
 const TONE = { completed: 'ok', accepted: 'ok', running: 'warn', needs_review: 'bad', failed: 'bad', interrupted: 'bad', rejected: 'bad', cancelled: 'bad' }
@@ -94,12 +94,13 @@ export function RunGraph({ tasks }) {
       graph.nodes.map(({ task }) => {
         const p = at.get(task.task_id)
         const decision = task.acceptance?.decision ?? (task.kind === 'review' ? task.result?.value?.decision : undefined)
+        const goal = goalOf(task, tasks)
         return h('g', { key: task.task_id, transform: `translate(${p.x},${p.y})` },
-          h('title', null, `${task.goal}\n${task.task_id}`),
+          h('title', null, `${goal}\n${task.task_id}`),
           h('rect', { width: NODE_W, height: NODE_H, rx: 8, fill: fill[task.state] ?? '#f4f6ff', stroke: task.superseded_by ? '#c62828' : '#bbb', strokeDasharray: task.superseded_by ? '4 3' : undefined }),
           h('text', { x: 8, y: 18 }, `${KIND[task.kind] ?? task.kind} · ${task.role_id}`),
           h('text', { x: 8, y: 34 }, `${TASK_STATE[task.state] ?? task.state}${decision ? ` · ${decision === 'accepted' ? '通过' : '退回'}` : ''}`),
-          h('text', { x: 8, y: 48, fill: '#888' }, task.goal.length > 14 ? `${task.goal.slice(0, 14)}…` : task.goal))
+          h('text', { x: 8, y: 48, fill: '#888' }, goal.length > 14 ? `${goal.slice(0, 14)}…` : goal))
       })))
 }
 
@@ -193,11 +194,12 @@ export function RunDetail({ runId }) {
         h('td', null, previewBase && art.media_type === 'text/html' ? h('button', { className: 'sq-btn', onClick: () => store.set(state => ({ ...state, preview: { url: `${previewBase}/v2/artifacts/sha256/${art.sha256}`, name: art.name } })) }, '预览') : null)))))),
     section('审核结论', of('review'), ReviewCard),
     h('div', { className: 'sq-section' }, h('h2', null, '全部任务'),
+      h('div', { className: 'sq-muted' }, `Leader 已做 ${tasks.filter(task => task.kind === 'leader_step').length} 次决定（不在表中）`),
       h('table', { className: 'sq-table' },
         h('thead', null, h('tr', null, ['类型', '角色', '状态', '验收', '目标'].map(label => h('th', { key: label }, label)))),
-        h('tbody', null, tasks.map(task => h('tr', { key: task.task_id },
+        h('tbody', null, tasks.filter(task => task.kind !== 'leader_step').map(task => h('tr', { key: task.task_id },
           h('td', null, KIND[task.kind] ?? task.kind), h('td', null, task.role_id || '—'),
           h('td', null, chip(TASK_STATE[task.state] ?? task.state, TONE[task.state])),
           h('td', null, task.acceptance ? chip(task.acceptance.decision === 'accepted' ? '通过' : '退回', TONE[task.acceptance.decision]) : '—'),
-          h('td', null, task.goal)))))))
+          h('td', null, goalOf(task, tasks))))))))
 }

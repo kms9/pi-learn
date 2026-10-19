@@ -56,6 +56,12 @@ test('cards: accept for human results, recover, review verdicts, approvals, each
   assert.equal(held.filter(card => card.type === 'answer').length, 1)
 })
 
+test('a review reads as what it reviews', async () => {
+  const { goalOf } = await import('../src/model.js')
+  assert.match(goalOf(tasks[1], tasks), /^审核「undefined」|^审核/)
+  assert.equal(goalOf(tasks[0], tasks), tasks[0].goal)
+})
+
 test('artifacts list every version, the rejected one marked as superseded', () => {
   const list = artifactsOf(tasks)
   assert.equal(list.length, 1)
