@@ -1,0 +1,13 @@
+{
+  "name": "dsh-squad-client",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The Squad page inside DS Bot: Teams, Runs, review and recovery cards, configuration, experiment reports. Built into ../adapter/client.js",
+  "type": "module",
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "node --test \"test/*.test.js\"",
+    "build": "node scripts/build.mjs",
+    "check": "node scripts/build.mjs --check"
+  }
+}
