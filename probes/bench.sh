@@ -66,8 +66,8 @@ ensure_profile() {
     bundles='"@deepseek-ai/dsh-base", "@deepseek-ai/dsh-web-app", "ds-bot", "dsh-squad-probe", "dsh-squad-probe-driver"'
   fi
   wanted=$(printf '{\n  "name": "dsh-profile-web",\n  "private": true,\n  "dependencies": { %s },\n  "dsh": { "profile": { "bundles": [%s] } }\n}\n' "$deps" "$bundles")
-  # Rewritten (and installed) only when the plugin set changed.
-  if [ -f "$profile/package.json" ] && [ "$(cat "$profile/package.json")" = "$wanted" ]; then return 0; fi
+  # Rewritten (and installed) only when the plugin set changed or the install is gone.
+  if [ -f "$profile/package.json" ] && [ "$(cat "$profile/package.json")" = "$wanted" ] && [ -d "$profile/node_modules" ]; then return 0; fi
   mkdir -p "$profile"
   printf '%s\n' "$wanted" > "$profile/package.json"
   printf 'packages:\n  - .\n\nnodeLinker: hoisted\nautoInstallPeers: false\n' > "$profile/pnpm-workspace.yaml"
