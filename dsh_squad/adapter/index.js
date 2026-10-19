@@ -281,25 +281,40 @@ export function apply(ctx, config = {}) {
     await advanceReceipts(binding, record)
   }
 
-  const lastBeat = new Map()
   const lastRenew = new Map()
+  const activeOf = key => Object.values(state.attempts).find(attempt => attempt.key === key && attempt.controlled && !ENDED.has(attempt.verdict?.verdict))
+
+  // Heartbeats have their own loop: presence at the Controller must not wait on
+  // dispatches, deliveries or reports (a Controller restart forgets every runtime's
+  // presence until its next heartbeat).
+  let beating = false
+  async function beat() {
+    if (beating || connect() === undefined) return
+    beating = true
+    try {
+      for (const [key, binding] of Object.entries(state.bindings)) {
+        const runtime = runtimeOf(binding)
+        if (runtime === undefined) continue
+        try {
+          await client.heartbeat(runtime, activeOf(key) === undefined ? 'idle' : 'working')
+        } catch (error) {
+          lost(error)
+          // A binding the Controller no longer knows registers again on the next tick.
+          if (error?.code === 'BINDING_CHANGED' || error?.code === 'UNAUTHORIZED') binding.controller.binding = undefined
+          log('heartbeat/error', { key, code: error?.code ?? null, error: String(error?.message ?? error) })
+        }
+      }
+    } finally {
+      beating = false
+    }
+  }
   async function tickBinding(key, binding) {
     const c = binding.controller
     const sessionId = sessionFor(binding)
     if (sessionId === undefined) return
     if (c.binding === undefined || c.binding.session_id !== sessionId) await register(key, binding, sessionId)
     const runtime = runtimeOf(binding)
-    const active = Object.values(state.attempts).find(attempt => attempt.key === key && attempt.controlled && !ENDED.has(attempt.verdict?.verdict))
-    if (Date.now() - (lastBeat.get(key) ?? 0) > HEARTBEAT_MS) {
-      try {
-        await client.heartbeat(runtime, active === undefined ? 'idle' : 'working')
-      } catch (error) {
-        // A binding the Controller no longer knows registers again.
-        if (error?.code === 'BINDING_CHANGED' || error?.code === 'UNAUTHORIZED') c.binding = undefined
-        throw error
-      }
-      lastBeat.set(key, Date.now())
-    }
+    const active = activeOf(key)
     if (active !== undefined && active.opened && Date.now() - (lastRenew.get(active.attemptId) ?? 0) > RENEW_MS) {
       enqueue({ kind: 'event', key, attemptId: active.attemptId, requestId: `renew-${active.attemptId}-${Date.now()}`, body: { type: 'renew' } })
       lastRenew.set(active.attemptId, Date.now())
@@ -311,13 +326,25 @@ export function apply(ctx, config = {}) {
   /** @type {Map<string, {botId:string, agentId:string, code:string|null, message:string, at:string}>} the last failure per binding */
   const bindingErrors = new Map()
   let ticking = false
+  let tickStarted = 0
+  let tickAt = ''
   async function tick() {
-    if (ticking || connect() === undefined) return
+    if (ticking) {
+      // A tick that does not come back is logged once with where it stands.
+      if (Date.now() - tickStarted > 15_000 && tickAt !== 'reported') {
+        log('tick/slow', { since: new Date(tickStarted).toISOString(), at: tickAt })
+        tickAt = 'reported'
+      }
+      return
+    }
+    if (connect() === undefined) return
     ticking = true
+    tickStarted = Date.now()
     try {
       await seam.ready()
       for (const [key, binding] of Object.entries(state.bindings)) {
         if (binding.controller === undefined) continue
+        tickAt = `binding ${key}`
         try {
           await tickBinding(key, binding)
           bindingErrors.delete(key)
@@ -330,9 +357,11 @@ export function apply(ctx, config = {}) {
           log('controller/error', { key, code: error?.code ?? null, error: String(error?.message ?? error) })
         }
       }
+      tickAt = 'outbox'
       await flushOutbox()
     } finally {
       ticking = false
+      tickAt = ''
     }
   }
 
@@ -915,8 +944,10 @@ export function apply(ctx, config = {}) {
   if (projectRoot !== undefined) {
     ctx.effect(() => {
       const timer = setInterval(() => void tick().catch(error => log('error', { where: 'tick', error: String(error) })), TICK_MS)
+      const beats = setInterval(() => void beat().catch(error => log('error', { where: 'beat', error: String(error) })), HEARTBEAT_MS)
       timer.unref?.()
-      return () => clearInterval(timer)
+      beats.unref?.()
+      return () => { clearInterval(timer); clearInterval(beats) }
     }, 'squad-adapter: controller loop')
   }
   log('adapter/start', { dshHome, projectRoot: projectRoot ?? null, hostId, attempts: Object.keys(state.attempts).length, bindings: Object.keys(state.bindings).length })
