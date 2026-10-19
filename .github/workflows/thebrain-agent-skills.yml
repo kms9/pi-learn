@@ -1,0 +1,30 @@
+name: TheBrain read-only CLI tests
+
+on:
+  pull_request:
+    paths:
+      - "projects/thebrain-agent-skills/**"
+      - ".github/workflows/thebrain-agent-skills.yml"
+  push:
+    branches:
+      - feature/thebrain-agent-skills-bootstrap
+    paths:
+      - "projects/thebrain-agent-skills/**"
+      - ".github/workflows/thebrain-agent-skills.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  go-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: projects/thebrain-agent-skills
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: projects/thebrain-agent-skills/go.mod
+          cache: false
+      - run: go test ./...
