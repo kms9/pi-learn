@@ -93,7 +93,9 @@ curl -X POST "$ENDPOINT/v2/tasks/direct" \
 | 工具 | 作用 |
 |---|---|
 | `squad_task` | 读当前任务：目标、验收、上游结果 |
-| `squad_submit_result` | 提交结果（JSON 对象或文字）；只有提交并且回合确认结束（实时 + 持久日志 + 工具配对），任务才算完成 |
+| `squad_submit_result` | 提交结果（JSON 对象或文字），可附一个文件（`file_name`、`file_content`、`file_type`）；只有提交并且回合确认结束（实时 + 持久日志 + 工具配对），任务才算完成 |
+| `squad_review` | 审核任务：`accepted` 或 `rejected` 加理由，自动引用被审的精确版本 |
+| `squad_decide` | Leader 步骤：`dispatch`（附步骤 JSON）、`wait`、`complete` |
 | `squad_yield` | 等待依赖或子任务 |
 | `squad_delegate` | 把一部分交给另一个角色作为子任务；子任务没回传前父任务不能完成 |
 | `squad_clarify` | 向委派方提问 |

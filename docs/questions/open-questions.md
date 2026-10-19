@@ -54,3 +54,5 @@ tags:
 | Q38 | M0→M4 开发规划中的 12 个决策点（Controller 放哪、补丁还是插件、协议版本、多租户、界面范围、M0 试用时间、真实 key 时间、Artifact 存储、版本升级、中间回归、业务案例、Memory 冻结） | closed | 2026-10-19 用户拍板，见 `docs/decisions/2026-10-19-dsh-squad-dev-decisions.md` 与规划「决策记录」节。 |
 | Q39 | DS Bot 切段（新 part 会话）发生在正式 attempt 中时，重新注册与 epoch+1 的路径是否在真实宿主上按设计工作？ | open | M1 已实现：Adapter 发现绑定会话变化就带 `previous_session_id` 重新注册，Controller 以 `session_changed` 中断旧 attempt。端到端还没有负例（drive-m1 未覆盖），留给 T 阶段或 M4-3。 |
 | Q40 | `needs_review`（如缺结果、宿主重启）的 attempt 会一直占住该 Bot，直到 operator `reconcile`；非开发用户在界面上怎么完成这一步？ | open | Controller 设计如此（不自动释放未知执行）。界面上的恢复卡在 M3-2/M4-3。 |
+| Q41 | 依赖某个任务的下游任务，在该任务被退回、返工后，仍指向旧版本（Controller 不把依赖和 refs 转到返工任务）。数学案例的「检查」只能依赖「制作」的 `execution_completed`，检查的是首版。 | open | 2026-10-19 M2 发现。选项：Controller 在返工通过时改写下游依赖；或由 Leader 为返工后的版本补派检查。M4 或 T 前决定。 |
+| Q42 | Artifact 预览与 DS Bot 同主机不同端口：Cookie 按主机共享。现在靠 CSP `sandbox`（不透明源，读不到 Cookie）和 `default-src 'none'`（不能发请求）隔离。M3 的界面 iframe 是否还要换成不同主机名（如 `localhost` 对 `127.0.0.1`）？ | open | 2026-10-19 M2-6；浏览器自动化验证放在 T 阶段（DSH-M2-07）。 |

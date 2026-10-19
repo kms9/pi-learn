@@ -9,6 +9,7 @@ tags:
 ---
 
 # 会话索引
+- [[2026-10-19-dsh-m2-team-run|2026-10-19 DS Bot + Squad M2：单 Team 在群里跑完整 Run]]
 - [[2026-10-19-dsh-m0-launcher|2026-10-19 DS Bot + Squad M0：按项目目录一键启动与预置团队]]
 - [[2026-10-19-dsh-m1-adapter|2026-10-19 DS Bot + Squad M1：Controller 迁移与 DSH Adapter]]
 - [[2026-10-18-dsh-p1-seam|2026-10-18 DS Bot + Squad P1：seam 原型与受控负例]]

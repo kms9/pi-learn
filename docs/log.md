@@ -875,3 +875,9 @@ tags:
 - 来源: 用户要求在 M1 收尾后开始 M0；分支 `feat/dsh-m0`；mock 模型。
 - 更新: `dsh_squad/deploy/{dsh-squad,provision.mjs,template/}`、`probes/drive-m0.mjs`、`dsh_squad/{USAGE,README}.md`、规划 M0-2 描述与「进度」节、会话页、索引。
 - 说明: 一条命令按项目目录启动 DS Bot 宿主 + Controller（D4），预置 Chief/Researcher/Builder/Reviewer（`deepseek-flash`、effort high）、群「小队群」、团队记忆。里程碑回归 `drive-m0` 12/12、`drive-p1` 14/14、`drive-m1` 7/7，`check.sh` 通过。DSH-M0-01～04 仍为 NOT_RUN。回归结果文件未提交。
+
+## [2026-10-19] session | DS Bot + Squad M2 完成：单 Team 在群里跑完整 Run
+
+- 来源: 按规划继续开发；分支 `feat/dsh-m2`；mock 模型。
+- 更新: `dsh_squad/controller`（artifact 存储与接口、guidance 分类、测试）、`dsh_squad/adapter`（bind-team、leader 模式、`squad_decide`/`squad_review`、文件提交、Run 状态与指导）、seam v3 补丁、`dsh_squad/cases/math`、`probes/{squad-mock,drive-m2}.mjs`、`dsh_squad/USAGE.md`、规划进度、会话页、Q41/Q42。
+- 说明: 数学课件 Run 端到端：派发、独立审核、退回 → 返工 → 复审、Leader 完成、课件为沙箱 Artifact、群消息成为 Run Guidance。回归 `drive-m2` 12/12、`drive-m0` 12/12、`drive-p1` 14/14、`drive-m1` 7/7、`check.sh` 通过。D12 Memory 快照、M2-6 界面 iframe 留到 M3。ACCEPTANCE 仍为 NOT_RUN；回归结果文件未提交。
