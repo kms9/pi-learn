@@ -24,9 +24,11 @@ export function discover(projectRoot) {
 }
 
 export function createClient({ endpoint, controllerId, fetch = globalThis.fetch, timeoutMs = 10_000 }) {
-  async function call(method, path, { body, runtime } = {}) {
+  async function call(method, path, { body, runtime, operator } = {}) {
     const headers = { accept: 'application/json', 'x-squad-protocol': PROTOCOL, 'x-squad-controller': controllerId }
     if (body !== undefined) headers['content-type'] = 'application/json'
+    // The operator credential stays on this host; the browser never sees it (X-3).
+    if (operator !== undefined) headers.authorization = `Bearer ${operator}`
     if (runtime !== undefined) {
       headers.authorization = `Bearer ${runtime.token}`
       headers['x-squad-agent'] = runtime.binding.agent_id

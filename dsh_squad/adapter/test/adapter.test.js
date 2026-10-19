@@ -19,6 +19,8 @@ test('a formal attempt refuses what its contract does not allow', () => {
   assert.equal(refusal('squad_submit_result', attempt, true), undefined)
   assert.match(refusal('bash', attempt, true), /not allowed/)
   assert.match(refusal('message_bot', attempt, true), /not allowed/)
+  assert.equal(refusal('recall', attempt, true), undefined)
+  assert.match(refusal('remember', attempt, true), /read-only/)
   assert.match(refusal('read', undefined, true), /none is running/)
   // A free Session keeps its tools, but cannot use the task tools.
   assert.equal(refusal('bash', undefined, false), undefined)

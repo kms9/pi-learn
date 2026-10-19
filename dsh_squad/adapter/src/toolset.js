@@ -15,9 +15,14 @@ const DSH_NAMES = {
   edit: ['edit', 'str_replace_editor'],
 }
 
+// Memory inside a formal attempt is a read-only view (2026-10-19 D12): recall reads it,
+// remember and forget would change what later steps and other Runs start from.
+const MEMORY_READ = ['recall']
+const MEMORY_WRITE = ['remember', 'forget']
+
 /** DSH tool names for a contract's allowed tools, task tools included. */
 export function hostTools(allowed = []) {
-  const out = new Set(TASK_TOOLS)
+  const out = new Set([...TASK_TOOLS, ...MEMORY_READ])
   for (const name of allowed) for (const host of DSH_NAMES[name] ?? []) out.add(host)
   return out
 }
@@ -34,5 +39,6 @@ export function refusal(name, attempt, managed) {
   if (attempt === undefined) return 'Squad: this Session runs only work a Controller admitted, and none is running now.'
   // An attempt the stand-in admitted (no contract) keeps the host's own tool set.
   if (attempt.allowedTools === undefined) return undefined
+  if (MEMORY_WRITE.includes(name)) return 'Squad: memory is read-only during a formal task; note what you learned in your result instead.'
   return hostTools(attempt.allowedTools).has(name) ? undefined : `Squad: ${name} is not allowed in this task (allowed: ${[...hostTools(attempt.allowedTools)].join(', ')}).`
 }

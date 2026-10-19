@@ -22,7 +22,7 @@
 //
 // State: $DSH_HOME/squad-adapter/state.json (0600); every decision: decisions.jsonl.
 import { createHash, randomUUID } from 'node:crypto'
-import { appendFileSync, chmodSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { appendFileSync, chmodSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { decideStep, nextRoute, wakeOf } from './src/policy.js'
@@ -661,6 +661,75 @@ export function apply(ctx, config = {}) {
     }
   }
 
+  // ---- The browser's view and actions (M3) ------------------------------------------
+  // The web page talks only to this host route, with DS Bot's own login cookie. Reads
+  // are the Controller's projection; writes are operator operations this host makes
+  // with the project's operator credential, which never leaves the host (D4, X-3).
+  const operatorToken = () => readFileSync(join(projectRoot, '.agents/dshsquad/.runtime/operator.token'), 'utf8').trim()
+  const asOperator = (method, path, body) => {
+    if (connect() === undefined) throw new Error('Controller not connected')
+    return client.call(method, path, { body, operator: operatorToken() })
+  }
+  // Preview pages come from the Controller under another host name than DS Bot's, so
+  // they share no cookies with it on top of their sandbox (Q42).
+  const previewBase = () => {
+    try { return discover(projectRoot).endpoint.replace('//127.0.0.1:', '//localhost:') } catch { return null }
+  }
+  const OPERATIONS = { run: ['cancel', 'resume', 'guidance'], task: ['cancel', 'retry', 'amend', 'accept', 'reject'], attempt: ['reconcile'] }
+  const managedApprovals = () => {
+    const sessions = new Map(Object.values(state.attempts).filter(attempt => attempt.controlled && attempt.verdict?.verdict === 'running').map(attempt => [attempt.sessionId, attempt]))
+    return (seam.approvals?.() ?? []).filter(entry => sessions.has(entry.sessionId)).map(entry => ({ ...entry, attemptId: sessions.get(entry.sessionId).attemptId, taskId: sessions.get(entry.sessionId).taskId }))
+  }
+  async function ui(endpoint, body) {
+    switch (endpoint) {
+      case 'view': {
+        if (connect() === undefined) return { connected: false, projectRoot: projectRoot ?? null }
+        const snapshot = await client.snapshot()
+        return { connected: true, snapshot, teams: state.teams ?? {}, approvals: managedApprovals(), previewBase: previewBase() }
+      }
+      case 'events': {
+        if (connect() === undefined) return { connected: false }
+        const after = Math.max(0, Number(body.after ?? 0) | 0)
+        return client.call('GET', `/v2/events?after=${after}`)
+      }
+      case 'start-run': {
+        const teamId = String(body.teamId ?? '')
+        if (state.teams?.[teamId] === undefined) await handle('bind-team', { teamId })
+        return asOperator('POST', '/v2/runs', { request_id: String(body.requestId), team_id: teamId, goal: String(body.goal ?? ''), ...(body.workflowId ? { workflow_id: String(body.workflowId) } : {}) })
+      }
+      case 'operate': {
+        const kind = String(body.kind)
+        if (!OPERATIONS[kind]?.includes(String(body.op))) throw new Error(`not allowed from the page: ${kind}:${body.op}`)
+        return asOperator('POST', `/v2/${kind}s/${encodeURIComponent(String(body.id))}/${body.op}`, body.body ?? {})
+      }
+      case 'accept':
+        return asOperator('POST', `/v2/tasks/${encodeURIComponent(String(body.taskId))}/acceptance`, body.body ?? {})
+      // A tool approval is answered only while the attempt it belongs to is still the
+      // one the card was drawn for (expected_revision).
+      case 'approve': {
+        const entry = managedApprovals().find(candidate => candidate.id === body.approvalId)
+        if (entry === undefined) throw new Error('This approval is no longer open')
+        const attempt = await client.call('GET', `/v2/attempts/${encodeURIComponent(entry.attemptId)}`)
+        if (attempt.attempt_id !== body.attemptId || attempt.revision !== Number(body.expectedRevision)) throw new Error('The task moved on since this card was drawn; reload')
+        seam.answerApproval(entry.id, body.choice === 'allow' ? 'allow' : 'reject')
+        log('ui/approval', { approvalId: entry.id, attemptId: entry.attemptId, choice: body.choice })
+        return true
+      }
+      case 'config':
+        return asOperator('GET', '/v2/config')
+      case 'config-save':
+        return asOperator('POST', '/v2/config', { edits: body.edits ?? [], validate_only: body.validateOnly === true })
+      case 'reports': {
+        const dir = join(projectRoot, '.dsh-squad', 'reports')
+        let names = []
+        try { names = readdirSync(dir).filter(name => name.endsWith('.json')).sort().reverse() } catch { /* none yet */ }
+        return names.slice(0, 20).map(name => JSON.parse(readFileSync(join(dir, name), 'utf8')))
+      }
+      default:
+        return undefined
+    }
+  }
+
   // ---- The operator entry and the Controller stand-in --------------------------------
   const deliver = async (sessionId, text, source) => {
     const agent = await seam.resolveAgent(sessionId)
@@ -786,7 +855,14 @@ export function apply(ctx, config = {}) {
       let body
       try { body = await request.json() } catch { body = {} }
       try {
-        return Response.json({ ok: true, value: await handle(String(body?.endpoint ?? ''), body?.payload) })
+        const endpoint = String(body?.endpoint ?? '')
+        if (endpoint.startsWith('ui/')) {
+          if (projectRoot === undefined) throw new Error('no Controller project (DSH_SQUAD_PROJECT)')
+          const value = await ui(endpoint.slice(3), body?.payload ?? {})
+          if (value === undefined) throw new Error(`unknown endpoint ${endpoint}`)
+          return Response.json({ ok: true, value })
+        }
+        return Response.json({ ok: true, value: await handle(endpoint, body?.payload) })
       } catch (error) {
         return Response.json({ ok: false, error: { message: error?.message ?? String(error) } })
       }
