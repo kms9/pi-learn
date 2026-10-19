@@ -13,6 +13,8 @@ for pkg in adapter client; do
   echo "== $pkg"
   (cd "$SQUAD/$pkg" && npm test --silent)
 done
+echo "== client bundle up to date"
+(cd "$SQUAD/client" && node scripts/build.mjs --check)
 if [ "${1:-}" != --skip-ds-bot ]; then
   echo "== ds-bot + seam patch"
   log="$SQUAD/.build/ds-bot-test.log"
