@@ -11,6 +11,7 @@
 | `adapter/` | DSH 插件 `dsh-squad-adapter`：受控会话的准入、结束判定、模型冻结、工具限制、任务工具与任务上下文，并向 Controller 上报 |
 | `patches/ds-bot/0001-squad-seam.patch` | ds-bot seam 补丁（v2）：创建时归属、固定的 pre-step 拦截点、resume 开关、`defineTool` |
 | `scripts/prepare-ds-bot.sh` | 导出钉住的 ds-bot 并打补丁 → `.build/ds-bot`（gitignored）；`--test` 跑 ds-bot 单测 |
+| `deploy/dsh-squad`、`deploy/provision.mjs`、`deploy/template/` | 按项目目录一键启动 DS Bot + Controller（`up/down/status/provision`），预置团队，默认小队配置 |
 | `scripts/check.sh` | 每个工作包的最低验证：Controller 编译/vet/单测、Adapter 单测、补丁后的 ds-bot 单测 |
 
 ## seam 补丁改了哪些上游文件
@@ -33,6 +34,7 @@ dsh_squad/scripts/check.sh                                  # 编译 + 单测
 export SQUAD=1 MOCK_DELAY_MS=600 CONTEXT_WINDOW=100000 CHECK_RATIO=0.45
 probes/bench.sh p1 3201 8901 reset && node probes/drive-p1.mjs p1 3201 8901; probes/bench.sh p1 3201 8901 stop
 node probes/drive-m1.mjs m1 3301 8911                       # 真 Controller + Adapter 端到端（mock）
+node probes/drive-m0.mjs 3420                               # 一键启动、预置团队、Free 模式、重启（mock）
 ```
 
 环境变量要 `export`：驱动在用例里会重启宿主，没导出的变量会丢。只用 mock 模型，不需要 key（D7）。

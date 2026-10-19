@@ -869,3 +869,9 @@ tags:
 - 来源: 用户 D1–D12 决定与「直接开始 M1」的要求；分支 `feat/dsh-m1`；mock 模型 bench。
 - 更新: `dsh_squad/{controller,protocol,adapter,USAGE.md,README.md,scripts/check.sh}`、`dsh_squad/patches/ds-bot/0001-squad-seam.patch`（seam v2）、`probes/{bench.sh,lib.mjs,squad-mock.mjs,drive-m1.mjs}`、根 `AGENTS.md`（D1 说明）、规划「进度」节、会话页、Q35/Q36 更新、新增 Q39/Q40。
 - 说明: M1-1～M1-7 落地，M1-8 完成扣留输入持久化与上报（外层插件绕过负例未做）。`check.sh` 通过（Adapter 25/25、ds-bot 638/638）；里程碑 mock 回归 `drive-p1` 14/14、`drive-m1` 7/7。只是开发期回归，ACCEPTANCE 各项仍为 NOT_RUN。回归结果文件（`probes/scenarios-p1/`、`scenarios-m1/`）未提交。
+
+## [2026-10-19] session | DS Bot + Squad M0 完成：按项目目录一键启动与预置团队
+
+- 来源: 用户要求在 M1 收尾后开始 M0；分支 `feat/dsh-m0`；mock 模型。
+- 更新: `dsh_squad/deploy/{dsh-squad,provision.mjs,template/}`、`probes/drive-m0.mjs`、`dsh_squad/{USAGE,README}.md`、规划 M0-2 描述与「进度」节、会话页、索引。
+- 说明: 一条命令按项目目录启动 DS Bot 宿主 + Controller（D4），预置 Chief/Researcher/Builder/Reviewer（`deepseek-flash`、effort high）、群「小队群」、团队记忆。里程碑回归 `drive-m0` 12/12、`drive-p1` 14/14、`drive-m1` 7/7，`check.sh` 通过。DSH-M0-01～04 仍为 NOT_RUN。回归结果文件未提交。

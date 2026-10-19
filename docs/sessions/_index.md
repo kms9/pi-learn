@@ -9,6 +9,7 @@ tags:
 ---
 
 # 会话索引
+- [[2026-10-19-dsh-m0-launcher|2026-10-19 DS Bot + Squad M0：按项目目录一键启动与预置团队]]
 - [[2026-10-19-dsh-m1-adapter|2026-10-19 DS Bot + Squad M1：Controller 迁移与 DSH Adapter]]
 - [[2026-10-18-dsh-p1-seam|2026-10-18 DS Bot + Squad P1：seam 原型与受控负例]]
 - [[2026-10-18-dsh-p0-probe|2026-10-18 DS Bot + Squad P0：版本统一与只观察探针实测]]

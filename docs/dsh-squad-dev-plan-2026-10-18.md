@@ -48,7 +48,8 @@ tags:
 | 里程碑 | 状态 | 说明 |
 |---|---|---|
 | M1 | 开发完成（2026-10-19） | M1-1～M1-7 落地；M1-8 完成持久化与上报，Q35「外层插件绕过」负例未做。编译 + 单测通过（`check.sh`）；mock 回归 `drive-p1` 14/14、`drive-m1` 7/7。切段重绑只有实现没有端到端负例（Q39）。不是验收结论，ACCEPTANCE 各项仍为 NOT_RUN |
-| M0、M2–M4、T | 未开始 | — |
+| M0 | 开发完成（2026-10-19） | M0-1～M0-3 落地：`dsh_squad/deploy/dsh-squad up/down/status/provision`，预置四个 Bot（`deepseek-flash`、effort high）、群「小队群」、团队记忆。里程碑回归 `drive-m0` 12/12、`drive-p1` 14/14、`drive-m1` 7/7。非开发用户试用按 D6 放在 T 阶段 |
+| M2–M4、T | 未开始 | — |
 
 ## 0. 起点：已经有什么
 
@@ -79,7 +80,7 @@ tags:
 | ID | 目标 | 产物 | 仓库 / 模块 | 依赖 | 人日 |
 |---|---|---|---|---|---|
 | M0-1 | 固定可分发的栈 | 启动器：固定 DSH 0.2.1-rc.2 加打补丁的 ds-bot（D9）。Free 模式下 Adapter 不接管任何会话。提供脚本，独立 `DSH_HOME` | `dsh_squad/deploy/` | — | 2 |
-| M0-2 | 按项目目录一键启动配对（D4） | `dsh-squad up <项目目录>`：在该目录下的 `.dsh-squad/` 放 `DSH_HOME`、Controller 数据库和 discovery，启动一个 DS Bot 宿主 + 一个 Controller，互相发现；`down`/`status`。不做多租户鉴权 | `dsh_squad/deploy/` | M0-1、M1-1 | 2 |
+| M0-2 | 按项目目录一键启动配对（D4） | `dsh-squad up <项目目录>`：在该目录下的 `.dsh-squad/` 放 `DSH_HOME`、Controller 数据库、日志和 pid（Controller 的锁、discovery、operator 凭据按其契约留在 `.agents/dshsquad/.runtime/`），启动一个 DS Bot 宿主 + 一个 Controller，互相发现；`down`/`status`。不做多租户鉴权 | `dsh_squad/deploy/` | M0-1、M1-1 | 2 |
 | M0-3 | 预置团队 | 自动创建 Chief、Researcher、Builder、Reviewer 四个 Bot、一个群聊、初始 Memory。开发期用 mock；真实测试只用 DeepSeek `deepseek-flash`（thinking、effort high，D7） | `dsh_squad/deploy/provision.mjs`（经 `/api/bot`） | M0-1 | 1 |
 
 M0 小计约 5 人日。

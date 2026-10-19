@@ -1,10 +1,27 @@
 # DSH Squad 使用说明
 
-DS Bot（DSH 宿主）+ Squad Controller 的配置与启动。只写已经能用的功能；进度见 `docs/dsh-squad-dev-plan-2026-10-18.md`。当前处在 **M1（DSH Adapter）**：正式 Task 能从 Controller 派发到受控 Bot、执行、上报结束。界面、Run/Team 工作流、一键启动在后续里程碑。
+DS Bot（DSH 宿主）+ Squad Controller 的配置与启动。只写已经能用的功能；进度见 `docs/dsh-squad-dev-plan-2026-10-18.md`。已完成 **M1（DSH Adapter）** 和 **M0（一键启动与预置团队）**：按项目目录一条命令启动 DS Bot + Controller；正式 Task 能从 Controller 派发到受控 Bot、执行、上报结束。界面、Run/Team 工作流在后续里程碑。
 
 固定版本（D9）：DSH `0.2.1-rc.2`，ds-bot `e13bc34` 加 `patches/ds-bot/0001-squad-seam.patch`。
 
-## 1. 准备
+## 0. 最快上手：一个项目目录一条命令
+
+```bash
+dsh_squad/deploy/dsh-squad up ~/my-project --mock      # 开发：脚本化 mock 模型，不需要 key
+DEEPSEEK_API_KEY=... dsh_squad/deploy/dsh-squad up ~/my-project   # 真实 DeepSeek API
+dsh_squad/deploy/dsh-squad provision ~/my-project      # 预置 Chief、Researcher、Builder、Reviewer、群「小队群」、一条团队记忆
+dsh_squad/deploy/dsh-squad status ~/my-project         # 进程、Controller 地址、浏览器登录链接
+dsh_squad/deploy/dsh-squad down ~/my-project
+```
+
+- 一个项目目录 = 一个 DS Bot 宿主 + 一个 Controller（D4），每人自己部署，不做多租户。
+- `up` 第一次会安装钉住的 DSH、打补丁的 ds-bot 并编译 Controller（放在 `dsh_squad/.build/`）。项目里没有 `.agents/dshsquad/` 时写入默认小队（研究员、实现者、审查者，Team `default`）。
+- 数据在 `<项目>/.dsh-squad/`：`home/`（DS Bot 的 Bot、会话、记忆）、`controller/state.sqlite`、`logs/`、`run/`（pid）、`team.json`（预置的 Bot id）。Controller 的锁、discovery 和 operator 凭据仍在 `.agents/dshsquad/.runtime/`。
+- `--port N` 改网页端口（默认 3400）。`--mock` 每次 `up` 都要带；不带时需要 `DEEPSEEK_API_KEY`（可选 `DEEPSEEK_BASE_URL`，默认 `https://api.deepseek.com`），key 不会写到磁盘。
+- `provision` 可重复执行，已有的 Bot 和群不会重复创建；所有 Bot 用 `deepseek-flash`、推理强度 high（D7）。
+- 这时所有 Bot 都是 Free 模式：正常私聊、群聊、`@Bot`、记忆，Adapter 不接管任何会话。让某个 Bot 受控见第 5 节。
+
+## 1. 准备（手动）
 
 ```bash
 dsh_squad/scripts/prepare-ds-bot.sh          # 导出钉住的 ds-bot 并打 seam 补丁 → dsh_squad/.build/ds-bot
@@ -26,7 +43,7 @@ dsh_squad/scripts/check.sh                   # 编译、单测、补丁后 ds-bo
 
 `team.json` 的 `policy.allowed_tools` 只能是 `read grep find ls write edit`；在 DSH 里分别对应 `read/read_image`、`grep`、`glob`、`glob`、`write`、`edit/str_replace_editor`。正式任务里其它工具（shell、`run_code`、`message_bot`、MCP 等）一律拒绝。
 
-## 3. 启动 Controller
+## 3. 手动启动 Controller（`up` 已包含）
 
 ```bash
 cd dsh_squad/controller
@@ -36,7 +53,7 @@ go run ./cmd/controller doctor --project-root /path/to/project --ds-bot-dir ../.
 
 `serve` 把 endpoint 写进 `.agents/dshsquad/.runtime/controller.json`，operator 凭据在同目录 `operator.token`（0600）。协议 `squad/3`，见 `dsh_squad/protocol/README.md`。
 
-## 4. 启动 DS Bot 宿主并接上 Controller
+## 4. 手动启动 DS Bot 宿主并接上 Controller（`up` 已包含）
 
 宿主的 profile 里加载打过补丁的 ds-bot 和 `dsh_squad/adapter`（插件名 `dsh-squad-adapter`）。设置 `DSH_SQUAD_PROJECT=<项目目录>` 后，Adapter 读取 discovery 文件连接 Controller；不设时只有测试替身路由。
 
