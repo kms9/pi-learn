@@ -244,6 +244,55 @@ func (s *Server) operationRoutes(v *gin.RouterGroup) {
 		c.Header("Cache-Control", "private, max-age=31536000, immutable")
 		c.Data(200, mediaType, b)
 	})
+	// Configuration editing (M3-4): operator only; the Controller validates the whole
+	// configuration before anything is written.
+	v.GET("/config", func(c *gin.Context) {
+		p, err := s.principal(c)
+		if err == nil && !p.Operator {
+			err = task.Reject("FORBIDDEN", "operator credential required")
+		}
+		if err != nil {
+			teamError(c, err)
+			return
+		}
+		files, err := project.ConfigFiles(s.team.Project.Root)
+		if err != nil {
+			teamError(c, err)
+			return
+		}
+		c.JSON(200, map[string]any{"files": files})
+	})
+	v.POST("/config", func(c *gin.Context) {
+		p, err := s.principal(c)
+		if err == nil && !p.Operator {
+			err = task.Reject("FORBIDDEN", "operator credential required")
+		}
+		if err != nil {
+			teamError(c, err)
+			return
+		}
+		var q struct {
+			Edits        []project.ConfigEdit `json:"edits"`
+			ValidateOnly bool                 `json:"validate_only"`
+		}
+		if err := decodeTeam(c, &q); err != nil {
+			teamError(c, err)
+			return
+		}
+		snap, err := project.ApplyConfigEdits(s.team.Project.Root, q.Edits, q.ValidateOnly)
+		if err != nil {
+			teamError(c, task.Reject("CONFIG_REJECTED", err.Error()))
+			return
+		}
+		roles, teams := []string{}, []string{}
+		for id := range snap.Roles {
+			roles = append(roles, id)
+		}
+		for id := range snap.Teams {
+			teams = append(teams, id)
+		}
+		c.JSON(200, map[string]any{"config_hash": snap.Hash, "roles": roles, "teams": teams, "written": !q.ValidateOnly})
+	})
 	v.POST("/agents/held-inputs", func(c *gin.Context) {
 		p, err := s.principal(c)
 		if err != nil {

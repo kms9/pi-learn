@@ -156,6 +156,10 @@ func (s *Service) applyAcceptance(tx *sql.Tx, c *task.Contract) error {
 		if err := saveAcceptance(tx, c, task.Acceptance{Decision: decision, Mode: "checker", ResultHash: c.Result.Hash, GoalRevision: c.GoalRevision, Reason: reason}); err != nil {
 			return err
 		}
+	} else if c.AcceptancePolicy != nil && c.AcceptancePolicy.Mode == "on_completion" {
+		if err := saveAcceptance(tx, c, task.Acceptance{Decision: "accepted", Mode: "on_completion", ResultHash: c.Result.Hash, GoalRevision: c.GoalRevision, Reason: "accepted on completion (no independent check)"}); err != nil {
+			return err
+		}
 	}
 	return s.coverChildren(tx)
 }

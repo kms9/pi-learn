@@ -143,10 +143,10 @@ index 1475afe..ad5efb8 100644
        // again as it is written.
 diff --git a/src/host/seam.js b/src/host/seam.js
 new file mode 100644
-index 0000000..1818e61
+index 0000000..1f036db
 --- /dev/null
 +++ b/src/host/seam.js
-@@ -0,0 +1,88 @@
+@@ -0,0 +1,92 @@
 +// Squad seam: what a separate Squad gate plugin needs from DS Bot, and nothing more. DS
 +// Bot keeps working the same when no gate attaches.
 +//
@@ -162,11 +162,13 @@ index 0000000..1818e61
 +//   resolves, and the gate can map Bots by name.
 +// - createBot / createRoom / ensureGroupSession: a Team bound to a group gets its Bots,
 +//   its group and each member's group Session the way the web page would make them.
++// - approvals / answerApproval: tool approvals a managed member waits on, answered from
++//   the Squad view as from the group chat.
 +import { randomUUID } from 'node:crypto'
 +import { createUserMessage } from '@deepseek-ai/dsh-llm'
 +import { defineTool } from '@deepseek-ai/dsh-tools'
 +
-+export const SEAM_VERSION = 3
++export const SEAM_VERSION = 4
 +
 +export function install(rt) {
 +  const { ctx } = rt
@@ -220,6 +222,8 @@ index 0000000..1818e61
 +    bots: () => Object.values(rt.state?.bots ?? {}),
 +    defineTool,
 +    rooms: () => Object.values(rt.state?.rooms ?? {}),
++    approvals: () => rt.approvalsView?.() ?? [],
++    answerApproval: (id, choice) => rt.answerApproval(id, choice),
 +    createBot: options => rt.createBot(options),
 +    createRoom: options => rt.createRoom(options),
 +    ensureGroupSession: async (roomId, botId) => {
@@ -237,10 +241,10 @@ index 0000000..1818e61
 +}
 diff --git a/test/squad-seam.test.js b/test/squad-seam.test.js
 new file mode 100644
-index 0000000..071c927
+index 0000000..2ce9f10
 --- /dev/null
 +++ b/test/squad-seam.test.js
-@@ -0,0 +1,62 @@
+@@ -0,0 +1,63 @@
 +import { test } from 'node:test'
 +import assert from 'node:assert/strict'
 +import { install } from '../src/host/seam.js'
@@ -261,7 +265,8 @@ index 0000000..071c927
 +
 +test('without a gate the seam changes nothing', async () => {
 +  const { rt, seam } = runtime()
-+  assert.equal(seam.version, 3)
++  assert.equal(seam.version, 4)
++  assert.deepEqual(seam.approvals(), [])
 +  assert.equal(typeof seam.ensureGroupSession, 'function')
 +  assert.equal(typeof seam.defineTool, 'function')
 +  assert.ok(Array.isArray(seam.bots()))

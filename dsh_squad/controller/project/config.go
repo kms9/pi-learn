@@ -518,8 +518,10 @@ func validateTeam(t Team, id string, roles map[string]Role) error {
 		seen[m.RoleRef] = true
 	}
 	a := p.Acceptance
-	if a.Mode != "review" && a.Mode != "checker" {
-		return fmt.Errorf("ACCEPTANCE_POLICY_MISSING: Team requires checker or review")
+	// on_completion accepts a result as soon as it settles, with no independent check.
+	// It exists for the comparison experiment's DAG-only group (M3-3, group B).
+	if a.Mode != "review" && a.Mode != "checker" && a.Mode != "on_completion" {
+		return fmt.Errorf("ACCEPTANCE_POLICY_MISSING: Team requires checker, review or on_completion")
 	}
 	if a.ChildPolicy != "inherit_parent" && a.ChildPolicy != "separate" {
 		return fmt.Errorf("invalid child_policy")
@@ -531,6 +533,10 @@ func validateTeam(t Team, id string, roles map[string]Role) error {
 	} else if a.Mode == "checker" {
 		if (a.CheckerRef != "numbers-count" && a.CheckerRef != "numbers-sum" && a.CheckerRef != "numbers-stats") || a.ReviewerRef != "" {
 			return fmt.Errorf("invalid checker_ref")
+		}
+	} else if a.Mode == "on_completion" {
+		if a.ReviewerRef != "" || a.CheckerRef != "" {
+			return fmt.Errorf("on_completion takes no reviewer or checker")
 		}
 	} else {
 		return fmt.Errorf("ACCEPTANCE_POLICY_MISSING: Team requires checker or review")
