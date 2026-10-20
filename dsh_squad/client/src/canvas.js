@@ -84,6 +84,12 @@ function Edges({ items, edges, width, height }) {
       const y1 = a.y + CARD.height
       const x2 = b.x + CARD.width / 2
       const y2 = b.y
+      // A later row of wrapped siblings: down, along the left of the block, along the
+      // lane above the row, down into the card (layout.js).
+      if (edge.bus) {
+        const { trunkX, firstLane, lane } = edge.bus
+        return h('path', { key: `${edge.from}-${edge.to}`, className: 'sq-edge', 'data-to-s': b.node.state.status, 'data-bus': true, d: `M${x1},${y1} V${firstLane} H${trunkX} V${lane} H${x2} V${y2}` })
+      }
       const mid = (y1 + y2) / 2
       return h('path', { key: `${edge.from}-${edge.to}`, className: 'sq-edge', 'data-to-s': b.node.state.status, d: `M${x1},${y1} C${x1},${mid} ${x2},${mid} ${x2},${y2}`, style: { transition: 'd .25s' } })
     }))
@@ -220,7 +226,7 @@ export function RunCanvas({ runId }) {
   const onWheel = (event) => {
     if (!event.ctrlKey && !event.metaKey) return
     event.preventDefault()
-    setView(current => ({ ...current, moved: true, scale: Math.min(1.6, Math.max(0.4, current.scale * (event.deltaY < 0 ? 1.1 : 0.9))) }))
+    setView(current => ({ ...current, moved: true, scale: Math.min(1.6, Math.max(0.2, current.scale * (event.deltaY < 0 ? 1.1 : 0.9))) }))
   }
   return h('div', { className: 'sq-canvas-wrap' },
     h('div', { className: 'sq-canvas-tools' },
@@ -228,7 +234,7 @@ export function RunCanvas({ runId }) {
       h('button', { className: 'sq-btn', onClick: () => {
         const width = box.current?.clientWidth ?? 800
         const height = box.current?.clientHeight ?? 500
-        const scale = Math.max(0.4, Math.min(1, (width - 40) / placed.width, (height - 48) / placed.height))
+        const scale = Math.max(0.2, Math.min(1, (width - 40) / placed.width, (height - 48) / placed.height))
         setView({ moved: true, scale, x: Math.round((width - placed.width * scale) / 2), y: 24 })
       } }, '适应窗口')),
     h('div', {

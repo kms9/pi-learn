@@ -445,38 +445,56 @@ function autoFolded(root) {
 
 // src/layout.js
 var CARD = { width: 232, height: 112, gapX: 28, gapY: 56 };
+var PER_ROW = 6;
 function layout(root, folded = /* @__PURE__ */ new Set(), size = CARD) {
   const out = [];
   const edges = [];
-  const widthOf = /* @__PURE__ */ new Map();
+  const boxOf = /* @__PURE__ */ new Map();
+  const limit = size.wrapWidth ?? PER_ROW * (size.width + size.gapX) - size.gapX;
   const visibleChildren = (node) => folded.has(node.id) ? [] : node.children;
+  const rowWidth = (row) => row.reduce((sum, child) => sum + boxOf.get(child.id).width, 0) + Math.max(0, row.length - 1) * size.gapX;
+  const rowsOf = (children) => {
+    if (rowWidth(children) <= limit) return children.length ? [children] : [];
+    const rows = [[]];
+    for (const child of children) {
+      const row = rows.at(-1);
+      if (row.length > 0 && rowWidth([...row, child]) > limit) rows.push([child]);
+      else row.push(child);
+    }
+    return rows;
+  };
   const measure = (node) => {
     const children = visibleChildren(node);
-    const inner = children.reduce((sum, child) => sum + measure(child), 0) + Math.max(0, children.length - 1) * size.gapX;
-    const width = Math.max(size.width, inner);
-    widthOf.set(node.id, width);
-    return width;
+    for (const child of children) measure(child);
+    const rows = rowsOf(children);
+    const inner = Math.max(0, ...rows.map(rowWidth));
+    const below = rows.reduce((sum, row) => sum + size.gapY + Math.max(...row.map((child) => boxOf.get(child.id).height)), 0);
+    const box = { width: Math.max(size.width, inner), height: size.height + below, rows };
+    boxOf.set(node.id, box);
+    return box;
   };
-  const place = (node, left, depth2) => {
-    const width = widthOf.get(node.id);
-    const x = left + (width - size.width) / 2;
-    const y = depth2 * (size.height + size.gapY);
-    out.push({ node, x, y, depth: depth2, hidden: folded.has(node.id) ? descendants(node).length : 0 });
-    const children = visibleChildren(node);
-    const inner = children.reduce((sum, child) => sum + widthOf.get(child.id), 0) + Math.max(0, children.length - 1) * size.gapX;
-    let cursor = left + (width - inner) / 2;
-    for (const child of children) {
-      edges.push({ from: node.id, to: child.id });
-      place(child, cursor, depth2 + 1);
-      cursor += widthOf.get(child.id) + size.gapX;
-    }
+  const place = (node, left, top, depth) => {
+    const box = boxOf.get(node.id);
+    const x = left + (box.width - size.width) / 2;
+    out.push({ node, x, y: top, depth, hidden: folded.has(node.id) ? descendants(node).length : 0 });
+    let rowTop = top + size.height + size.gapY;
+    const trunkX = left + (box.width - Math.max(0, ...box.rows.map(rowWidth))) / 2 - size.gapX / 2;
+    const firstLane = rowTop - size.gapY / 2;
+    box.rows.forEach((row, index) => {
+      let cursor = left + (box.width - rowWidth(row)) / 2;
+      for (const child of row) {
+        edges.push(index === 0 ? { from: node.id, to: child.id } : { from: node.id, to: child.id, bus: { trunkX, firstLane, lane: rowTop - size.gapY / 2 } });
+        place(child, cursor, rowTop, depth + 1);
+        cursor += boxOf.get(child.id).width + size.gapX;
+      }
+      rowTop += Math.max(...row.map((child) => boxOf.get(child.id).height)) + size.gapY;
+    });
   };
   const total = measure(root);
-  place(root, 0, 0);
+  place(root, 0, 0, 0);
   const ids = new Set(out.map((item) => item.node.id));
   const deps = out.flatMap((item) => item.node.deps.filter((id) => ids.has(id)).map((id) => ({ from: id, to: item.node.id, dep: true })));
-  const depth = Math.max(0, ...out.map((item) => item.depth));
-  return { nodes: out, edges: [...edges, ...deps], width: total, height: (depth + 1) * size.height + depth * size.gapY, rootX: out[0].x };
+  return { nodes: out, edges: [...edges, ...deps], width: total.width, height: total.height, rootX: out[0].x };
 }
 
 // src/team-model.js
@@ -1057,6 +1075,10 @@ function Edges({ items, edges, width, height }) {
       const y1 = a.y + CARD.height;
       const x2 = b.x + CARD.width / 2;
       const y2 = b.y;
+      if (edge.bus) {
+        const { trunkX, firstLane, lane } = edge.bus;
+        return (0, import_react5.createElement)("path", { key: `${edge.from}-${edge.to}`, className: "sq-edge", "data-to-s": b.node.state.status, "data-bus": true, d: `M${x1},${y1} V${firstLane} H${trunkX} V${lane} H${x2} V${y2}` });
+      }
       const mid = (y1 + y2) / 2;
       return (0, import_react5.createElement)("path", { key: `${edge.from}-${edge.to}`, className: "sq-edge", "data-to-s": b.node.state.status, d: `M${x1},${y1} C${x1},${mid} ${x2},${mid} ${x2},${y2}`, style: { transition: "d .25s" } });
     })
@@ -1208,7 +1230,7 @@ function RunCanvas({ runId }) {
   const onWheel = (event) => {
     if (!event.ctrlKey && !event.metaKey) return;
     event.preventDefault();
-    setView((current) => ({ ...current, moved: true, scale: Math.min(1.6, Math.max(0.4, current.scale * (event.deltaY < 0 ? 1.1 : 0.9))) }));
+    setView((current) => ({ ...current, moved: true, scale: Math.min(1.6, Math.max(0.2, current.scale * (event.deltaY < 0 ? 1.1 : 0.9))) }));
   };
   return (0, import_react5.createElement)(
     "div",
@@ -1220,7 +1242,7 @@ function RunCanvas({ runId }) {
       (0, import_react5.createElement)("button", { className: "sq-btn", onClick: () => {
         const width = box.current?.clientWidth ?? 800;
         const height = box.current?.clientHeight ?? 500;
-        const scale = Math.max(0.4, Math.min(1, (width - 40) / placed.width, (height - 48) / placed.height));
+        const scale = Math.max(0.2, Math.min(1, (width - 40) / placed.width, (height - 48) / placed.height));
         setView({ moved: true, scale, x: Math.round((width - placed.width * scale) / 2), y: 24 });
       } }, "适应窗口")
     ),

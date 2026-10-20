@@ -335,6 +335,9 @@ func (s *Service) startAttempt(tx *sql.Tx, c *task.Contract, paths []string) err
 		}
 		context.TeamInstructions = r.Config.Instructions
 		context.ConfigHash = r.Config.Hash
+		if c.Kind == "leader_step" {
+			c.SeenRevision = r.Revision
+		}
 	}
 	a := task.Attempt{ID: id, TaskID: c.ID, Number: len(c.AttemptIDs) + 1, State: "admitted", Cleanup: "pending", Target: *c.Target, Context: context, Segment: 1, ControllerEpoch: s.Epoch, FencingToken: fence, LeaseExpiresAt: fault.Now().Add(s.Config.LeaseTTL), Receipt: "dispatch_intent", Revision: 1}
 	if len(c.AttemptIDs) > 0 {

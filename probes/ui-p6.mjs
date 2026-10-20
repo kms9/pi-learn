@@ -1,5 +1,6 @@
 // UI plan P6 acceptance on the mock: the finish. A math Team with a 30-step workflow
 // (no order between steps, each reviewed) gives a tree of 60 tasks under the Leader;
+// the thirty parallel steps wrap into rows of six (Q47);
 // one step never hands in a result and fails, which holds the Run until a person drops
 // it from its popover (reached by keyboard). In a real browser: the empty Team opens
 // on the start panel; the big tree lays out with every card in its own place and pans
@@ -109,6 +110,30 @@ try {
   await openAll(page)
   const cards = await page.$$eval('.sq-node', els => els.map(el => { const m = /translate\(([-\d.]+)px, ([-\d.]+)px\)/.exec(el.style.transform); return `${m?.[1]},${m?.[2]}` }))
   check(cards.length >= 60 && new Set(cards).size === cards.length, 'every card has its own place', { cards: cards.length, unique: new Set(cards).size })
+  // Q47: thirty parallel steps wrap into rows of at most six, centred, cards never overlap.
+  const boxes = await page.$$eval('.sq-node', els => els.map(el => { const m = /translate\(([-\d.]+)px, ([-\d.]+)px\)/.exec(el.style.transform); return { id: el.dataset.node, kind: el.dataset.kind, x: Number(m?.[1]), y: Number(m?.[2]), w: el.offsetWidth, h: el.offsetHeight, text: el.innerText } }))
+  const stepCards = boxes.filter(card => card.kind === 'task' && /第 \d+ 节/.test(card.text) && !/审核/.test(card.text) && !/第 \d+ 次（已重试）/.test(card.text))
+  const rows = new Map()
+  for (const card of stepCards) rows.set(card.y, (rows.get(card.y) ?? 0) + 1)
+  const rootCard = boxes.find(card => card.kind === 'run')
+  const firstRow = stepCards.filter(card => card.y === Math.min(...rows.keys()))
+  const centred = Math.abs((Math.min(...firstRow.map(c => c.x)) + Math.max(...firstRow.map(c => c.x))) / 2 - rootCard.x) < 1
+  check(rows.size >= 5 && [...rows.values()].every(n => n <= 6) && centred, 'thirty parallel steps wrap into rows of at most six, centred under the Leader', Object.fromEntries(rows))
+  const overlaps = boxes.filter((a, i) => boxes.some((b, j) => j > i && Math.abs(a.x - b.x) < a.w && Math.abs(a.y - b.y) < a.h)).map(card => card.id)
+  check(overlaps.length === 0, 'no two cards overlap', overlaps.slice(0, 4))
+  const span = Math.max(...boxes.map(c => c.x + c.w)) - Math.min(...boxes.map(c => c.x))
+  check(span <= 6 * 260 + 40, 'the tree is no wider than six cards', span)
+  const bus = await page.$$eval('.sq-edge[data-bus]', els => els.length)
+  check(bus >= 24, 'later rows hang from the Leader by the lane edges', bus)
+  // Folding the Leader hides the rows; opening it brings them back in the same places.
+  await page.$eval('.sq-node[data-kind=run] .sq-node-count', el => el.click())
+  await sleep(500)
+  const foldedCount = await page.$$eval('.sq-node', els => els.length)
+  await page.$eval('.sq-node[data-kind=run] .sq-node-count', el => el.click())
+  await sleep(500)
+  await openAll(page)
+  const reopened = await page.$$eval('.sq-node', els => els.map(el => `${el.dataset.node}@${el.style.transform}`).sort().join())
+  check(foldedCount === 1 && reopened === boxes.map(card => `${card.id}@translate(${card.x}px, ${card.y}px)`).sort().join(), 'folding the Leader hides every row; opening puts them back', foldedCount)
   const clamp = await page.$$eval('.sq-node-title', els => els.every(el => el.scrollHeight <= el.clientHeight + 24 && el.clientHeight <= 40))
   check(clamp, 'a long goal is cut to two lines on its card')
 
@@ -137,23 +162,37 @@ try {
   check(fps >= 30 && perf.long < 200, 'panning 60 cards stays smooth (≥30 fps, no task over 200 ms)', { fps, long: perf.long })
   await clickIn(page, '.sq-canvas-tools .sq-btn', '适应窗口')
   await sleep(600)
+  const fits = await page.$eval('.sq-canvas', (canvas) => {
+    const frame = canvas.getBoundingClientRect()
+    return [...canvas.querySelectorAll('.sq-node')].every((el) => { const r = el.getBoundingClientRect(); return r.left >= frame.left - 1 && r.right <= frame.right + 1 && r.top >= frame.top - 1 && r.bottom <= frame.bottom + 1 })
+  })
+  const scale = await page.$eval('.sq-layer', el => Number(/scale\(([\d.]+)\)/.exec(el.style.transform)?.[1]))
+  check(fits, 'fit to window shows the whole wrapped tree', { scale })
   await page.screenshot({ path: `${shots}-light-2-big.png` })
 
   console.log('== keyboard and labels')
   const labels = await page.$$eval('.sq-node', els => els.map(el => el.getAttribute('aria-label') ?? ''))
   check(labels.every(label => /(进行中|完成|需要你处理|失败|已停止|未开始)/.test(label)), 'every card says its state to a screen reader', labels.filter(label => !/(进行中|完成|需要你处理|失败|已停止|未开始)/.test(label)).slice(0, 3))
   check(/个节点/.test(await page.$eval('.sq-canvas', el => el.getAttribute('aria-label') ?? '')), 'the canvas is a labelled region')
-  await page.focus('.sq-node')
-  const seen = []
-  const path = []
-  for (let i = 0; i < 4; i += 1) {
-    seen.push((await active(page)).node)
+  // Tab from the Leader through every card, rows included; each focused card is moved into view.
+  await page.focus('.sq-node[data-kind=run]')
+  const total = await page.$$eval('.sq-node', els => els.length)
+  const visited = []
+  const outOfView = []
+  for (let i = 0; i < total * 3 && visited.length < total; i += 1) {
+    const now = await active(page)
+    if (now.node) {
+      if (visited.includes(now.node)) break
+      visited.push(now.node)
+      await sleep(320)
+      const inView = await page.evaluate(() => { const el = document.activeElement; const r = el.getBoundingClientRect(); const f = el.closest('.sq-canvas').getBoundingClientRect(); return r.left >= f.left - 1 && r.right <= f.right + 1 && r.top >= f.top - 1 && r.bottom <= f.bottom + 1 })
+      if (!inView) outOfView.push(now.node)
+    }
     await page.keyboard.press('Tab')
-    // The fold count is a button inside a card; Tab passes it too.
-    path.push(await active(page))
-    if ((await active(page)).node === null) { await page.keyboard.press('Tab'); path.push(await active(page)) }
   }
-  check(seen.every(Boolean) && new Set(seen).size === seen.length, 'Tab walks from card to card', path)
+  check(visited.length === total, 'Tab reaches every card once', { visited: visited.length, total })
+  check(outOfView.length === 0, 'each card reached by Tab is brought into view', outOfView.slice(0, 4))
+  await page.screenshot({ path: `${shots}-light-5-tab-row.png` })
   const doneCard = await page.$eval('.sq-node[data-s=done][data-kind=task]', el => el.dataset.node)
   await page.focus(`.sq-node[data-node="${doneCard}"]`)
   await page.keyboard.press('Enter')

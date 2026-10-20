@@ -133,8 +133,12 @@ func (s *Service) decide(ctx context.Context, p Principal, id string, q Decision
 		default:
 			return task.Reject("INVALID_DECISION", q.Action)
 		}
+		// The step decided on the Run as it was when it was dispatched. Anything that
+		// changed after that (a review accepted, a task finished) needs another step, or
+		// a "wait" made on older news would leave the Run waiting for nothing.
+		moved := c.SeenRevision != 0 && r.Revision > c.SeenRevision
 		r.Revision++
-		if c.GuidanceCount >= len(r.Guidance) {
+		if c.GuidanceCount >= len(r.Guidance) && !moved {
 			r.LeaderRevision = r.Revision
 		}
 		value, _ := json.Marshal(map[string]any{"action": q.Action, "note": q.Note})

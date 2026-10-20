@@ -206,3 +206,74 @@ func TestIgnoreLetsAHeldRunGoOn(t *testing.T) {
 		t.Fatalf("task %s ignored=%v", got.State, got.Ignored)
 	}
 }
+
+// A LeaderStep decides on the Run as it was dispatched. When a task finishes after
+// that, its "wait" must not mark the change as seen: another step follows. With nothing
+// new, a "wait" plans no further step. (Seen in ui-p5: a review accepted while the
+// Leader's step waited for capacity left the Run in planning for good.)
+func TestLeaderWaitOnOlderNewsPlansAnotherStep(t *testing.T) {
+	h := newHarness(t)
+	h.registerLeader()
+	builder := h.register("math-builder", "builder", "bot-builder", "room-math", "sess-b")
+	r, err := h.svc.CreateRun(h.ctx, h.op, CreateRun{RequestID: "run1", TeamID: "math", Goal: "teach", WorkflowID: "lesson"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	h.tick()
+	chief := h.principal("chief")
+	open := func(p Principal) (task.Attempt, task.Contract, bool) {
+		out, err := h.svc.Dispatches(h.ctx, p)
+		if err != nil || len(out) == 0 {
+			return task.Attempt{}, task.Contract{}, false
+		}
+		a := out[0]["attempt"].(task.Attempt)
+		for _, step := range []string{"adapter_received", "injection_requested", "input_observed"} {
+			a = h.must(h.event(p, a, AttemptEvent{Type: step}))
+		}
+		return a, out[0]["task"].(task.Contract), true
+	}
+	// Open LeaderSteps of this Run (runTasks leaves them out).
+	pendingSteps := func() int {
+		n := 0
+		if err := h.svc.Store.Transaction(h.ctx, func(tx *sql.Tx) error {
+			return tx.QueryRow(`SELECT count(*) FROM tasks WHERE run_id=? AND json_extract(body,'$.kind')='leader_step' AND state NOT IN ('completed','cancelled','failed','interrupted')`, r.ID).Scan(&n)
+		}); err != nil {
+			t.Fatal(err)
+		}
+		return n
+	}
+	step, _, ok := open(chief)
+	if !ok {
+		t.Fatal("no LeaderStep dispatched")
+	}
+	// The builder finishes while the Leader's step is still open.
+	work, c, ok := open(builder)
+	if !ok {
+		t.Fatal("no builder task dispatched")
+	}
+	work = h.must(h.event(builder, work, AttemptEvent{Type: "result_proposed", Result: &task.Result{GoalRevision: c.AppliedRevision, Value: json.RawMessage(`{"answer":"lesson"}`), Artifacts: []task.Artifact{}, Refs: []project.ResultRef{}}}))
+	h.must(h.event(builder, work, AttemptEvent{Type: "settled", Idle: true, Outcome: "completed"}))
+	if _, err := h.svc.Decide(h.ctx, chief, r.ID, Decision{RequestID: "d1", ExpectedRevision: h.runOf(r.ID).Revision, AttemptID: step.ID, Action: "wait", Note: "older news"}); err != nil {
+		t.Fatal(err)
+	}
+	step, _ = h.attemptOf(step.ID)
+	h.must(h.event(chief, step, AttemptEvent{Type: "settled", Idle: true, Outcome: "completed"}))
+	h.tick()
+	if pendingSteps() != 1 {
+		t.Fatalf("a wait on older news planned %d more steps, want 1", pendingSteps())
+	}
+	// This step sees everything: its wait plans nothing more.
+	step, _, ok = open(chief)
+	if !ok {
+		t.Fatal("the second LeaderStep was not dispatched")
+	}
+	if _, err := h.svc.Decide(h.ctx, chief, r.ID, Decision{RequestID: "d2", ExpectedRevision: h.runOf(r.ID).Revision, AttemptID: step.ID, Action: "wait", Note: "up to date"}); err != nil {
+		t.Fatal(err)
+	}
+	step, _ = h.attemptOf(step.ID)
+	h.must(h.event(chief, step, AttemptEvent{Type: "settled", Idle: true, Outcome: "completed"}))
+	h.tick()
+	if pendingSteps() != 0 {
+		t.Fatalf("an up-to-date wait planned %d more steps", pendingSteps())
+	}
+}

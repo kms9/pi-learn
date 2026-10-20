@@ -2,40 +2,65 @@
 // subtree is as wide as its children together (or one card), a parent sits centred over
 // its children, and the whole tree is centred on the root. A folded node keeps its
 // children out of the layout and reports how many it hides.
+//
+// Many siblings wrap (Q47): when a node's children side by side would be wider than
+// about six cards, they are packed into rows in order, each row centred under the
+// parent, later rows below the earlier ones. Edges to a later row run down the left of
+// the block and along a lane above that row, so they never cross a card.
 import { descendants } from './tree.js'
 
 export const CARD = { width: 232, height: 112, gapX: 28, gapY: 56 }
+const PER_ROW = 6
 
 export function layout(root, folded = new Set(), size = CARD) {
   const out = []
   const edges = []
-  const widthOf = new Map()
+  const boxOf = new Map()
+  const limit = size.wrapWidth ?? PER_ROW * (size.width + size.gapX) - size.gapX
   const visibleChildren = node => (folded.has(node.id) ? [] : node.children)
+  const rowWidth = row => row.reduce((sum, child) => sum + boxOf.get(child.id).width, 0) + Math.max(0, row.length - 1) * size.gapX
+  // Children packed into rows, in order: a row takes children while it fits the limit.
+  const rowsOf = (children) => {
+    if (rowWidth(children) <= limit) return children.length ? [children] : []
+    const rows = [[]]
+    for (const child of children) {
+      const row = rows.at(-1)
+      if (row.length > 0 && rowWidth([...row, child]) > limit) rows.push([child])
+      else row.push(child)
+    }
+    return rows
+  }
   const measure = (node) => {
     const children = visibleChildren(node)
-    const inner = children.reduce((sum, child) => sum + measure(child), 0) + Math.max(0, children.length - 1) * size.gapX
-    const width = Math.max(size.width, inner)
-    widthOf.set(node.id, width)
-    return width
+    for (const child of children) measure(child)
+    const rows = rowsOf(children)
+    const inner = Math.max(0, ...rows.map(rowWidth))
+    const below = rows.reduce((sum, row) => sum + size.gapY + Math.max(...row.map(child => boxOf.get(child.id).height)), 0)
+    const box = { width: Math.max(size.width, inner), height: size.height + below, rows }
+    boxOf.set(node.id, box)
+    return box
   }
-  const place = (node, left, depth) => {
-    const width = widthOf.get(node.id)
-    const x = left + (width - size.width) / 2
-    const y = depth * (size.height + size.gapY)
-    out.push({ node, x, y, depth, hidden: folded.has(node.id) ? descendants(node).length : 0 })
-    const children = visibleChildren(node)
-    const inner = children.reduce((sum, child) => sum + widthOf.get(child.id), 0) + Math.max(0, children.length - 1) * size.gapX
-    let cursor = left + (width - inner) / 2
-    for (const child of children) {
-      edges.push({ from: node.id, to: child.id })
-      place(child, cursor, depth + 1)
-      cursor += widthOf.get(child.id) + size.gapX
-    }
+  const place = (node, left, top, depth) => {
+    const box = boxOf.get(node.id)
+    const x = left + (box.width - size.width) / 2
+    out.push({ node, x, y: top, depth, hidden: folded.has(node.id) ? descendants(node).length : 0 })
+    let rowTop = top + size.height + size.gapY
+    // The trunk for later rows: just left of the widest row.
+    const trunkX = left + (box.width - Math.max(0, ...box.rows.map(rowWidth))) / 2 - size.gapX / 2
+    const firstLane = rowTop - size.gapY / 2
+    box.rows.forEach((row, index) => {
+      let cursor = left + (box.width - rowWidth(row)) / 2
+      for (const child of row) {
+        edges.push(index === 0 ? { from: node.id, to: child.id } : { from: node.id, to: child.id, bus: { trunkX, firstLane, lane: rowTop - size.gapY / 2 } })
+        place(child, cursor, rowTop, depth + 1)
+        cursor += boxOf.get(child.id).width + size.gapX
+      }
+      rowTop += Math.max(...row.map(child => boxOf.get(child.id).height)) + size.gapY
+    })
   }
   const total = measure(root)
-  place(root, 0, 0)
+  place(root, 0, 0, 0)
   const ids = new Set(out.map(item => item.node.id))
   const deps = out.flatMap(item => item.node.deps.filter(id => ids.has(id)).map(id => ({ from: id, to: item.node.id, dep: true })))
-  const depth = Math.max(0, ...out.map(item => item.depth))
-  return { nodes: out, edges: [...edges, ...deps], width: total, height: (depth + 1) * size.height + depth * size.gapY, rootX: out[0].x }
+  return { nodes: out, edges: [...edges, ...deps], width: total.width, height: total.height, rootX: out[0].x }
 }

@@ -108,6 +108,7 @@ type Contract struct {
 	Title              string                    `json:"title,omitempty"`
 	AcceptanceCriteria json.RawMessage           `json:"acceptance_criteria,omitempty"`
 	GuidanceCount      int                       `json:"guidance_count,omitempty"`
+	SeenRevision       int64                     `json:"seen_revision,omitempty"` // the Run revision a LeaderStep was dispatched at
 	ReworkOf           string                    `json:"rework_of,omitempty"`
 	SupersededBy       string                    `json:"superseded_by,omitempty"`
 	ID                 string                    `json:"task_id"`

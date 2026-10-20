@@ -97,3 +97,38 @@ test('a big Run (P6): 100 steps with their reviews draw in well under a frame bu
   // Every card has its own place.
   assert.equal(new Set(placed.nodes.map(item => `${item.x},${item.y}`)).size, 201)
 })
+
+test('layout (Q47): 30 parallel children wrap into rows of six, centred, no card overlaps, bus edges', () => {
+  const leaf = id => ({ id, children: [{ id: `r-${id}`, children: [], deps: [] }], deps: [] })
+  const root = { id: 'root', children: Array.from({ length: 30 }, (_, i) => leaf(`c${String(i).padStart(2, '0')}`)), deps: [] }
+  const placed = layout(root, new Set())
+  const at = id => placed.nodes.find(item => item.node.id === id)
+  const rowYs = [...new Set(root.children.map(child => at(child.id).y))]
+  assert.equal(rowYs.length, 5, 'five rows')
+  for (const y of rowYs) assert.equal(root.children.filter(child => at(child.id).y === y).length, 6)
+  assert.ok(placed.width <= 6 * (CARD.width + CARD.gapX), 'no wider than six cards')
+  // Each child's review sits under it, and the next row clears the reviews.
+  assert.equal(at('r-c00').y, at('c00').y + CARD.height + CARD.gapY)
+  assert.ok(at('c06').y >= at('r-c00').y + CARD.height + CARD.gapY)
+  // Rows centred under the root; the root centred on the tree.
+  const row = root.children.slice(6, 12).map(child => at(child.id))
+  assert.equal((row[0].x + row[5].x) / 2, at('root').x)
+  // No two cards overlap.
+  for (const a of placed.nodes) {
+    for (const b of placed.nodes) {
+      if (a === b) continue
+      assert.ok(Math.abs(a.x - b.x) >= CARD.width || Math.abs(a.y - b.y) >= CARD.height, `${a.node.id} overlaps ${b.node.id}`)
+    }
+  }
+  // The first row hangs from the root; later rows by the bus, left of the block, lanes between rows.
+  const edgeTo = id => placed.edges.find(edge => edge.to === id)
+  assert.equal(edgeTo('c00').bus, undefined)
+  const bus = edgeTo('c12').bus
+  assert.ok(bus.trunkX < Math.min(...placed.nodes.filter(item => item.depth === 1).map(item => item.x)))
+  assert.ok(bus.lane > at('r-c06').y + CARD.height && bus.lane < at('c12').y)
+  assert.equal(placed.height, Math.max(...placed.nodes.map(item => item.y)) + CARD.height)
+  // Folding the root brings it back to one card; few children do not wrap.
+  assert.equal(layout(root, new Set(['root'])).nodes.length, 1)
+  const small = { id: 'root', children: root.children.slice(0, 5), deps: [] }
+  assert.equal(new Set(small.children.map(child => layout(small).nodes.find(item => item.node.id === child.id).y)).size, 1)
+})

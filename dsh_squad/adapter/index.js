@@ -203,7 +203,18 @@ export function apply(ctx, config = {}) {
     }
   }
 
-  async function advanceReceipts(binding, attempt) {
+  // One receipt walk per attempt at a time: the loop and a task tool can both start
+  // one, and two walks would send the same receipt twice under one request id with
+  // different revisions (REQUEST_ID_CONFLICT), failing the tool before it ran.
+  const advancing = new Map()
+  function advanceReceipts(binding, attempt) {
+    const previous = advancing.get(attempt.attemptId) ?? Promise.resolve()
+    const next = previous.catch(() => {}).then(() => advanceReceiptsNow(binding, attempt))
+    advancing.set(attempt.attemptId, next)
+    void next.finally(() => { if (advancing.get(attempt.attemptId) === next) advancing.delete(attempt.attemptId) }).catch(() => {})
+    return next
+  }
+  async function advanceReceiptsNow(binding, attempt) {
     const dispatch = attempt.dispatch
     for (;;) {
       const step = nextReceipt(dispatch.receipts, { delivered: dispatch.delivered, opened: attempt.opened === true })

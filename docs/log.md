@@ -911,3 +911,9 @@ tags:
 - 来源: 用户拍板 UI 规划 D1–D6 后要求按 P1 → P6 实现；分支 `feat/dsh-ui-plan`；mock 模型、无头 Chrome。
 - 更新: `dsh_squad/controller`（任务来源与标题、Run 最终检查失败原因、`task:restart`/`rebase`/`keep`、被扣留消息处理 `POST /v2/held-inputs/:id/dispose`）、`dsh_squad/adapter`（`ui/dispose` 等）、`dsh_squad/client`（状态、汇总栏、任务树画布、处理框、多小队、键盘与读屏、加载与断线提示）、`probes/ui-p1…p6.mjs`、`dsh_squad/USAGE.md`、规划进度、会话页 `docs/sessions/2026-10-19-dsh-squad-ui-p1-p6.md`、Q41 关闭、Q47 新增。
 - 说明: 以 Leader 为根的任务树、五种状态与一句话原因、汇总栏跨小队下拉、失败只给忽略/重试、重试与返工挂在原节点下并自动折叠、Q41 一键重做、多小队总览与切换、键盘操作。不显示花费和用时。全量 mock 回归通过（ui-p1…p6、drive-m0…m4、drive-p1 14/14、drive-m1 7/7、check.sh）。截图未提交（用户决定）；T 阶段未开始。
+
+## [2026-10-20] decision | Q47 拍板：并行兄弟节点过多时换行排列
+
+- 来源: 用户决定 Q47 采用换行排列（不按角色叠成一叠）。
+- 更新: `docs/dsh-squad-ui-plan-2026-10-19.md`（决策记录 D7）、Q47 关闭、`dsh_squad/client/src/layout.js`、`canvas.js`、`probes/ui-p6.mjs`、`dsh_squad/USAGE.md`、会话页补充；另修 Controller Leader 步骤按旧状态「wait」导致 Run 卡住的竞态（`seen_revision`），以及 adapter 里工具与循环同时补发回执造成 `REQUEST_ID_CONFLICT` 的竞态（同一 attempt 的回执补发串行）。
+- 说明: 兄弟节点并排超过约六张卡片宽就按顺序换行、每行居中，后续行的连线走左侧通道；适应窗口最小缩放降到 0.2。ui-p6 增加 30 个并行子节点的分行、无重叠、通道连线、折叠复原、适应窗口、Tab 走遍且移入视野等检查。回归：`check.sh`、ui-p1 17/17、ui-p2 16/16、ui-p3 22/22、ui-p4 9/9、ui-p5 20/20、ui-p6 27/27、drive-m2 13/13、drive-m3 18/18、drive-m4 13/13；ui-p6 与 drive-m4 各有运行撞上测试机挂起（事件日志 8～19 分钟空白、随后租约过期），单独重跑通过。截图未提交；T 阶段未开始。
