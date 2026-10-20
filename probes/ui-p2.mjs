@@ -70,6 +70,14 @@ try {
     history.push(now)
     if (history.length === 3) await page.screenshot({ path: `${shots}-light-1-start.png` })
     if (!shotMid && now.some(card => card.text.includes('返工'))) { await page.screenshot({ path: `${shots}-light-2-middle.png` }); shotMid = true }
+    // Since P4 the check built on the rejected draft waits for a person: keep it.
+    const stale = now.find(card => /基于旧版本/.test(card.text))
+    if (stale) {
+      await page.$eval(`[data-node="${stale.id}"]`, el => el.click())
+      await sleep(400)
+      await page.$$eval('.sq-pop .sq-btn', els => els.find(el => el.innerText === '保留这一版')?.click())
+      await sleep(600)
+    }
     done = now.some(card => card.kind === 'run' && card.s === 'done')
   }
   check(done, 'the Run completes on the canvas')
@@ -81,11 +89,10 @@ try {
   // The finished tree folds its finished subtrees; open everything to read the shape.
   let end = await cards(page)
   check(end.some(card => card.folded), 'finished subtrees fold by themselves', end.map(card => [card.text.slice(0, 20), card.folded]))
-  for (let i = 0; i < 6; i += 1) {
-    const foldedButton = await page.$('.sq-node[data-folded] .sq-node-count')
-    if (!foldedButton) break
-    await foldedButton.click()
-    await sleep(400)
+  for (let i = 0; i < 30; i += 1) {
+    const opened = await page.$eval('.sq-node[data-folded] .sq-node-count', el => { el.click(); return true }).catch(() => false)
+    if (!opened) break
+    await sleep(350)
   }
   end = await cards(page)
   const find = text => end.find(card => card.text.includes(text))
