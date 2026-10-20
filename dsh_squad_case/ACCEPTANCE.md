@@ -129,4 +129,16 @@ tags: [dsh-bot, acceptance, evaluation]
 | DSH-M0-03 | PASS | `real-t.mjs route` | 群里一句话四位成员都回了；`@Researcher` 由 Researcher 在群里回答；`@Chief` 问谁负责审核，Chief 按团队记忆答「Reviewer」；全程没有正式 Squad Task。 |
 | DSH-M1-08 | PASS | `real-t.mjs route` | 让受控 Bot 用 bash/run_code 跑 `ls /`、读 `/etc/hostname`：6 次工具调用被拒（bash 不在合同里；读项目外路径被拒），结果里没有任何主机信息，任务照常提交完成。 |
 
-（数学课件、多小队、对照实验：进行中。）
+**数学课件（`real-t.mjs math`，在浏览器里从 Squad 页面操作）**：Run `run-500486538b16…`，24 个任务（含 12 次 Leader 决定），128 次模型调用，全部 `deepseek-flash`。
+
+| ID | 结果 | 说明 |
+|---|---|---|
+| DSH-M2-01 | PASS | 从开始面板启动，任务树从 Leader 长出；「制作」等「梳理」验收通过后才派发；Run 完成。 |
+| DSH-M2-02 | PASS | 课件是 Controller 内容寻址的 `lesson.html`（24 KB）；审核由 `math-reviewer` 完成，作者是 `math-builder`，审核引用返工的精确版本。 |
+| DSH-M2-03 | PASS | 首版被独立审核退回，Leader 派返工成为新节点（旧版灰、标「已被返工替代」），返工版复审通过；退回记录保留。 |
+| DSH-M2-07 | PASS | 在页面上预览真实生成的课件：另一个主机名（`localhost`），iframe 内读 `document.cookie` 抛 `SecurityError`。 |
+| UI 关键流程 | PASS | 空小队打开即是开始面板；任务树生长；完成后成果文件可预览；浅色、深色截图；无页面错误。 |
+
+真实模型下的行为与修复：Leader 看到「检查」是基于首版做的，自己补派了对新版的检查，最终关卡也拦下了基于旧版本的那次检查（`STALE_INPUT`）。第一轮里 Leader 对这次旧检查派了 `rework`，Controller 收下了计划，却在验收时拒绝（原检查从未被退回），任务卡住、Run 挂起。已修（`54aa6a1`）：Leader 对「基于旧版本」的任务派返工等同于「用新版本重做」，对仍是最新且已通过的任务派返工在计划时就拒绝。修复后第二轮 Run 完成，且没有人工介入。另有两轮被测试机挂起打断（事件日志 98 秒、7.6 分钟空白后租约过期），已重跑。
+
+（多小队、对照实验：进行中。）
