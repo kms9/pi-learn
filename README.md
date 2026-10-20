@@ -2,7 +2,9 @@
 
 > **当前研发主线：DS Bot 提供完整多助手 Web 交互，DSH 负责 Agent 执行，现有 Go Squad Controller 提供正式任务治理。**
 >
-> **截至 2026-10-18：迁移规划与源码引入阶段。** DS Bot 上游已有长期 Bot、群聊、多模型、记忆等能力；本项目的 DSH Adapter、Managed 模式与策略实验尚未实现或验收。
+> **截至 2026-10-20：M0–M4 与 Squad 界面已完成，T 阶段（统一测试，含 DeepSeek `deepseek-flash` 真实模型）进行中。** 验收结果见 [`dsh_squad_case/ACCEPTANCE.md`](dsh_squad_case/ACCEPTANCE.md)。
+>
+> 📘 **[使用指南（面向非开发用户）](docs/guide/dsh-squad-使用指南.md)**：从一键部署、配置 DeepSeek、建小队和规则，到看任务树、处理需要你处理的节点、多小队和实验报告，每一步配测试截图。配置与接口的完整说明见 [`dsh_squad/USAGE.md`](dsh_squad/USAGE.md)。
 
 ## 一、项目目标
 
