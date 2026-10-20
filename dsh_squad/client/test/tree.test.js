@@ -78,3 +78,22 @@ test('layout: parents centred over children, siblings make way, the root centred
   assert.equal(folded.nodes[0].hidden, 3)
   assert.deepEqual(layout(tree(2)), layout(tree(2)), 'deterministic')
 })
+
+test('a big Run (P6): 100 steps with their reviews draw in well under a frame budget', () => {
+  const tasks = []
+  for (let i = 0; i < 100; i += 1) {
+    const id = `s${String(i).padStart(3, '0')}`
+    tasks.push(task(id, { origin: { kind: 'workflow' }, created_at: `2026-10-19T00:${String(Math.floor(i / 60)).padStart(2, '0')}:${String(i % 60).padStart(2, '0')}Z` }))
+    tasks.push(task(`r${id}`, { kind: 'review', origin: { kind: 'review', by: id }, dependencies: [{ task_id: id }], created_at: `2026-10-19T01:${String(Math.floor(i / 60)).padStart(2, '0')}:${String(i % 60).padStart(2, '0')}Z` }))
+  }
+  const attempts = tasks.map(t => attempt(`a-${t.task_id}`, t.task_id))
+  const started = performance.now()
+  const { root, nodes } = treeOf(snapshot(tasks, attempts), 'run-1')
+  const placed = layout(root, new Set())
+  const spent = performance.now() - started
+  assert.equal(nodes.size, 201)
+  assert.equal(placed.nodes.length, 201)
+  assert.ok(spent < 100, `${spent.toFixed(1)} ms`)
+  // Every card has its own place.
+  assert.equal(new Set(placed.nodes.map(item => `${item.x},${item.y}`)).size, 201)
+})

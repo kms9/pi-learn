@@ -152,6 +152,8 @@ var timer = null;
 var running = false;
 async function refresh() {
   const view = await call("view");
+  const before = store.get();
+  if (view.connected !== false && (before.projection.stale && before.projection.snapshot !== null || before.connected === false)) toast("已重新连上，状态已更新", "ok");
   store.set((state) => view.connected === false ? { ...state, connected: false } : { ...state, connected: true, projection: acceptSnapshot(state.projection, view.snapshot), teams: view.teams ?? {}, approvals: view.approvals ?? [], previewBase: view.previewBase, errors: view.errors ?? [], bots: view.bots ?? state.bots });
 }
 async function step() {
@@ -945,9 +947,13 @@ function NodePopover({ node, x, y, onDetails, onClose }) {
   else if (task && node.state.note === "基于旧版本") body = (0, import_react4.createElement)(Stale, { task });
   else if (task && task.state === "completed" && task.acceptance_policy?.mode === "human") body = (0, import_react4.createElement)(Accept, { task });
   else if (node.kind === "run" && run?.recovery_hold) body = (0, import_react4.createElement)(Held, { run });
+  const box = (0, import_react4.useRef)(null);
+  (0, import_react4.useEffect)(() => {
+    box.current?.querySelector(".sq-pop-main .sq-btn, .sq-btn, textarea, input")?.focus({ preventScroll: true });
+  }, [node.id]);
   return (0, import_react4.createElement)(
     "div",
-    { className: "sq-pop", "data-s": node.state.status, style: { transform: `translate(${x}px, ${y}px)` }, onMouseDown: (event) => event.stopPropagation(), onClick: (event) => event.stopPropagation(), role: "dialog", "aria-label": "处理这一步" },
+    { className: "sq-pop", "data-s": node.state.status, style: { transform: `translate(${x}px, ${y}px)` }, onMouseDown: (event) => event.stopPropagation(), onClick: (event) => event.stopPropagation(), role: "dialog", "aria-label": `处理这一步：${node.title}`, ref: box },
     (0, import_react4.createElement)("button", { className: "sq-x sq-pop-close", "aria-label": "关闭", onClick: onClose }, "×"),
     body,
     (0, import_react4.createElement)(Guidance, { run, task }),
@@ -971,7 +977,9 @@ function Avatar({ member, size = 28 }) {
   const name = member?.name || member?.agentId || "?";
   return image ? (0, import_react5.createElement)("img", { className: "sq-avatar", src: image, alt: "", width: size, height: size }) : (0, import_react5.createElement)("span", { className: "sq-avatar", "aria-hidden": true, style: { width: size, height: size, background: colorOf(member) } }, name.slice(0, 1).toUpperCase());
 }
-function NodeCard({ item, selected, isNew, onSelect, onFold, also = [] }) {
+var sameCard = (a, b) => a.selected === b.selected && a.isNew === b.isNew && a.item.x === b.item.x && a.item.y === b.item.y && a.item.hidden === b.item.hidden && a.also.join() === b.also.join() && a.onSelect === b.onSelect && a.onFold === b.onFold && a.onFocus === b.onFocus && cardKey(a.item.node) === cardKey(b.item.node);
+var cardKey = (node) => JSON.stringify([node.id, node.title, node.state, node.folds?.status, node.children.length, node.member?.name, node.member?.model, node.member?.look?.color, node.member?.look?.avatar?.image, node.decisions, node.run?.guidance?.length, node.task?.kind]);
+var NodeCard = (0, import_react5.memo)(function NodeCard2({ item, selected, isNew, onSelect, onFold, onFocus, also = [] }) {
   const { node, hidden } = item;
   const state = hidden > 0 && node.folds ? node.folds : node.state;
   const count = node.children.length;
@@ -988,11 +996,16 @@ function NodeCard({ item, selected, isNew, onSelect, onFold, also = [] }) {
       style: { transform: `translate(${item.x}px, ${item.y}px)`, width: CARD.width, height: CARD.height },
       role: "button",
       tabIndex: 0,
-      "aria-label": `${node.role} ${node.title} ${state.note ?? ""}`,
+      "aria-label": [node.kind === "run" ? "Leader" : node.member?.name || node.role, node.title, LABELS2[state.status], state.note, state.reason, folded ? `折叠了 ${hidden} 个` : ""].filter(Boolean).join("，"),
+      "aria-pressed": selected,
       "data-node": node.id,
       onClick: () => onSelect(node.id),
+      onFocus: () => onFocus(item),
       onKeyDown: (event) => {
-        if (event.key === "Enter") onSelect(node.id);
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect(node.id);
+        }
       }
     },
     (0, import_react5.createElement)(
@@ -1020,7 +1033,8 @@ function NodeCard({ item, selected, isNew, onSelect, onFold, also = [] }) {
       }
     }, folded ? `+${hidden}` : String(count)) : null
   );
-}
+}, sameCard);
+var LABELS2 = { running: "进行中", done: "完成", attention: "需要你处理", failed: "失败", stopped: "已停止", waiting: "未开始" };
 function Edges({ items, edges, width, height }) {
   const at = new Map(items.map((item) => [item.node.id, item]));
   return (0, import_react5.createElement)(
@@ -1051,6 +1065,10 @@ function Edges({ items, edges, width, height }) {
 function Drawer({ node, onClose }) {
   const previewBase = useStore((state) => state.previewBase);
   const attempts = useStore((state) => state.projection.snapshot?.views?.attempts ?? []);
+  const closer = (0, import_react5.useRef)(null);
+  (0, import_react5.useEffect)(() => {
+    closer.current?.focus({ preventScroll: true });
+  }, [node?.id]);
   if (!node) return null;
   const task = node.task;
   const run = node.run;
@@ -1058,8 +1076,8 @@ function Drawer({ node, onClose }) {
   const result = task?.result;
   return (0, import_react5.createElement)(
     "aside",
-    { className: "sq-drawer", "aria-label": "节点详情" },
-    (0, import_react5.createElement)("div", { className: "sq-row" }, (0, import_react5.createElement)(StatusChip, { state: node.state }), (0, import_react5.createElement)("strong", { style: { flex: 1 } }, node.title), (0, import_react5.createElement)("button", { className: "sq-x", "aria-label": "关闭详情", onClick: onClose }, "×")),
+    { className: "sq-drawer", role: "dialog", "aria-label": `详情：${node.title}` },
+    (0, import_react5.createElement)("div", { className: "sq-row" }, (0, import_react5.createElement)(StatusChip, { state: node.state }), (0, import_react5.createElement)("strong", { style: { flex: 1 } }, node.title), (0, import_react5.createElement)("button", { className: "sq-x", "aria-label": "关闭详情", onClick: onClose, ref: closer }, "×")),
     node.state.reason ? (0, import_react5.createElement)("div", { className: "sq-reason" }, node.state.reason) : null,
     (0, import_react5.createElement)("div", { className: "sq-row" }, (0, import_react5.createElement)(Avatar, { member: node.member, size: 22 }), (0, import_react5.createElement)("span", null, node.kind === "run" ? `Leader · ${node.member?.name ?? ""}` : `${node.member?.name || ""} · ${node.role}`), node.member?.model ? (0, import_react5.createElement)("span", { className: "sq-muted" }, node.member.model) : null),
     (0, import_react5.createElement)("div", { className: "sq-muted" }, node.kind === "run" ? "目标" : "任务"),
@@ -1101,6 +1119,12 @@ function RunCanvas({ runId }) {
   const box = (0, import_react5.useRef)(null);
   const seen = (0, import_react5.useRef)(null);
   const drag = (0, import_react5.useRef)(null);
+  const foldedRef = (0, import_react5.useRef)(/* @__PURE__ */ new Set());
+  const selectRef = (0, import_react5.useRef)((id) => {
+    setSelected(id);
+    setDetails(false);
+  });
+  const toggleRef = (0, import_react5.useRef)((id) => setOverrides((current) => ({ ...current, [id]: !foldedRef.current.has(id) })));
   const auto = (0, import_react5.useMemo)(() => tree ? autoFolded(tree.root) : /* @__PURE__ */ new Set(), [tree]);
   const forcedOpen = (0, import_react5.useMemo)(() => {
     const open2 = /* @__PURE__ */ new Set();
@@ -1149,15 +1173,38 @@ function RunCanvas({ runId }) {
     const timer2 = setTimeout(() => el?.removeAttribute("data-flash"), 1200);
     return () => clearTimeout(timer2);
   }, [focus?.at, placed !== null]);
+  (0, import_react5.useEffect)(() => {
+    if (!selected) return void 0;
+    const onKey = (event) => {
+      if (event.key !== "Escape" || store.get().preview) return;
+      event.stopImmediatePropagation();
+      close2();
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [selected]);
+  const close2 = () => {
+    const id = selected;
+    setSelected(null);
+    setTimeout(() => box.current?.querySelector(`[data-node="${CSS.escape(id ?? "")}"]`)?.focus({ preventScroll: true }), 0);
+  };
+  const onFocus = (0, import_react5.useMemo)(() => (item) => {
+    const el = box.current;
+    if (!el) return;
+    setView((current) => {
+      const left = current.x + item.x * current.scale;
+      const top = current.y + item.y * current.scale;
+      const inside = left >= 0 && top >= 0 && left + CARD.width * current.scale <= el.clientWidth && top + CARD.height * current.scale <= el.clientHeight;
+      return inside ? current : { ...current, moved: true, x: Math.round(el.clientWidth / 2 - (item.x + CARD.width / 2) * current.scale), y: Math.round(el.clientHeight / 2 - (item.y + CARD.height / 2) * current.scale) };
+    });
+  }, []);
   if (!tree || !placed) return (0, import_react5.createElement)("div", { className: "sq-muted" }, "选择左边的一个 Run，或开始一个新的。");
   const node = selected ? tree.nodes.get(selected) : null;
   const selectedItem = node ? placed.nodes.find((item) => item.node.id === node.id) : null;
   const popover = node && hasActions(node) && !details && selectedItem;
-  const select = (id) => {
-    setSelected(id);
-    setDetails(false);
-  };
-  const toggle = (id) => setOverrides((current) => ({ ...current, [id]: !folded.has(id) }));
+  const select = selectRef.current;
+  const toggle = toggleRef.current;
+  foldedRef.current = folded;
   const onWheel = (event) => {
     if (!event.ctrlKey && !event.metaKey) return;
     event.preventDefault();
@@ -1183,6 +1230,8 @@ function RunCanvas({ runId }) {
         className: "sq-canvas",
         ref: box,
         onWheel,
+        role: "region",
+        "aria-label": `任务树：${tree.root.title}，${placed.nodes.length} 个节点。Tab 逐个经过，Enter 打开，Esc 关闭`,
         onMouseDown: (event) => {
           if (event.target === event.currentTarget || event.target.classList?.contains("sq-edges")) drag.current = { x: event.clientX, y: event.clientY, view };
         },
@@ -1200,11 +1249,11 @@ function RunCanvas({ runId }) {
         "div",
         { className: "sq-layer", style: { transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` } },
         (0, import_react5.createElement)(Edges, { items: placed.nodes, edges: placed.edges, width: placed.width, height: placed.height }),
-        placed.nodes.map((item) => (0, import_react5.createElement)(NodeCard, { key: item.node.id, item, selected: selected === item.node.id, isNew: fresh.has(item.node.id), onSelect: select, onFold: toggle, also: item.node.kind === "task" ? alsoIn(item.node.member?.botId, tree.root.run.team_id, bound) : [] })),
-        popover ? (0, import_react5.createElement)(NodePopover, { key: `pop-${node.id}`, node, x: selectedItem.x + CARD.width + 14, y: selectedItem.y, onDetails: () => setDetails(true), onClose: () => setSelected(null) }) : null
+        placed.nodes.map((item) => (0, import_react5.createElement)(NodeCard, { key: item.node.id, item, selected: selected === item.node.id, isNew: fresh.has(item.node.id), onSelect: select, onFold: toggle, onFocus, also: item.node.kind === "task" ? alsoIn(item.node.member?.botId, tree.root.run.team_id, bound) : [] })),
+        popover ? (0, import_react5.createElement)(NodePopover, { key: `pop-${node.id}`, node, x: selectedItem.x + CARD.width + 14, y: selectedItem.y, onDetails: () => setDetails(true), onClose: close2 }) : null
       )
     ),
-    node && !popover ? (0, import_react5.createElement)(Drawer, { node, onClose: () => setSelected(null) }) : null
+    node && !popover ? (0, import_react5.createElement)(Drawer, { node, onClose: close2 }) : null
   );
 }
 
@@ -1754,12 +1803,31 @@ function Console() {
       else close();
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    const onTab = (event) => {
+      if (event.key !== "Tab") return;
+      const layers = document.querySelectorAll("[data-squad=overlay] .sq-root");
+      const top = layers[layers.length - 1];
+      if (!top) return;
+      const all = [...top.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')].filter((el) => !el.disabled && el.getClientRects().length > 0);
+      if (all.length === 0) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const at = all.indexOf(document.activeElement);
+      const next = at === -1 ? event.shiftKey ? all.length - 1 : 0 : (at + (event.shiftKey ? -1 : 1) + all.length) % all.length;
+      all[next].focus({ preventScroll: true });
+    };
+    window.addEventListener("keydown", onTab, true);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("keydown", onTab, true);
+    };
   }, []);
-  const body = tab === "config" ? (0, import_react9.createElement)(ConfigTab) : tab === "reports" ? (0, import_react9.createElement)(ReportsTab) : overview ? (0, import_react9.createElement)(Overview) : [(0, import_react9.createElement)("div", { key: "side", className: "sq-side" }, (0, import_react9.createElement)(RunList, { teamId: scope })), (0, import_react9.createElement)("div", { key: "main", className: "sq-main" }, (0, import_react9.createElement)(RunDetail, { runId }))];
+  const loading = useStore((state) => state.projection.snapshot === null && state.connected !== false);
+  const failed = useStore((state) => state.projection.error);
+  const body = loading && tab === "runs" ? (0, import_react9.createElement)("div", { className: "sq-main sq-empty", role: "status" }, failed ? `还读不到小队状态（${failed}），正在重试…` : "正在读取小队状态…") : tab === "config" ? (0, import_react9.createElement)(ConfigTab) : tab === "reports" ? (0, import_react9.createElement)(ReportsTab) : overview ? (0, import_react9.createElement)(Overview) : [(0, import_react9.createElement)("div", { key: "side", className: "sq-side" }, (0, import_react9.createElement)(RunList, { teamId: scope })), (0, import_react9.createElement)("div", { key: "main", className: "sq-main" }, (0, import_react9.createElement)(RunDetail, { runId }))];
   return (0, import_react9.createElement)(
     "div",
-    { className: "sq-root", role: "dialog", "aria-label": "Squad 小队", onMouseDown: (event) => {
+    { className: "sq-root", role: "dialog", "aria-modal": true, "aria-label": "Squad 小队", onMouseDown: (event) => {
       if (event.target === event.currentTarget) close();
     } },
     (0, import_react9.createElement)(
@@ -1977,6 +2045,8 @@ tr[data-focus]{outline:2px solid var(--sq-attention);outline-offset:-2px}
 .sq-held{border-top:1px dashed var(--sq-line);padding-top:6px;display:flex;flex-direction:column;gap:6px}
 .sq-held-row{background:var(--sq-chip);border-radius:8px;padding:6px 8px;display:flex;flex-direction:column;gap:4px;cursor:default;font-size:13px}
 .sq-node-also{font-size:11px;color:var(--sq-accent);border:1px solid var(--sq-accent);border-radius:999px;padding:0 6px;white-space:nowrap}
+.sq-empty{align-items:center;justify-content:center;color:var(--sq-muted)}
+.sq-node:focus-visible,.sq-team:focus-visible,.sq-btn:focus-visible,.sq-pill:focus-visible,.sq-seg button:focus-visible,.sq-link:focus-visible{outline:2px solid var(--sq-accent);outline-offset:2px}
 `;
 function installStyles() {
   const style = document.createElement("style");

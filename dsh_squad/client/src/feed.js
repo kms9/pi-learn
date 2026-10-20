@@ -3,13 +3,16 @@
 // skip ahead (a gap), come from a restarted Controller, or the connection drops.
 import { call } from './api.js'
 import { acceptSnapshot, lost, readEvents } from './projection.js'
-import { store } from './store.js'
+import { store, toast } from './store.js'
 
 let timer = null
 let running = false
 
 async function refresh() {
   const view = await call('view')
+  const before = store.get()
+  // Back after a drop: say so once, the banner goes away by itself.
+  if (view.connected !== false && ((before.projection.stale && before.projection.snapshot !== null) || before.connected === false)) toast('已重新连上，状态已更新', 'ok')
   store.set(state => (view.connected === false
     ? { ...state, connected: false }
     : { ...state, connected: true, projection: acceptSnapshot(state.projection, view.snapshot), teams: view.teams ?? {}, approvals: view.approvals ?? [], previewBase: view.previewBase, errors: view.errors ?? [], bots: view.bots ?? state.bots }))

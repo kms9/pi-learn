@@ -138,6 +138,8 @@ tr[data-focus]{outline:2px solid var(--sq-attention);outline-offset:-2px}
 .sq-held{border-top:1px dashed var(--sq-line);padding-top:6px;display:flex;flex-direction:column;gap:6px}
 .sq-held-row{background:var(--sq-chip);border-radius:8px;padding:6px 8px;display:flex;flex-direction:column;gap:4px;cursor:default;font-size:13px}
 .sq-node-also{font-size:11px;color:var(--sq-accent);border:1px solid var(--sq-accent);border-radius:999px;padding:0 6px;white-space:nowrap}
+.sq-empty{align-items:center;justify-content:center;color:var(--sq-muted)}
+.sq-node:focus-visible,.sq-team:focus-visible,.sq-btn:focus-visible,.sq-pill:focus-visible,.sq-seg button:focus-visible,.sq-link:focus-visible{outline:2px solid var(--sq-accent);outline-offset:2px}
 `
 
 export function installStyles() {

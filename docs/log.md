@@ -905,3 +905,9 @@ tags:
 - 来源: 用户确认 `docs/dsh-squad-ui-plan-2026-10-19.md` §8 全部按建议。
 - 更新: 规划新增「决策记录」节；Q46 关闭。
 - 说明: 忽略的含义、Q41 用户一键重做（方案 B）、多小队总览 + 切换、审核独立子节点、每次重试画节点并自动折叠、不自动跳转。按 P1 → P6 实现，每阶段 mock 验收并截浅色、深色两组图。
+
+## [2026-10-19] session | Squad 界面 P1–P6 完成
+
+- 来源: 用户拍板 UI 规划 D1–D6 后要求按 P1 → P6 实现；分支 `feat/dsh-ui-plan`；mock 模型、无头 Chrome。
+- 更新: `dsh_squad/controller`（任务来源与标题、Run 最终检查失败原因、`task:restart`/`rebase`/`keep`、被扣留消息处理 `POST /v2/held-inputs/:id/dispose`）、`dsh_squad/adapter`（`ui/dispose` 等）、`dsh_squad/client`（状态、汇总栏、任务树画布、处理框、多小队、键盘与读屏、加载与断线提示）、`probes/ui-p1…p6.mjs`、`dsh_squad/USAGE.md`、规划进度、会话页 `docs/sessions/2026-10-19-dsh-squad-ui-p1-p6.md`、Q41 关闭、Q47 新增。
+- 说明: 以 Leader 为根的任务树、五种状态与一句话原因、汇总栏跨小队下拉、失败只给忽略/重试、重试与返工挂在原节点下并自动折叠、Q41 一键重做、多小队总览与切换、键盘操作。不显示花费和用时。全量 mock 回归通过（ui-p1…p6、drive-m0…m4、drive-p1 14/14、drive-m1 7/7、check.sh）。截图未提交（用户决定）；T 阶段未开始。

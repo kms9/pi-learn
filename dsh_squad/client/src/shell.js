@@ -49,13 +49,32 @@ function Console() {
       else close()
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    // The console is modal: Tab cycles inside it (the preview when one is open), before
+    // the host page's own keyboard handling sees it.
+    const onTab = (event) => {
+      if (event.key !== 'Tab') return
+      const layers = document.querySelectorAll('[data-squad=overlay] .sq-root')
+      const top = layers[layers.length - 1]
+      if (!top) return
+      const all = [...top.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')].filter(el => !el.disabled && el.getClientRects().length > 0)
+      if (all.length === 0) return
+      event.preventDefault()
+      event.stopImmediatePropagation()
+      const at = all.indexOf(document.activeElement)
+      const next = at === -1 ? (event.shiftKey ? all.length - 1 : 0) : (at + (event.shiftKey ? -1 : 1) + all.length) % all.length
+      all[next].focus({ preventScroll: true })
+    }
+    window.addEventListener('keydown', onTab, true)
+    return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('keydown', onTab, true) }
   }, [])
-  const body = tab === 'config' ? h(ConfigTab)
+  const loading = useStore(state => state.projection.snapshot === null && state.connected !== false)
+  const failed = useStore(state => state.projection.error)
+  const body = loading && tab === 'runs' ? h('div', { className: 'sq-main sq-empty', role: 'status' }, failed ? `还读不到小队状态（${failed}），正在重试…` : '正在读取小队状态…')
+    : tab === 'config' ? h(ConfigTab)
     : tab === 'reports' ? h(ReportsTab)
       : overview ? h(Overview)
         : [h('div', { key: 'side', className: 'sq-side' }, h(RunList, { teamId: scope })), h('div', { key: 'main', className: 'sq-main' }, h(RunDetail, { runId }))]
-  return h('div', { className: 'sq-root', role: 'dialog', 'aria-label': 'Squad 小队', onMouseDown: event => { if (event.target === event.currentTarget) close() } },
+  return h('div', { className: 'sq-root', role: 'dialog', 'aria-modal': true, 'aria-label': 'Squad 小队', onMouseDown: event => { if (event.target === event.currentTarget) close() } },
     h('div', { className: 'sq-shell' },
       h('div', { className: 'sq-head' },
         h('span', { className: 'sq-title' }, 'Squad 小队'),

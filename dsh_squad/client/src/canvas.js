@@ -3,7 +3,7 @@
 // transition, so siblings make way by themselves when a node appears; a new node grows
 // out of its parent; the tree stays centred until the person moves it. Folding and the
 // details drawer live here too.
-import { createElement as h, Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { createElement as h, Fragment, memo, useEffect, useMemo, useRef, useState } from 'react'
 import { autoFolded, treeOf } from './tree.js'
 import { CARD, layout } from './layout.js'
 import { KIND } from './model.js'
@@ -31,7 +31,13 @@ export function Avatar({ member, size = 28 }) {
     : h('span', { className: 'sq-avatar', 'aria-hidden': true, style: { width: size, height: size, background: colorOf(member) } }, name.slice(0, 1).toUpperCase())
 }
 
-function NodeCard({ item, selected, isNew, onSelect, onFold, also = [] }) {
+// A card redraws only when what it shows changed: a big tree (UI plan P6, 50+ nodes)
+// stays smooth while the snapshot ticks.
+const sameCard = (a, b) => a.selected === b.selected && a.isNew === b.isNew && a.item.x === b.item.x && a.item.y === b.item.y && a.item.hidden === b.item.hidden
+  && a.also.join() === b.also.join() && a.onSelect === b.onSelect && a.onFold === b.onFold && a.onFocus === b.onFocus && cardKey(a.item.node) === cardKey(b.item.node)
+const cardKey = node => JSON.stringify([node.id, node.title, node.state, node.folds?.status, node.children.length, node.member?.name, node.member?.model, node.member?.look?.color, node.member?.look?.avatar?.image, node.decisions, node.run?.guidance?.length, node.task?.kind])
+
+const NodeCard = memo(function NodeCard({ item, selected, isNew, onSelect, onFold, onFocus, also = [] }) {
   const { node, hidden } = item
   const state = hidden > 0 && node.folds ? node.folds : node.state
   const count = node.children.length
@@ -39,8 +45,8 @@ function NodeCard({ item, selected, isNew, onSelect, onFold, also = [] }) {
   return h('div', {
     className: 'sq-node', 'data-s': state.status, 'data-kind': node.kind, 'data-new': isNew || undefined, 'data-selected': selected || undefined, 'data-folded': folded || undefined,
     style: { transform: `translate(${item.x}px, ${item.y}px)`, width: CARD.width, height: CARD.height },
-    role: 'button', tabIndex: 0, 'aria-label': `${node.role} ${node.title} ${state.note ?? ''}`, 'data-node': node.id,
-    onClick: () => onSelect(node.id), onKeyDown: event => { if (event.key === 'Enter') onSelect(node.id) },
+    role: 'button', tabIndex: 0, 'aria-label': [node.kind === 'run' ? 'Leader' : node.member?.name || node.role, node.title, LABELS[state.status], state.note, state.reason, folded ? `折叠了 ${hidden} 个` : ''].filter(Boolean).join('，'), 'aria-pressed': selected, 'data-node': node.id,
+    onClick: () => onSelect(node.id), onFocus: () => onFocus(item), onKeyDown: (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelect(node.id) } },
   },
   h('div', { className: 'sq-node-head' },
     h(Avatar, { member: node.member }),
@@ -55,7 +61,8 @@ function NodeCard({ item, selected, isNew, onSelect, onFold, also = [] }) {
     className: 'sq-node-count', 'aria-label': folded ? `展开 ${hidden} 个` : `折叠 ${count} 个子节点`, title: folded ? '展开' : '折叠',
     onClick: (event) => { event.stopPropagation(); onFold(node.id) },
   }, folded ? `+${hidden}` : String(count)) : null)
-}
+}, sameCard)
+const LABELS = { running: '进行中', done: '完成', attention: '需要你处理', failed: '失败', stopped: '已停止', waiting: '未开始' }
 
 function Edges({ items, edges, width, height }) {
   const at = new Map(items.map(item => [item.node.id, item]))
@@ -85,13 +92,15 @@ function Edges({ items, edges, width, height }) {
 function Drawer({ node, onClose }) {
   const previewBase = useStore(state => state.previewBase)
   const attempts = useStore(state => state.projection.snapshot?.views?.attempts ?? [])
+  const closer = useRef(null)
+  useEffect(() => { closer.current?.focus({ preventScroll: true }) }, [node?.id])
   if (!node) return null
   const task = node.task
   const run = node.run
   const own = task ? (task.attempt_ids ?? []).map(id => attempts.find(attempt => attempt.attempt_id === id)).filter(Boolean) : []
   const result = task?.result
-  return h('aside', { className: 'sq-drawer', 'aria-label': '节点详情' },
-    h('div', { className: 'sq-row' }, h(StatusChip, { state: node.state }), h('strong', { style: { flex: 1 } }, node.title), h('button', { className: 'sq-x', 'aria-label': '关闭详情', onClick: onClose }, '×')),
+  return h('aside', { className: 'sq-drawer', role: 'dialog', 'aria-label': `详情：${node.title}` },
+    h('div', { className: 'sq-row' }, h(StatusChip, { state: node.state }), h('strong', { style: { flex: 1 } }, node.title), h('button', { className: 'sq-x', 'aria-label': '关闭详情', onClick: onClose, ref: closer }, '×')),
     node.state.reason ? h('div', { className: 'sq-reason' }, node.state.reason) : null,
     h('div', { className: 'sq-row' }, h(Avatar, { member: node.member, size: 22 }), h('span', null, node.kind === 'run' ? `Leader · ${node.member?.name ?? ''}` : `${node.member?.name || ''} · ${node.role}`), node.member?.model ? h('span', { className: 'sq-muted' }, node.member.model) : null),
     h('div', { className: 'sq-muted' }, node.kind === 'run' ? '目标' : '任务'),
@@ -125,6 +134,10 @@ export function RunCanvas({ runId }) {
   const box = useRef(null)
   const seen = useRef(null)
   const drag = useRef(null)
+  // Stable handlers, so unchanged cards are not redrawn.
+  const foldedRef = useRef(new Set())
+  const selectRef = useRef((id) => { setSelected(id); setDetails(false) })
+  const toggleRef = useRef(id => setOverrides(current => ({ ...current, [id]: !foldedRef.current.has(id) })))
   const auto = useMemo(() => (tree ? autoFolded(tree.root) : new Set()), [tree])
   // A node a jump points at is never folded away: its ancestors open.
   const forcedOpen = useMemo(() => {
@@ -168,13 +181,42 @@ export function RunCanvas({ runId }) {
     const timer = setTimeout(() => el?.removeAttribute('data-flash'), 1200)
     return () => clearTimeout(timer)
   }, [focus?.at, placed !== null])
+  // Escape closes the popover or the drawer before anything else, and the focus goes
+  // back to the card it came from.
+  useEffect(() => {
+    if (!selected) return undefined
+    const onKey = (event) => {
+      if (event.key !== 'Escape' || store.get().preview) return
+      event.stopImmediatePropagation()
+      close()
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+  }, [selected])
+  const close = () => {
+    const id = selected
+    setSelected(null)
+    setTimeout(() => box.current?.querySelector(`[data-node="${CSS.escape(id ?? '')}"]`)?.focus({ preventScroll: true }), 0)
+  }
+  // A card reached with Tab is brought into view.
+  const onFocus = useMemo(() => (item) => {
+    const el = box.current
+    if (!el) return
+    setView((current) => {
+      const left = current.x + item.x * current.scale
+      const top = current.y + item.y * current.scale
+      const inside = left >= 0 && top >= 0 && left + CARD.width * current.scale <= el.clientWidth && top + CARD.height * current.scale <= el.clientHeight
+      return inside ? current : { ...current, moved: true, x: Math.round(el.clientWidth / 2 - (item.x + CARD.width / 2) * current.scale), y: Math.round(el.clientHeight / 2 - (item.y + CARD.height / 2) * current.scale) }
+    })
+  }, [])
   if (!tree || !placed) return h('div', { className: 'sq-muted' }, '选择左边的一个 Run，或开始一个新的。')
   const node = selected ? tree.nodes.get(selected) : null
   const selectedItem = node ? placed.nodes.find(item => item.node.id === node.id) : null
   // A node that needs a person or failed opens its popover; the rest open details.
   const popover = node && hasActions(node) && !details && selectedItem
-  const select = (id) => { setSelected(id); setDetails(false) }
-  const toggle = id => setOverrides(current => ({ ...current, [id]: !folded.has(id) }))
+  const select = selectRef.current
+  const toggle = toggleRef.current
+  foldedRef.current = folded
   const onWheel = (event) => {
     if (!event.ctrlKey && !event.metaKey) return
     event.preventDefault()
@@ -190,14 +232,14 @@ export function RunCanvas({ runId }) {
         setView({ moved: true, scale, x: Math.round((width - placed.width * scale) / 2), y: 24 })
       } }, '适应窗口')),
     h('div', {
-      className: 'sq-canvas', ref: box, onWheel,
+      className: 'sq-canvas', ref: box, onWheel, role: 'region', 'aria-label': `任务树：${tree.root.title}，${placed.nodes.length} 个节点。Tab 逐个经过，Enter 打开，Esc 关闭`,
       onMouseDown: (event) => { if (event.target === event.currentTarget || event.target.classList?.contains('sq-edges')) drag.current = { x: event.clientX, y: event.clientY, view } },
       onMouseMove: (event) => { if (drag.current) setView({ ...drag.current.view, moved: true, x: drag.current.view.x + event.clientX - drag.current.x, y: drag.current.view.y + event.clientY - drag.current.y }) },
       onMouseUp: () => { drag.current = null }, onMouseLeave: () => { drag.current = null },
     },
     h('div', { className: 'sq-layer', style: { transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` } },
       h(Edges, { items: placed.nodes, edges: placed.edges, width: placed.width, height: placed.height }),
-      placed.nodes.map(item => h(NodeCard, { key: item.node.id, item, selected: selected === item.node.id, isNew: fresh.has(item.node.id), onSelect: select, onFold: toggle, also: item.node.kind === 'task' ? alsoIn(item.node.member?.botId, tree.root.run.team_id, bound) : [] })),
-      popover ? h(NodePopover, { key: `pop-${node.id}`, node, x: selectedItem.x + CARD.width + 14, y: selectedItem.y, onDetails: () => setDetails(true), onClose: () => setSelected(null) }) : null)),
-    node && !popover ? h(Drawer, { node, onClose: () => setSelected(null) }) : null)
+      placed.nodes.map(item => h(NodeCard, { key: item.node.id, item, selected: selected === item.node.id, isNew: fresh.has(item.node.id), onSelect: select, onFold: toggle, onFocus, also: item.node.kind === 'task' ? alsoIn(item.node.member?.botId, tree.root.run.team_id, bound) : [] })),
+      popover ? h(NodePopover, { key: `pop-${node.id}`, node, x: selectedItem.x + CARD.width + 14, y: selectedItem.y, onDetails: () => setDetails(true), onClose: close }) : null)),
+    node && !popover ? h(Drawer, { node, onClose: close }) : null)
 }

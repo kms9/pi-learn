@@ -5,7 +5,7 @@
 // cut when there is one. Needs you: the one action the node waits for (allow a tool,
 // accept a result, carry on after a restart). Every popover can send the Leader guidance
 // about this node. Every action carries the revision the card was drawn for.
-import { createElement as h, Fragment, useState } from 'react'
+import { createElement as h, Fragment, useEffect, useRef, useState } from 'react'
 import { call, requestId } from './api.js'
 import { refreshNow } from './feed.js'
 import { store, toast, useStore } from './store.js'
@@ -137,7 +137,10 @@ export function NodePopover({ node, x, y, onDetails, onClose }) {
   else if (task && node.state.note === '基于旧版本') body = h(Stale, { task })
   else if (task && task.state === 'completed' && task.acceptance_policy?.mode === 'human') body = h(Accept, { task })
   else if (node.kind === 'run' && run?.recovery_hold) body = h(Held, { run })
-  return h('div', { className: 'sq-pop', 'data-s': node.state.status, style: { transform: `translate(${x}px, ${y}px)` }, onMouseDown: event => event.stopPropagation(), onClick: event => event.stopPropagation(), role: 'dialog', 'aria-label': '处理这一步' },
+  // The keyboard lands on the first action, so Enter does the one thing this step waits for.
+  const box = useRef(null)
+  useEffect(() => { box.current?.querySelector('.sq-pop-main .sq-btn, .sq-btn, textarea, input')?.focus({ preventScroll: true }) }, [node.id])
+  return h('div', { className: 'sq-pop', 'data-s': node.state.status, style: { transform: `translate(${x}px, ${y}px)` }, onMouseDown: event => event.stopPropagation(), onClick: event => event.stopPropagation(), role: 'dialog', 'aria-label': `处理这一步：${node.title}`, ref: box },
     h('button', { className: 'sq-x sq-pop-close', 'aria-label': '关闭', onClick: onClose }, '×'),
     body,
     h(Guidance, { run, task }),

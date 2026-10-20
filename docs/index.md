@@ -74,8 +74,9 @@ tags:
 - [[decisions/2026-09-23-p0-identity-fields|2026-09-23 P0 身份字段与 HTTP Registry]]
 
 ## 会话
-- `docs/dsh-squad-ui-plan-2026-10-19.md` — 2026-10-19 Squad 界面与交互规划（任务树画布、五种状态映射、汇总栏、处理框、返工与重试历史、多小队总览、深浅主题、Controller/adapter 新增数据、P1–P6 与 mock 验收）；决定 D1–D6 待确认。
+- `docs/dsh-squad-ui-plan-2026-10-19.md` — 2026-10-19 Squad 界面与交互规划（任务树画布、五种状态映射、汇总栏、处理框、返工与重试历史、多小队总览、深浅主题、Controller/adapter 新增数据、P1–P6 与 mock 验收）；D1–D6 已拍板，P1–P6 已实现。
 - `docs/dsh-squad-dev-plan-2026-10-18.md` — 2026-10-18 M0→M4 开发规划：工作包、关键路径、决策点 D1–D12、与 ACCEPTANCE 28 项的对应（D1–D12 已于 2026-10-19 拍板）。
+- [[sessions/2026-10-19-dsh-squad-ui-p1-p6|2026-10-19 Squad 界面 P1–P6：任务树、处理框、多小队与打磨]] — 以 Leader 为根的任务树、五种状态与汇总栏、处理框、重试与返工历史、Q41 一键重做、多小队总览与切换、键盘与断线提示；ui-p1…p6 在 mock 上验收。
 - [[sessions/2026-10-19-dsh-m4-multi-team|2026-10-19 DS Bot + Squad M4：多小队协同与完整恢复]] — 共用角色、子任务续接、崩溃恢复；drive-m4 13/13，M0–M4 全量 mock 回归通过。
 - [[sessions/2026-10-19-dsh-m3-squad-page|2026-10-19 DS Bot + Squad M3：Squad 页面与对照实验]] — DS Bot 内的 Squad 页面、配置编辑、投影桥、对照实验；drive-m3 18/18、ui-check 9/9。
 - [[sessions/2026-10-19-dsh-m2-team-run|2026-10-19 DS Bot + Squad M2：单 Team 在群里跑完整 Run]] — Leader/审核/返工、Artifact、Run Guidance、数学课件案例；drive-m2 12/12。

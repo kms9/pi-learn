@@ -9,6 +9,7 @@ tags:
 ---
 
 # 会话索引
+- [[2026-10-19-dsh-squad-ui-p1-p6|2026-10-19 Squad 界面 P1–P6：任务树、处理框、多小队与打磨]]
 - [[2026-10-19-dsh-m4-multi-team|2026-10-19 DS Bot + Squad M4：多小队协同与完整恢复]]
 - [[2026-10-19-dsh-m3-squad-page|2026-10-19 DS Bot + Squad M3：Squad 页面与对照实验]]
 - [[2026-10-19-dsh-m2-team-run|2026-10-19 DS Bot + Squad M2：单 Team 在群里跑完整 Run]]
