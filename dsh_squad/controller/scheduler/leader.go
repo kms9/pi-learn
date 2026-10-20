@@ -95,7 +95,7 @@ func (s *Service) Decide(ctx context.Context, p Principal, id string, q Decision
 			if count+len(q.Tasks) > r.Config.Config.Policy.MaxTotalTasks {
 				return task.Reject("TASK_BUDGET_EXHAUSTED", "plan exceeds Run budget")
 			}
-			if err := s.materialize(tx, r, w); err != nil {
+			if err := s.materialize(tx, r, w, task.Origin{Kind: "leader", By: c.ID}); err != nil {
 				return err
 			}
 			r.Phase = "running"

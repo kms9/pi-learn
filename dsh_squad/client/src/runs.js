@@ -2,10 +2,11 @@
 import { createElement as h, Fragment, useEffect, useState } from 'react'
 import { call, requestId } from './api.js'
 import { refreshNow } from './feed.js'
-import { KIND, RUN_PHASE, TASK_STATE, artifactsOf, cardsOf, goalOf, graphOf, runsOf, short, tasksOf, terminal, waitingOf } from './model.js'
+import { KIND, RUN_PHASE, TASK_STATE, artifactsOf, cardsOf, goalOf, runsOf, short, tasksOf, terminal, waitingOf } from './model.js'
 import { store, toast, useStore } from './store.js'
 import { runStatusOf, statusOf } from './status.js'
 import { StatusChip } from './summarybar.js'
+import { RunCanvas } from './canvas.js'
 
 const TONE = { completed: 'ok', accepted: 'ok', running: 'warn', needs_review: 'bad', failed: 'bad', interrupted: 'bad', rejected: 'bad', cancelled: 'bad' }
 const chip = (text, tone) => h('span', { className: 'sq-chip', 'data-tone': tone }, text)
@@ -71,40 +72,6 @@ export function RunList() {
         h('div', null, run.goal),
         h('div', { className: 'sq-muted' }, `${done}/${tasks.length} 个任务完成 · ${short(run.run_id)}${waitingOf(run).length ? ' · 排队中' : ''}`))
     }))
-}
-
-const NODE_W = 170
-const NODE_H = 54
-const GAP_X = 60
-const GAP_Y = 18
-
-export function RunGraph({ tasks }) {
-  const graph = graphOf(tasks)
-  if (graph.nodes.length === 0) return h('div', { className: 'sq-muted' }, 'Leader 还没有安排任务。')
-  const at = new Map(graph.nodes.map(node => [node.task.task_id, { x: 12 + node.col * (NODE_W + GAP_X), y: 12 + node.row * (NODE_H + GAP_Y) }]))
-  const width = 24 + graph.columns * (NODE_W + GAP_X) - GAP_X
-  const height = 24 + graph.rows * (NODE_H + GAP_Y) - GAP_Y
-  const views = store.get().projection.snapshot?.views ?? {}
-  const fillOf = task => `var(--sq-${statusOf(task, { attempts: views.attempts ?? [], tasks }).status}-bg)`
-  return h('div', { className: 'sq-dag' },
-    h('svg', { width, height, role: 'img', 'aria-label': '任务依赖图' },
-      h('defs', null, h('marker', { id: 'sq-arrow', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 6, markerHeight: 6, orient: 'auto' }, h('path', { d: 'M0,0 L10,5 L0,10 z', fill: '#999' }))),
-      graph.edges.map((edge, index) => {
-        const a = at.get(edge.from)
-        const b = at.get(edge.to)
-        return h('path', { key: index, d: `M${a.x + NODE_W},${a.y + NODE_H / 2} C${a.x + NODE_W + GAP_X / 2},${a.y + NODE_H / 2} ${b.x - GAP_X / 2},${b.y + NODE_H / 2} ${b.x},${b.y + NODE_H / 2}`, fill: 'none', stroke: edge.kind === 'rework' ? '#c62828' : '#999', strokeDasharray: edge.kind === 'rework' ? '4 3' : undefined, markerEnd: 'url(#sq-arrow)' })
-      }),
-      graph.nodes.map(({ task }) => {
-        const p = at.get(task.task_id)
-        const decision = task.acceptance?.decision ?? (task.kind === 'review' ? task.result?.value?.decision : undefined)
-        const goal = goalOf(task, tasks)
-        return h('g', { key: task.task_id, transform: `translate(${p.x},${p.y})` },
-          h('title', null, `${goal}\n${task.task_id}`),
-          h('rect', { width: NODE_W, height: NODE_H, rx: 8, fill: fillOf(task), stroke: task.superseded_by ? '#c62828' : '#bbb', strokeDasharray: task.superseded_by ? '4 3' : undefined }),
-          h('text', { x: 8, y: 18 }, `${KIND[task.kind] ?? task.kind} · ${task.role_id}`),
-          h('text', { x: 8, y: 34 }, `${TASK_STATE[task.state] ?? task.state}${decision ? ` · ${decision === 'accepted' ? '通过' : '退回'}` : ''}`),
-          h('text', { x: 8, y: 48, fill: '#888' }, goal.length > 14 ? `${goal.slice(0, 14)}…` : goal))
-      })))
 }
 
 function AnswerCard({ card }) {
@@ -188,6 +155,7 @@ export function RunDetail({ runId }) {
   const previewBase = useStore(state => state.previewBase)
   const focus = useStore(state => state.focus)
   const [guide, setGuide] = useState('')
+  const [listView, setListView] = useState(false)
   // A jump from the summary bar: the row scrolls into view once (until the canvas, P2).
   useEffect(() => {
     if (!focus?.taskId || focus.runId !== runId) return
@@ -213,14 +181,16 @@ export function RunDetail({ runId }) {
     section('需要你批准工具', of('approve'), ApproveCard),
     section('需要你验收成果', of('accept'), AcceptCard),
     section('需要恢复', of('recover'), RecoverCard),
-    h('div', { className: 'sq-section' }, h('h2', null, '任务依赖图'), h(RunGraph, { tasks })),
+    h('div', { className: 'sq-section' },
+      h('div', { className: 'sq-row' }, h('h2', { style: { margin: 0, flex: 1 } }, listView ? '任务列表' : '任务树'), h('button', { className: 'sq-btn', onClick: () => setListView(value => !value) }, listView ? '树视图' : '列表视图')),
+      listView ? null : h(RunCanvas, { runId })),
     artifacts.length === 0 ? null : h('div', { className: 'sq-section' }, h('h2', null, '成果文件'),
       h('table', { className: 'sq-table' }, h('tbody', null, artifacts.map(art => h('tr', { key: `${art.taskId}:${art.sha256}` },
         h('td', null, art.name ?? art.path), h('td', null, chip(art.superseded ? '已被返工取代' : art.accepted ? '已通过' : '待审核', art.superseded ? 'bad' : art.accepted ? 'ok' : 'warn')),
         h('td', { className: 'sq-muted' }, `${short(art.taskId)} · ${art.sha256.slice(0, 10)}`),
         h('td', null, previewBase && art.media_type === 'text/html' ? h('button', { className: 'sq-btn', onClick: () => store.set(state => ({ ...state, preview: { url: `${previewBase}/v2/artifacts/sha256/${art.sha256}`, name: art.name } })) }, '预览') : null)))))),
     section('审核结论', of('review'), ReviewCard),
-    h('div', { className: 'sq-section' }, h('h2', null, '全部任务'),
+    !listView ? null : h('div', { className: 'sq-section' },
       h('div', { className: 'sq-muted' }, `Leader 已做 ${tasks.filter(task => task.kind === 'leader_step').length} 次决定（不在表中）`),
       h('table', { className: 'sq-table' },
         h('thead', null, h('tr', null, ['类型', '角色', '状态', '验收', '目标'].map(label => h('th', { key: label }, label)))),

@@ -25,6 +25,7 @@ type CreateTask struct {
 	Dependencies       []task.Dependency   `json:"dependencies"`
 	Refs               []project.ResultRef `json:"refs"`
 	ExpectedRevision   int64               `json:"expected_revision,omitempty"`
+	Title              string              `json:"title,omitempty"`
 }
 
 func contains(values []string, v string) bool {
@@ -168,6 +169,13 @@ func (s *Service) createTask(tx *sql.Tx, p Principal, q CreateTask) (task.Contra
 		}
 	}
 	c := baseTask(id, q.Kind, q.Goal, policy)
+	c.Title = strings.TrimSpace(q.Title)
+	c.Origin = &task.Origin{Kind: "direct"}
+	if q.ParentID != "" {
+		c.Origin = &task.Origin{Kind: "delegate", By: q.ParentID}
+	} else if q.RunID != "" {
+		c.Origin = &task.Origin{Kind: "leader", By: q.RunID}
+	}
 	if _, err := project.ParseOutputSchema(q.ExpectedOutput); err != nil {
 		return zero, err
 	}

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"github.com/kms9/pi-learn/dsh_squad/controller/fault"
+	"strings"
 	"time"
 
 	"github.com/kms9/pi-learn/dsh_squad/controller/project"
@@ -81,7 +82,7 @@ func (s *Service) CreateRun(ctx context.Context, p Principal, q CreateRun) (task
 			if !ok {
 				return task.Reject("WORKFLOW_NOT_FOUND", workflow)
 			}
-			if err := s.materialize(tx, out, w); err != nil {
+			if err := s.materialize(tx, out, w, task.Origin{Kind: "workflow", By: out.ID}); err != nil {
 				return err
 			}
 		}
@@ -225,7 +226,7 @@ func (s *Service) admitRuns(tx *sql.Tx) error {
 	}
 	return nil
 }
-func (s *Service) materialize(tx *sql.Tx, r task.Run, w project.Workflow) error {
+func (s *Service) materialize(tx *sql.Tx, r task.Run, w project.Workflow, origin task.Origin) error {
 	ids := map[string]string{}
 	for _, step := range w.Steps {
 		id, err := project.RandomID("task-")
@@ -242,6 +243,11 @@ func (s *Service) materialize(tx *sql.Tx, r task.Run, w project.Workflow) error 
 		c.RoleID = step.RoleRef
 		c.Source = r.Source
 		c.ReworkOf = resolveStep(ids, step.ReworkOf)
+		c.Title = strings.TrimSpace(step.Title)
+		c.Origin = &task.Origin{Kind: origin.Kind, By: origin.By}
+		if c.ReworkOf != "" {
+			c.Origin = &task.Origin{Kind: "rework", By: c.ReworkOf}
+		}
 		c.Dependencies = []task.Dependency{}
 		c.ExpectedOutput = step.ExpectedOutput
 		c.AcceptanceCriteria = step.Acceptance

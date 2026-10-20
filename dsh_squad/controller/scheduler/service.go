@@ -44,6 +44,13 @@ type Host struct {
 	Place   string `json:"place"`
 }
 
+// Route is the model a runtime's Bot is frozen to, as the host reports it (UI plan S1).
+type Route struct {
+	Provider string `json:"provider"`
+	Model    string `json:"model"`
+	Effort   string `json:"effort,omitempty"`
+}
+
 // Capabilities a runtime must declare before it receives formal work.
 var RequiredCapabilities = []string{"input_gate", "settle_judge", "route_freeze", "context_sections"}
 
@@ -61,6 +68,7 @@ func validHost(h Host) bool {
 }
 
 type Instance struct {
+	Route              *Route          `json:"route,omitempty"`
 	Host               Host            `json:"host"`
 	UnderlyingActivity string          `json:"underlying_activity"`
 	RoleSnapshot       project.Role    `json:"role_snapshot"`
@@ -77,6 +85,7 @@ type Instance struct {
 	RoleHash           string          `json:"role_hash"`
 }
 type Register struct {
+	Route             *Route          `json:"route,omitempty"`
 	Host              Host            `json:"host"`
 	AvailableTools    []string        `json:"available_tools"`
 	AgentID           string          `json:"agent_id"`
@@ -403,7 +412,7 @@ func (s *Service) Register(ctx context.Context, q Register) (Instance, error) {
 		} else if !errors.Is(err, sql.ErrNoRows) {
 			return err
 		}
-		i := Instance{Host: q.Host, Binding: task.Binding{AgentID: q.AgentID, RuntimeID: q.RuntimeID, SessionID: q.SessionID, BindingEpoch: epoch}, Mode: q.Mode, RoleID: q.RoleID, TeamID: q.TeamID, Activity: q.Activity, LastSeen: fault.Now(), Presence: "online", Capabilities: q.Capabilities, RoleHash: q.RoleHash}
+		i := Instance{Route: q.Route, Host: q.Host, Binding: task.Binding{AgentID: q.AgentID, RuntimeID: q.RuntimeID, SessionID: q.SessionID, BindingEpoch: epoch}, Mode: q.Mode, RoleID: q.RoleID, TeamID: q.TeamID, Activity: q.Activity, LastSeen: fault.Now(), Presence: "online", Capabilities: q.Capabilities, RoleHash: q.RoleHash}
 		i.AvailableTools = append([]string{}, q.AvailableTools...)
 		if q.Mode == "role" {
 			if previous.Binding.RuntimeID == q.RuntimeID && !previous.Revoked {

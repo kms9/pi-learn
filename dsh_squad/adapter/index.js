@@ -223,6 +223,7 @@ export function apply(ctx, config = {}) {
     const c = binding.controller
     const previous = c.binding?.session_id
     const out = await client.register({
+      ...(binding.frozen ? { route: { provider: binding.frozen.provider, model: binding.frozen.model, ...(binding.frozen.effort ? { effort: binding.frozen.effort } : {}) } } : {}),
       host: { profile: HOST_PROFILE, host_id: hostId, bot_id: binding.botId, ...(binding.roomId ? { room_id: binding.roomId } : {}), place: binding.roomId ? 'group-member' : 'chat' },
       agent_id: c.agentId, runtime_id: c.runtimeId, session_id: sessionId, previous_session_id: previous ?? '',
       runtime_token: c.token, mode: c.mode ?? 'role', ...(c.mode === 'leader' ? { team_id: c.teamId } : { role_id: c.roleId, role_hash: roleHash(c.roleId), ...(c.teamId ? { team_id: c.teamId } : {}) }), activity: 'idle',
@@ -755,7 +756,9 @@ export function apply(ctx, config = {}) {
       case 'view': {
         if (connect() === undefined) return { connected: false, projectRoot: projectRoot ?? null }
         const snapshot = await client.snapshot()
-        return { connected: true, snapshot, teams: state.teams ?? {}, approvals: managedApprovals(), previewBase: previewBase(), errors: [...bindingErrors.values()] }
+        // How each Bot looks in DS Bot, for the cards (UI plan S2).
+        const bots = Object.fromEntries((seam.bots?.() ?? []).map(bot => [bot.id, { name: bot.name, color: bot.color, avatar: bot.avatar ?? null, model: bot.appliedModel ?? bot.model ?? null, effort: bot.effort ?? null }]))
+        return { connected: true, snapshot, teams: state.teams ?? {}, approvals: managedApprovals(), previewBase: previewBase(), errors: [...bindingErrors.values()], bots }
       }
       case 'events': {
         if (connect() === undefined) return { connected: false }

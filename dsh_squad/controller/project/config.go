@@ -74,6 +74,8 @@ type ResultRef struct {
 	Hash           string `json:"hash"`
 }
 type Step struct {
+	// Title is an optional one line for people (UI plan C4).
+	Title          string          `json:"title,omitempty"`
 	ReworkOf       string          `json:"rework_of,omitempty"`
 	ID             string          `json:"id"`
 	RoleRef        string          `json:"role_ref"`

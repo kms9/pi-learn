@@ -264,6 +264,9 @@
         "role_ref": {
           "type": "string"
         },
+        "title": {
+          "type": "string"
+        },
         "write_set": {
           "anyOf": [
             {
@@ -629,6 +632,9 @@
         "target": {
           "type": "string"
         },
+        "title": {
+          "type": "string"
+        },
         "write_set": {
           "anyOf": [
             {
@@ -836,6 +842,16 @@
         "role_snapshot": {
           "$ref": "#/$defs/project_Role"
         },
+        "route": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/scheduler_Route"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "team_id": {
           "type": "string"
         },
@@ -1024,6 +1040,16 @@
         "role_id": {
           "type": "string"
         },
+        "route": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/scheduler_Route"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "runtime_id": {
           "type": "string"
         },
@@ -1049,6 +1075,25 @@
         "activity",
         "capabilities",
         "role_hash"
+      ],
+      "type": "object"
+    },
+    "scheduler_Route": {
+      "additionalProperties": false,
+      "properties": {
+        "effort": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "provider": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "provider",
+        "model"
       ],
       "type": "object"
     },
@@ -1518,6 +1563,16 @@
         "kind": {
           "type": "string"
         },
+        "origin": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/task_Origin"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "parent_id": {
           "type": "string"
         },
@@ -1594,6 +1649,9 @@
             }
           ]
         },
+        "title": {
+          "type": "string"
+        },
         "write_set": {
           "anyOf": [
             {
@@ -1669,6 +1727,21 @@
       "required": [
         "code",
         "message"
+      ],
+      "type": "object"
+    },
+    "task_Origin": {
+      "additionalProperties": false,
+      "properties": {
+        "by": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
       ],
       "type": "object"
     },

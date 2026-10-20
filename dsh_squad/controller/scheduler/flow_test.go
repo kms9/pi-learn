@@ -447,6 +447,27 @@ func TestRunReviewRejectReworkAccept(t *testing.T) {
 	if reviews != 2 {
 		t.Fatalf("%d reviews, want 2 (reject then accept): %v", reviews, trace)
 	}
+	// Every task says what made it, so the page can draw it under that (UI plan C1).
+	kinds := map[string]int{}
+	for _, c := range h.runTasks(r.ID) {
+		if c.Origin == nil {
+			t.Fatalf("task %s (%s) has no origin", c.ID, c.Kind)
+		}
+		kinds[c.Origin.Kind]++
+		switch c.Origin.Kind {
+		case "review":
+			if c.Kind != "review" || c.Origin.By != c.Dependencies[0].TaskID {
+				t.Fatalf("review origin %+v", c.Origin)
+			}
+		case "rework":
+			if c.Origin.By != c.ReworkOf {
+				t.Fatalf("rework origin %+v", c.Origin)
+			}
+		}
+	}
+	if kinds["workflow"] != 1 || kinds["review"] != 2 || kinds["rework"] != 1 {
+		t.Fatalf("origins %v", kinds)
+	}
 }
 
 func (h *harness) runOf(id string) task.Run {

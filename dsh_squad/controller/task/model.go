@@ -69,7 +69,19 @@ type Dependency struct {
 	TaskID    string `json:"task_id"`
 	Condition string `json:"condition"`
 }
+
+// Origin says what made a task, so it can be drawn under what made it (UI plan C1):
+// the workflow at Run start, a Leader decision (By = the Leader step), a delegation
+// (By = the parent), a review or rework (By = the task reviewed or reworked), or a
+// direct request.
+type Origin struct {
+	Kind string `json:"kind"`
+	By   string `json:"by,omitempty"`
+}
+
 type Contract struct {
+	Origin             *Origin                   `json:"origin,omitempty"`
+	Title              string                    `json:"title,omitempty"`
 	AcceptanceCriteria json.RawMessage           `json:"acceptance_criteria,omitempty"`
 	GuidanceCount      int                       `json:"guidance_count,omitempty"`
 	ReworkOf           string                    `json:"rework_of,omitempty"`

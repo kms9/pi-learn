@@ -46,6 +46,41 @@ body[data-ds-dark-theme] .sq-banner{background:#3a2c12;color:#f3cf8b}
 .sq-menu-item{border:0;background:none;text-align:left;padding:6px 8px;border-radius:8px;cursor:pointer;font:inherit;color:inherit}
 .sq-menu-item:hover,.sq-menu-item:focus{background:var(--sq-chip);outline:none}
 tr[data-focus]{outline:2px solid var(--sq-attention);outline-offset:-2px}
+.sq-canvas-wrap{position:relative;border:1px solid var(--sq-line);border-radius:12px;overflow:hidden;background:var(--sq-canvas)}
+.sq-canvas{position:relative;height:min(64vh,640px);min-height:420px;overflow:hidden;cursor:grab}
+.sq-canvas:active{cursor:grabbing}
+.sq-canvas-tools{position:absolute;left:10px;top:10px;z-index:3;display:flex;gap:6px}
+.sq-layer{position:absolute;left:0;top:0;transform-origin:0 0;transition:transform .25s ease}
+.sq-edges{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+.sq-edge{fill:none;stroke:var(--sq-line);stroke-width:1.6}
+.sq-edge[data-to-s=stopped]{stroke-dasharray:4 4}
+.sq-edge-dep{fill:none;stroke:var(--sq-muted);stroke-width:1;stroke-dasharray:3 4;opacity:.45}
+.sq-node{position:absolute;left:0;top:0;box-sizing:border-box;padding:8px 10px 6px;border-radius:12px;background:var(--sq-panel);border:1px solid var(--sq-line);border-top:3px solid var(--sq-waiting);box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;flex-direction:column;gap:3px;cursor:pointer;transition:transform .25s ease,box-shadow .2s,opacity .25s;color:var(--sq-text)}
+.sq-node[data-s=running]{border-top-color:var(--sq-running)}.sq-node[data-s=done]{border-top-color:var(--sq-done)}
+.sq-node[data-s=attention]{border-top-color:var(--sq-attention);box-shadow:0 0 0 1px var(--sq-attention)}
+.sq-node[data-s=failed]{border-top-color:var(--sq-failed);box-shadow:0 0 0 1px var(--sq-failed)}
+.sq-node[data-s=stopped]{border-top-color:var(--sq-stopped);opacity:.72}
+.sq-node[data-kind=run]{border-width:1px 1px 1px 1px;border-top-width:4px}
+.sq-node[data-selected]{box-shadow:0 0 0 2px var(--sq-accent)}
+.sq-node[data-folded]{box-shadow:0 1px 3px rgba(0,0,0,.08),4px 4px 0 -1px var(--sq-panel),4px 4px 0 0 var(--sq-line),8px 8px 0 -1px var(--sq-panel),8px 8px 0 0 var(--sq-line)}
+.sq-node[data-new]{animation:sq-grow .35s ease-out}
+.sq-node[data-flash]{animation:sq-node-flash 1.1s ease-out}
+@keyframes sq-grow{from{opacity:0;scale:.82;translate:0 -18px}to{opacity:1;scale:1;translate:0 0}}
+@keyframes sq-node-flash{0%,60%{box-shadow:0 0 0 4px var(--sq-attention)}100%{box-shadow:0 0 0 0 transparent}}
+.sq-node-head{display:flex;align-items:center;gap:8px;min-width:0}
+.sq-node-who{flex:1;min-width:0}
+.sq-node-role{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sq-node-model{font-size:11px;color:var(--sq-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sq-node-title{font-size:13px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sq-node-note{font-size:11px;color:var(--sq-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sq-node-count{position:absolute;right:-8px;bottom:-10px;min-width:22px;height:22px;border-radius:11px;border:1px solid var(--sq-line);background:var(--sq-panel);color:var(--sq-text);font:600 11px/20px system-ui,sans-serif;cursor:pointer;padding:0 6px}
+.sq-avatar{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;color:#fff;font:600 13px/1 system-ui,sans-serif;flex:none;object-fit:cover}
+.sq-drawer{position:absolute;right:0;top:0;bottom:0;width:360px;max-width:80%;z-index:4;background:var(--sq-panel);border-left:1px solid var(--sq-line);padding:14px;overflow:auto;display:flex;flex-direction:column;gap:8px;box-shadow:-8px 0 24px rgba(0,0,0,.12)}
+.sq-reason{color:var(--sq-failed)}
+.sq-pre{white-space:pre-wrap;word-break:break-word;margin:0;font-size:12px}
+.sq-tech summary{cursor:pointer;color:var(--sq-muted);font-size:12px}
+@media (prefers-reduced-motion:reduce){.sq-node,.sq-layer{transition:none}.sq-node[data-new]{animation:sq-fade .2s}.sq-node[data-flash]{animation:none;box-shadow:0 0 0 3px var(--sq-attention)}}
+@keyframes sq-fade{from{opacity:0}to{opacity:1}}
 .sq-card{border:1px solid var(--sq-line);border-radius:12px;background:var(--sq-panel);padding:12px 14px;display:flex;flex-direction:column;gap:8px}
 .sq-card h3{margin:0;font-size:14px}
 .sq-section h2{margin:0 0 8px;font-size:15px}

@@ -44,7 +44,9 @@ export function squadTurn(body) {
     if (messages[i].role === 'user' && /Squad task (task-[0-9a-f]+): /.test(textOf(messages[i].content))) { start = i; break }
   }
   if (start < 0) return undefined
-  const [, taskId, goal] = textOf(messages[start].content).match(/Squad task (task-[0-9a-f]+): ([\s\S]*)/)
+  const [, taskId, full] = textOf(messages[start].content).match(/Squad task (task-[0-9a-f]+): ([\s\S]*)/)
+  // DSH appends workspace reminders to the input; they are not part of the goal.
+  const goal = full.split('<system-reminder>')[0]
   const calls = []
   const results = []
   for (const message of messages.slice(start + 1)) {

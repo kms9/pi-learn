@@ -12,7 +12,7 @@ async function refresh() {
   const view = await call('view')
   store.set(state => (view.connected === false
     ? { ...state, connected: false }
-    : { ...state, connected: true, projection: acceptSnapshot(state.projection, view.snapshot), teams: view.teams ?? {}, approvals: view.approvals ?? [], previewBase: view.previewBase, errors: view.errors ?? [] }))
+    : { ...state, connected: true, projection: acceptSnapshot(state.projection, view.snapshot), teams: view.teams ?? {}, approvals: view.approvals ?? [], previewBase: view.previewBase, errors: view.errors ?? [], bots: view.bots ?? state.bots }))
 }
 
 async function step() {

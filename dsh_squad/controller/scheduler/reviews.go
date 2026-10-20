@@ -76,6 +76,7 @@ func (s *Service) ensureReviews(tx *sql.Tx) error {
 		review.TeamID = c.TeamID
 		review.RunID = c.RunID
 		review.RoleID = c.AcceptancePolicy.ReviewerRef
+		review.Origin = &task.Origin{Kind: "review", By: c.ID}
 		review.AcceptancePolicy = nil
 		review.Dependencies = []task.Dependency{{TaskID: c.ID, Condition: "execution_completed"}}
 		review.Refs = []project.ResultRef{{TaskID: c.ID, ResultRevision: c.Result.Revision, Hash: c.Result.Hash}}
