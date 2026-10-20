@@ -18,7 +18,7 @@ export function createStore(initial) {
 }
 
 export const store = createStore({
-  open: false, tab: 'runs', runId: null, projection: EMPTY, teams: {}, approvals: [], previewBase: null, connected: null, toast: null, preview: null, errors: [],
+  open: false, tab: 'runs', runId: null, projection: EMPTY, teams: {}, approvals: [], previewBase: null, connected: null, toast: null, preview: null, errors: [], teamScope: null, focus: null,
 })
 
 export function useStore(select) {

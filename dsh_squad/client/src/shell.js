@@ -7,6 +7,7 @@ import { RunDetail, RunList } from './runs.js'
 import { ConfigTab } from './config.js'
 import { ReportsTab } from './reports.js'
 import { store, useStore } from './store.js'
+import { SummaryBar } from './summarybar.js'
 
 const TABS = { runs: '运行', config: '小队与规则', reports: '实验报告' }
 const open = patch => store.set(state => ({ ...state, open: true, ...patch }))
@@ -57,6 +58,7 @@ function Console() {
         h('div', { className: 'sq-tabs', role: 'tablist' }, Object.entries(TABS).map(([id, label]) => h('button', { key: id, role: 'tab', className: 'sq-tab', 'data-on': tab === id || undefined, 'aria-selected': tab === id, onClick: () => store.set(state => ({ ...state, tab: id })) }, label))),
         h('span', { className: 'sq-spacer' }),
         h('button', { className: 'sq-x', 'aria-label': '关闭', onClick: close }, '×')),
+      h(SummaryBar),
       h(Banner),
       h('div', { className: 'sq-body' }, body)))
 }

@@ -1,9 +1,11 @@
 // The Runs tab: start a Run, see its tasks as a graph, act on its cards.
-import { createElement as h, Fragment, useState } from 'react'
+import { createElement as h, Fragment, useEffect, useState } from 'react'
 import { call, requestId } from './api.js'
 import { refreshNow } from './feed.js'
 import { KIND, RUN_PHASE, TASK_STATE, artifactsOf, cardsOf, goalOf, graphOf, runsOf, short, tasksOf, terminal, waitingOf } from './model.js'
 import { store, toast, useStore } from './store.js'
+import { runStatusOf, statusOf } from './status.js'
+import { StatusChip } from './summarybar.js'
 
 const TONE = { completed: 'ok', accepted: 'ok', running: 'warn', needs_review: 'bad', failed: 'bad', interrupted: 'bad', rejected: 'bad', cancelled: 'bad' }
 const chip = (text, tone) => h('span', { className: 'sq-chip', 'data-tone': tone }, text)
@@ -65,7 +67,7 @@ export function RunList() {
       const tasks = tasksOf(snapshot, run.run_id).filter(task => task.kind !== 'leader_step')
       const done = tasks.filter(task => task.state === 'completed').length
       return h('button', { key: run.run_id, className: 'sq-item', 'data-on': run.run_id === runId || undefined, onClick: () => store.set(state => ({ ...state, runId: run.run_id })) },
-        h('div', null, chip(RUN_PHASE[run.phase] ?? run.phase, TONE[run.phase]), h('span', { className: 'sq-muted' }, run.team_id)),
+        h('div', { className: 'sq-row' }, h(StatusChip, { state: runStatusOf(run) }), h('span', { className: 'sq-muted' }, run.team_id)),
         h('div', null, run.goal),
         h('div', { className: 'sq-muted' }, `${done}/${tasks.length} 个任务完成 · ${short(run.run_id)}${waitingOf(run).length ? ' · 排队中' : ''}`))
     }))
@@ -82,7 +84,8 @@ export function RunGraph({ tasks }) {
   const at = new Map(graph.nodes.map(node => [node.task.task_id, { x: 12 + node.col * (NODE_W + GAP_X), y: 12 + node.row * (NODE_H + GAP_Y) }]))
   const width = 24 + graph.columns * (NODE_W + GAP_X) - GAP_X
   const height = 24 + graph.rows * (NODE_H + GAP_Y) - GAP_Y
-  const fill = { completed: '#e6f4ea', running: '#fff4e0', needs_review: '#fdecea', failed: '#fdecea', interrupted: '#fdecea', cancelled: '#eeeeee' }
+  const views = store.get().projection.snapshot?.views ?? {}
+  const fillOf = task => `var(--sq-${statusOf(task, { attempts: views.attempts ?? [], tasks }).status}-bg)`
   return h('div', { className: 'sq-dag' },
     h('svg', { width, height, role: 'img', 'aria-label': '任务依赖图' },
       h('defs', null, h('marker', { id: 'sq-arrow', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 6, markerHeight: 6, orient: 'auto' }, h('path', { d: 'M0,0 L10,5 L0,10 z', fill: '#999' }))),
@@ -97,7 +100,7 @@ export function RunGraph({ tasks }) {
         const goal = goalOf(task, tasks)
         return h('g', { key: task.task_id, transform: `translate(${p.x},${p.y})` },
           h('title', null, `${goal}\n${task.task_id}`),
-          h('rect', { width: NODE_W, height: NODE_H, rx: 8, fill: fill[task.state] ?? '#f4f6ff', stroke: task.superseded_by ? '#c62828' : '#bbb', strokeDasharray: task.superseded_by ? '4 3' : undefined }),
+          h('rect', { width: NODE_W, height: NODE_H, rx: 8, fill: fillOf(task), stroke: task.superseded_by ? '#c62828' : '#bbb', strokeDasharray: task.superseded_by ? '4 3' : undefined }),
           h('text', { x: 8, y: 18 }, `${KIND[task.kind] ?? task.kind} · ${task.role_id}`),
           h('text', { x: 8, y: 34 }, `${TASK_STATE[task.state] ?? task.state}${decision ? ` · ${decision === 'accepted' ? '通过' : '退回'}` : ''}`),
           h('text', { x: 8, y: 48, fill: '#888' }, goal.length > 14 ? `${goal.slice(0, 14)}…` : goal))
@@ -183,7 +186,13 @@ export function RunDetail({ runId }) {
   const snapshot = useStore(state => state.projection.snapshot)
   const approvals = useStore(state => state.approvals)
   const previewBase = useStore(state => state.previewBase)
+  const focus = useStore(state => state.focus)
   const [guide, setGuide] = useState('')
+  // A jump from the summary bar: the row scrolls into view once (until the canvas, P2).
+  useEffect(() => {
+    if (!focus?.taskId || focus.runId !== runId) return
+    document.getElementById(`sq-task-${focus.taskId}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  }, [focus?.at, runId])
   const run = runsOf(snapshot).find(candidate => candidate.run_id === runId)
   if (run === undefined) return h('div', { className: 'sq-muted' }, '选择左边的一个 Run，或开始一个新的。')
   const tasks = tasksOf(snapshot, runId)
@@ -193,7 +202,7 @@ export function RunDetail({ runId }) {
   const section = (title, list, Card) => (list.length === 0 ? null : h('div', { className: 'sq-section' }, h('h2', null, `${title}（${list.length}）`), h('div', { className: 'sq-grid' }, list.map(card => h(Card, { key: card.key, card })))))
   return h(Fragment, null,
     h('div', { className: 'sq-card' },
-      h('div', { className: 'sq-row' }, chip(RUN_PHASE[run.phase] ?? run.phase, TONE[run.phase]), h('strong', null, run.goal)),
+      h('div', { className: 'sq-row' }, h(StatusChip, { state: runStatusOf(run) }), h('strong', null, run.goal)),
       h('div', { className: 'sq-muted' }, `小队 ${run.team_id} · ${short(run.run_id)} · 第 ${run.revision} 版${(run.guidance ?? []).length ? ` · 已有 ${run.guidance.length} 条补充说明` : ''}`),
       waitingOf(run).length > 0 ? h('div', null, chip('排队中', 'warn'), waitingOf(run).join('；'), '，对方结束后自动开始。') : null,
       terminal(run.phase) ? null : h('div', { className: 'sq-row' },
@@ -215,9 +224,9 @@ export function RunDetail({ runId }) {
       h('div', { className: 'sq-muted' }, `Leader 已做 ${tasks.filter(task => task.kind === 'leader_step').length} 次决定（不在表中）`),
       h('table', { className: 'sq-table' },
         h('thead', null, h('tr', null, ['类型', '角色', '状态', '验收', '目标'].map(label => h('th', { key: label }, label)))),
-        h('tbody', null, tasks.filter(task => task.kind !== 'leader_step').map(task => h('tr', { key: task.task_id },
+        h('tbody', null, tasks.filter(task => task.kind !== 'leader_step').map(task => h('tr', { key: task.task_id, id: `sq-task-${task.task_id}`, 'data-focus': focus?.taskId === task.task_id || undefined },
           h('td', null, KIND[task.kind] ?? task.kind), h('td', null, task.role_id || '—'),
-          h('td', null, chip(TASK_STATE[task.state] ?? task.state, TONE[task.state])),
+          h('td', null, (() => { const state = statusOf(task, { attempts: snapshot.views.attempts ?? [], approvals, tasks }); return h('span', null, h(StatusChip, { state }), state.note ? h('span', { className: 'sq-muted' }, ` ${state.note}`) : null, state.reason ? h('div', { className: 'sq-muted' }, state.reason) : null) })()),
           h('td', null, task.acceptance ? chip(task.acceptance.decision === 'accepted' ? '通过' : '退回', TONE[task.acceptance.decision]) : '—'),
           h('td', null, goalOf(task, tasks))))))))
 }
