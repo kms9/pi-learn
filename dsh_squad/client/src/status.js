@@ -32,6 +32,7 @@ export function reasonOf(code, detail = {}) {
     case 'ACCEPTANCE_PENDING':
     case 'EXECUTION_UNCONFIRMED':
     case 'DEPENDENCY_PENDING': return `最后检查没通过：${detail.taskName ? `「${detail.taskName}」还没完成或没通过审核。` : '还有任务没完成或没通过审核。'}`
+    case 'NO_RESULTS': return '没有任何完成的成果可以交付。'
     case 'model_mismatch': return '这个成员的模型变了，为保证一致没有继续。'
     case 'dependency_interrupted': return `${name}没有完成。`
     case 'manual_interference':
@@ -69,7 +70,7 @@ export function statusOf(task, { attempts = [], approvals = [], tasks = [] } = {
   const nameOf = id => tasks.find(candidate => candidate.task_id === id)?.goal
   // 1. Replaced, cancelled, superseded: grey.
   if (task.superseded_by) return { status: 'stopped', note: '已被返工替代' }
-  if (task.state === 'cancelled') return { status: 'stopped', note: task.acceptance?.reason?.includes('忽略') ? '已忽略' : '已取消' }
+  if (task.state === 'cancelled') return { status: 'stopped', note: task.ignored ? '已忽略' : '已取消' }
   // 2. Waiting on a person.
   if (approvals.some(entry => entry.taskId === task.task_id)) return { status: 'attention', note: '等你批准工具' }
   if (task.state === 'completed' && task.result && !task.acceptance && task.acceptance_policy?.mode === 'human') return { status: 'attention', note: '等你验收' }
@@ -111,11 +112,13 @@ export function runStatusOf(run, { heldPending = 0 } = {}) {
   if (run === undefined) return { status: 'waiting', note: '' }
   if (run.phase === 'completed') return { status: 'done', note: '已完成' }
   if (run.phase === 'cancelled') return { status: 'stopped', note: '已结束' }
-  if (run.recovery_hold && run.phase !== 'needs_review') return { status: 'attention', note: '系统重启后待确认' }
-  if (run.phase === 'needs_review' || run.phase === 'failed' || run.phase === 'interrupted') {
+  // Only a refusal of the final check is a failure of the Run; a Run held because one of
+  // its steps failed waits for that step to be handled (its card is the red one).
+  if (run.gate_failure || run.phase === 'failed') {
     const code = run.gate_failure?.code ?? 'GATE_NOT_READY'
     return { status: 'failed', note: '终审没通过', code, reason: reasonOf(code, { taskName: run.gate_failure?.task_goal }) }
   }
+  if (run.recovery_hold || run.phase === 'needs_review' || run.phase === 'interrupted') return { status: 'attention', note: run.phase === 'needs_review' ? '有步骤需要处理，处理后继续' : '系统重启后待确认' }
   if (heldPending > 0) return { status: 'attention', note: `${heldPending} 条消息待处理` }
   if (!run.admitted) {
     const wait = run.waiting_roles?.[0]

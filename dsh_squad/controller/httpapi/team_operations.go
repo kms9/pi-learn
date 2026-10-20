@@ -331,7 +331,7 @@ func (s *Server) operationRoutes(v *gin.RouterGroup) {
 	})
 	for _, entry := range []struct{ kind, path string }{{"agent", "agents"}, {"run", "runs"}, {"task", "tasks"}, {"attempt", "attempts"}, {"role", "roles"}, {"leader", "teams"}} {
 		kind, path := entry.kind, entry.path
-		ops := map[string][]string{"agent": {"release"}, "run": {"cancel", "resume", "guidance"}, "task": {"cancel", "amend", "recover", "retry", "rebind", "accept", "reject"}, "attempt": {"reconcile"}, "role": {"release", "promote"}, "leader": {"release"}}[kind]
+		ops := scheduler.Operations[kind]
 		for _, operation := range ops {
 			op := operation
 			route := "/" + path + "/:id/" + op

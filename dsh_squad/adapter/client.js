@@ -30,7 +30,7 @@ __export(index_exports, {
 module.exports = __toCommonJS(index_exports);
 
 // src/shell.js
-var import_react7 = require("react");
+var import_react8 = require("react");
 var import_react_dom = require("react-dom");
 
 // src/model.js
@@ -45,57 +45,9 @@ var RUN_PHASE = {
   cancelled: "已取消",
   interrupted: "已中断"
 };
-var TASK_STATE = {
-  planned: "待开始",
-  queued: "排队",
-  waiting_dependency: "等待依赖",
-  dispatching: "派发中",
-  running: "执行中",
-  result_proposed: "已提交",
-  completed: "已完成",
-  needs_review: "需人工处理",
-  failed: "失败",
-  cancelled: "已取消",
-  interrupted: "已中断"
-};
 var KIND = { execute: "执行", review: "审核", rework: "返工", ask: "提问", leader_step: "Leader" };
 var runsOf = (snapshot) => [...snapshot?.views?.runs ?? []].sort((a, b) => b.queue_seq - a.queue_seq);
 var tasksOf = (snapshot, runId) => (snapshot?.views?.tasks ?? []).filter((task) => task.run_id === runId);
-var attemptsOf = (snapshot, taskId) => (snapshot?.views?.attempts ?? []).filter((attempt) => attempt.task_id === taskId);
-function cardsOf(snapshot, runId, approvals = []) {
-  const tasks = tasksOf(snapshot, runId);
-  const run = runsOf(snapshot).find((candidate) => candidate.run_id === runId);
-  const cards = [];
-  for (const task of tasks) {
-    if (task.kind !== "leader_step" && task.state === "completed" && task.acceptance == null && task.acceptance_policy?.mode === "human" && task.result) {
-      cards.push({ type: "accept", key: `accept:${task.task_id}:${task.revision}`, task, expectedRevision: task.revision, resultHash: task.result.hash });
-    }
-    const blockedOnBinding = (task.blockers ?? []).some((blocker) => ["primary_offline", "binding_changed"].includes(blocker.kind));
-    if (task.state === "needs_review" || task.state === "interrupted" && attemptsOf(snapshot, task.task_id).some((attempt) => attempt.cleanup_state !== "released") || blockedOnBinding && task.kind !== "leader_step") {
-      const attempts = attemptsOf(snapshot, task.task_id);
-      const attempt = attempts.filter((candidate) => candidate.cleanup_state !== "released").at(-1);
-      const ids = new Set(attempts.map((candidate) => candidate.attempt_id));
-      const late = (snapshot?.views?.evidence ?? []).filter((row) => ids.has(row.attempt_id) && row.disposition === "rejected_late_or_stale");
-      const primary = (snapshot?.views?.roles ?? []).find((role) => role.role_id === task.role_id);
-      const others = (snapshot?.views?.agents ?? []).filter((agent) => agent.role_id === task.role_id && agent.mode === "role" && agent.presence === "online" && agent.binding?.agent_id !== primary?.primary_agent_id);
-      cards.push({ type: "recover", key: `recover:${task.task_id}:${task.revision}`, task, attempt, attempts: attempts.length, late, primary, others, expectedRevision: task.revision });
-    }
-    if (task.kind === "review" && task.state === "completed" && task.result?.value?.decision) {
-      cards.push({ type: "review", key: `review:${task.task_id}`, task, verdict: task.result.value });
-    }
-  }
-  for (const entry of approvals) {
-    if (tasks.some((task) => task.task_id === entry.taskId)) {
-      const attempt = (snapshot?.views?.attempts ?? []).find((candidate) => candidate.attempt_id === entry.attemptId);
-      cards.push({ type: "approve", key: `approve:${entry.id}`, approval: entry, attemptId: entry.attemptId, expectedRevision: attempt?.revision });
-    }
-  }
-  const asks = (run?.blockers ?? []).filter((blocker) => !["role_busy", "earlier_run", "active_run"].includes(blocker.kind));
-  if (run && !terminal(run.phase) && (run.recovery_hold || asks.length > 0)) {
-    cards.push({ type: "answer", key: `answer:${run.run_id}:${run.revision}`, run, expectedRevision: run.revision, why: run.recovery_hold ? "Controller 重启后 Run 暂停，需要确认后继续" : asks.map((blocker) => blocker.kind).join("、") });
-  }
-  return cards;
-}
 function artifactsOf(tasks) {
   const out = [];
   for (const task of tasks) {
@@ -114,7 +66,7 @@ var waitingOf = (run) => (run?.waiting_roles ?? []).map((wait) => `等待角色 
 var short = (id) => String(id ?? "").replace(/^(task|run|attempt)-/, "").slice(0, 8);
 
 // src/runs.js
-var import_react4 = require("react");
+var import_react5 = require("react");
 
 // src/api.js
 var ROUTE = "api/squad-adapter";
@@ -256,6 +208,8 @@ function reasonOf(code, detail = {}) {
     case "EXECUTION_UNCONFIRMED":
     case "DEPENDENCY_PENDING":
       return `最后检查没通过：${detail.taskName ? `「${detail.taskName}」还没完成或没通过审核。` : "还有任务没完成或没通过审核。"}`;
+    case "NO_RESULTS":
+      return "没有任何完成的成果可以交付。";
     case "model_mismatch":
       return "这个成员的模型变了，为保证一致没有继续。";
     case "dependency_interrupted":
@@ -296,7 +250,7 @@ function statusOf(task, { attempts = [], approvals = [], tasks = [] } = {}) {
   const kinds = blockerKinds(task);
   const nameOf = (id) => tasks.find((candidate) => candidate.task_id === id)?.goal;
   if (task.superseded_by) return { status: "stopped", note: "已被返工替代" };
-  if (task.state === "cancelled") return { status: "stopped", note: task.acceptance?.reason?.includes("忽略") ? "已忽略" : "已取消" };
+  if (task.state === "cancelled") return { status: "stopped", note: task.ignored ? "已忽略" : "已取消" };
   if (approvals.some((entry) => entry.taskId === task.task_id)) return { status: "attention", note: "等你批准工具" };
   if (task.state === "completed" && task.result && !task.acceptance && task.acceptance_policy?.mode === "human") return { status: "attention", note: "等你验收" };
   const uncertain = attempt && attempt.cleanup_state !== "released" && (task.state === "needs_review" || task.state === "interrupted");
@@ -329,11 +283,11 @@ function runStatusOf(run, { heldPending = 0 } = {}) {
   if (run === void 0) return { status: "waiting", note: "" };
   if (run.phase === "completed") return { status: "done", note: "已完成" };
   if (run.phase === "cancelled") return { status: "stopped", note: "已结束" };
-  if (run.recovery_hold && run.phase !== "needs_review") return { status: "attention", note: "系统重启后待确认" };
-  if (run.phase === "needs_review" || run.phase === "failed" || run.phase === "interrupted") {
+  if (run.gate_failure || run.phase === "failed") {
     const code = run.gate_failure?.code ?? "GATE_NOT_READY";
     return { status: "failed", note: "终审没通过", code, reason: reasonOf(code, { taskName: run.gate_failure?.task_goal }) };
   }
+  if (run.recovery_hold || run.phase === "needs_review" || run.phase === "interrupted") return { status: "attention", note: run.phase === "needs_review" ? "有步骤需要处理，处理后继续" : "系统重启后待确认" };
   if (heldPending > 0) return { status: "attention", note: `${heldPending} 条消息待处理` };
   if (!run.admitted) {
     const wait = run.waiting_roles?.[0];
@@ -363,16 +317,17 @@ function summaryOf(snapshot, approvals = [], teamId = null) {
     if (run === void 0) continue;
     const runState = runStatusOf(run);
     const item = (extra) => ({ teamId: team, runId: run.run_id, ...extra });
-    if (runState.status === "attention") out.attention.push(item({ taskId: null, title: run.goal, note: runState.note }));
     if (runState.status === "failed") out.failed.push(item({ taskId: null, title: run.goal, note: runState.reason }));
     if (runState.status === "waiting" && !run.admitted) out.queued.push(item({ title: run.goal, note: runState.note, owner: run.waiting_roles?.[0]?.owner_team_id }));
     const own = tasks.filter((task) => task.run_id === run.run_id && task.kind !== "leader_step");
+    const failedBefore = out.failed.length;
     for (const task of own) {
       const state = statusOf(task, { attempts, approvals, tasks: own });
       if (state.status === "running") out.running += 1;
       if (state.status === "attention") out.attention.push(item({ taskId: task.task_id, title: task.goal, note: state.note }));
       if (state.status === "failed") out.failed.push(item({ taskId: task.task_id, title: task.goal, note: state.reason }));
     }
+    if (runState.status === "attention" && out.failed.length === failedBefore) out.attention.push(item({ taskId: null, title: run.goal, note: runState.note }));
   }
   return out;
 }
@@ -440,7 +395,7 @@ var LABELS = { running: "进行中", done: "完成", attention: "需要你处理
 var labelOf = (status) => LABELS[status] ?? status;
 
 // src/canvas.js
-var import_react3 = require("react");
+var import_react4 = require("react");
 
 // src/tree.js
 var byTime = (a, b) => String(a.created_at ?? "").localeCompare(String(b.created_at ?? "")) || String(a.task_id).localeCompare(String(b.task_id));
@@ -500,6 +455,7 @@ function treeOf(snapshot, runId, { approvals = [], bots = {} } = {}) {
       state: index === own.length - 1 ? { ...state, note: [`第 ${index + 1} 次`, state.note].filter(Boolean).join(" · ") } : { status: "stopped", note: `第 ${index + 1} 次（已重试）`, reason: attempt.error ? void 0 : void 0 }
     }));
     for (let i = 1; i < chain.length; i += 1) chain[i - 1].children.push(chain[i]);
+    if (chain.length > 1) chain[0].folds = { ...state, note: [`重试 ${chain.length - 1} 次后`, state.note || { done: "完成", failed: "仍未完成", running: "进行中", attention: "等你处理", stopped: "已停止", waiting: "等待" }[state.status]].join("") };
     for (const node of chain) nodes.set(node.id, node);
     last.set(task.task_id, chain.at(-1));
   }
@@ -574,6 +530,164 @@ function layout(root, folded = /* @__PURE__ */ new Set(), size = CARD) {
   return { nodes: out, edges: [...edges, ...deps], width: total, height: (depth + 1) * size.height + depth * size.gapY, rootX: out[0].x };
 }
 
+// src/actions.js
+var import_react3 = require("react");
+async function act(what, endpoint, payload, after) {
+  try {
+    await call(endpoint, payload);
+    toast(`${what}：已提交`, "ok");
+    after?.();
+  } catch (error) {
+    const stale = /REVISION|CONFLICT|changed|moved on/i.test(error.message);
+    toast(stale ? "这一步已更新，刷新后再处理。" : `${what}失败：${error.message}`);
+  } finally {
+    await refreshNow();
+  }
+}
+function Guidance({ run, task }) {
+  const [text, setText] = (0, import_react3.useState)("");
+  if (!run || ["completed", "cancelled"].includes(run.phase)) return null;
+  return (0, import_react3.createElement)(
+    "div",
+    { className: "sq-row sq-pop-guide" },
+    (0, import_react3.createElement)("input", { className: "sq-input", style: { flex: 1 }, placeholder: task ? "就这一步给 Leader 补充指导" : "给 Leader 补充指导", value: text, onChange: (event) => setText(event.target.value), onClick: (event) => event.stopPropagation() }),
+    (0, import_react3.createElement)("button", { className: "sq-btn", disabled: text.trim() === "", onClick: () => act("补充指导", "operate", { kind: "run", id: run.run_id, op: "guidance", body: { request_id: requestId("guide"), expected_revision: run.revision, note: text.trim(), ...task ? { task_id: task.task_id } : {} } }, () => setText("")) }, "发送")
+  );
+}
+function FailedTask({ node }) {
+  const { task, state } = node;
+  const attempts = useStore((s) => s.projection.snapshot?.views?.attempts ?? []);
+  const evidence = useStore((s) => s.projection.snapshot?.views?.evidence ?? []);
+  const [step2, setStep] = (0, import_react3.useState)(null);
+  const own = (task.attempt_ids ?? []).map((id) => attempts.find((attempt) => attempt.attempt_id === id)).filter(Boolean);
+  const open2 = own.filter((attempt) => attempt.cleanup_state !== "released");
+  const late = evidence.filter((row) => own.some((attempt) => attempt.attempt_id === row.attempt_id) && row.disposition === "rejected_late_or_stale");
+  const runtime = open2.at(-1)?.target?.runtime_id ?? own.at(-1)?.target?.runtime_id ?? "";
+  const restart = (confirm) => act("重试", "operate", { kind: "task", id: task.task_id, op: "restart", body: { request_id: requestId("restart"), expected_revision: task.revision, expected_runtime: runtime, note: "在 Squad 页面重试", confirm_stopped: confirm } });
+  const adopt = (row) => act("采用这份结果", "operate", { kind: "task", id: task.task_id, op: "recover", body: { request_id: requestId("adopt"), expected_revision: task.revision, evidence: `evidence:${row.seq}`, note: "在 Squad 页面采用迟到的结果" } });
+  return (0, import_react3.createElement)(
+    import_react3.Fragment,
+    null,
+    (0, import_react3.createElement)("div", { className: "sq-pop-title" }, "没能完成"),
+    (0, import_react3.createElement)("div", { className: "sq-pop-reason" }, state.reason),
+    step2 === "ignore" ? (0, import_react3.createElement)(
+      "div",
+      { className: "sq-pop-confirm" },
+      "忽略后最终检查不再要求这一步。确定？",
+      (0, import_react3.createElement)("div", { className: "sq-row" }, (0, import_react3.createElement)("button", { className: "sq-btn", onClick: () => setStep(null) }, "算了"), (0, import_react3.createElement)("button", { className: "sq-btn", "data-kind": "danger", onClick: () => act("忽略", "operate", { kind: "task", id: task.task_id, op: "cancel", body: { request_id: requestId("ignore"), expected_revision: task.revision, note: "忽略：在 Squad 页面忽略这一步", ignore: true } }) }, "确定忽略"))
+    ) : step2 === "confirm" ? (0, import_react3.createElement)(
+      "div",
+      { className: "sq-pop-confirm" },
+      "重试前请确认：上一次已经停下了（例如 DS Bot 已重启完毕）。",
+      (0, import_react3.createElement)("div", { className: "sq-row" }, (0, import_react3.createElement)("button", { className: "sq-btn", onClick: () => setStep(null) }, "算了"), (0, import_react3.createElement)("button", { className: "sq-btn", "data-kind": "primary", onClick: () => restart(true) }, "确认并重试"))
+    ) : (0, import_react3.createElement)(
+      "div",
+      { className: "sq-row sq-pop-main" },
+      (0, import_react3.createElement)("button", { className: "sq-btn", onClick: () => setStep("ignore") }, "忽略"),
+      (0, import_react3.createElement)("button", { className: "sq-btn", "data-kind": "primary", onClick: () => open2.length > 0 ? setStep("confirm") : restart(false) }, "重试")
+    ),
+    late.length > 0 && step2 === null ? (0, import_react3.createElement)("div", { className: "sq-pop-extra" }, `它在中断后交了一份结果。`, open2.length === 0 ? (0, import_react3.createElement)("button", { className: "sq-link", onClick: () => adopt(late.at(-1)) }, "采用这份结果") : (0, import_react3.createElement)("span", { className: "sq-muted" }, "（确认停止后可以采用）")) : null
+  );
+}
+function FailedRun({ run, state }) {
+  const [step2, setStep] = (0, import_react3.useState)(null);
+  return (0, import_react3.createElement)(
+    import_react3.Fragment,
+    null,
+    (0, import_react3.createElement)("div", { className: "sq-pop-title" }, "最后检查没通过"),
+    (0, import_react3.createElement)("div", { className: "sq-pop-reason" }, state.reason),
+    step2 === "ignore" ? (0, import_react3.createElement)(
+      "div",
+      { className: "sq-pop-confirm" },
+      "结束这个 Run，已有的成果都保留。确定？",
+      (0, import_react3.createElement)("div", { className: "sq-row" }, (0, import_react3.createElement)("button", { className: "sq-btn", onClick: () => setStep(null) }, "算了"), (0, import_react3.createElement)("button", { className: "sq-btn", "data-kind": "danger", onClick: () => act("结束 Run", "operate", { kind: "run", id: run.run_id, op: "cancel", body: { request_id: requestId("end"), expected_revision: run.revision, note: "忽略：结束 Run，保留成果" } }) }, "确定结束"))
+    ) : (0, import_react3.createElement)(
+      "div",
+      { className: "sq-row sq-pop-main" },
+      (0, import_react3.createElement)("button", { className: "sq-btn", onClick: () => setStep("ignore") }, "忽略"),
+      (0, import_react3.createElement)("button", { className: "sq-btn", "data-kind": "primary", onClick: () => act("重试", "operate", { kind: "run", id: run.run_id, op: "resume", body: { request_id: requestId("resume"), expected_revision: run.revision, note: "在 Squad 页面让 Leader 重新检查" } }) }, "重试")
+    )
+  );
+}
+function Approval({ entry, expectedRevision }) {
+  return (0, import_react3.createElement)(
+    import_react3.Fragment,
+    null,
+    (0, import_react3.createElement)("div", { className: "sq-pop-title" }, "需要你批准工具"),
+    (0, import_react3.createElement)("div", null, `想运行 ${entry.tool}${entry.reason ? `：${entry.reason}` : ""}`),
+    entry.detail?.code || entry.detail?.text ? (0, import_react3.createElement)("pre", { className: "sq-pre sq-muted" }, String(entry.detail.code ?? entry.detail.text).slice(0, 400)) : null,
+    (0, import_react3.createElement)(
+      "div",
+      { className: "sq-row sq-pop-main" },
+      (0, import_react3.createElement)("button", { className: "sq-btn", "data-kind": "danger", onClick: () => act("拒绝", "approve", { approvalId: entry.id, attemptId: entry.attemptId, expectedRevision, choice: "reject" }) }, "拒绝"),
+      (0, import_react3.createElement)("button", { className: "sq-btn", "data-kind": "primary", onClick: () => act("允许", "approve", { approvalId: entry.id, attemptId: entry.attemptId, expectedRevision, choice: "allow" }) }, "允许一次")
+    )
+  );
+}
+function Accept({ task }) {
+  const previewBase = useStore((s) => s.previewBase);
+  const [reject, setReject] = (0, import_react3.useState)(false);
+  const [reason, setReason] = (0, import_react3.useState)("");
+  const decide = (decision, note) => act(decision === "accepted" ? "验收通过" : "退回", "accept", { taskId: task.task_id, body: { request_id: requestId("accept"), expected_revision: task.revision, decision, result_hash: task.result.hash, note } });
+  const html = (task.result?.artifacts ?? []).find((art) => art.media_type === "text/html");
+  return (0, import_react3.createElement)(
+    import_react3.Fragment,
+    null,
+    (0, import_react3.createElement)("div", { className: "sq-pop-title" }, "请确认这个结果是否可以交付"),
+    (0, import_react3.createElement)("pre", { className: "sq-pre sq-muted" }, JSON.stringify(task.result?.value ?? null, null, 2).slice(0, 300)),
+    html && previewBase ? (0, import_react3.createElement)("button", { className: "sq-link", onClick: () => store.set((s) => ({ ...s, preview: { url: `${previewBase}/v2/artifacts/sha256/${html.sha256}`, name: html.name } })) }, `预览 ${html.name ?? ""}`) : null,
+    reject ? (0, import_react3.createElement)(
+      "div",
+      { className: "sq-pop-confirm" },
+      (0, import_react3.createElement)("input", { className: "sq-input", placeholder: "一句话写清要改什么", value: reason, onChange: (event) => setReason(event.target.value) }),
+      (0, import_react3.createElement)("div", { className: "sq-row" }, (0, import_react3.createElement)("button", { className: "sq-btn", onClick: () => setReject(false) }, "算了"), (0, import_react3.createElement)("button", { className: "sq-btn", "data-kind": "danger", disabled: reason.trim() === "", onClick: () => decide("rejected", reason.trim()) }, "退回"))
+    ) : (0, import_react3.createElement)(
+      "div",
+      { className: "sq-row sq-pop-main" },
+      (0, import_react3.createElement)("button", { className: "sq-btn", onClick: () => setReject(true) }, "退回"),
+      (0, import_react3.createElement)("button", { className: "sq-btn", "data-kind": "primary", onClick: () => decide("accepted", "在 Squad 页面验收通过") }, "通过")
+    )
+  );
+}
+function Held({ run }) {
+  return (0, import_react3.createElement)(
+    import_react3.Fragment,
+    null,
+    (0, import_react3.createElement)("div", { className: "sq-pop-title" }, "系统重启过，确认后继续"),
+    (0, import_react3.createElement)("div", { className: "sq-muted" }, "先处理下面标红的步骤（重试或忽略），再让 Run 继续。"),
+    (0, import_react3.createElement)(
+      "div",
+      { className: "sq-row sq-pop-main" },
+      (0, import_react3.createElement)("button", { className: "sq-btn", "data-kind": "primary", onClick: () => act("继续", "operate", { kind: "run", id: run.run_id, op: "resume", body: { request_id: requestId("resume"), expected_revision: run.revision, note: "在 Squad 页面确认继续" } }) }, "继续")
+    )
+  );
+}
+function hasActions(node) {
+  return node && (node.state.status === "failed" || node.state.status === "attention");
+}
+function NodePopover({ node, x, y, onDetails, onClose }) {
+  const approvals = useStore((s) => s.approvals);
+  const attempts = useStore((s) => s.projection.snapshot?.views?.attempts ?? []);
+  const runs = useStore((s) => s.projection.snapshot?.views?.runs ?? []);
+  const run = node.kind === "run" ? node.run : runs.find((candidate) => candidate.run_id === node.task?.run_id);
+  const task = node.task;
+  const approval = task ? approvals.find((entry) => entry.taskId === task.task_id) : void 0;
+  const attempt = approval ? attempts.find((candidate) => candidate.attempt_id === approval.attemptId) : void 0;
+  let body = null;
+  if (node.state.status === "failed") body = node.kind === "run" ? (0, import_react3.createElement)(FailedRun, { run, state: node.state }) : (0, import_react3.createElement)(FailedTask, { node });
+  else if (approval) body = (0, import_react3.createElement)(Approval, { entry: approval, expectedRevision: attempt?.revision });
+  else if (task && task.state === "completed" && task.acceptance_policy?.mode === "human") body = (0, import_react3.createElement)(Accept, { task });
+  else if (node.kind === "run" && run?.recovery_hold) body = (0, import_react3.createElement)(Held, { run });
+  return (0, import_react3.createElement)(
+    "div",
+    { className: "sq-pop", "data-s": node.state.status, style: { transform: `translate(${x}px, ${y}px)` }, onMouseDown: (event) => event.stopPropagation(), onClick: (event) => event.stopPropagation(), role: "dialog", "aria-label": "处理这一步" },
+    (0, import_react3.createElement)("button", { className: "sq-x sq-pop-close", "aria-label": "关闭", onClick: onClose }, "×"),
+    body,
+    (0, import_react3.createElement)(Guidance, { run, task }),
+    (0, import_react3.createElement)("button", { className: "sq-link sq-muted", onClick: onDetails }, "查看详情")
+  );
+}
+
 // src/canvas.js
 var PALETTE = ["#3d5afe", "#00897b", "#f4511e", "#8e24aa", "#c0ca33", "#0288d1", "#d81b60", "#6d4c41"];
 var NAMED = { deepseek: "#4d6bfe", blue: "#2563eb", green: "#16a34a", orange: "#ea580c", red: "#dc2626", purple: "#7c3aed", pink: "#db2777", teal: "#0d9488", yellow: "#ca8a04", gray: "#6b7280" };
@@ -588,14 +702,14 @@ var colorOf = (member) => {
 function Avatar({ member, size = 28 }) {
   const image = member?.look?.avatar?.image;
   const name = member?.name || member?.agentId || "?";
-  return image ? (0, import_react3.createElement)("img", { className: "sq-avatar", src: image, alt: "", width: size, height: size }) : (0, import_react3.createElement)("span", { className: "sq-avatar", "aria-hidden": true, style: { width: size, height: size, background: colorOf(member) } }, name.slice(0, 1).toUpperCase());
+  return image ? (0, import_react4.createElement)("img", { className: "sq-avatar", src: image, alt: "", width: size, height: size }) : (0, import_react4.createElement)("span", { className: "sq-avatar", "aria-hidden": true, style: { width: size, height: size, background: colorOf(member) } }, name.slice(0, 1).toUpperCase());
 }
 function NodeCard({ item, selected, isNew, onSelect, onFold }) {
   const { node, hidden } = item;
-  const state = node.state;
+  const state = hidden > 0 && node.folds ? node.folds : node.state;
   const count = node.children.length;
   const folded = hidden > 0;
-  return (0, import_react3.createElement)(
+  return (0, import_react4.createElement)(
     "div",
     {
       className: "sq-node",
@@ -614,21 +728,21 @@ function NodeCard({ item, selected, isNew, onSelect, onFold }) {
         if (event.key === "Enter") onSelect(node.id);
       }
     },
-    (0, import_react3.createElement)(
+    (0, import_react4.createElement)(
       "div",
       { className: "sq-node-head" },
-      (0, import_react3.createElement)(Avatar, { member: node.member }),
-      (0, import_react3.createElement)(
+      (0, import_react4.createElement)(Avatar, { member: node.member }),
+      (0, import_react4.createElement)(
         "div",
         { className: "sq-node-who" },
-        (0, import_react3.createElement)("div", { className: "sq-node-role" }, node.kind === "run" ? `Leader · ${node.member?.name ?? ""}` : `${node.member?.name || node.role}${node.task?.kind && node.task.kind !== "execute" ? ` · ${KIND[node.task.kind] ?? node.task.kind}` : ""}`),
-        node.member?.model ? (0, import_react3.createElement)("div", { className: "sq-node-model" }, node.member.model) : null
+        (0, import_react4.createElement)("div", { className: "sq-node-role" }, node.kind === "run" ? `Leader · ${node.member?.name ?? ""}` : `${node.member?.name || node.role}${node.task?.kind && node.task.kind !== "execute" ? ` · ${KIND[node.task.kind] ?? node.task.kind}` : ""}`),
+        node.member?.model ? (0, import_react4.createElement)("div", { className: "sq-node-model" }, node.member.model) : null
       ),
-      (0, import_react3.createElement)(StatusChip, { state })
+      (0, import_react4.createElement)(StatusChip, { state })
     ),
-    (0, import_react3.createElement)("div", { className: "sq-node-title", title: node.kind === "run" ? node.run.goal : node.task?.goal }, node.title),
-    (0, import_react3.createElement)("div", { className: "sq-node-note" }, [state.note, node.kind === "run" && node.decisions ? `Leader 已决定 ${node.decisions} 次` : "", node.kind === "run" && (node.run.guidance ?? []).length ? `${node.run.guidance.length} 条补充指导` : ""].filter(Boolean).slice(0, 2).join(" · ")),
-    count > 0 ? (0, import_react3.createElement)("button", {
+    (0, import_react4.createElement)("div", { className: "sq-node-title", title: node.kind === "run" ? node.run.goal : node.task?.goal }, node.title),
+    (0, import_react4.createElement)("div", { className: "sq-node-note" }, [["failed", "attention"].includes(state.status) ? "点开处理" : "", state.note, node.kind === "run" && node.decisions ? `Leader 已决定 ${node.decisions} 次` : "", node.kind === "run" && (node.run.guidance ?? []).length ? `${node.run.guidance.length} 条补充指导` : ""].filter(Boolean).slice(0, 2).join(" · ")),
+    count > 0 ? (0, import_react4.createElement)("button", {
       className: "sq-node-count",
       "aria-label": folded ? `展开 ${hidden} 个` : `折叠 ${count} 个子节点`,
       title: folded ? "展开" : "折叠",
@@ -641,7 +755,7 @@ function NodeCard({ item, selected, isNew, onSelect, onFold }) {
 }
 function Edges({ items, edges, width, height }) {
   const at = new Map(items.map((item) => [item.node.id, item]));
-  return (0, import_react3.createElement)(
+  return (0, import_react4.createElement)(
     "svg",
     { className: "sq-edges", width: Math.max(width, 1), height: Math.max(height, 1), "aria-hidden": true },
     edges.map((edge) => {
@@ -655,14 +769,14 @@ function Edges({ items, edges, width, height }) {
         const y22 = b.y + CARD.height / 2;
         const forward = x22 > x12;
         const d = forward ? `M${x12},${y12} C${x12 + 30},${y12} ${x22 - 30},${y22} ${x22},${y22}` : `M${a.x + CARD.width / 2},${a.y + CARD.height} C${a.x + CARD.width / 2},${a.y + CARD.height + 30} ${b.x + CARD.width / 2},${b.y - 30} ${b.x + CARD.width / 2},${b.y}`;
-        return (0, import_react3.createElement)("path", { key: `d-${edge.from}-${edge.to}`, className: "sq-edge-dep", d });
+        return (0, import_react4.createElement)("path", { key: `d-${edge.from}-${edge.to}`, className: "sq-edge-dep", d });
       }
       const x1 = a.x + CARD.width / 2;
       const y1 = a.y + CARD.height;
       const x2 = b.x + CARD.width / 2;
       const y2 = b.y;
       const mid = (y1 + y2) / 2;
-      return (0, import_react3.createElement)("path", { key: `${edge.from}-${edge.to}`, className: "sq-edge", "data-to-s": b.node.state.status, d: `M${x1},${y1} C${x1},${mid} ${x2},${mid} ${x2},${y2}`, style: { transition: "d .25s" } });
+      return (0, import_react4.createElement)("path", { key: `${edge.from}-${edge.to}`, className: "sq-edge", "data-to-s": b.node.state.status, d: `M${x1},${y1} C${x1},${mid} ${x2},${mid} ${x2},${y2}`, style: { transition: "d .25s" } });
     })
   );
 }
@@ -674,30 +788,30 @@ function Drawer({ node, onClose }) {
   const run = node.run;
   const own = task ? (task.attempt_ids ?? []).map((id) => attempts.find((attempt) => attempt.attempt_id === id)).filter(Boolean) : [];
   const result = task?.result;
-  return (0, import_react3.createElement)(
+  return (0, import_react4.createElement)(
     "aside",
     { className: "sq-drawer", "aria-label": "节点详情" },
-    (0, import_react3.createElement)("div", { className: "sq-row" }, (0, import_react3.createElement)(StatusChip, { state: node.state }), (0, import_react3.createElement)("strong", { style: { flex: 1 } }, node.title), (0, import_react3.createElement)("button", { className: "sq-x", "aria-label": "关闭详情", onClick: onClose }, "×")),
-    node.state.reason ? (0, import_react3.createElement)("div", { className: "sq-reason" }, node.state.reason) : null,
-    (0, import_react3.createElement)("div", { className: "sq-row" }, (0, import_react3.createElement)(Avatar, { member: node.member, size: 22 }), (0, import_react3.createElement)("span", null, node.kind === "run" ? `Leader · ${node.member?.name ?? ""}` : `${node.member?.name || ""} · ${node.role}`), node.member?.model ? (0, import_react3.createElement)("span", { className: "sq-muted" }, node.member.model) : null),
-    (0, import_react3.createElement)("div", { className: "sq-muted" }, node.kind === "run" ? "目标" : "任务"),
-    (0, import_react3.createElement)("div", { className: "sq-pre" }, run?.goal ?? task?.goal),
-    run && (run.guidance ?? []).length ? (0, import_react3.createElement)(import_react3.Fragment, null, (0, import_react3.createElement)("div", { className: "sq-muted" }, "补充指导"), (0, import_react3.createElement)("ul", null, run.guidance.map((text, index) => (0, import_react3.createElement)("li", { key: index }, typeof text === "string" ? text : text.text)))) : null,
-    task?.kind === "review" && result?.value ? (0, import_react3.createElement)(import_react3.Fragment, null, (0, import_react3.createElement)("div", { className: "sq-muted" }, "审核结论"), (0, import_react3.createElement)("div", null, `${result.value.decision === "accepted" ? "通过" : "退回"}：${result.value.reason ?? ""}`)) : null,
-    task && task.kind !== "review" && result ? (0, import_react3.createElement)(import_react3.Fragment, null, (0, import_react3.createElement)("div", { className: "sq-muted" }, `结果（第 ${result.revision} 版）`), (0, import_react3.createElement)("pre", { className: "sq-pre" }, JSON.stringify(result.value, null, 2).slice(0, 1200))) : null,
-    (result?.artifacts ?? []).length ? (0, import_react3.createElement)("div", null, result.artifacts.map((art) => (0, import_react3.createElement)(
+    (0, import_react4.createElement)("div", { className: "sq-row" }, (0, import_react4.createElement)(StatusChip, { state: node.state }), (0, import_react4.createElement)("strong", { style: { flex: 1 } }, node.title), (0, import_react4.createElement)("button", { className: "sq-x", "aria-label": "关闭详情", onClick: onClose }, "×")),
+    node.state.reason ? (0, import_react4.createElement)("div", { className: "sq-reason" }, node.state.reason) : null,
+    (0, import_react4.createElement)("div", { className: "sq-row" }, (0, import_react4.createElement)(Avatar, { member: node.member, size: 22 }), (0, import_react4.createElement)("span", null, node.kind === "run" ? `Leader · ${node.member?.name ?? ""}` : `${node.member?.name || ""} · ${node.role}`), node.member?.model ? (0, import_react4.createElement)("span", { className: "sq-muted" }, node.member.model) : null),
+    (0, import_react4.createElement)("div", { className: "sq-muted" }, node.kind === "run" ? "目标" : "任务"),
+    (0, import_react4.createElement)("div", { className: "sq-pre" }, run?.goal ?? task?.goal),
+    run && (run.guidance ?? []).length ? (0, import_react4.createElement)(import_react4.Fragment, null, (0, import_react4.createElement)("div", { className: "sq-muted" }, "补充指导"), (0, import_react4.createElement)("ul", null, run.guidance.map((text, index) => (0, import_react4.createElement)("li", { key: index }, typeof text === "string" ? text : text.text)))) : null,
+    task?.kind === "review" && result?.value ? (0, import_react4.createElement)(import_react4.Fragment, null, (0, import_react4.createElement)("div", { className: "sq-muted" }, "审核结论"), (0, import_react4.createElement)("div", null, `${result.value.decision === "accepted" ? "通过" : "退回"}：${result.value.reason ?? ""}`)) : null,
+    task && task.kind !== "review" && result ? (0, import_react4.createElement)(import_react4.Fragment, null, (0, import_react4.createElement)("div", { className: "sq-muted" }, `结果（第 ${result.revision} 版）`), (0, import_react4.createElement)("pre", { className: "sq-pre" }, JSON.stringify(result.value, null, 2).slice(0, 1200))) : null,
+    (result?.artifacts ?? []).length ? (0, import_react4.createElement)("div", null, result.artifacts.map((art) => (0, import_react4.createElement)(
       "div",
       { key: art.sha256, className: "sq-row" },
-      (0, import_react3.createElement)("span", null, art.name ?? art.path),
-      previewBase && art.media_type === "text/html" ? (0, import_react3.createElement)("button", { className: "sq-btn", onClick: () => store.set((state) => ({ ...state, preview: { url: `${previewBase}/v2/artifacts/sha256/${art.sha256}`, name: art.name } })) }, "预览") : null
+      (0, import_react4.createElement)("span", null, art.name ?? art.path),
+      previewBase && art.media_type === "text/html" ? (0, import_react4.createElement)("button", { className: "sq-btn", onClick: () => store.set((state) => ({ ...state, preview: { url: `${previewBase}/v2/artifacts/sha256/${art.sha256}`, name: art.name } })) }, "预览") : null
     ))) : null,
-    task?.acceptance && task.kind !== "review" ? (0, import_react3.createElement)("div", { className: "sq-muted" }, `验收：${task.acceptance.decision === "accepted" ? "通过" : "退回"}${task.acceptance.reason ? ` · ${task.acceptance.reason}` : ""}`) : null,
-    own.length > 1 ? (0, import_react3.createElement)(import_react3.Fragment, null, (0, import_react3.createElement)("div", { className: "sq-muted" }, "尝试历史"), (0, import_react3.createElement)("ol", null, own.map((attempt) => (0, import_react3.createElement)("li", { key: attempt.attempt_id }, `${attempt.state}${attempt.error ? `（${attempt.error}）` : ""}`)))) : null,
-    (0, import_react3.createElement)(
+    task?.acceptance && task.kind !== "review" ? (0, import_react4.createElement)("div", { className: "sq-muted" }, `验收：${task.acceptance.decision === "accepted" ? "通过" : "退回"}${task.acceptance.reason ? ` · ${task.acceptance.reason}` : ""}`) : null,
+    own.length > 1 ? (0, import_react4.createElement)(import_react4.Fragment, null, (0, import_react4.createElement)("div", { className: "sq-muted" }, "尝试历史"), (0, import_react4.createElement)("ol", null, own.map((attempt) => (0, import_react4.createElement)("li", { key: attempt.attempt_id }, `${attempt.state}${attempt.error ? `（${attempt.error}）` : ""}`)))) : null,
+    (0, import_react4.createElement)(
       "details",
       { className: "sq-tech" },
-      (0, import_react3.createElement)("summary", null, "技术细节"),
-      (0, import_react3.createElement)("pre", { className: "sq-pre" }, JSON.stringify(task ? { task_id: task.task_id, kind: task.kind, state: task.state, revision: task.revision, origin: task.origin, blockers: task.blockers, attempts: own.map((attempt) => ({ id: attempt.attempt_id, state: attempt.state, segment: attempt.segment_id, error: attempt.error, cleanup: attempt.cleanup_state })) } : { run_id: run.run_id, phase: run.phase, revision: run.revision, recovery_hold: run.recovery_hold, blockers: run.blockers }, null, 2))
+      (0, import_react4.createElement)("summary", null, "技术细节"),
+      (0, import_react4.createElement)("pre", { className: "sq-pre" }, JSON.stringify(task ? { task_id: task.task_id, kind: task.kind, state: task.state, revision: task.revision, origin: task.origin, blockers: task.blockers, attempts: own.map((attempt) => ({ id: attempt.attempt_id, state: attempt.state, segment: attempt.segment_id, error: attempt.error, cleanup: attempt.cleanup_state })) } : { run_id: run.run_id, phase: run.phase, revision: run.revision, recovery_hold: run.recovery_hold, blockers: run.blockers }, null, 2))
     )
   );
 }
@@ -706,15 +820,16 @@ function RunCanvas({ runId }) {
   const approvals = useStore((state) => state.approvals);
   const bots = useStore((state) => state.bots);
   const focus = useStore((state) => state.focus);
-  const tree = (0, import_react3.useMemo)(() => treeOf(snapshot, runId, { approvals, bots }), [snapshot, runId, approvals, bots]);
-  const [overrides, setOverrides] = (0, import_react3.useState)({});
-  const [selected, setSelected] = (0, import_react3.useState)(null);
-  const [view, setView] = (0, import_react3.useState)({ x: 0, y: 24, scale: 1, moved: false });
-  const box = (0, import_react3.useRef)(null);
-  const seen = (0, import_react3.useRef)(null);
-  const drag = (0, import_react3.useRef)(null);
-  const auto = (0, import_react3.useMemo)(() => tree ? autoFolded(tree.root) : /* @__PURE__ */ new Set(), [tree]);
-  const forcedOpen = (0, import_react3.useMemo)(() => {
+  const tree = (0, import_react4.useMemo)(() => treeOf(snapshot, runId, { approvals, bots }), [snapshot, runId, approvals, bots]);
+  const [overrides, setOverrides] = (0, import_react4.useState)({});
+  const [selected, setSelected] = (0, import_react4.useState)(null);
+  const [details, setDetails] = (0, import_react4.useState)(false);
+  const [view, setView] = (0, import_react4.useState)({ x: 0, y: 24, scale: 1, moved: false });
+  const box = (0, import_react4.useRef)(null);
+  const seen = (0, import_react4.useRef)(null);
+  const drag = (0, import_react4.useRef)(null);
+  const auto = (0, import_react4.useMemo)(() => tree ? autoFolded(tree.root) : /* @__PURE__ */ new Set(), [tree]);
+  const forcedOpen = (0, import_react4.useMemo)(() => {
     const open2 = /* @__PURE__ */ new Set();
     if (!tree || !focus?.taskId) return open2;
     const target = [...tree.nodes.values()].find((node2) => node2.task?.task_id === focus.taskId && !node2.children.some((child) => child.task?.task_id === focus.taskId));
@@ -728,31 +843,32 @@ function RunCanvas({ runId }) {
     if (target) walk(tree.root, []);
     return open2;
   }, [tree, focus?.at]);
-  const folded = (0, import_react3.useMemo)(() => new Set([...auto, ...Object.entries(overrides).filter(([, value]) => value).map(([id]) => id)].filter((id) => overrides[id] !== false && !forcedOpen.has(id))), [auto, overrides, forcedOpen]);
-  const placed = (0, import_react3.useMemo)(() => tree ? layout(tree.root, folded) : null, [tree, folded]);
+  const folded = (0, import_react4.useMemo)(() => new Set([...auto, ...Object.entries(overrides).filter(([, value]) => value).map(([id]) => id)].filter((id) => overrides[id] !== false && !forcedOpen.has(id))), [auto, overrides, forcedOpen]);
+  const placed = (0, import_react4.useMemo)(() => tree ? layout(tree.root, folded) : null, [tree, folded]);
   const fresh = /* @__PURE__ */ new Set();
   if (placed) {
     if (seen.current === null) seen.current = new Set(placed.nodes.map((item) => item.node.id));
     for (const item of placed.nodes) if (!seen.current.has(item.node.id)) fresh.add(item.node.id);
   }
-  (0, import_react3.useEffect)(() => {
+  (0, import_react4.useEffect)(() => {
     if (placed) for (const item of placed.nodes) seen.current.add(item.node.id);
   });
-  (0, import_react3.useEffect)(() => {
+  (0, import_react4.useEffect)(() => {
     seen.current = null;
     setSelected(null);
     setView((current) => ({ ...current, moved: false }));
   }, [runId]);
-  (0, import_react3.useEffect)(() => {
+  (0, import_react4.useEffect)(() => {
     if (!placed || !box.current || view.moved) return;
     const width = box.current.clientWidth;
     setView((current) => ({ ...current, x: Math.round(width / 2 - (placed.rootX + CARD.width / 2) * current.scale), y: 24 }));
   }, [placed?.width, placed?.rootX, view.moved, view.scale]);
-  (0, import_react3.useEffect)(() => {
-    if (!placed || !focus?.taskId || !box.current) return;
-    const item = [...placed.nodes].reverse().find((candidate) => candidate.node.task?.task_id === focus.taskId);
+  (0, import_react4.useEffect)(() => {
+    if (!placed || !focus || focus.runId !== runId || !box.current) return;
+    const item = focus.taskId ? [...placed.nodes].reverse().find((candidate) => candidate.node.task?.task_id === focus.taskId) : placed.nodes[0];
     if (!item) return;
     setSelected(item.node.id);
+    setDetails(false);
     const { clientWidth, clientHeight } = box.current;
     setView((current) => ({ ...current, moved: true, x: Math.round(clientWidth / 2 - (item.x + CARD.width / 2) * current.scale), y: Math.round(clientHeight / 2 - (item.y + CARD.height / 2) * current.scale) }));
     const el = box.current.querySelector(`[data-node="${CSS.escape(item.node.id)}"]`);
@@ -760,29 +876,35 @@ function RunCanvas({ runId }) {
     const timer2 = setTimeout(() => el?.removeAttribute("data-flash"), 1200);
     return () => clearTimeout(timer2);
   }, [focus?.at, placed !== null]);
-  if (!tree || !placed) return (0, import_react3.createElement)("div", { className: "sq-muted" }, "选择左边的一个 Run，或开始一个新的。");
+  if (!tree || !placed) return (0, import_react4.createElement)("div", { className: "sq-muted" }, "选择左边的一个 Run，或开始一个新的。");
   const node = selected ? tree.nodes.get(selected) : null;
+  const selectedItem = node ? placed.nodes.find((item) => item.node.id === node.id) : null;
+  const popover = node && hasActions(node) && !details && selectedItem;
+  const select = (id) => {
+    setSelected(id);
+    setDetails(false);
+  };
   const toggle = (id) => setOverrides((current) => ({ ...current, [id]: !folded.has(id) }));
   const onWheel = (event) => {
     if (!event.ctrlKey && !event.metaKey) return;
     event.preventDefault();
     setView((current) => ({ ...current, moved: true, scale: Math.min(1.6, Math.max(0.4, current.scale * (event.deltaY < 0 ? 1.1 : 0.9))) }));
   };
-  return (0, import_react3.createElement)(
+  return (0, import_react4.createElement)(
     "div",
     { className: "sq-canvas-wrap" },
-    (0, import_react3.createElement)(
+    (0, import_react4.createElement)(
       "div",
       { className: "sq-canvas-tools" },
-      (0, import_react3.createElement)("button", { className: "sq-btn", onClick: () => setView((current) => ({ ...current, moved: false, scale: 1 })) }, "回到中心"),
-      (0, import_react3.createElement)("button", { className: "sq-btn", onClick: () => {
+      (0, import_react4.createElement)("button", { className: "sq-btn", onClick: () => setView((current) => ({ ...current, moved: false, scale: 1 })) }, "回到中心"),
+      (0, import_react4.createElement)("button", { className: "sq-btn", onClick: () => {
         const width = box.current?.clientWidth ?? 800;
         const height = box.current?.clientHeight ?? 500;
         const scale = Math.max(0.4, Math.min(1, (width - 40) / placed.width, (height - 48) / placed.height));
         setView({ moved: true, scale, x: Math.round((width - placed.width * scale) / 2), y: 24 });
       } }, "适应窗口")
     ),
-    (0, import_react3.createElement)(
+    (0, import_react4.createElement)(
       "div",
       {
         className: "sq-canvas",
@@ -801,21 +923,22 @@ function RunCanvas({ runId }) {
           drag.current = null;
         }
       },
-      (0, import_react3.createElement)(
+      (0, import_react4.createElement)(
         "div",
         { className: "sq-layer", style: { transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` } },
-        (0, import_react3.createElement)(Edges, { items: placed.nodes, edges: placed.edges, width: placed.width, height: placed.height }),
-        placed.nodes.map((item) => (0, import_react3.createElement)(NodeCard, { key: item.node.id, item, selected: selected === item.node.id, isNew: fresh.has(item.node.id), onSelect: setSelected, onFold: toggle }))
+        (0, import_react4.createElement)(Edges, { items: placed.nodes, edges: placed.edges, width: placed.width, height: placed.height }),
+        placed.nodes.map((item) => (0, import_react4.createElement)(NodeCard, { key: item.node.id, item, selected: selected === item.node.id, isNew: fresh.has(item.node.id), onSelect: select, onFold: toggle })),
+        popover ? (0, import_react4.createElement)(NodePopover, { key: `pop-${node.id}`, node, x: selectedItem.x + CARD.width + 14, y: selectedItem.y, onDetails: () => setDetails(true), onClose: () => setSelected(null) }) : null
       )
     ),
-    (0, import_react3.createElement)(Drawer, { node, onClose: () => setSelected(null) })
+    node && !popover ? (0, import_react4.createElement)(Drawer, { node, onClose: () => setSelected(null) }) : null
   );
 }
 
 // src/runs.js
 var TONE = { completed: "ok", accepted: "ok", running: "warn", needs_review: "bad", failed: "bad", interrupted: "bad", rejected: "bad", cancelled: "bad" };
-var chip = (text, tone) => (0, import_react4.createElement)("span", { className: "sq-chip", "data-tone": tone }, text);
-async function act(what, endpoint, payload) {
+var chip = (text, tone) => (0, import_react5.createElement)("span", { className: "sq-chip", "data-tone": tone }, text);
+async function act2(what, endpoint, payload) {
   try {
     await call(endpoint, payload);
     toast(`${what}：已提交`, "ok");
@@ -827,12 +950,12 @@ async function act(what, endpoint, payload) {
 }
 function StartRun({ snapshot }) {
   const teams = (snapshot?.views?.teams ?? []).map((team2) => team2.config);
-  const [teamId, setTeam] = (0, import_react4.useState)(teams[0]?.team_id ?? "");
-  const [goal, setGoal] = (0, import_react4.useState)("");
-  const [busy, setBusy] = (0, import_react4.useState)(false);
+  const [teamId, setTeam] = (0, import_react5.useState)(teams[0]?.team_id ?? "");
+  const [goal, setGoal] = (0, import_react5.useState)("");
+  const [busy, setBusy] = (0, import_react5.useState)(false);
   const team = (snapshot?.views?.teams ?? []).find((candidate) => candidate.config.team_id === teamId);
   const workflows = Object.keys(team?.workflows ?? {});
-  const [workflowId, setWorkflow] = (0, import_react4.useState)("");
+  const [workflowId, setWorkflow] = (0, import_react5.useState)("");
   const start = async () => {
     setBusy(true);
     try {
@@ -847,152 +970,45 @@ function StartRun({ snapshot }) {
       await refreshNow();
     }
   };
-  return (0, import_react4.createElement)(
+  return (0, import_react5.createElement)(
     "div",
     { className: "sq-card" },
-    (0, import_react4.createElement)("h3", null, "开始一个小队任务"),
-    (0, import_react4.createElement)(
+    (0, import_react5.createElement)("h3", null, "开始一个小队任务"),
+    (0, import_react5.createElement)(
       "select",
       { className: "sq-select", value: teamId, onChange: (event) => setTeam(event.target.value), "aria-label": "小队" },
-      teams.length === 0 ? (0, import_react4.createElement)("option", { value: "" }, "还没有小队，请先在「小队与规则」里建一个") : teams.map((t) => (0, import_react4.createElement)("option", { key: t.team_id, value: t.team_id }, t.team_id))
+      teams.length === 0 ? (0, import_react5.createElement)("option", { value: "" }, "还没有小队，请先在「小队与规则」里建一个") : teams.map((t) => (0, import_react5.createElement)("option", { key: t.team_id, value: t.team_id }, t.team_id))
     ),
-    workflows.length > 0 ? (0, import_react4.createElement)(
+    workflows.length > 0 ? (0, import_react5.createElement)(
       "select",
       { className: "sq-select", value: workflowId, onChange: (event) => setWorkflow(event.target.value), "aria-label": "流程" },
-      (0, import_react4.createElement)("option", { value: "" }, `默认流程${team?.config?.default_workflow ? `（${team.config.default_workflow}）` : "（由 Leader 安排）"}`),
-      workflows.map((id) => (0, import_react4.createElement)("option", { key: id, value: id }, id))
+      (0, import_react5.createElement)("option", { value: "" }, `默认流程${team?.config?.default_workflow ? `（${team.config.default_workflow}）` : "（由 Leader 安排）"}`),
+      workflows.map((id) => (0, import_react5.createElement)("option", { key: id, value: id }, id))
     ) : null,
-    (0, import_react4.createElement)("textarea", { className: "sq-text", placeholder: "要完成什么？例如：认识分数：分数的意义与读写（五年级）", value: goal, onChange: (event) => setGoal(event.target.value) }),
-    (0, import_react4.createElement)("button", { className: "sq-btn", "data-kind": "primary", disabled: busy || !teamId || goal.trim() === "", onClick: start }, busy ? "正在开始…" : "开始")
+    (0, import_react5.createElement)("textarea", { className: "sq-text", placeholder: "要完成什么？例如：认识分数：分数的意义与读写（五年级）", value: goal, onChange: (event) => setGoal(event.target.value) }),
+    (0, import_react5.createElement)("button", { className: "sq-btn", "data-kind": "primary", disabled: busy || !teamId || goal.trim() === "", onClick: start }, busy ? "正在开始…" : "开始")
   );
 }
 function RunList() {
   const snapshot = useStore((state) => state.projection.snapshot);
   const runId = useStore((state) => state.runId);
   const runs = runsOf(snapshot);
-  return (0, import_react4.createElement)(
-    import_react4.Fragment,
+  return (0, import_react5.createElement)(
+    import_react5.Fragment,
     null,
-    (0, import_react4.createElement)(StartRun, { snapshot }),
-    runs.length === 0 ? (0, import_react4.createElement)("div", { className: "sq-muted" }, "还没有 Run。") : null,
+    (0, import_react5.createElement)(StartRun, { snapshot }),
+    runs.length === 0 ? (0, import_react5.createElement)("div", { className: "sq-muted" }, "还没有 Run。") : null,
     runs.map((run) => {
       const tasks = tasksOf(snapshot, run.run_id).filter((task) => task.kind !== "leader_step");
       const done = tasks.filter((task) => task.state === "completed").length;
-      return (0, import_react4.createElement)(
+      return (0, import_react5.createElement)(
         "button",
         { key: run.run_id, className: "sq-item", "data-on": run.run_id === runId || void 0, onClick: () => store.set((state) => ({ ...state, runId: run.run_id })) },
-        (0, import_react4.createElement)("div", { className: "sq-row" }, (0, import_react4.createElement)(StatusChip, { state: runStatusOf(run) }), (0, import_react4.createElement)("span", { className: "sq-muted" }, run.team_id)),
-        (0, import_react4.createElement)("div", null, run.goal),
-        (0, import_react4.createElement)("div", { className: "sq-muted" }, `${done}/${tasks.length} 个任务完成 · ${short(run.run_id)}${waitingOf(run).length ? " · 排队中" : ""}`)
+        (0, import_react5.createElement)("div", { className: "sq-row" }, (0, import_react5.createElement)(StatusChip, { state: runStatusOf(run) }), (0, import_react5.createElement)("span", { className: "sq-muted" }, run.team_id)),
+        (0, import_react5.createElement)("div", null, run.goal),
+        (0, import_react5.createElement)("div", { className: "sq-muted" }, `${done}/${tasks.length} 个任务完成 · ${short(run.run_id)}${waitingOf(run).length ? " · 排队中" : ""}`)
       );
     })
-  );
-}
-function AnswerCard({ card }) {
-  const [text, setText] = (0, import_react4.useState)("");
-  return (0, import_react4.createElement)(
-    "div",
-    { className: "sq-card" },
-    (0, import_react4.createElement)("h3", null, "需要你回答"),
-    (0, import_react4.createElement)("div", null, card.why),
-    (0, import_react4.createElement)("textarea", { className: "sq-text", placeholder: "写给 Leader 的说明", value: text, onChange: (event) => setText(event.target.value) }),
-    (0, import_react4.createElement)(
-      "div",
-      { className: "sq-row" },
-      (0, import_react4.createElement)("button", { className: "sq-btn", "data-kind": "primary", disabled: text.trim() === "", onClick: () => act("回答", "operate", { kind: "run", id: card.run.run_id, op: "guidance", body: { request_id: requestId("guide"), expected_revision: card.expectedRevision, note: text.trim() } }) }, "回答"),
-      card.run.recovery_hold ? (0, import_react4.createElement)("button", { className: "sq-btn", onClick: () => act("继续 Run", "operate", { kind: "run", id: card.run.run_id, op: "resume", body: { request_id: requestId("resume"), expected_revision: card.expectedRevision, note: "在 Squad 页面确认继续" } }) }, "确认继续") : null
-    )
-  );
-}
-function ApproveCard({ card }) {
-  const { approval } = card;
-  const answer = (choice) => act(choice === "allow" ? "批准工具" : "拒绝工具", "approve", { approvalId: approval.id, attemptId: card.attemptId, expectedRevision: card.expectedRevision, choice });
-  return (0, import_react4.createElement)(
-    "div",
-    { className: "sq-card" },
-    (0, import_react4.createElement)("h3", null, "需要你批准工具"),
-    (0, import_react4.createElement)("div", null, `${approval.tool}：${approval.reason || "（没有说明）"}`),
-    approval.detail?.code || approval.detail?.text ? (0, import_react4.createElement)("pre", { className: "sq-muted", style: { whiteSpace: "pre-wrap", margin: 0 } }, String(approval.detail.code ?? approval.detail.text).slice(0, 600)) : null,
-    (0, import_react4.createElement)(
-      "div",
-      { className: "sq-row" },
-      (0, import_react4.createElement)("button", { className: "sq-btn", "data-kind": "primary", disabled: card.expectedRevision === void 0, onClick: () => answer("allow") }, "批准一次"),
-      (0, import_react4.createElement)("button", { className: "sq-btn", "data-kind": "danger", onClick: () => answer("reject") }, "拒绝")
-    )
-  );
-}
-function AcceptCard({ card }) {
-  const [note, setNote] = (0, import_react4.useState)("");
-  const decide = (decision) => act(decision === "accepted" ? "验收通过" : "验收退回", "accept", { taskId: card.task.task_id, body: { request_id: requestId("accept"), expected_revision: card.expectedRevision, decision, result_hash: card.resultHash, note: note.trim() || (decision === "accepted" ? "验收通过" : "需要修改") } });
-  return (0, import_react4.createElement)(
-    "div",
-    { className: "sq-card" },
-    (0, import_react4.createElement)("h3", null, "需要你验收成果"),
-    (0, import_react4.createElement)("div", null, card.task.goal),
-    (0, import_react4.createElement)("pre", { className: "sq-muted", style: { whiteSpace: "pre-wrap", margin: 0 } }, JSON.stringify(card.task.result?.value ?? null, null, 2).slice(0, 800)),
-    (0, import_react4.createElement)("input", { className: "sq-input", placeholder: "验收意见", value: note, onChange: (event) => setNote(event.target.value) }),
-    (0, import_react4.createElement)(
-      "div",
-      { className: "sq-row" },
-      (0, import_react4.createElement)("button", { className: "sq-btn", "data-kind": "primary", onClick: () => decide("accepted") }, "验收通过"),
-      (0, import_react4.createElement)("button", { className: "sq-btn", "data-kind": "danger", onClick: () => decide("rejected") }, "退回")
-    )
-  );
-}
-function RecoverCard({ card }) {
-  const { task, attempt, late = [], others = [], primary } = card;
-  const [confirm, setConfirm] = (0, import_react4.useState)(false);
-  const body = (extra) => ({ request_id: requestId("recover"), expected_revision: card.expectedRevision, ...extra });
-  return (0, import_react4.createElement)(
-    "div",
-    { className: "sq-card" },
-    (0, import_react4.createElement)("h3", null, "需要恢复"),
-    (0, import_react4.createElement)("div", null, `${KIND[task.kind] ?? task.kind} · ${task.role_id}：${TASK_STATE[task.state] ?? task.state}${attempt?.error ? `（${attempt.error}）` : ""}${(task.blockers ?? []).length ? ` · ${(task.blockers ?? []).map((blocker) => blocker.kind).join("、")}` : ""}`),
-    attempt ? (0, import_react4.createElement)(
-      import_react4.Fragment,
-      null,
-      (0, import_react4.createElement)("div", { className: "sq-muted" }, "不确定这次执行是否真的停下时，不会自动重来。确认它已经停止后再释放，之后可以重试、采用迟到的结果或取消。"),
-      (0, import_react4.createElement)("label", { className: "sq-row" }, (0, import_react4.createElement)("input", { type: "checkbox", checked: confirm, onChange: (event) => setConfirm(event.target.checked) }), "我确认这次执行已经停止"),
-      (0, import_react4.createElement)("button", { className: "sq-btn", disabled: !confirm, onClick: () => act("确认已停止", "operate", { kind: "attempt", id: attempt.attempt_id, op: "reconcile", body: { request_id: requestId("reconcile"), expected_revision: attempt.revision, expected_runtime: attempt.target?.runtime_id, note: "在 Squad 页面确认已停止", confirm_stopped: true } }) }, "确认已停止")
-    ) : null,
-    late.length > 0 ? (0, import_react4.createElement)(
-      "div",
-      null,
-      (0, import_react4.createElement)("div", null, `执行被隔离后又收到 ${late.length} 份结果（已拒绝，保留为证据）：`),
-      late.map((row) => (0, import_react4.createElement)(
-        "div",
-        { key: row.seq, className: "sq-row" },
-        (0, import_react4.createElement)("span", { className: "sq-muted" }, `#${row.seq} · ${row.source} · ${String(row.at ?? "").slice(0, 19).replace("T", " ")}`),
-        (0, import_react4.createElement)("button", { className: "sq-btn", disabled: Boolean(attempt), onClick: () => act("采用迟到的结果", "operate", { kind: "task", id: task.task_id, op: "recover", body: body({ evidence: `evidence:${row.seq}`, note: "在 Squad 页面采用迟到的结果" }) }) }, "采用这个结果")
-      ))
-    ) : null,
-    others.length > 0 && attempt === void 0 ? (0, import_react4.createElement)(
-      "div",
-      null,
-      (0, import_react4.createElement)("div", null, `${task.role_id} 现在由 ${primary?.primary_agent_id || "（无人）"} 负责，可以换成：`),
-      others.map((agent) => (0, import_react4.createElement)("button", { key: agent.binding.agent_id, className: "sq-btn", onClick: async () => {
-        await act(`换成 ${agent.binding.agent_id}`, "operate", { kind: "role", id: task.role_id, op: "promote", body: { request_id: requestId("promote"), expected_revision: primary?.revision ?? 0, expected_runtime: snapshotAgent(primary?.primary_agent_id)?.binding?.runtime_id ?? "", agent_id: agent.binding.agent_id } });
-      } }, agent.binding.agent_id))
-    ) : null,
-    (0, import_react4.createElement)(
-      "div",
-      { className: "sq-row" },
-      (0, import_react4.createElement)("button", { className: "sq-btn", disabled: Boolean(attempt), onClick: () => act(card.attempts > 0 ? "重试" : "换人重新安排", "operate", { kind: "task", id: task.task_id, op: card.attempts > 0 ? "retry" : "rebind", body: body({ rebind_current: true, note: "在 Squad 页面处理" }) }) }, card.attempts > 0 ? "重试" : "按当前负责人重新安排"),
-      (0, import_react4.createElement)("button", { className: "sq-btn", "data-kind": "danger", onClick: () => act("取消任务", "operate", { kind: "task", id: task.task_id, op: "cancel", body: body({ note: "在 Squad 页面取消" }) }) }, "取消任务")
-    )
-  );
-}
-function snapshotAgent(agentId) {
-  return (store.get().projection.snapshot?.views?.agents ?? []).find((agent) => agent.binding?.agent_id === agentId);
-}
-function ReviewCard({ card }) {
-  const target = card.task.dependencies?.[0]?.task_id;
-  return (0, import_react4.createElement)(
-    "div",
-    { className: "sq-card" },
-    (0, import_react4.createElement)("h3", null, "审核结论 ", chip(card.verdict.decision === "accepted" ? "通过" : "退回", card.verdict.decision === "accepted" ? "ok" : "bad")),
-    (0, import_react4.createElement)("div", null, card.verdict.reason),
-    (0, import_react4.createElement)("div", { className: "sq-muted" }, `审核 ${short(target)} 的第 ${card.verdict.candidates?.[0]?.result_revision ?? "?"} 版`)
   );
 }
 function RunDetail({ runId }) {
@@ -1000,82 +1016,74 @@ function RunDetail({ runId }) {
   const approvals = useStore((state) => state.approvals);
   const previewBase = useStore((state) => state.previewBase);
   const focus = useStore((state) => state.focus);
-  const [guide, setGuide] = (0, import_react4.useState)("");
-  const [listView, setListView] = (0, import_react4.useState)(false);
-  (0, import_react4.useEffect)(() => {
+  const [guide, setGuide] = (0, import_react5.useState)("");
+  const [listView, setListView] = (0, import_react5.useState)(false);
+  (0, import_react5.useEffect)(() => {
     if (!focus?.taskId || focus.runId !== runId) return;
     document.getElementById(`sq-task-${focus.taskId}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
   }, [focus?.at, runId]);
   const run = runsOf(snapshot).find((candidate) => candidate.run_id === runId);
-  if (run === void 0) return (0, import_react4.createElement)("div", { className: "sq-muted" }, "选择左边的一个 Run，或开始一个新的。");
+  if (run === void 0) return (0, import_react5.createElement)("div", { className: "sq-muted" }, "选择左边的一个 Run，或开始一个新的。");
   const tasks = tasksOf(snapshot, runId);
-  const cards = cardsOf(snapshot, runId, approvals);
-  const of = (type) => cards.filter((card) => card.type === type);
   const artifacts = artifactsOf(tasks);
-  const section = (title, list, Card) => list.length === 0 ? null : (0, import_react4.createElement)("div", { className: "sq-section" }, (0, import_react4.createElement)("h2", null, `${title}（${list.length}）`), (0, import_react4.createElement)("div", { className: "sq-grid" }, list.map((card) => (0, import_react4.createElement)(Card, { key: card.key, card }))));
-  return (0, import_react4.createElement)(
-    import_react4.Fragment,
+  return (0, import_react5.createElement)(
+    import_react5.Fragment,
     null,
-    (0, import_react4.createElement)(
+    (0, import_react5.createElement)(
       "div",
       { className: "sq-card" },
-      (0, import_react4.createElement)("div", { className: "sq-row" }, (0, import_react4.createElement)(StatusChip, { state: runStatusOf(run) }), (0, import_react4.createElement)("strong", null, run.goal)),
-      (0, import_react4.createElement)("div", { className: "sq-muted" }, `小队 ${run.team_id} · ${short(run.run_id)} · 第 ${run.revision} 版${(run.guidance ?? []).length ? ` · 已有 ${run.guidance.length} 条补充说明` : ""}`),
-      waitingOf(run).length > 0 ? (0, import_react4.createElement)("div", null, chip("排队中", "warn"), waitingOf(run).join("；"), "，对方结束后自动开始。") : null,
-      terminal(run.phase) ? null : (0, import_react4.createElement)(
+      (0, import_react5.createElement)("div", { className: "sq-row" }, (0, import_react5.createElement)(StatusChip, { state: runStatusOf(run) }), (0, import_react5.createElement)("strong", null, run.goal)),
+      (0, import_react5.createElement)("div", { className: "sq-muted" }, `小队 ${run.team_id} · ${short(run.run_id)} · 第 ${run.revision} 版${(run.guidance ?? []).length ? ` · 已有 ${run.guidance.length} 条补充说明` : ""}`),
+      waitingOf(run).length > 0 ? (0, import_react5.createElement)("div", null, chip("排队中", "warn"), waitingOf(run).join("；"), "，对方结束后自动开始。") : null,
+      terminal(run.phase) ? null : (0, import_react5.createElement)(
         "div",
         { className: "sq-row" },
-        (0, import_react4.createElement)("input", { className: "sq-input", style: { flex: 1 }, placeholder: "给 Leader 补充说明（例如：例子用披萨）", value: guide, onChange: (event) => setGuide(event.target.value) }),
-        (0, import_react4.createElement)("button", { className: "sq-btn", disabled: guide.trim() === "", onClick: () => {
-          void act("补充说明", "operate", { kind: "run", id: run.run_id, op: "guidance", body: { request_id: requestId("guide"), expected_revision: run.revision, note: guide.trim() } });
+        (0, import_react5.createElement)("input", { className: "sq-input", style: { flex: 1 }, placeholder: "给 Leader 补充说明（例如：例子用披萨）", value: guide, onChange: (event) => setGuide(event.target.value) }),
+        (0, import_react5.createElement)("button", { className: "sq-btn", disabled: guide.trim() === "", onClick: () => {
+          void act2("补充说明", "operate", { kind: "run", id: run.run_id, op: "guidance", body: { request_id: requestId("guide"), expected_revision: run.revision, note: guide.trim() } });
           setGuide("");
         } }, "发送"),
-        (0, import_react4.createElement)("button", { className: "sq-btn", "data-kind": "danger", onClick: () => act("取消 Run", "operate", { kind: "run", id: run.run_id, op: "cancel", body: { request_id: requestId("cancel"), expected_revision: run.revision, note: "在 Squad 页面取消" } }) }, "取消 Run")
+        (0, import_react5.createElement)("button", { className: "sq-btn", "data-kind": "danger", onClick: () => act2("取消 Run", "operate", { kind: "run", id: run.run_id, op: "cancel", body: { request_id: requestId("cancel"), expected_revision: run.revision, note: "在 Squad 页面取消" } }) }, "取消 Run")
       )
     ),
-    section("需要你回答", of("answer"), AnswerCard),
-    section("需要你批准工具", of("approve"), ApproveCard),
-    section("需要你验收成果", of("accept"), AcceptCard),
-    section("需要恢复", of("recover"), RecoverCard),
-    (0, import_react4.createElement)(
+    (0, import_react5.createElement)(
       "div",
       { className: "sq-section" },
-      (0, import_react4.createElement)("div", { className: "sq-row" }, (0, import_react4.createElement)("h2", { style: { margin: 0, flex: 1 } }, listView ? "任务列表" : "任务树"), (0, import_react4.createElement)("button", { className: "sq-btn", onClick: () => setListView((value) => !value) }, listView ? "树视图" : "列表视图")),
-      listView ? null : (0, import_react4.createElement)(RunCanvas, { runId })
+      (0, import_react5.createElement)("div", { className: "sq-row" }, (0, import_react5.createElement)("h2", { style: { margin: 0, flex: 1 } }, listView ? "任务列表" : "任务树"), (0, import_react5.createElement)("button", { className: "sq-btn", onClick: () => setListView((value) => !value) }, listView ? "树视图" : "列表视图")),
+      listView ? null : (0, import_react5.createElement)(RunCanvas, { runId })
     ),
-    artifacts.length === 0 ? null : (0, import_react4.createElement)(
+    artifacts.length === 0 ? null : (0, import_react5.createElement)(
       "div",
       { className: "sq-section" },
-      (0, import_react4.createElement)("h2", null, "成果文件"),
-      (0, import_react4.createElement)("table", { className: "sq-table" }, (0, import_react4.createElement)("tbody", null, artifacts.map((art) => (0, import_react4.createElement)(
+      (0, import_react5.createElement)("h2", null, "成果文件"),
+      (0, import_react5.createElement)("table", { className: "sq-table" }, (0, import_react5.createElement)("tbody", null, artifacts.map((art) => (0, import_react5.createElement)(
         "tr",
         { key: `${art.taskId}:${art.sha256}` },
-        (0, import_react4.createElement)("td", null, art.name ?? art.path),
-        (0, import_react4.createElement)("td", null, chip(art.superseded ? "已被返工取代" : art.accepted ? "已通过" : "待审核", art.superseded ? "bad" : art.accepted ? "ok" : "warn")),
-        (0, import_react4.createElement)("td", { className: "sq-muted" }, `${short(art.taskId)} · ${art.sha256.slice(0, 10)}`),
-        (0, import_react4.createElement)("td", null, previewBase && art.media_type === "text/html" ? (0, import_react4.createElement)("button", { className: "sq-btn", onClick: () => store.set((state) => ({ ...state, preview: { url: `${previewBase}/v2/artifacts/sha256/${art.sha256}`, name: art.name } })) }, "预览") : null)
+        (0, import_react5.createElement)("td", null, art.name ?? art.path),
+        (0, import_react5.createElement)("td", null, chip(art.superseded ? "已被返工取代" : art.accepted ? "已通过" : "待审核", art.superseded ? "bad" : art.accepted ? "ok" : "warn")),
+        (0, import_react5.createElement)("td", { className: "sq-muted" }, `${short(art.taskId)} · ${art.sha256.slice(0, 10)}`),
+        (0, import_react5.createElement)("td", null, previewBase && art.media_type === "text/html" ? (0, import_react5.createElement)("button", { className: "sq-btn", onClick: () => store.set((state) => ({ ...state, preview: { url: `${previewBase}/v2/artifacts/sha256/${art.sha256}`, name: art.name } })) }, "预览") : null)
       ))))
     ),
-    section("审核结论", of("review"), ReviewCard),
-    !listView ? null : (0, import_react4.createElement)(
+    !listView ? null : (0, import_react5.createElement)(
       "div",
       { className: "sq-section" },
-      (0, import_react4.createElement)("div", { className: "sq-muted" }, `Leader 已做 ${tasks.filter((task) => task.kind === "leader_step").length} 次决定（不在表中）`),
-      (0, import_react4.createElement)(
+      (0, import_react5.createElement)("div", { className: "sq-muted" }, `Leader 已做 ${tasks.filter((task) => task.kind === "leader_step").length} 次决定（不在表中）`),
+      (0, import_react5.createElement)(
         "table",
         { className: "sq-table" },
-        (0, import_react4.createElement)("thead", null, (0, import_react4.createElement)("tr", null, ["类型", "角色", "状态", "验收", "目标"].map((label) => (0, import_react4.createElement)("th", { key: label }, label)))),
-        (0, import_react4.createElement)("tbody", null, tasks.filter((task) => task.kind !== "leader_step").map((task) => (0, import_react4.createElement)(
+        (0, import_react5.createElement)("thead", null, (0, import_react5.createElement)("tr", null, ["类型", "角色", "状态", "验收", "目标"].map((label) => (0, import_react5.createElement)("th", { key: label }, label)))),
+        (0, import_react5.createElement)("tbody", null, tasks.filter((task) => task.kind !== "leader_step").map((task) => (0, import_react5.createElement)(
           "tr",
           { key: task.task_id, id: `sq-task-${task.task_id}`, "data-focus": focus?.taskId === task.task_id || void 0 },
-          (0, import_react4.createElement)("td", null, KIND[task.kind] ?? task.kind),
-          (0, import_react4.createElement)("td", null, task.role_id || "—"),
-          (0, import_react4.createElement)("td", null, (() => {
+          (0, import_react5.createElement)("td", null, KIND[task.kind] ?? task.kind),
+          (0, import_react5.createElement)("td", null, task.role_id || "—"),
+          (0, import_react5.createElement)("td", null, (() => {
             const state = statusOf(task, { attempts: snapshot.views.attempts ?? [], approvals, tasks });
-            return (0, import_react4.createElement)("span", null, (0, import_react4.createElement)(StatusChip, { state }), state.note ? (0, import_react4.createElement)("span", { className: "sq-muted" }, ` ${state.note}`) : null, state.reason ? (0, import_react4.createElement)("div", { className: "sq-muted" }, state.reason) : null);
+            return (0, import_react5.createElement)("span", null, (0, import_react5.createElement)(StatusChip, { state }), state.note ? (0, import_react5.createElement)("span", { className: "sq-muted" }, ` ${state.note}`) : null, state.reason ? (0, import_react5.createElement)("div", { className: "sq-muted" }, state.reason) : null);
           })()),
-          (0, import_react4.createElement)("td", null, task.acceptance ? chip(task.acceptance.decision === "accepted" ? "通过" : "退回", TONE[task.acceptance.decision]) : "—"),
-          (0, import_react4.createElement)("td", null, goalOf(task, tasks))
+          (0, import_react5.createElement)("td", null, task.acceptance ? chip(task.acceptance.decision === "accepted" ? "通过" : "退回", TONE[task.acceptance.decision]) : "—"),
+          (0, import_react5.createElement)("td", null, goalOf(task, tasks))
         )))
       )
     )
@@ -1083,7 +1091,7 @@ function RunDetail({ runId }) {
 }
 
 // src/config.js
-var import_react5 = require("react");
+var import_react6 = require("react");
 
 // src/config-model.js
 var ID = /^[a-z][a-z0-9-]*$/;
@@ -1201,11 +1209,11 @@ function configOf(files) {
 }
 
 // src/config.js
-var ACCEPTANCE = { review: "独立审核（指定审核角色）", on_completion: "完成即通过（不审核，仅用于对照实验）" };
+var ACCEPTANCE = { review: "独立审核（指定审核角色）", human: "人工验收（你在 Squad 页面确认每个结果）", on_completion: "完成即通过（不审核，仅用于对照实验）" };
 var CONDITION = { acceptance_accepted: "上一步通过审核后", execution_completed: "上一步做完就开始" };
 var KINDS = { execute: "执行", review: "审核", ask: "提问" };
 function useConfig() {
-  const [state, setState] = (0, import_react5.useState)({ files: null, error: null });
+  const [state, setState] = (0, import_react6.useState)({ files: null, error: null });
   const load = async () => {
     try {
       const out = await call("config");
@@ -1214,7 +1222,7 @@ function useConfig() {
       setState({ files: null, error: error.message });
     }
   };
-  (0, import_react5.useEffect)(() => {
+  (0, import_react6.useEffect)(() => {
     void load();
   }, []);
   return [state, load];
@@ -1232,35 +1240,35 @@ async function save(files, wanted, validateOnly, reload) {
   await refreshNow();
 }
 function Field({ label, children, hint }) {
-  return (0, import_react5.createElement)("label", { style: { display: "flex", flexDirection: "column", gap: 4 } }, (0, import_react5.createElement)("span", null, label), children, hint ? (0, import_react5.createElement)("span", { className: "sq-muted" }, hint) : null);
+  return (0, import_react6.createElement)("label", { style: { display: "flex", flexDirection: "column", gap: 4 } }, (0, import_react6.createElement)("span", null, label), children, hint ? (0, import_react6.createElement)("span", { className: "sq-muted" }, hint) : null);
 }
 function RoleEditor({ id, role, files, reload, fresh }) {
-  const [form, setForm] = (0, import_react5.useState)({ name: id ?? "", description: role?.description ?? "", body: role?.body ?? "", rules: role?.rules ?? "" });
-  (0, import_react5.useEffect)(() => setForm({ name: id ?? "", description: role?.description ?? "", body: role?.body ?? "", rules: role?.rules ?? "" }), [id, role?.body]);
+  const [form, setForm] = (0, import_react6.useState)({ name: id ?? "", description: role?.description ?? "", body: role?.body ?? "", rules: role?.rules ?? "" });
+  (0, import_react6.useEffect)(() => setForm({ name: id ?? "", description: role?.description ?? "", body: role?.body ?? "", rules: role?.rules ?? "" }), [id, role?.body]);
   const set = (key) => (event) => setForm((current) => ({ ...current, [key]: event.target.value }));
   const ok = validId(form.name) && form.description.trim() !== "" && form.body.trim() !== "";
   const wanted = () => ({ [`roles/${form.name}/role.md`]: roleDoc(form), [`roles/${form.name}/agents.md`]: `${form.rules.trim() || "提交结果必须用 squad_submit_result。"}
 ` });
-  return (0, import_react5.createElement)(
+  return (0, import_react6.createElement)(
     "div",
     { className: "sq-card" },
-    (0, import_react5.createElement)("h3", null, fresh ? "新建角色" : `角色 ${id}`),
-    (0, import_react5.createElement)(Field, { label: "角色 ID", hint: "小写英文字母开头，可用数字和 -，例如 checker" }, (0, import_react5.createElement)("input", { className: "sq-input", value: form.name, disabled: !fresh, onChange: set("name") })),
-    (0, import_react5.createElement)(Field, { label: "一句话说明" }, (0, import_react5.createElement)("input", { className: "sq-input", value: form.description, onChange: set("description") })),
-    (0, import_react5.createElement)(Field, { label: "角色说明（这个角色是谁、怎么做事）" }, (0, import_react5.createElement)("textarea", { className: "sq-text", style: { minHeight: 120 }, value: form.body, onChange: set("body") })),
-    (0, import_react5.createElement)(Field, { label: "工作规则" }, (0, import_react5.createElement)("textarea", { className: "sq-text", value: form.rules, onChange: set("rules") })),
-    (0, import_react5.createElement)(
+    (0, import_react6.createElement)("h3", null, fresh ? "新建角色" : `角色 ${id}`),
+    (0, import_react6.createElement)(Field, { label: "角色 ID", hint: "小写英文字母开头，可用数字和 -，例如 checker" }, (0, import_react6.createElement)("input", { className: "sq-input", value: form.name, disabled: !fresh, onChange: set("name") })),
+    (0, import_react6.createElement)(Field, { label: "一句话说明" }, (0, import_react6.createElement)("input", { className: "sq-input", value: form.description, onChange: set("description") })),
+    (0, import_react6.createElement)(Field, { label: "角色说明（这个角色是谁、怎么做事）" }, (0, import_react6.createElement)("textarea", { className: "sq-text", style: { minHeight: 120 }, value: form.body, onChange: set("body") })),
+    (0, import_react6.createElement)(Field, { label: "工作规则" }, (0, import_react6.createElement)("textarea", { className: "sq-text", value: form.rules, onChange: set("rules") })),
+    (0, import_react6.createElement)(
       "div",
       { className: "sq-row" },
-      (0, import_react5.createElement)("button", { className: "sq-btn", disabled: !ok, onClick: () => save(files, wanted(), true, reload) }, "检查"),
-      (0, import_react5.createElement)("button", { className: "sq-btn", "data-kind": "primary", disabled: !ok, onClick: () => save(files, wanted(), false, reload) }, "保存")
+      (0, import_react6.createElement)("button", { className: "sq-btn", disabled: !ok, onClick: () => save(files, wanted(), true, reload) }, "检查"),
+      (0, import_react6.createElement)("button", { className: "sq-btn", "data-kind": "primary", disabled: !ok, onClick: () => save(files, wanted(), false, reload) }, "保存")
     )
   );
 }
 function TeamEditor({ id, team, roles, files, reload, fresh }) {
   const blank = { id: "", leader: "chief", members: [], acceptance: "review", reviewer: "", defaultWorkflow: "", parallel: 2, instructions: "" };
-  const [form, setForm] = (0, import_react5.useState)(team ?? blank);
-  (0, import_react5.useEffect)(() => setForm(team ?? blank), [id, team?.raw?.config_version]);
+  const [form, setForm] = (0, import_react6.useState)(team ?? blank);
+  (0, import_react6.useEffect)(() => setForm(team ?? blank), [id, team?.raw?.config_version]);
   const roleIds = Object.keys(roles);
   const member = (roleId) => form.members.find((entry) => entry.role_ref === roleId);
   const toggle = (roleId) => setForm((current) => ({ ...current, members: member(roleId) ? current.members.filter((entry) => entry.role_ref !== roleId) : [...current.members, { role_ref: roleId, responsibility: roles[roleId]?.description ?? roleId }] }));
@@ -1268,34 +1276,34 @@ function TeamEditor({ id, team, roles, files, reload, fresh }) {
   const wanted = () => ({ [`teams/${form.id}/team.json`]: teamDoc(form), [`teams/${form.id}/instructions.md`]: `${form.instructions.trim() || "按流程完成任务。"}
 ` });
   const set = (key) => (event) => setForm((current) => ({ ...current, [key]: event.target.value }));
-  return (0, import_react5.createElement)(
+  return (0, import_react6.createElement)(
     "div",
     { className: "sq-card" },
-    (0, import_react5.createElement)("h3", null, fresh ? "新建小队" : `小队 ${id}`),
-    (0, import_react5.createElement)(Field, { label: "小队 ID", hint: "小写英文，例如 math" }, (0, import_react5.createElement)("input", { className: "sq-input", value: form.id, disabled: !fresh, onChange: set("id") })),
-    (0, import_react5.createElement)(Field, { label: "Leader（负责安排和收尾的 Bot）", hint: "chief 对应 Bot「Chief」" }, (0, import_react5.createElement)("input", { className: "sq-input", value: form.leader, onChange: set("leader") })),
-    (0, import_react5.createElement)(
+    (0, import_react6.createElement)("h3", null, fresh ? "新建小队" : `小队 ${id}`),
+    (0, import_react6.createElement)(Field, { label: "小队 ID", hint: "小写英文，例如 math" }, (0, import_react6.createElement)("input", { className: "sq-input", value: form.id, disabled: !fresh, onChange: set("id") })),
+    (0, import_react6.createElement)(Field, { label: "Leader（负责安排和收尾的 Bot）", hint: "chief 对应 Bot「Chief」" }, (0, import_react6.createElement)("input", { className: "sq-input", value: form.leader, onChange: set("leader") })),
+    (0, import_react6.createElement)(
       "div",
       null,
-      (0, import_react5.createElement)("div", null, "成员角色"),
-      roleIds.length === 0 ? (0, import_react5.createElement)("div", { className: "sq-muted" }, "先新建角色") : roleIds.map((roleId) => (0, import_react5.createElement)(
+      (0, import_react6.createElement)("div", null, "成员角色"),
+      roleIds.length === 0 ? (0, import_react6.createElement)("div", { className: "sq-muted" }, "先新建角色") : roleIds.map((roleId) => (0, import_react6.createElement)(
         "div",
         { key: roleId, className: "sq-row" },
-        (0, import_react5.createElement)("label", { className: "sq-row" }, (0, import_react5.createElement)("input", { type: "checkbox", checked: Boolean(member(roleId)), onChange: () => toggle(roleId) }), roleId),
-        member(roleId) ? (0, import_react5.createElement)("input", { className: "sq-input", style: { flex: 1 }, value: member(roleId).responsibility, placeholder: "在小队里负责什么", onChange: (event) => setForm((current) => ({ ...current, members: current.members.map((entry) => entry.role_ref === roleId ? { ...entry, responsibility: event.target.value } : entry) })) }) : null
+        (0, import_react6.createElement)("label", { className: "sq-row" }, (0, import_react6.createElement)("input", { type: "checkbox", checked: Boolean(member(roleId)), onChange: () => toggle(roleId) }), roleId),
+        member(roleId) ? (0, import_react6.createElement)("input", { className: "sq-input", style: { flex: 1 }, value: member(roleId).responsibility, placeholder: "在小队里负责什么", onChange: (event) => setForm((current) => ({ ...current, members: current.members.map((entry) => entry.role_ref === roleId ? { ...entry, responsibility: event.target.value } : entry) })) }) : null
       ))
     ),
-    (0, import_react5.createElement)(Field, { label: "成果怎么验收" }, (0, import_react5.createElement)("select", { className: "sq-select", value: form.acceptance, onChange: set("acceptance") }, Object.entries(ACCEPTANCE).map(([value, label]) => (0, import_react5.createElement)("option", { key: value, value }, label)))),
-    form.acceptance === "review" ? (0, import_react5.createElement)(Field, { label: "审核角色（必须是成员，且不能审自己）" }, (0, import_react5.createElement)("select", { className: "sq-select", value: form.reviewer, onChange: set("reviewer") }, (0, import_react5.createElement)("option", { value: "" }, "选择"), form.members.map((entry) => (0, import_react5.createElement)("option", { key: entry.role_ref, value: entry.role_ref }, entry.role_ref)))) : null,
-    (0, import_react5.createElement)(Field, { label: "默认流程" }, (0, import_react5.createElement)("select", { className: "sq-select", value: form.defaultWorkflow, onChange: set("defaultWorkflow") }, (0, import_react5.createElement)("option", { value: "" }, "不用流程，由 Leader 安排"), Object.keys(team?.workflows ?? {}).map((workflowId) => (0, import_react5.createElement)("option", { key: workflowId, value: workflowId }, workflowId)))),
-    (0, import_react5.createElement)(Field, { label: "同时进行的任务数" }, (0, import_react5.createElement)("input", { className: "sq-input", type: "number", min: 1, max: 8, value: form.parallel, onChange: set("parallel") })),
-    (0, import_react5.createElement)(Field, { label: "小队说明（所有成员都会看到）" }, (0, import_react5.createElement)("textarea", { className: "sq-text", value: form.instructions, onChange: set("instructions") })),
-    (0, import_react5.createElement)(
+    (0, import_react6.createElement)(Field, { label: "成果怎么验收" }, (0, import_react6.createElement)("select", { className: "sq-select", value: form.acceptance, onChange: set("acceptance") }, Object.entries(ACCEPTANCE).map(([value, label]) => (0, import_react6.createElement)("option", { key: value, value }, label)))),
+    form.acceptance === "review" ? (0, import_react6.createElement)(Field, { label: "审核角色（必须是成员，且不能审自己）" }, (0, import_react6.createElement)("select", { className: "sq-select", value: form.reviewer, onChange: set("reviewer") }, (0, import_react6.createElement)("option", { value: "" }, "选择"), form.members.map((entry) => (0, import_react6.createElement)("option", { key: entry.role_ref, value: entry.role_ref }, entry.role_ref)))) : null,
+    (0, import_react6.createElement)(Field, { label: "默认流程" }, (0, import_react6.createElement)("select", { className: "sq-select", value: form.defaultWorkflow, onChange: set("defaultWorkflow") }, (0, import_react6.createElement)("option", { value: "" }, "不用流程，由 Leader 安排"), Object.keys(team?.workflows ?? {}).map((workflowId) => (0, import_react6.createElement)("option", { key: workflowId, value: workflowId }, workflowId)))),
+    (0, import_react6.createElement)(Field, { label: "同时进行的任务数" }, (0, import_react6.createElement)("input", { className: "sq-input", type: "number", min: 1, max: 8, value: form.parallel, onChange: set("parallel") })),
+    (0, import_react6.createElement)(Field, { label: "小队说明（所有成员都会看到）" }, (0, import_react6.createElement)("textarea", { className: "sq-text", value: form.instructions, onChange: set("instructions") })),
+    (0, import_react6.createElement)(
       "div",
       { className: "sq-row" },
-      (0, import_react5.createElement)("button", { className: "sq-btn", disabled: !ok, onClick: () => save(files, wanted(), true, reload) }, "检查"),
-      (0, import_react5.createElement)("button", { className: "sq-btn", "data-kind": "primary", disabled: !ok, onClick: () => save(files, wanted(), false, reload) }, "保存"),
-      fresh ? null : (0, import_react5.createElement)("button", { className: "sq-btn", onClick: async () => {
+      (0, import_react6.createElement)("button", { className: "sq-btn", disabled: !ok, onClick: () => save(files, wanted(), true, reload) }, "检查"),
+      (0, import_react6.createElement)("button", { className: "sq-btn", "data-kind": "primary", disabled: !ok, onClick: () => save(files, wanted(), false, reload) }, "保存"),
+      fresh ? null : (0, import_react6.createElement)("button", { className: "sq-btn", onClick: async () => {
         try {
           await call("bind-team", { teamId: form.id });
           toast("已绑定到群", "ok");
@@ -1309,93 +1317,93 @@ function TeamEditor({ id, team, roles, files, reload, fresh }) {
 }
 function WorkflowEditor({ teamId, team, workflowId, files, reload, fresh }) {
   const start = workflowId && team?.workflows?.[workflowId] ? team.workflows[workflowId] : { id: "", steps: [] };
-  const [form, setForm] = (0, import_react5.useState)(start);
-  (0, import_react5.useEffect)(() => setForm(start), [teamId, workflowId]);
+  const [form, setForm] = (0, import_react6.useState)(start);
+  (0, import_react6.useEffect)(() => setForm(start), [teamId, workflowId]);
   const roles = (team?.members ?? []).map((entry) => entry.role_ref);
   const setStep = (index, patch) => setForm((current) => ({ ...current, steps: current.steps.map((step2, i) => i === index ? { ...step2, ...patch } : step2) }));
   const ok = validId(form.id) && form.steps.length > 0 && form.steps.every((step2) => validId(step2.id) && step2.role_ref && step2.goal?.trim());
   const wanted = () => ({ [`teams/${teamId}/workflows/${form.id}.json`]: workflowDoc(form) });
-  return (0, import_react5.createElement)(
+  return (0, import_react6.createElement)(
     "div",
     { className: "sq-card" },
-    (0, import_react5.createElement)("h3", null, fresh ? `给小队 ${teamId} 新建流程` : `流程 ${teamId} / ${workflowId}`),
-    (0, import_react5.createElement)(Field, { label: "流程 ID" }, (0, import_react5.createElement)("input", { className: "sq-input", value: form.id, disabled: !fresh, onChange: (event) => setForm((current) => ({ ...current, id: event.target.value })) })),
-    (0, import_react5.createElement)(
+    (0, import_react6.createElement)("h3", null, fresh ? `给小队 ${teamId} 新建流程` : `流程 ${teamId} / ${workflowId}`),
+    (0, import_react6.createElement)(Field, { label: "流程 ID" }, (0, import_react6.createElement)("input", { className: "sq-input", value: form.id, disabled: !fresh, onChange: (event) => setForm((current) => ({ ...current, id: event.target.value })) })),
+    (0, import_react6.createElement)(
       "table",
       { className: "sq-table" },
-      (0, import_react5.createElement)("thead", null, (0, import_react5.createElement)("tr", null, ["步骤 ID", "角色", "类型", "目标", "在哪一步之后", ""].map((label) => (0, import_react5.createElement)("th", { key: label }, label)))),
-      (0, import_react5.createElement)("tbody", null, form.steps.map((step2, index) => (0, import_react5.createElement)(
+      (0, import_react6.createElement)("thead", null, (0, import_react6.createElement)("tr", null, ["步骤 ID", "角色", "类型", "目标", "在哪一步之后", ""].map((label) => (0, import_react6.createElement)("th", { key: label }, label)))),
+      (0, import_react6.createElement)("tbody", null, form.steps.map((step2, index) => (0, import_react6.createElement)(
         "tr",
         { key: index },
-        (0, import_react5.createElement)("td", null, (0, import_react5.createElement)("input", { className: "sq-input", value: step2.id, onChange: (event) => setStep(index, { id: event.target.value }) })),
-        (0, import_react5.createElement)("td", null, (0, import_react5.createElement)("select", { className: "sq-select", value: step2.role_ref, onChange: (event) => setStep(index, { role_ref: event.target.value }) }, (0, import_react5.createElement)("option", { value: "" }, "选择"), roles.map((role) => (0, import_react5.createElement)("option", { key: role, value: role }, role)))),
-        (0, import_react5.createElement)("td", null, (0, import_react5.createElement)("select", { className: "sq-select", value: step2.kind || "execute", onChange: (event) => setStep(index, { kind: event.target.value }) }, Object.entries(KINDS).map(([value, label]) => (0, import_react5.createElement)("option", { key: value, value }, label)))),
-        (0, import_react5.createElement)("td", null, (0, import_react5.createElement)("textarea", { className: "sq-text", style: { minHeight: 40 }, value: step2.goal ?? "", onChange: (event) => setStep(index, { goal: event.target.value }) })),
-        (0, import_react5.createElement)(
+        (0, import_react6.createElement)("td", null, (0, import_react6.createElement)("input", { className: "sq-input", value: step2.id, onChange: (event) => setStep(index, { id: event.target.value }) })),
+        (0, import_react6.createElement)("td", null, (0, import_react6.createElement)("select", { className: "sq-select", value: step2.role_ref, onChange: (event) => setStep(index, { role_ref: event.target.value }) }, (0, import_react6.createElement)("option", { value: "" }, "选择"), roles.map((role) => (0, import_react6.createElement)("option", { key: role, value: role }, role)))),
+        (0, import_react6.createElement)("td", null, (0, import_react6.createElement)("select", { className: "sq-select", value: step2.kind || "execute", onChange: (event) => setStep(index, { kind: event.target.value }) }, Object.entries(KINDS).map(([value, label]) => (0, import_react6.createElement)("option", { key: value, value }, label)))),
+        (0, import_react6.createElement)("td", null, (0, import_react6.createElement)("textarea", { className: "sq-text", style: { minHeight: 40 }, value: step2.goal ?? "", onChange: (event) => setStep(index, { goal: event.target.value }) })),
+        (0, import_react6.createElement)(
           "td",
           null,
-          (0, import_react5.createElement)(
+          (0, import_react6.createElement)(
             "select",
             { className: "sq-select", value: step2.depends_on?.[0]?.step ?? "", onChange: (event) => setStep(index, { depends_on: event.target.value ? [{ step: event.target.value, condition: step2.depends_on?.[0]?.condition || "acceptance_accepted" }] : [] }) },
-            (0, import_react5.createElement)("option", { value: "" }, "一开始就做"),
-            form.steps.filter((_, i) => i !== index).map((other) => (0, import_react5.createElement)("option", { key: other.id, value: other.id }, other.id))
+            (0, import_react6.createElement)("option", { value: "" }, "一开始就做"),
+            form.steps.filter((_, i) => i !== index).map((other) => (0, import_react6.createElement)("option", { key: other.id, value: other.id }, other.id))
           ),
-          step2.depends_on?.[0] ? (0, import_react5.createElement)("select", { className: "sq-select", value: step2.depends_on[0].condition, onChange: (event) => setStep(index, { depends_on: [{ ...step2.depends_on[0], condition: event.target.value }] }) }, Object.entries(CONDITION).map(([value, label]) => (0, import_react5.createElement)("option", { key: value, value }, label))) : null
+          step2.depends_on?.[0] ? (0, import_react6.createElement)("select", { className: "sq-select", value: step2.depends_on[0].condition, onChange: (event) => setStep(index, { depends_on: [{ ...step2.depends_on[0], condition: event.target.value }] }) }, Object.entries(CONDITION).map(([value, label]) => (0, import_react6.createElement)("option", { key: value, value }, label))) : null
         ),
-        (0, import_react5.createElement)("td", null, (0, import_react5.createElement)("button", { className: "sq-btn", "data-kind": "danger", onClick: () => setForm((current) => ({ ...current, steps: current.steps.filter((_, i) => i !== index) })) }, "删除"))
+        (0, import_react6.createElement)("td", null, (0, import_react6.createElement)("button", { className: "sq-btn", "data-kind": "danger", onClick: () => setForm((current) => ({ ...current, steps: current.steps.filter((_, i) => i !== index) })) }, "删除"))
       )))
     ),
-    (0, import_react5.createElement)(
+    (0, import_react6.createElement)(
       "div",
       { className: "sq-row" },
-      (0, import_react5.createElement)("button", { className: "sq-btn", onClick: () => setForm((current) => ({ ...current, steps: [...current.steps, { id: `step-${current.steps.length + 1}`, role_ref: roles[0] ?? "", kind: "execute", goal: "", depends_on: current.steps.length > 0 ? [{ step: current.steps.at(-1).id, condition: "acceptance_accepted" }] : [] }] })) }, "加一步"),
-      (0, import_react5.createElement)("button", { className: "sq-btn", disabled: !ok, onClick: () => save(files, wanted(), true, reload) }, "检查"),
-      (0, import_react5.createElement)("button", { className: "sq-btn", "data-kind": "primary", disabled: !ok, onClick: () => save(files, wanted(), false, reload) }, "保存")
+      (0, import_react6.createElement)("button", { className: "sq-btn", onClick: () => setForm((current) => ({ ...current, steps: [...current.steps, { id: `step-${current.steps.length + 1}`, role_ref: roles[0] ?? "", kind: "execute", goal: "", depends_on: current.steps.length > 0 ? [{ step: current.steps.at(-1).id, condition: "acceptance_accepted" }] : [] }] })) }, "加一步"),
+      (0, import_react6.createElement)("button", { className: "sq-btn", disabled: !ok, onClick: () => save(files, wanted(), true, reload) }, "检查"),
+      (0, import_react6.createElement)("button", { className: "sq-btn", "data-kind": "primary", disabled: !ok, onClick: () => save(files, wanted(), false, reload) }, "保存")
     )
   );
 }
 function ConfigTab() {
   const [{ files, error }, reload] = useConfig();
   const bound = useStore((state) => state.teams);
-  const [selected, setSelected] = (0, import_react5.useState)(null);
-  if (error) return (0, import_react5.createElement)("div", { className: "sq-main" }, (0, import_react5.createElement)("div", { className: "sq-card" }, `读不到配置：${error}`));
-  if (files === null) return (0, import_react5.createElement)("div", { className: "sq-main" }, (0, import_react5.createElement)("div", { className: "sq-muted" }, "读取中…"));
+  const [selected, setSelected] = (0, import_react6.useState)(null);
+  if (error) return (0, import_react6.createElement)("div", { className: "sq-main" }, (0, import_react6.createElement)("div", { className: "sq-card" }, `读不到配置：${error}`));
+  if (files === null) return (0, import_react6.createElement)("div", { className: "sq-main" }, (0, import_react6.createElement)("div", { className: "sq-muted" }, "读取中…"));
   const { roles, teams } = configOf(files);
-  const item = (key2, title, sub) => (0, import_react5.createElement)("button", { key: key2, className: "sq-item", "data-on": selected?.key === key2 || void 0, onClick: () => setSelected({ key: key2 }) }, (0, import_react5.createElement)("div", null, title), sub ? (0, import_react5.createElement)("div", { className: "sq-muted" }, sub) : null);
+  const item = (key2, title, sub) => (0, import_react6.createElement)("button", { key: key2, className: "sq-item", "data-on": selected?.key === key2 || void 0, onClick: () => setSelected({ key: key2 }) }, (0, import_react6.createElement)("div", null, title), sub ? (0, import_react6.createElement)("div", { className: "sq-muted" }, sub) : null);
   const key = selected?.key ?? "";
-  let editor = (0, import_react5.createElement)("div", { className: "sq-muted" }, "选择左边的小队、流程或角色，或新建一个。小队由角色组成，流程规定先做什么、后做什么。");
+  let editor = (0, import_react6.createElement)("div", { className: "sq-muted" }, "选择左边的小队、流程或角色，或新建一个。小队由角色组成，流程规定先做什么、后做什么。");
   const [kind, a, b] = key.split(":");
-  if (kind === "team") editor = (0, import_react5.createElement)(TeamEditor, { id: a, team: teams[a], roles, files, reload });
-  if (kind === "new-team") editor = (0, import_react5.createElement)(TeamEditor, { roles, files, reload, fresh: true });
-  if (kind === "role") editor = (0, import_react5.createElement)(RoleEditor, { id: a, role: roles[a], files, reload });
-  if (kind === "new-role") editor = (0, import_react5.createElement)(RoleEditor, { files, reload, fresh: true });
-  if (kind === "flow") editor = (0, import_react5.createElement)(WorkflowEditor, { teamId: a, team: teams[a], workflowId: b, files, reload });
-  if (kind === "new-flow") editor = (0, import_react5.createElement)(WorkflowEditor, { teamId: a, team: teams[a], files, reload, fresh: true });
-  return (0, import_react5.createElement)(
-    import_react5.Fragment,
+  if (kind === "team") editor = (0, import_react6.createElement)(TeamEditor, { id: a, team: teams[a], roles, files, reload });
+  if (kind === "new-team") editor = (0, import_react6.createElement)(TeamEditor, { roles, files, reload, fresh: true });
+  if (kind === "role") editor = (0, import_react6.createElement)(RoleEditor, { id: a, role: roles[a], files, reload });
+  if (kind === "new-role") editor = (0, import_react6.createElement)(RoleEditor, { files, reload, fresh: true });
+  if (kind === "flow") editor = (0, import_react6.createElement)(WorkflowEditor, { teamId: a, team: teams[a], workflowId: b, files, reload });
+  if (kind === "new-flow") editor = (0, import_react6.createElement)(WorkflowEditor, { teamId: a, team: teams[a], files, reload, fresh: true });
+  return (0, import_react6.createElement)(
+    import_react6.Fragment,
     null,
-    (0, import_react5.createElement)(
+    (0, import_react6.createElement)(
       "div",
       { className: "sq-side" },
-      (0, import_react5.createElement)("div", { className: "sq-muted" }, "小队"),
-      Object.values(teams).map((team) => (0, import_react5.createElement)(
-        import_react5.Fragment,
+      (0, import_react6.createElement)("div", { className: "sq-muted" }, "小队"),
+      Object.values(teams).map((team) => (0, import_react6.createElement)(
+        import_react6.Fragment,
         { key: team.id },
         item(`team:${team.id}`, team.id, `${team.members?.length ?? 0} 个角色 · ${bound[team.id] ? "已绑定到群" : "未绑定"}`),
         Object.keys(team.workflows ?? {}).map((workflowId) => item(`flow:${team.id}:${workflowId}`, `　流程 ${workflowId}`, `${team.workflows[workflowId].steps.length} 步`)),
         item(`new-flow:${team.id}`, "　＋ 新建流程")
       )),
       item("new-team", "＋ 新建小队"),
-      (0, import_react5.createElement)("div", { className: "sq-muted" }, "角色"),
+      (0, import_react6.createElement)("div", { className: "sq-muted" }, "角色"),
       Object.entries(roles).map(([roleId, role]) => item(`role:${roleId}`, roleId, role.description)),
       item("new-role", "＋ 新建角色")
     ),
-    (0, import_react5.createElement)("div", { className: "sq-main" }, editor)
+    (0, import_react6.createElement)("div", { className: "sq-main" }, editor)
   );
 }
 
 // src/reports.js
-var import_react6 = require("react");
+var import_react7 = require("react");
 var GROUP = {
   S: "单个强 Agent",
   A: "DS Bot 自由协作",
@@ -1407,63 +1415,63 @@ var fmt = (value, digits = 0) => value === null || value === void 0 || Number.is
 function Bars({ groups, pick, unit }) {
   const values = groups.map((group) => pick(group.summary) ?? 0);
   const max = Math.max(1, ...values);
-  return (0, import_react6.createElement)("div", { style: { display: "flex", flexDirection: "column", gap: 4 } }, groups.map((group, index) => (0, import_react6.createElement)(
+  return (0, import_react7.createElement)("div", { style: { display: "flex", flexDirection: "column", gap: 4 } }, groups.map((group, index) => (0, import_react7.createElement)(
     "div",
     { key: group.id, className: "sq-row", style: { flexWrap: "nowrap" } },
-    (0, import_react6.createElement)("span", { style: { width: 28 } }, group.id),
-    (0, import_react6.createElement)("div", { style: { flex: 1 } }, (0, import_react6.createElement)("div", { className: "sq-bar", style: { width: `${values[index] / max * 100}%` } })),
-    (0, import_react6.createElement)("span", { className: "sq-muted", style: { width: 110, textAlign: "right" } }, `${fmt(values[index], 1)} ${unit}`)
+    (0, import_react7.createElement)("span", { style: { width: 28 } }, group.id),
+    (0, import_react7.createElement)("div", { style: { flex: 1 } }, (0, import_react7.createElement)("div", { className: "sq-bar", style: { width: `${values[index] / max * 100}%` } })),
+    (0, import_react7.createElement)("span", { className: "sq-muted", style: { width: 110, textAlign: "right" } }, `${fmt(values[index], 1)} ${unit}`)
   )));
 }
 function Report({ report }) {
   const groups = report.groups ?? [];
-  return (0, import_react6.createElement)(
+  return (0, import_react7.createElement)(
     "div",
     { className: "sq-card" },
-    (0, import_react6.createElement)("h3", null, report.title ?? report.id),
-    (0, import_react6.createElement)("div", { className: "sq-muted" }, `${report.created} · 模型 ${report.model?.model ?? "?"}${report.model?.effort ? `（${report.model.effort}）` : ""} · 每组 ${report.repeats ?? "?"} 次`),
-    report.mock ? (0, import_react6.createElement)("div", { className: "sq-banner", style: { borderRadius: 8 } }, "这份报告用的是脚本化的 mock 模型，只验证实验流程能跑通，数字不代表真实效果。") : null,
-    (0, import_react6.createElement)("div", null, `任务：${report.task?.goal ?? ""}`),
-    (0, import_react6.createElement)(
+    (0, import_react7.createElement)("h3", null, report.title ?? report.id),
+    (0, import_react7.createElement)("div", { className: "sq-muted" }, `${report.created} · 模型 ${report.model?.model ?? "?"}${report.model?.effort ? `（${report.model.effort}）` : ""} · 每组 ${report.repeats ?? "?"} 次`),
+    report.mock ? (0, import_react7.createElement)("div", { className: "sq-banner", style: { borderRadius: 8 } }, "这份报告用的是脚本化的 mock 模型，只验证实验流程能跑通，数字不代表真实效果。") : null,
+    (0, import_react7.createElement)("div", null, `任务：${report.task?.goal ?? ""}`),
+    (0, import_react7.createElement)(
       "table",
       { className: "sq-table" },
-      (0, import_react6.createElement)("thead", null, (0, import_react6.createElement)("tr", null, ["组", "做法", "成功", "平均耗时", "平均模型调用", "平均 Token", "审核", "返工", "人工介入"].map((label) => (0, import_react6.createElement)("th", { key: label }, label)))),
-      (0, import_react6.createElement)("tbody", null, groups.map((group) => (0, import_react6.createElement)(
+      (0, import_react7.createElement)("thead", null, (0, import_react7.createElement)("tr", null, ["组", "做法", "成功", "平均耗时", "平均模型调用", "平均 Token", "审核", "返工", "人工介入"].map((label) => (0, import_react7.createElement)("th", { key: label }, label)))),
+      (0, import_react7.createElement)("tbody", null, groups.map((group) => (0, import_react7.createElement)(
         "tr",
         { key: group.id },
-        (0, import_react6.createElement)("td", null, group.id),
-        (0, import_react6.createElement)("td", null, GROUP[group.id] ?? group.label),
-        (0, import_react6.createElement)("td", null, `${group.summary?.succeeded ?? 0}/${group.runs?.length ?? 0}`),
-        (0, import_react6.createElement)("td", null, `${fmt(group.summary?.mean_seconds, 1)} 秒`),
-        (0, import_react6.createElement)("td", null, fmt(group.summary?.mean_model_calls, 1)),
-        (0, import_react6.createElement)("td", null, fmt(group.summary?.mean_tokens)),
-        (0, import_react6.createElement)("td", null, fmt(group.summary?.reviews)),
-        (0, import_react6.createElement)("td", null, fmt(group.summary?.reworks)),
-        (0, import_react6.createElement)("td", null, fmt(group.summary?.human_actions))
+        (0, import_react7.createElement)("td", null, group.id),
+        (0, import_react7.createElement)("td", null, GROUP[group.id] ?? group.label),
+        (0, import_react7.createElement)("td", null, `${group.summary?.succeeded ?? 0}/${group.runs?.length ?? 0}`),
+        (0, import_react7.createElement)("td", null, `${fmt(group.summary?.mean_seconds, 1)} 秒`),
+        (0, import_react7.createElement)("td", null, fmt(group.summary?.mean_model_calls, 1)),
+        (0, import_react7.createElement)("td", null, fmt(group.summary?.mean_tokens)),
+        (0, import_react7.createElement)("td", null, fmt(group.summary?.reviews)),
+        (0, import_react7.createElement)("td", null, fmt(group.summary?.reworks)),
+        (0, import_react7.createElement)("td", null, fmt(group.summary?.human_actions))
       )))
     ),
-    (0, import_react6.createElement)(
+    (0, import_react7.createElement)(
       "div",
       { className: "sq-grid" },
-      (0, import_react6.createElement)("div", null, (0, import_react6.createElement)("div", { className: "sq-muted" }, "平均 Token（含辅助调用）"), (0, import_react6.createElement)(Bars, { groups, pick: (s) => s?.mean_tokens, unit: "" })),
-      (0, import_react6.createElement)("div", null, (0, import_react6.createElement)("div", { className: "sq-muted" }, "平均耗时"), (0, import_react6.createElement)(Bars, { groups, pick: (s) => s?.mean_seconds, unit: "秒" }))
+      (0, import_react7.createElement)("div", null, (0, import_react7.createElement)("div", { className: "sq-muted" }, "平均 Token（含辅助调用）"), (0, import_react7.createElement)(Bars, { groups, pick: (s) => s?.mean_tokens, unit: "" })),
+      (0, import_react7.createElement)("div", null, (0, import_react7.createElement)("div", { className: "sq-muted" }, "平均耗时"), (0, import_react7.createElement)(Bars, { groups, pick: (s) => s?.mean_seconds, unit: "秒" }))
     ),
-    (report.notes ?? []).length > 0 ? (0, import_react6.createElement)("ul", { className: "sq-muted" }, report.notes.map((note, index) => (0, import_react6.createElement)("li", { key: index }, note))) : null
+    (report.notes ?? []).length > 0 ? (0, import_react7.createElement)("ul", { className: "sq-muted" }, report.notes.map((note, index) => (0, import_react7.createElement)("li", { key: index }, note))) : null
   );
 }
 function ReportsTab() {
-  const [reports, setReports] = (0, import_react6.useState)(null);
-  const [error, setError] = (0, import_react6.useState)(null);
-  (0, import_react6.useEffect)(() => {
+  const [reports, setReports] = (0, import_react7.useState)(null);
+  const [error, setError] = (0, import_react7.useState)(null);
+  (0, import_react7.useEffect)(() => {
     call("reports").then(setReports, (failure) => setError(failure.message));
   }, []);
-  return (0, import_react6.createElement)(
+  return (0, import_react7.createElement)(
     "div",
     { className: "sq-main" },
-    error ? (0, import_react6.createElement)("div", { className: "sq-card" }, `读不到报告：${error}`) : null,
-    reports === null && !error ? (0, import_react6.createElement)("div", { className: "sq-muted" }, "读取中…") : null,
-    reports?.length === 0 ? (0, import_react6.createElement)("div", { className: "sq-card" }, (0, import_react6.createElement)(import_react6.Fragment, null, "还没有实验报告。用 ", (0, import_react6.createElement)("code", null, "node dsh_squad/experiments/run.mjs"), " 跑一次对照实验后会出现在这里。")) : null,
-    (reports ?? []).map((report) => (0, import_react6.createElement)(Report, { key: report.id, report }))
+    error ? (0, import_react7.createElement)("div", { className: "sq-card" }, `读不到报告：${error}`) : null,
+    reports === null && !error ? (0, import_react7.createElement)("div", { className: "sq-muted" }, "读取中…") : null,
+    reports?.length === 0 ? (0, import_react7.createElement)("div", { className: "sq-card" }, (0, import_react7.createElement)(import_react7.Fragment, null, "还没有实验报告。用 ", (0, import_react7.createElement)("code", null, "node dsh_squad/experiments/run.mjs"), " 跑一次对照实验后会出现在这里。")) : null,
+    (reports ?? []).map((report) => (0, import_react7.createElement)(Report, { key: report.id, report }))
   );
 }
 
@@ -1473,17 +1481,17 @@ var open = (patch) => store.set((state) => ({ ...state, open: true, ...patch }))
 var close = () => store.set((state) => ({ ...state, open: false, preview: null }));
 function SquadButton({ wide }) {
   const waiting = useStore((state) => (state.approvals ?? []).length);
-  return (0, import_react7.createElement)(
+  return (0, import_react8.createElement)(
     "button",
     { className: "sq-foot", title: "Squad 小队", onClick: () => open({}) },
-    (0, import_react7.createElement)(
+    (0, import_react8.createElement)(
       "svg",
       { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, "aria-hidden": true },
-      (0, import_react7.createElement)("circle", { cx: 8, cy: 9, r: 3 }),
-      (0, import_react7.createElement)("circle", { cx: 16, cy: 9, r: 3 }),
-      (0, import_react7.createElement)("path", { d: "M3 19c0-3 2.5-5 5-5s5 2 5 5M11 19c0-3 2.5-5 5-5s5 2 5 5" })
+      (0, import_react8.createElement)("circle", { cx: 8, cy: 9, r: 3 }),
+      (0, import_react8.createElement)("circle", { cx: 16, cy: 9, r: 3 }),
+      (0, import_react8.createElement)("path", { d: "M3 19c0-3 2.5-5 5-5s5 2 5 5M11 19c0-3 2.5-5 5-5s5 2 5 5" })
     ),
-    wide === false ? null : (0, import_react7.createElement)("span", null, waiting > 0 ? `小队（${waiting} 待批准）` : "小队")
+    wide === false ? null : (0, import_react8.createElement)("span", null, waiting > 0 ? `小队（${waiting} 待批准）` : "小队")
   );
 }
 function Banner() {
@@ -1493,16 +1501,16 @@ function Banner() {
   const failures = useStore((state) => state.errors ?? []);
   if (failures.length > 0) {
     const why = { CONFIG_VERSION_CONFLICT: "小队配置改过但版本号没变，请在「小队与规则」里保存一次（会自动升版本）", ROLE_SNAPSHOT_MISMATCH: "角色说明改过，正在重新登记" };
-    return (0, import_react7.createElement)("div", { className: "sq-banner" }, `有 ${failures.length} 个成员没能接上 Controller：${failures.slice(0, 3).map((failure) => `${failure.agentId}（${why[failure.code] ?? failure.message}）`).join("；")}`);
+    return (0, import_react8.createElement)("div", { className: "sq-banner" }, `有 ${failures.length} 个成员没能接上 Controller：${failures.slice(0, 3).map((failure) => `${failure.agentId}（${why[failure.code] ?? failure.message}）`).join("；")}`);
   }
-  if (connected === false) return (0, import_react7.createElement)("div", { className: "sq-banner" }, "还没连上 Squad Controller：请用 dsh_squad/deploy/dsh-squad up 启动这个项目。");
-  if (stale) return (0, import_react7.createElement)("div", { className: "sq-banner" }, `连接中断，正在重新读取最新状态…${error ? `（${error}）` : ""}`);
+  if (connected === false) return (0, import_react8.createElement)("div", { className: "sq-banner" }, "还没连上 Squad Controller：请用 dsh_squad/deploy/dsh-squad up 启动这个项目。");
+  if (stale) return (0, import_react8.createElement)("div", { className: "sq-banner" }, `连接中断，正在重新读取最新状态…${error ? `（${error}）` : ""}`);
   return null;
 }
 function Console() {
   const tab = useStore((state) => state.tab);
   const runId = useStore((state) => state.runId);
-  (0, import_react7.useEffect)(() => {
+  (0, import_react8.useEffect)(() => {
     const onKey = (event) => {
       if (event.key !== "Escape") return;
       if (store.get().preview) store.set((state) => ({ ...state, preview: null }));
@@ -1511,59 +1519,59 @@ function Console() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
-  const body = tab === "config" ? (0, import_react7.createElement)(ConfigTab) : tab === "reports" ? (0, import_react7.createElement)(ReportsTab) : [(0, import_react7.createElement)("div", { key: "side", className: "sq-side" }, (0, import_react7.createElement)(RunList)), (0, import_react7.createElement)("div", { key: "main", className: "sq-main" }, (0, import_react7.createElement)(RunDetail, { runId }))];
-  return (0, import_react7.createElement)(
+  const body = tab === "config" ? (0, import_react8.createElement)(ConfigTab) : tab === "reports" ? (0, import_react8.createElement)(ReportsTab) : [(0, import_react8.createElement)("div", { key: "side", className: "sq-side" }, (0, import_react8.createElement)(RunList)), (0, import_react8.createElement)("div", { key: "main", className: "sq-main" }, (0, import_react8.createElement)(RunDetail, { runId }))];
+  return (0, import_react8.createElement)(
     "div",
     { className: "sq-root", role: "dialog", "aria-label": "Squad 小队", onMouseDown: (event) => {
       if (event.target === event.currentTarget) close();
     } },
-    (0, import_react7.createElement)(
+    (0, import_react8.createElement)(
       "div",
       { className: "sq-shell" },
-      (0, import_react7.createElement)(
+      (0, import_react8.createElement)(
         "div",
         { className: "sq-head" },
-        (0, import_react7.createElement)("span", { className: "sq-title" }, "Squad 小队"),
-        (0, import_react7.createElement)("div", { className: "sq-tabs", role: "tablist" }, Object.entries(TABS).map(([id, label]) => (0, import_react7.createElement)("button", { key: id, role: "tab", className: "sq-tab", "data-on": tab === id || void 0, "aria-selected": tab === id, onClick: () => store.set((state) => ({ ...state, tab: id })) }, label))),
-        (0, import_react7.createElement)("span", { className: "sq-spacer" }),
-        (0, import_react7.createElement)("button", { className: "sq-x", "aria-label": "关闭", onClick: close }, "×")
+        (0, import_react8.createElement)("span", { className: "sq-title" }, "Squad 小队"),
+        (0, import_react8.createElement)("div", { className: "sq-tabs", role: "tablist" }, Object.entries(TABS).map(([id, label]) => (0, import_react8.createElement)("button", { key: id, role: "tab", className: "sq-tab", "data-on": tab === id || void 0, "aria-selected": tab === id, onClick: () => store.set((state) => ({ ...state, tab: id })) }, label))),
+        (0, import_react8.createElement)("span", { className: "sq-spacer" }),
+        (0, import_react8.createElement)("button", { className: "sq-x", "aria-label": "关闭", onClick: close }, "×")
       ),
-      (0, import_react7.createElement)(SummaryBar),
-      (0, import_react7.createElement)(Banner),
-      (0, import_react7.createElement)("div", { className: "sq-body" }, body)
+      (0, import_react8.createElement)(SummaryBar),
+      (0, import_react8.createElement)(Banner),
+      (0, import_react8.createElement)("div", { className: "sq-body" }, body)
     )
   );
 }
 function Preview({ preview }) {
-  return (0, import_react7.createElement)(
+  return (0, import_react8.createElement)(
     "div",
     { className: "sq-root", style: { background: "rgba(0,0,0,.45)" }, onMouseDown: (event) => {
       if (event.target === event.currentTarget) store.set((state) => ({ ...state, preview: null }));
     } },
-    (0, import_react7.createElement)(
+    (0, import_react8.createElement)(
       "div",
       { className: "sq-preview" },
-      (0, import_react7.createElement)("div", { className: "sq-head" }, (0, import_react7.createElement)("span", { className: "sq-title" }, `预览：${preview.name ?? ""}`), (0, import_react7.createElement)("span", { className: "sq-muted" }, "隔离运行，读不到 DS Bot 的登录和数据"), (0, import_react7.createElement)("span", { className: "sq-spacer" }), (0, import_react7.createElement)("button", { className: "sq-x", "aria-label": "关闭预览", onClick: () => store.set((state) => ({ ...state, preview: null })) }, "×")),
-      (0, import_react7.createElement)("iframe", { src: preview.url, sandbox: "allow-scripts", referrerPolicy: "no-referrer", title: preview.name ?? "preview" })
+      (0, import_react8.createElement)("div", { className: "sq-head" }, (0, import_react8.createElement)("span", { className: "sq-title" }, `预览：${preview.name ?? ""}`), (0, import_react8.createElement)("span", { className: "sq-muted" }, "隔离运行，读不到 DS Bot 的登录和数据"), (0, import_react8.createElement)("span", { className: "sq-spacer" }), (0, import_react8.createElement)("button", { className: "sq-x", "aria-label": "关闭预览", onClick: () => store.set((state) => ({ ...state, preview: null })) }, "×")),
+      (0, import_react8.createElement)("iframe", { src: preview.url, sandbox: "allow-scripts", referrerPolicy: "no-referrer", title: preview.name ?? "preview" })
     )
   );
 }
 function Toast() {
   const toast2 = useStore((state) => state.toast);
-  (0, import_react7.useEffect)(() => {
+  (0, import_react8.useEffect)(() => {
     if (!toast2) return void 0;
     const timer2 = setTimeout(() => store.set((state) => state.toast === toast2 ? { ...state, toast: null } : state), 4e3);
     return () => clearTimeout(timer2);
   }, [toast2]);
-  return toast2 ? (0, import_react7.createElement)("div", { className: "sq-toast", role: "status" }, toast2.text) : null;
+  return toast2 ? (0, import_react8.createElement)("div", { className: "sq-toast", role: "status" }, toast2.text) : null;
 }
 var owner = null;
 function SquadOverlay() {
   const isOpen = useStore((state) => state.open);
   const preview = useStore((state) => state.preview);
-  const [self] = (0, import_react7.useState)(() => /* @__PURE__ */ Symbol("overlay"));
-  const [, redraw] = (0, import_react7.useState)(0);
-  (0, import_react7.useEffect)(() => {
+  const [self] = (0, import_react8.useState)(() => /* @__PURE__ */ Symbol("overlay"));
+  const [, redraw] = (0, import_react8.useState)(0);
+  (0, import_react8.useEffect)(() => {
     if (owner === null) owner = self;
     redraw((n) => n + 1);
     return () => {
@@ -1571,7 +1579,7 @@ function SquadOverlay() {
     };
   }, []);
   if (owner !== self) return null;
-  return (0, import_react_dom.createPortal)((0, import_react7.createElement)("div", { "data-squad": "overlay" }, isOpen ? (0, import_react7.createElement)(Console) : null, preview ? (0, import_react7.createElement)(Preview, { preview }) : null, (0, import_react7.createElement)(Toast)), document.body);
+  return (0, import_react_dom.createPortal)((0, import_react8.createElement)("div", { "data-squad": "overlay" }, isOpen ? (0, import_react8.createElement)(Console) : null, preview ? (0, import_react8.createElement)(Preview, { preview }) : null, (0, import_react8.createElement)(Toast)), document.body);
 }
 function GroupDock({ sessionId }) {
   const teams = useStore((state) => state.teams);
@@ -1581,14 +1589,14 @@ function GroupDock({ sessionId }) {
   const run = runsOf(snapshot).find((candidate) => candidate.team_id === teamId);
   const tasks = run ? tasksOf(snapshot, run.run_id).filter((task) => task.kind !== "leader_step") : [];
   const done = tasks.filter((task) => task.state === "completed").length;
-  return (0, import_react7.createElement)(
+  return (0, import_react8.createElement)(
     "div",
     { className: "sq-dock" },
-    (0, import_react7.createElement)("strong", null, `小队 ${teamId}`),
-    run ? (0, import_react7.createElement)("span", null, `${RUN_PHASE[run.phase] ?? run.phase} · ${done}/${tasks.length} 个任务完成`) : (0, import_react7.createElement)("span", { className: "sq-muted" }, "还没有 Run"),
-    run && !terminal(run.phase) ? (0, import_react7.createElement)("span", { className: "sq-muted" }, "在这里说的话会作为补充说明交给 Leader") : null,
-    (0, import_react7.createElement)("span", { className: "sq-spacer", style: { flex: 1 } }),
-    (0, import_react7.createElement)("button", { className: "sq-btn", onClick: () => open({ tab: "runs", runId: run?.run_id ?? null }) }, run ? "查看进度" : "开始")
+    (0, import_react8.createElement)("strong", null, `小队 ${teamId}`),
+    run ? (0, import_react8.createElement)("span", null, `${RUN_PHASE[run.phase] ?? run.phase} · ${done}/${tasks.length} 个任务完成`) : (0, import_react8.createElement)("span", { className: "sq-muted" }, "还没有 Run"),
+    run && !terminal(run.phase) ? (0, import_react8.createElement)("span", { className: "sq-muted" }, "在这里说的话会作为补充说明交给 Leader") : null,
+    (0, import_react8.createElement)("span", { className: "sq-spacer", style: { flex: 1 } }),
+    (0, import_react8.createElement)("button", { className: "sq-btn", onClick: () => open({ tab: "runs", runId: run?.run_id ?? null }) }, run ? "查看进度" : "开始")
   );
 }
 
@@ -1674,6 +1682,16 @@ tr[data-focus]{outline:2px solid var(--sq-attention);outline-offset:-2px}
 .sq-tech summary{cursor:pointer;color:var(--sq-muted);font-size:12px}
 @media (prefers-reduced-motion:reduce){.sq-node,.sq-layer{transition:none}.sq-node[data-new]{animation:sq-fade .2s}.sq-node[data-flash]{animation:none;box-shadow:0 0 0 3px var(--sq-attention)}}
 @keyframes sq-fade{from{opacity:0}to{opacity:1}}
+.sq-pop{position:absolute;left:0;top:0;z-index:6;width:300px;box-sizing:border-box;background:var(--sq-panel);color:var(--sq-text);border:1px solid var(--sq-line);border-left:4px solid var(--sq-attention);border-radius:12px;padding:12px 14px;box-shadow:0 12px 32px rgba(0,0,0,.2);display:flex;flex-direction:column;gap:8px;font-size:13px;cursor:default}
+.sq-pop[data-s=failed]{border-left-color:var(--sq-failed)}
+.sq-pop-close{position:absolute;right:6px;top:2px}
+.sq-pop-title{font-weight:650}
+.sq-pop-reason{color:var(--sq-failed)}
+.sq-pop-main{justify-content:flex-end}
+.sq-pop-confirm{display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:8px;background:var(--sq-chip)}
+.sq-pop-confirm .sq-row{justify-content:flex-end}
+.sq-pop-extra{font-size:12px}
+.sq-link{border:0;background:none;padding:0;color:var(--sq-accent);cursor:pointer;font:inherit;text-align:left}
 .sq-card{border:1px solid var(--sq-line);border-radius:12px;background:var(--sq-panel);padding:12px 14px;display:flex;flex-direction:column;gap:8px}
 .sq-card h3{margin:0;font-size:14px}
 .sq-section h2{margin:0 0 8px;font-size:15px}

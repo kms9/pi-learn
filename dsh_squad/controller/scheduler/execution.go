@@ -188,10 +188,14 @@ func (s *Service) AttemptEvent(ctx context.Context, p Principal, id string, q At
 					return err
 				}
 			} else if a.ResultProposed == nil {
+				// The turn settled (idle, nothing pending): the execution has stopped,
+				// it only gave no result. Its resources go back; the task waits for a
+				// person (retry or ignore) without a stop to confirm.
 				a.State = "needs_review"
 				a.Error = "RESULT_MISSING"
+				a.Cleanup = "released"
 				c.State = "needs_review"
-				if _, err := tx.Exec(`DELETE FROM execution_leases WHERE attempt_id=?`, a.ID); err != nil {
+				if err := releaseAttempt(tx, a); err != nil {
 					return err
 				}
 				if err := s.failAncestors(tx, c, "RESULT_MISSING"); err != nil {

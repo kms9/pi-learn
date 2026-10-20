@@ -2,7 +2,9 @@ package scheduler
 
 import (
 	"database/sql"
+	"errors"
 	"github.com/kms9/pi-learn/dsh_squad/controller/fault"
+	"strings"
 	"time"
 
 	"github.com/kms9/pi-learn/dsh_squad/controller/task"
@@ -183,6 +185,10 @@ func (s *Service) afterCompletion(tx *sql.Tx, c task.Contract, a task.Attempt) e
 				r.Revision++
 				r.Phase = "needs_review"
 				r.RecoveryHold = true
+				r.GateFailure = gateFailureOf(tx, err)
+				if err := task.EventTx(tx, "final_gate_failed", r.ID, r.Revision, r.GateFailure); err != nil {
+					return err
+				}
 			} else {
 				r.Phase = "completed"
 				r.Revision++
@@ -198,4 +204,23 @@ func (s *Service) afterCompletion(tx *sql.Tx, c task.Contract, a task.Attempt) e
 		return err
 	}
 	return task.EventTx(tx, "run_progress", r.ID, r.Revision, map[string]string{"task_id": c.ID})
+}
+
+// gateFailureOf names the code and the task the final check stopped at.
+func gateFailureOf(tx *sql.Tx, err error) *task.GateFailure {
+	out := &task.GateFailure{Code: "GATE_NOT_READY", At: fault.Now()}
+	var e *task.Error
+	if errors.As(err, &e) {
+		out.Code = e.Code
+		if e.Message == "no business results" {
+			out.Code = "NO_RESULTS"
+		}
+		if strings.HasPrefix(e.Message, "task-") {
+			out.TaskID = e.Message
+			if c, loadErr := task.LoadTask(tx, e.Message); loadErr == nil {
+				out.TaskGoal = c.Goal
+			}
+		}
+	}
+	return out
 }

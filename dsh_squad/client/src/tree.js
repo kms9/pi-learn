@@ -69,6 +69,8 @@ export function treeOf(snapshot, runId, { approvals = [], bots = {} } = {}) {
         state: index === own.length - 1 ? { ...state, note: [`第 ${index + 1} 次`, state.note].filter(Boolean).join(' · ') } : { status: 'stopped', note: `第 ${index + 1} 次（已重试）`, reason: attempt.error ? undefined : undefined },
       }))
     for (let i = 1; i < chain.length; i += 1) chain[i - 1].children.push(chain[i])
+    // Folded, an attempt chain shows how the task ended, not its first attempt.
+    if (chain.length > 1) chain[0].folds = { ...state, note: [`重试 ${chain.length - 1} 次后`, state.note || ({ done: '完成', failed: '仍未完成', running: '进行中', attention: '等你处理', stopped: '已停止', waiting: '等待' })[state.status]].join('') }
     for (const node of chain) nodes.set(node.id, node)
     last.set(task.task_id, chain.at(-1))
   }

@@ -21,6 +21,10 @@ type Operation struct {
 	ConfirmStopped   bool   `json:"confirm_stopped,omitempty"`
 	RebindCurrent    bool   `json:"rebind_current,omitempty"`
 	ResultHash       string `json:"result_hash,omitempty"`
+	// TaskID points guidance at one task of the Run (UI plan C5).
+	TaskID string `json:"task_id,omitempty"`
+	// Ignore marks a cancel as the person dropping the step (UI plan D1).
+	Ignore bool `json:"ignore,omitempty"`
 }
 
 // AcceptanceRequest is the canonical HTTP shape for explicit human acceptance.
@@ -55,16 +59,19 @@ func (s *Service) RecordAcceptance(ctx context.Context, p Principal, id string, 
 }
 
 // ValidateOperationName is shared by operator entry points before any mutation.
+// Operations lists every operator operation by target kind; the HTTP routes are
+// registered from it.
+var Operations = map[string][]string{
+	"agent":   {"release"},
+	"run":     {"cancel", "resume", "guidance"},
+	"task":    {"cancel", "amend", "recover", "retry", "restart", "rebind", "accept", "reject"},
+	"attempt": {"reconcile"},
+	"role":    {"release", "promote"},
+	"leader":  {"release"},
+}
+
 func ValidateOperationName(kind, op string) error {
-	allowed := map[string][]string{
-		"agent":   {"release"},
-		"run":     {"cancel", "resume", "guidance"},
-		"task":    {"cancel", "amend", "recover", "retry", "rebind", "accept", "reject"},
-		"attempt": {"reconcile"},
-		"role":    {"release", "promote"},
-		"leader":  {"release"},
-	}
-	for _, candidate := range allowed[kind] {
+	for _, candidate := range Operations[kind] {
 		if candidate == op {
 			return nil
 		}
@@ -89,6 +96,37 @@ func (s *Service) Operate(ctx context.Context, p Principal, kind, id, op string,
 		if prior != "" {
 			out = map[string]any{"replayed": true, "target": id}
 			return nil
+		}
+		// restart (UI plan C3): confirm every unconfirmed execution stopped and retry,
+		// in one transaction, so the page's single Retry button cannot leave half done.
+		resumeAfter := kind == "task" && (op == "restart" || (op == "cancel" && q.Ignore))
+		if kind == "task" && op == "restart" {
+			c, err := task.LoadTask(tx, id)
+			if err != nil {
+				return err
+			}
+			if err := task.CAS(c.Revision, q.ExpectedRevision); err != nil {
+				return err
+			}
+			for _, aid := range c.AttemptIDs {
+				a, err := task.LoadAttempt(tx, aid)
+				if err != nil {
+					return err
+				}
+				if a.Cleanup == "released" {
+					continue
+				}
+				if _, err := s.attemptOperation(tx, aid, "reconcile", Operation{RequestID: q.RequestID, ExpectedRevision: a.Revision, ExpectedRuntime: q.ExpectedRuntime, Note: q.Note, ConfirmStopped: q.ConfirmStopped}); err != nil {
+					return err
+				}
+			}
+			c, err = task.LoadTask(tx, id)
+			if err != nil {
+				return err
+			}
+			q.ExpectedRevision = c.Revision
+			q.RebindCurrent = true
+			op = "retry"
 		}
 		var oldBinding, newBinding *task.Binding
 		if kind == "task" && (op == "rebind" || op == "retry") {
@@ -124,6 +162,16 @@ func (s *Service) Operate(ctx context.Context, p Principal, kind, id, op string,
 		}
 		if err != nil {
 			return err
+		}
+		// One Retry or Ignore on the page is enough (UI plan §4.3): a Run held because
+		// of this step goes on when nothing else in it is unresolved. If something is,
+		// resume refuses and the Run stays held for the person.
+		if resumeAfter {
+			if c, loadErr := task.LoadTask(tx, id); loadErr == nil && c.RunID != nil {
+				if r, loadErr := task.LoadRun(tx, *c.RunID); loadErr == nil && r.RecoveryHold && !task.Terminal(r.Phase) && r.GateFailure == nil {
+					_, _ = s.runOperation(tx, r.ID, "resume", Operation{ExpectedRevision: r.Revision, Note: "continue after " + op})
+				}
+			}
 		}
 		switch result := out.(type) {
 		case task.Contract:
@@ -205,10 +253,14 @@ func (s *Service) runOperation(tx *sql.Tx, id, op string, q Operation) (any, err
 		if task.Terminal(r.Phase) {
 			return nil, task.Reject("RUN_TERMINAL", r.Phase)
 		}
+		r.GateFailure = nil
 		all, err := readTasks(tx)
 		if err != nil {
 			return nil, err
 		}
+		// A Leader step that could not decide while the Run was held is a control step:
+		// the next Leader step replaces it, so it does not block the resume.
+		staleSteps := []task.Contract{}
 		for _, c := range all {
 			if c.RunID == nil || *c.RunID != r.ID {
 				continue
@@ -222,8 +274,19 @@ func (s *Service) runOperation(tx *sql.Tx, id, op string, q Operation) (any, err
 					return nil, task.Reject("EXECUTION_UNCONFIRMED", id)
 				}
 			}
+			if c.Kind == "leader_step" && (c.State == "needs_review" || c.State == "interrupted") {
+				staleSteps = append(staleSteps, c)
+				continue
+			}
 			if c.State == "needs_review" || c.State == "interrupted" || c.State == "failed" {
 				return nil, task.Reject("UNRESOLVED_TASK", c.ID)
+			}
+		}
+		for _, c := range staleSteps {
+			c.State = "cancelled"
+			c.Revision++
+			if err := task.SaveTask(tx, c); err != nil {
+				return nil, err
 			}
 		}
 		leader, err := s.leader(tx, r.TeamID)
@@ -247,7 +310,21 @@ func (s *Service) runOperation(tx *sql.Tx, id, op string, q Operation) (any, err
 		if task.Terminal(r.Phase) || q.Note == "" {
 			return nil, task.Reject("INVALID_GUIDANCE", "active Run and text required")
 		}
-		r.Guidance = append(r.Guidance, q.Note)
+		text := q.Note
+		if q.TaskID != "" {
+			about, err := task.LoadTask(tx, q.TaskID)
+			if err != nil || about.RunID == nil || *about.RunID != r.ID {
+				return nil, task.Reject("INVALID_GUIDANCE", "the task is not in this Run")
+			}
+			name := about.Title
+			if name == "" {
+				goal := []rune(about.Goal)
+				name = string(goal[:min(30, len(goal))])
+			}
+			text = "关于「" + name + "」：" + q.Note
+		}
+		r.Guidance = append(r.Guidance, text)
+		r.GuidanceNotes = append(r.GuidanceNotes, task.GuidanceNote{Text: q.Note, TaskID: q.TaskID, By: "operator", At: fault.Now()})
 	default:
 		return nil, task.Reject("INVALID_OPERATION", op)
 	}
@@ -357,6 +434,13 @@ func (s *Service) taskOperation(tx *sql.Tx, id, op string, q Operation) (any, er
 		cancelled, err := task.LoadTask(tx, id)
 		if err != nil {
 			return nil, err
+		}
+		if q.Ignore && cancelled.State == "cancelled" && !cancelled.Ignored {
+			cancelled.Ignored = true
+			cancelled.Revision++
+			if err := task.SaveTask(tx, cancelled); err != nil {
+				return nil, err
+			}
 		}
 		// A standalone suspended parent otherwise waits forever for a child
 		// which can no longer satisfy its success dependency.

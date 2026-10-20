@@ -45,7 +45,27 @@ type WaitingRole struct {
 	OwnerRunID        string `json:"owner_run_id"`
 	OwnershipRevision int64  `json:"ownership_revision"`
 }
+
+// GateFailure is why the final check refused a Run (UI plan C2).
+type GateFailure struct {
+	Code     string    `json:"code"`
+	TaskID   string    `json:"task_id,omitempty"`
+	TaskGoal string    `json:"task_goal,omitempty"`
+	At       time.Time `json:"at"`
+}
+
+// GuidanceNote is one piece of guidance with where it came from and, when given, the
+// task it is about (UI plan C5). Run.Guidance keeps the text the Leader reads.
+type GuidanceNote struct {
+	Text   string    `json:"text"`
+	TaskID string    `json:"task_id,omitempty"`
+	By     string    `json:"by"`
+	At     time.Time `json:"at"`
+}
+
 type Run struct {
+	GateFailure      *GateFailure         `json:"gate_failure,omitempty"`
+	GuidanceNotes    []GuidanceNote       `json:"guidance_notes,omitempty"`
 	ID               string               `json:"run_id"`
 	TeamID           string               `json:"team_id"`
 	Goal             string               `json:"goal"`
@@ -80,7 +100,9 @@ type Origin struct {
 }
 
 type Contract struct {
-	Origin             *Origin                   `json:"origin,omitempty"`
+	Origin *Origin `json:"origin,omitempty"`
+	// Ignored marks a task a person chose to drop ("忽略", UI plan D1).
+	Ignored            bool                      `json:"ignored,omitempty"`
 	Title              string                    `json:"title,omitempty"`
 	AcceptanceCriteria json.RawMessage           `json:"acceptance_criteria,omitempty"`
 	GuidanceCount      int                       `json:"guidance_count,omitempty"`

@@ -63,7 +63,8 @@ test('every reason code in §3.2 has words; an unknown one says so', () => {
 test('the Run card: queued, held, failed final check, done', () => {
   assert.deepEqual(runStatusOf({ phase: 'queued_run', admitted: false, waiting_roles: [{ role_id: 'reviewer' }] }), { status: 'waiting', note: '排队：等 reviewer' })
   assert.equal(runStatusOf({ phase: 'running', admitted: true, recovery_hold: true }).status, 'attention')
-  assert.equal(runStatusOf({ phase: 'needs_review', admitted: true, recovery_hold: true }).status, 'failed')
+  assert.equal(runStatusOf({ phase: 'needs_review', admitted: true, recovery_hold: true }).status, 'attention', 'held for a failed step')
+  assert.equal(runStatusOf({ phase: 'needs_review', admitted: true, recovery_hold: true, gate_failure: { code: 'ACCEPTANCE_PENDING' } }).status, 'failed', 'the final check refused it')
   assert.equal(runStatusOf({ phase: 'completed' }).status, 'done')
   assert.equal(runStatusOf({ phase: 'running', admitted: true }).status, 'running')
 })
@@ -81,6 +82,8 @@ test('the summary counts across Teams and lists where to jump', () => {
   assert.deepEqual(all.attention.map(item => item.taskId), ['task-3'])
   assert.equal(all.queued[0].teamId, 'b')
   assert.equal(all.members, 2)
+  const held = summaryOf({ views: { ...snapshot.views, runs: [{ ...snapshot.views.runs[0], recovery_hold: true }] } }, [], 'a')
+  assert.equal(held.attention.filter(item => item.taskId === null).length, 0, 'a Run held for a failed step is not counted twice')
   const onlyB = summaryOf(snapshot, [], 'b')
   assert.equal(onlyB.failed.length + onlyB.attention.length + onlyB.running, 0)
 })

@@ -522,7 +522,8 @@ func validateTeam(t Team, id string, roles map[string]Role) error {
 	a := p.Acceptance
 	// on_completion accepts a result as soon as it settles, with no independent check.
 	// It exists for the comparison experiment's DAG-only group (M3-3, group B).
-	if a.Mode != "review" && a.Mode != "checker" && a.Mode != "on_completion" {
+	// human: a person accepts each result from the Squad page.
+	if a.Mode != "review" && a.Mode != "checker" && a.Mode != "on_completion" && a.Mode != "human" {
 		return fmt.Errorf("ACCEPTANCE_POLICY_MISSING: Team requires checker, review or on_completion")
 	}
 	if a.ChildPolicy != "inherit_parent" && a.ChildPolicy != "separate" {
@@ -536,7 +537,7 @@ func validateTeam(t Team, id string, roles map[string]Role) error {
 		if (a.CheckerRef != "numbers-count" && a.CheckerRef != "numbers-sum" && a.CheckerRef != "numbers-stats") || a.ReviewerRef != "" {
 			return fmt.Errorf("invalid checker_ref")
 		}
-	} else if a.Mode == "on_completion" {
+	} else if a.Mode == "on_completion" || a.Mode == "human" {
 		if a.ReviewerRef != "" || a.CheckerRef != "" {
 			return fmt.Errorf("on_completion takes no reviewer or checker")
 		}

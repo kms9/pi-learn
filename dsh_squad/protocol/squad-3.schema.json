@@ -978,6 +978,9 @@
         "expected_runtime": {
           "type": "string"
         },
+        "ignore": {
+          "type": "boolean"
+        },
         "note": {
           "type": "string"
         },
@@ -988,6 +991,9 @@
           "type": "string"
         },
         "result_hash": {
+          "type": "string"
+        },
+        "task_id": {
           "type": "string"
         }
       },
@@ -1560,6 +1566,9 @@
         "guidance_count": {
           "type": "integer"
         },
+        "ignored": {
+          "type": "boolean"
+        },
         "kind": {
           "type": "string"
         },
@@ -1730,6 +1739,53 @@
       ],
       "type": "object"
     },
+    "task_GateFailure": {
+      "additionalProperties": false,
+      "properties": {
+        "at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "task_goal": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "at"
+      ],
+      "type": "object"
+    },
+    "task_GuidanceNote": {
+      "additionalProperties": false,
+      "properties": {
+        "at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "by": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "text",
+        "by",
+        "at"
+      ],
+      "type": "object"
+    },
     "task_Origin": {
       "additionalProperties": false,
       "properties": {
@@ -1835,6 +1891,16 @@
           "format": "date-time",
           "type": "string"
         },
+        "gate_failure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/task_GateFailure"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "goal": {
           "type": "string"
         },
@@ -1843,6 +1909,19 @@
             {
               "items": {
                 "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "guidance_notes": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/task_GuidanceNote"
               },
               "type": "array"
             },

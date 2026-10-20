@@ -27,16 +27,19 @@ export function summaryOf(snapshot, approvals = [], teamId = null) {
     if (run === undefined) continue
     const runState = runStatusOf(run)
     const item = (extra) => ({ teamId: team, runId: run.run_id, ...extra })
-    if (runState.status === 'attention') out.attention.push(item({ taskId: null, title: run.goal, note: runState.note }))
     if (runState.status === 'failed') out.failed.push(item({ taskId: null, title: run.goal, note: runState.reason }))
     if (runState.status === 'waiting' && !run.admitted) out.queued.push(item({ title: run.goal, note: runState.note, owner: run.waiting_roles?.[0]?.owner_team_id }))
     const own = tasks.filter(task => task.run_id === run.run_id && task.kind !== 'leader_step')
+    const failedBefore = out.failed.length
     for (const task of own) {
       const state = statusOf(task, { attempts, approvals, tasks: own })
       if (state.status === 'running') out.running += 1
       if (state.status === 'attention') out.attention.push(item({ taskId: task.task_id, title: task.goal, note: state.note }))
       if (state.status === 'failed') out.failed.push(item({ taskId: task.task_id, title: task.goal, note: state.reason }))
     }
+    // A Run held because a step failed is handled through that step; it asks the person
+    // itself only when nothing in it failed.
+    if (runState.status === 'attention' && out.failed.length === failedBefore) out.attention.push(item({ taskId: null, title: run.goal, note: runState.note }))
   }
   return out
 }

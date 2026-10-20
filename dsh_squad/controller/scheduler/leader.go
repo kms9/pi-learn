@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"github.com/kms9/pi-learn/dsh_squad/controller/fault"
 
 	"github.com/kms9/pi-learn/dsh_squad/controller/project"
@@ -20,6 +21,30 @@ type Decision struct {
 }
 
 func (s *Service) Decide(ctx context.Context, p Principal, id string, q Decision) (task.Run, error) {
+	out, err := s.decide(ctx, p, id, q)
+	// The final check refused the Leader's "complete": the decision rolls back, but the
+	// refusal is kept on the Run so a person sees why (UI plan C2).
+	var e *task.Error
+	if err != nil && q.Action == "complete" && errors.As(err, &e) && gateCodes[e.Code] {
+		_ = s.Store.Transaction(ctx, func(tx *sql.Tx) error {
+			r, loadErr := task.LoadRun(tx, id)
+			if loadErr != nil {
+				return loadErr
+			}
+			r.GateFailure = gateFailureOf(tx, err)
+			r.Revision++
+			if saveErr := task.SaveRun(tx, r); saveErr != nil {
+				return saveErr
+			}
+			return task.EventTx(tx, "final_gate_failed", r.ID, r.Revision, r.GateFailure)
+		})
+	}
+	return out, err
+}
+
+var gateCodes = map[string]bool{"GATE_NOT_READY": true, "ACCEPTANCE_PENDING": true, "DEPENDENCY_PENDING": true, "EXECUTION_UNCONFIRMED": true, "INVALID_REWORK": true}
+
+func (s *Service) decide(ctx context.Context, p Principal, id string, q Decision) (task.Run, error) {
 	var out task.Run
 	err := s.Store.Transaction(ctx, func(tx *sql.Tx) error {
 		prior, err := replay(tx, p, "decide:"+id, q.RequestID, q)

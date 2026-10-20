@@ -44,6 +44,8 @@ test('each retry is a node under the attempt before it; older attempts are grey 
   assert.equal(second.state.status, 'running')
   assert.match(second.state.note, /第 2 次/)
   assert.deepEqual(second.children.map(n => n.id), ['t2'], 'the review hangs under the last attempt')
+  assert.equal(nodes.get('t1').folds.status, 'running', 'folded, the chain shows how the task stands')
+  assert.match(nodes.get('t1').folds.note, /^重试 1 次后/)
 })
 
 test('a finished subtree folds by itself, unless something below needs a person or failed', () => {

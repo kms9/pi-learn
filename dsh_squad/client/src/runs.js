@@ -2,7 +2,7 @@
 import { createElement as h, Fragment, useEffect, useState } from 'react'
 import { call, requestId } from './api.js'
 import { refreshNow } from './feed.js'
-import { KIND, RUN_PHASE, TASK_STATE, artifactsOf, cardsOf, goalOf, runsOf, short, tasksOf, terminal, waitingOf } from './model.js'
+import { KIND, artifactsOf, goalOf, runsOf, short, tasksOf, terminal, waitingOf } from './model.js'
 import { store, toast, useStore } from './store.js'
 import { runStatusOf, statusOf } from './status.js'
 import { StatusChip } from './summarybar.js'
@@ -74,81 +74,6 @@ export function RunList() {
     }))
 }
 
-function AnswerCard({ card }) {
-  const [text, setText] = useState('')
-  return h('div', { className: 'sq-card' },
-    h('h3', null, '需要你回答'),
-    h('div', null, card.why),
-    h('textarea', { className: 'sq-text', placeholder: '写给 Leader 的说明', value: text, onChange: event => setText(event.target.value) }),
-    h('div', { className: 'sq-row' },
-      h('button', { className: 'sq-btn', 'data-kind': 'primary', disabled: text.trim() === '', onClick: () => act('回答', 'operate', { kind: 'run', id: card.run.run_id, op: 'guidance', body: { request_id: requestId('guide'), expected_revision: card.expectedRevision, note: text.trim() } }) }, '回答'),
-      card.run.recovery_hold ? h('button', { className: 'sq-btn', onClick: () => act('继续 Run', 'operate', { kind: 'run', id: card.run.run_id, op: 'resume', body: { request_id: requestId('resume'), expected_revision: card.expectedRevision, note: '在 Squad 页面确认继续' } }) }, '确认继续') : null))
-}
-
-function ApproveCard({ card }) {
-  const { approval } = card
-  const answer = choice => act(choice === 'allow' ? '批准工具' : '拒绝工具', 'approve', { approvalId: approval.id, attemptId: card.attemptId, expectedRevision: card.expectedRevision, choice })
-  return h('div', { className: 'sq-card' },
-    h('h3', null, '需要你批准工具'),
-    h('div', null, `${approval.tool}：${approval.reason || '（没有说明）'}`),
-    approval.detail?.code || approval.detail?.text ? h('pre', { className: 'sq-muted', style: { whiteSpace: 'pre-wrap', margin: 0 } }, String(approval.detail.code ?? approval.detail.text).slice(0, 600)) : null,
-    h('div', { className: 'sq-row' },
-      h('button', { className: 'sq-btn', 'data-kind': 'primary', disabled: card.expectedRevision === undefined, onClick: () => answer('allow') }, '批准一次'),
-      h('button', { className: 'sq-btn', 'data-kind': 'danger', onClick: () => answer('reject') }, '拒绝')))
-}
-
-function AcceptCard({ card }) {
-  const [note, setNote] = useState('')
-  const decide = decision => act(decision === 'accepted' ? '验收通过' : '验收退回', 'accept', { taskId: card.task.task_id, body: { request_id: requestId('accept'), expected_revision: card.expectedRevision, decision, result_hash: card.resultHash, note: note.trim() || (decision === 'accepted' ? '验收通过' : '需要修改') } })
-  return h('div', { className: 'sq-card' },
-    h('h3', null, '需要你验收成果'),
-    h('div', null, card.task.goal),
-    h('pre', { className: 'sq-muted', style: { whiteSpace: 'pre-wrap', margin: 0 } }, JSON.stringify(card.task.result?.value ?? null, null, 2).slice(0, 800)),
-    h('input', { className: 'sq-input', placeholder: '验收意见', value: note, onChange: event => setNote(event.target.value) }),
-    h('div', { className: 'sq-row' },
-      h('button', { className: 'sq-btn', 'data-kind': 'primary', onClick: () => decide('accepted') }, '验收通过'),
-      h('button', { className: 'sq-btn', 'data-kind': 'danger', onClick: () => decide('rejected') }, '退回')))
-}
-
-function RecoverCard({ card }) {
-  const { task, attempt, late = [], others = [], primary } = card
-  const [confirm, setConfirm] = useState(false)
-  const body = extra => ({ request_id: requestId('recover'), expected_revision: card.expectedRevision, ...extra })
-  return h('div', { className: 'sq-card' },
-    h('h3', null, '需要恢复'),
-    h('div', null, `${KIND[task.kind] ?? task.kind} · ${task.role_id}：${TASK_STATE[task.state] ?? task.state}${attempt?.error ? `（${attempt.error}）` : ''}${(task.blockers ?? []).length ? ` · ${(task.blockers ?? []).map(blocker => blocker.kind).join('、')}` : ''}`),
-    attempt ? h(Fragment, null,
-      h('div', { className: 'sq-muted' }, '不确定这次执行是否真的停下时，不会自动重来。确认它已经停止后再释放，之后可以重试、采用迟到的结果或取消。'),
-      h('label', { className: 'sq-row' }, h('input', { type: 'checkbox', checked: confirm, onChange: event => setConfirm(event.target.checked) }), '我确认这次执行已经停止'),
-      h('button', { className: 'sq-btn', disabled: !confirm, onClick: () => act('确认已停止', 'operate', { kind: 'attempt', id: attempt.attempt_id, op: 'reconcile', body: { request_id: requestId('reconcile'), expected_revision: attempt.revision, expected_runtime: attempt.target?.runtime_id, note: '在 Squad 页面确认已停止', confirm_stopped: true } }) }, '确认已停止')) : null,
-    late.length > 0 ? h('div', null,
-      h('div', null, `执行被隔离后又收到 ${late.length} 份结果（已拒绝，保留为证据）：`),
-      late.map(row => h('div', { key: row.seq, className: 'sq-row' },
-        h('span', { className: 'sq-muted' }, `#${row.seq} · ${row.source} · ${String(row.at ?? '').slice(0, 19).replace('T', ' ')}`),
-        h('button', { className: 'sq-btn', disabled: Boolean(attempt), onClick: () => act('采用迟到的结果', 'operate', { kind: 'task', id: task.task_id, op: 'recover', body: body({ evidence: `evidence:${row.seq}`, note: '在 Squad 页面采用迟到的结果' }) }) }, '采用这个结果')))) : null,
-    others.length > 0 && attempt === undefined ? h('div', null,
-      h('div', null, `${task.role_id} 现在由 ${primary?.primary_agent_id || '（无人）'} 负责，可以换成：`),
-      others.map(agent => h('button', { key: agent.binding.agent_id, className: 'sq-btn', onClick: async () => {
-        await act(`换成 ${agent.binding.agent_id}`, 'operate', { kind: 'role', id: task.role_id, op: 'promote', body: { request_id: requestId('promote'), expected_revision: primary?.revision ?? 0, expected_runtime: (snapshotAgent(primary?.primary_agent_id)?.binding?.runtime_id) ?? '', agent_id: agent.binding.agent_id } })
-      } }, agent.binding.agent_id))) : null,
-    h('div', { className: 'sq-row' },
-      h('button', { className: 'sq-btn', disabled: Boolean(attempt), onClick: () => act(card.attempts > 0 ? '重试' : '换人重新安排', 'operate', { kind: 'task', id: task.task_id, op: card.attempts > 0 ? 'retry' : 'rebind', body: body({ rebind_current: true, note: '在 Squad 页面处理' }) }) }, card.attempts > 0 ? '重试' : '按当前负责人重新安排'),
-      h('button', { className: 'sq-btn', 'data-kind': 'danger', onClick: () => act('取消任务', 'operate', { kind: 'task', id: task.task_id, op: 'cancel', body: body({ note: '在 Squad 页面取消' }) }) }, '取消任务')))
-}
-
-// The current Primary's runtime id, for the role swap's expected_runtime.
-function snapshotAgent(agentId) {
-  return (store.get().projection.snapshot?.views?.agents ?? []).find(agent => agent.binding?.agent_id === agentId)
-}
-
-function ReviewCard({ card }) {
-  const target = card.task.dependencies?.[0]?.task_id
-  return h('div', { className: 'sq-card' },
-    h('h3', null, '审核结论 ', chip(card.verdict.decision === 'accepted' ? '通过' : '退回', card.verdict.decision === 'accepted' ? 'ok' : 'bad')),
-    h('div', null, card.verdict.reason),
-    h('div', { className: 'sq-muted' }, `审核 ${short(target)} 的第 ${card.verdict.candidates?.[0]?.result_revision ?? '?'} 版`))
-}
-
 export function RunDetail({ runId }) {
   const snapshot = useStore(state => state.projection.snapshot)
   const approvals = useStore(state => state.approvals)
@@ -164,10 +89,7 @@ export function RunDetail({ runId }) {
   const run = runsOf(snapshot).find(candidate => candidate.run_id === runId)
   if (run === undefined) return h('div', { className: 'sq-muted' }, '选择左边的一个 Run，或开始一个新的。')
   const tasks = tasksOf(snapshot, runId)
-  const cards = cardsOf(snapshot, runId, approvals)
-  const of = type => cards.filter(card => card.type === type)
   const artifacts = artifactsOf(tasks)
-  const section = (title, list, Card) => (list.length === 0 ? null : h('div', { className: 'sq-section' }, h('h2', null, `${title}（${list.length}）`), h('div', { className: 'sq-grid' }, list.map(card => h(Card, { key: card.key, card })))))
   return h(Fragment, null,
     h('div', { className: 'sq-card' },
       h('div', { className: 'sq-row' }, h(StatusChip, { state: runStatusOf(run) }), h('strong', null, run.goal)),
@@ -177,10 +99,6 @@ export function RunDetail({ runId }) {
         h('input', { className: 'sq-input', style: { flex: 1 }, placeholder: '给 Leader 补充说明（例如：例子用披萨）', value: guide, onChange: event => setGuide(event.target.value) }),
         h('button', { className: 'sq-btn', disabled: guide.trim() === '', onClick: () => { void act('补充说明', 'operate', { kind: 'run', id: run.run_id, op: 'guidance', body: { request_id: requestId('guide'), expected_revision: run.revision, note: guide.trim() } }); setGuide('') } }, '发送'),
         h('button', { className: 'sq-btn', 'data-kind': 'danger', onClick: () => act('取消 Run', 'operate', { kind: 'run', id: run.run_id, op: 'cancel', body: { request_id: requestId('cancel'), expected_revision: run.revision, note: '在 Squad 页面取消' } }) }, '取消 Run'))),
-    section('需要你回答', of('answer'), AnswerCard),
-    section('需要你批准工具', of('approve'), ApproveCard),
-    section('需要你验收成果', of('accept'), AcceptCard),
-    section('需要恢复', of('recover'), RecoverCard),
     h('div', { className: 'sq-section' },
       h('div', { className: 'sq-row' }, h('h2', { style: { margin: 0, flex: 1 } }, listView ? '任务列表' : '任务树'), h('button', { className: 'sq-btn', onClick: () => setListView(value => !value) }, listView ? '树视图' : '列表视图')),
       listView ? null : h(RunCanvas, { runId })),
@@ -189,7 +107,6 @@ export function RunDetail({ runId }) {
         h('td', null, art.name ?? art.path), h('td', null, chip(art.superseded ? '已被返工取代' : art.accepted ? '已通过' : '待审核', art.superseded ? 'bad' : art.accepted ? 'ok' : 'warn')),
         h('td', { className: 'sq-muted' }, `${short(art.taskId)} · ${art.sha256.slice(0, 10)}`),
         h('td', null, previewBase && art.media_type === 'text/html' ? h('button', { className: 'sq-btn', onClick: () => store.set(state => ({ ...state, preview: { url: `${previewBase}/v2/artifacts/sha256/${art.sha256}`, name: art.name } })) }, '预览') : null)))))),
-    section('审核结论', of('review'), ReviewCard),
     !listView ? null : h('div', { className: 'sq-section' },
       h('div', { className: 'sq-muted' }, `Leader 已做 ${tasks.filter(task => task.kind === 'leader_step').length} 次决定（不在表中）`),
       h('table', { className: 'sq-table' },

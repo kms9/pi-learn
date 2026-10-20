@@ -122,6 +122,7 @@ func (s *Service) classifyHeld(tx *sql.Tx, q *HeldInput) error {
 		}
 	}
 	r.Guidance = append(r.Guidance, text)
+	r.GuidanceNotes = append(r.GuidanceNotes, task.GuidanceNote{Text: text, By: "group", At: fault.Now()})
 	r.Revision++
 	if err := task.SaveRun(tx, r); err != nil {
 		return err

@@ -7,7 +7,7 @@ import { refreshNow } from './feed.js'
 import { configOf, editsFor, parseWorkflow, roleDoc, teamDoc, validId, workflowDoc } from './config-model.js'
 import { store, toast, useStore } from './store.js'
 
-const ACCEPTANCE = { review: '独立审核（指定审核角色）', on_completion: '完成即通过（不审核，仅用于对照实验）' }
+const ACCEPTANCE = { review: '独立审核（指定审核角色）', human: '人工验收（你在 Squad 页面确认每个结果）', on_completion: '完成即通过（不审核，仅用于对照实验）' }
 const CONDITION = { acceptance_accepted: '上一步通过审核后', execution_completed: '上一步做完就开始' }
 const KINDS = { execute: '执行', review: '审核', ask: '提问' }
 

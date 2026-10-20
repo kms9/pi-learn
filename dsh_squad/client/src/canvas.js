@@ -9,6 +9,7 @@ import { CARD, layout } from './layout.js'
 import { KIND } from './model.js'
 import { store, useStore } from './store.js'
 import { StatusChip } from './summarybar.js'
+import { NodePopover, hasActions } from './actions.js'
 
 const PALETTE = ['#3d5afe', '#00897b', '#f4511e', '#8e24aa', '#c0ca33', '#0288d1', '#d81b60', '#6d4c41']
 const NAMED = { deepseek: '#4d6bfe', blue: '#2563eb', green: '#16a34a', orange: '#ea580c', red: '#dc2626', purple: '#7c3aed', pink: '#db2777', teal: '#0d9488', yellow: '#ca8a04', gray: '#6b7280' }
@@ -31,7 +32,7 @@ export function Avatar({ member, size = 28 }) {
 
 function NodeCard({ item, selected, isNew, onSelect, onFold }) {
   const { node, hidden } = item
-  const state = node.state
+  const state = hidden > 0 && node.folds ? node.folds : node.state
   const count = node.children.length
   const folded = hidden > 0
   return h('div', {
@@ -47,7 +48,7 @@ function NodeCard({ item, selected, isNew, onSelect, onFold }) {
       node.member?.model ? h('div', { className: 'sq-node-model' }, node.member.model) : null),
     h(StatusChip, { state })),
   h('div', { className: 'sq-node-title', title: node.kind === 'run' ? node.run.goal : node.task?.goal }, node.title),
-  h('div', { className: 'sq-node-note' }, [state.note, node.kind === 'run' && node.decisions ? `Leader 已决定 ${node.decisions} 次` : '', node.kind === 'run' && (node.run.guidance ?? []).length ? `${node.run.guidance.length} 条补充指导` : ''].filter(Boolean).slice(0, 2).join(' · ')),
+  h('div', { className: 'sq-node-note' }, [['failed', 'attention'].includes(state.status) ? '点开处理' : '', state.note, node.kind === 'run' && node.decisions ? `Leader 已决定 ${node.decisions} 次` : '', node.kind === 'run' && (node.run.guidance ?? []).length ? `${node.run.guidance.length} 条补充指导` : ''].filter(Boolean).slice(0, 2).join(' · ')),
   count > 0 ? h('button', {
     className: 'sq-node-count', 'aria-label': folded ? `展开 ${hidden} 个` : `折叠 ${count} 个子节点`, title: folded ? '展开' : '折叠',
     onClick: (event) => { event.stopPropagation(); onFold(node.id) },
@@ -112,6 +113,7 @@ export function RunCanvas({ runId }) {
   const tree = useMemo(() => treeOf(snapshot, runId, { approvals, bots }), [snapshot, runId, approvals, bots])
   const [overrides, setOverrides] = useState({})
   const [selected, setSelected] = useState(null)
+  const [details, setDetails] = useState(false)
   const [view, setView] = useState({ x: 0, y: 24, scale: 1, moved: false })
   const box = useRef(null)
   const seen = useRef(null)
@@ -147,10 +149,11 @@ export function RunCanvas({ runId }) {
   }, [placed?.width, placed?.rootX, view.moved, view.scale])
   // A jump from the summary bar: pan so the node is in the middle, select it, flash it.
   useEffect(() => {
-    if (!placed || !focus?.taskId || !box.current) return
-    const item = [...placed.nodes].reverse().find(candidate => candidate.node.task?.task_id === focus.taskId)
+    if (!placed || !focus || focus.runId !== runId || !box.current) return
+    const item = focus.taskId ? [...placed.nodes].reverse().find(candidate => candidate.node.task?.task_id === focus.taskId) : placed.nodes[0]
     if (!item) return
     setSelected(item.node.id)
+    setDetails(false)
     const { clientWidth, clientHeight } = box.current
     setView(current => ({ ...current, moved: true, x: Math.round(clientWidth / 2 - (item.x + CARD.width / 2) * current.scale), y: Math.round(clientHeight / 2 - (item.y + CARD.height / 2) * current.scale) }))
     const el = box.current.querySelector(`[data-node="${CSS.escape(item.node.id)}"]`)
@@ -160,6 +163,10 @@ export function RunCanvas({ runId }) {
   }, [focus?.at, placed !== null])
   if (!tree || !placed) return h('div', { className: 'sq-muted' }, '选择左边的一个 Run，或开始一个新的。')
   const node = selected ? tree.nodes.get(selected) : null
+  const selectedItem = node ? placed.nodes.find(item => item.node.id === node.id) : null
+  // A node that needs a person or failed opens its popover; the rest open details.
+  const popover = node && hasActions(node) && !details && selectedItem
+  const select = (id) => { setSelected(id); setDetails(false) }
   const toggle = id => setOverrides(current => ({ ...current, [id]: !folded.has(id) }))
   const onWheel = (event) => {
     if (!event.ctrlKey && !event.metaKey) return
@@ -183,6 +190,7 @@ export function RunCanvas({ runId }) {
     },
     h('div', { className: 'sq-layer', style: { transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` } },
       h(Edges, { items: placed.nodes, edges: placed.edges, width: placed.width, height: placed.height }),
-      placed.nodes.map(item => h(NodeCard, { key: item.node.id, item, selected: selected === item.node.id, isNew: fresh.has(item.node.id), onSelect: setSelected, onFold: toggle })))),
-    h(Drawer, { node, onClose: () => setSelected(null) }))
+      placed.nodes.map(item => h(NodeCard, { key: item.node.id, item, selected: selected === item.node.id, isNew: fresh.has(item.node.id), onSelect: select, onFold: toggle })),
+      popover ? h(NodePopover, { key: `pop-${node.id}`, node, x: selectedItem.x + CARD.width + 14, y: selectedItem.y, onDetails: () => setDetails(true), onClose: () => setSelected(null) }) : null)),
+    node && !popover ? h(Drawer, { node, onClose: () => setSelected(null) }) : null)
 }
