@@ -67,6 +67,8 @@ type harness struct {
 	ctx context.Context
 	svc *Service
 	op  Principal
+	// leaderPlan, when set, gives the Leader's next dispatch in drive (nil: none).
+	leaderPlan func(runID string) []project.Step
 }
 
 func newHarness(t *testing.T) *harness {

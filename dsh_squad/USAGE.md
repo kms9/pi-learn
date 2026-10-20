@@ -159,6 +159,7 @@ Leader 的 `squad_decide` 若遇到 Run 刚被改动（版本冲突），会重�
 - 审核用 `squad_review`（通过/退回 + 理由），它会精确引用被审的结果版本。
 - Leader 每次 Run 状态变化都会收到一个 Leader 步骤，系统提示里有「Run status」和用户在群里说的话，用 `squad_decide` 决定：`dispatch`（如对退回的任务派 `rework`）、`wait`、`complete`。`complete` 要通过最终关卡：所有业务任务通过、没有未收尾的执行。
 - 被退回的版本保留，返工是新任务（`superseded_by` 指向返工）。
+- Leader 只能对两类任务派 `rework`：审核退回的任务，或已完成但用到的上游版本已被替换（「基于旧版本」）的任务。后一种等同于页面上的「用新版本重做」，派出时旧版本就标为已替换。对已通过且仍是最新版本的任务派 `rework` 会被直接拒绝并说明原因。
 
 **群里说话**：Run 进行中，用户在 Team 的群里（或直接对成员）说的话会被扣留，并作为 Run Guidance 交给 Leader（同一句只记一次）；没有进行中的 Run 时保持 `pending`。处理 pending 的消息（operator）：`POST /v2/held-inputs/<input_id>/dispose {"request_id","disposition":"dismissed|started|guidance","run_id"?,"expected_revision"?}`；`started` 记下用它开始的 Run，`guidance` 把它加入进行中的 Run（要带 Run 的当前版本）；同一群消息在其他成员处的副本一起处理。
 

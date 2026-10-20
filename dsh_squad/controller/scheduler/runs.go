@@ -247,6 +247,11 @@ func (s *Service) materialize(tx *sql.Tx, r task.Run, w project.Workflow, origin
 		c.Origin = &task.Origin{Kind: origin.Kind, By: origin.By}
 		if c.ReworkOf != "" {
 			c.Origin = &task.Origin{Kind: "rework", By: c.ReworkOf}
+			if _, local := ids[step.ReworkOf]; !local {
+				if err := s.reworkable(tx, c); err != nil {
+					return err
+				}
+			}
 		}
 		c.Dependencies = []task.Dependency{}
 		c.ExpectedOutput = step.ExpectedOutput
@@ -275,6 +280,36 @@ func (s *Service) materialize(tx *sql.Tx, r task.Run, w project.Workflow, origin
 	}
 	return nil
 }
+
+// reworkable says whether a planned rework may replace its task: one a review rejected,
+// or one built on a version that was replaced since (Q41). The Leader choosing to redo
+// such a task is what a person does with 「用新版本重做」: the old version is marked
+// replaced now, so the redo can be accepted later. Anything else is refused at plan
+// time with a reason, instead of a redo that could never be accepted.
+func (s *Service) reworkable(tx *sql.Tx, c task.Contract) error {
+	old, err := task.LoadTask(tx, c.ReworkOf)
+	if err != nil {
+		return task.Reject("INVALID_REWORK", "unknown task "+c.ReworkOf)
+	}
+	if !sameScope(c, old) {
+		return task.Reject("INVALID_REWORK", "a task of another Run")
+	}
+	if old.Acceptance != nil && old.Acceptance.Decision == "rejected" {
+		return nil
+	}
+	stale, err := staleInputs(tx, old)
+	if err != nil {
+		return err
+	}
+	if old.State != "completed" || old.Result == nil || len(stale) == 0 {
+		return task.Reject("INVALID_REWORK", "only a rejected task, or a finished one built on a replaced version, can be reworked: "+old.ID)
+	}
+	if err := saveAcceptance(tx, &old, task.Acceptance{Decision: "rejected", Mode: "rebase", ResultHash: old.Result.Hash, GoalRevision: old.GoalRevision, Reason: "Leader 改用新版本重做"}); err != nil {
+		return err
+	}
+	return task.EventTx(tx, "task_rebased", old.ID, old.Revision, map[string]string{"by": "leader"})
+}
+
 func baseTask(id, kind, goal string, p project.Policy) task.Contract {
 	a := p.Acceptance
 	return task.Contract{ID: id, RootID: id, Scope: "standalone", Kind: kind, Goal: goal, GoalRevision: 1, AppliedRevision: 1, Revision: 1, State: "planned", Policy: p, AcceptancePolicy: &a, AllowedTools: append([]string{}, p.AllowedTools...), WriteSet: []string{}, Refs: []project.ResultRef{}, Dependencies: []task.Dependency{}, Blockers: []task.Blocker{}, AttemptIDs: []string{}, Amendments: []string{}, CreatedAt: fault.Now()}

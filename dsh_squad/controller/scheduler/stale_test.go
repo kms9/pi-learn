@@ -70,6 +70,8 @@ func (h *harness) drive(runID string, person func(stale []task.Contract, gate []
 				action, steps := "wait", []project.Step(nil)
 				if rejected := h.rejectedWithoutRework(runID); rejected != "" {
 					action, steps = "dispatch", []project.Step{{ID: "rework-1", RoleRef: "builder", Kind: "rework", ReworkOf: rejected, Goal: "fix", DependsOn: []project.Dependency{}}}
+				} else if planned := h.planOf(runID); len(planned) > 0 {
+					action, steps = "dispatch", planned
 				} else if h.allAccepted(runID) {
 					action = "complete"
 				}
@@ -172,3 +174,76 @@ func TestAStaleCheckCanBeKept(t *testing.T) {
 		t.Fatalf("kept %d, run %s", kept, h.runOf(runID).Phase)
 	}
 }
+
+func (h *harness) planOf(runID string) []project.Step {
+	if h.leaderPlan == nil {
+		return nil
+	}
+	return h.leaderPlan(runID)
+}
+
+// What a real Leader did (T stage): it saw the check was built on the replaced draft
+// and planned a rework of that check itself, with its own goal. The old check is then
+// marked replaced at plan time, the redo is reviewed and accepted, and the Run completes.
+func TestTheLeaderRedoesAStaleCheck(t *testing.T) {
+	h, runID := staleHarness(t)
+	planned := ""
+	h.leaderPlan = func(runID string) []project.Step {
+		if planned != "" {
+			return nil
+		}
+		for _, c := range h.runTasks(runID) {
+			if c.RoleID != "checker" || c.State != "completed" || c.SupersededBy != "" {
+				continue
+			}
+			for _, d := range c.Dependencies {
+				if next := h.taskOf(d.TaskID).SupersededBy; next != "" {
+					planned = c.ID
+					return []project.Step{{ID: "recheck", RoleRef: "checker", Kind: "rework", ReworkOf: c.ID, Goal: "check the second version", DependsOn: []project.Dependency{{Step: next, Condition: "execution_completed"}}}}
+				}
+			}
+		}
+		return nil
+	}
+	h.drive(runID, func([]task.Contract, []string) bool { return false })
+	if planned == "" {
+		t.Fatal("the Leader never saw a stale check")
+	}
+	old := h.taskOf(planned)
+	if old.Acceptance == nil || old.Acceptance.Decision != "rejected" || old.Acceptance.Mode != "rebase" || old.SupersededBy == "" {
+		t.Fatalf("the old check was not replaced: %+v superseded=%q", old.Acceptance, old.SupersededBy)
+	}
+	if redo := h.taskOf(old.SupersededBy); redo.Acceptance == nil || redo.Acceptance.Decision != "accepted" {
+		t.Fatalf("the redo was not accepted: %+v blockers %+v", redo.Acceptance, redo.Blockers)
+	}
+	if phase := h.runOf(runID).Phase; phase != "completed" {
+		t.Fatalf("run %s", phase)
+	}
+}
+
+// A Leader cannot plan a rework of a task that was accepted and is current: the plan is
+// refused with the reason, before anything is made.
+func TestAReworkOfACurrentAcceptedTaskIsRefused(t *testing.T) {
+	h, runID := staleHarness(t)
+	var refused error
+	h.leaderPlan = func(runID string) []project.Step {
+		for _, c := range h.runTasks(runID) {
+			if c.RoleID == "builder" && c.Acceptance != nil && c.Acceptance.Decision == "accepted" && refused == nil {
+				refused = errSentinel
+				return []project.Step{{ID: "again", RoleRef: "builder", Kind: "rework", ReworkOf: c.ID, Goal: "again", DependsOn: []project.Dependency{}}}
+			}
+		}
+		return nil
+	}
+	h.drive(runID, func([]task.Contract, []string) bool { return false })
+	for _, c := range h.runTasks(runID) {
+		if c.Goal == "again" {
+			t.Fatal("a rework of a current accepted task was made")
+		}
+	}
+	if refused == nil {
+		t.Fatal("the Leader never tried")
+	}
+}
+
+var errSentinel = &task.Error{Code: "TRIED"}
