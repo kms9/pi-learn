@@ -69,6 +69,19 @@ function FailedRun({ run, state }) {
         h('button', { className: 'sq-btn', 'data-kind': 'primary', onClick: () => act('重试', 'operate', { kind: 'run', id: run.run_id, op: 'resume', body: { request_id: requestId('resume'), expected_revision: run.revision, note: '在 Squad 页面让 Leader 重新检查' } }) }, '重试')))
 }
 
+function Stale({ task }) {
+  const tasks = useStore(s => s.projection.snapshot?.views?.tasks ?? [])
+  const inputs = (task.dependencies ?? []).map(dep => tasks.find(candidate => candidate.task_id === dep.task_id)).filter(input => input?.superseded_by)
+  const name = inputs[0] ? (inputs[0].title || String(inputs[0].goal).split(/[。\n]/)[0].slice(0, 24)) : '上游'
+  const op = which => act(which === 'rebase' ? '用新版本重做' : '保留这一版', 'operate', { kind: 'task', id: task.task_id, op: which, body: { request_id: requestId(which), expected_revision: task.revision, note: which === 'rebase' ? '在 Squad 页面用新版本重做' : '在 Squad 页面保留这一版' } })
+  return h(Fragment, null,
+    h('div', { className: 'sq-pop-title' }, '基于旧版本'),
+    h('div', null, `它用的是「${name}」被退回的旧版本，那一步已经返工。`),
+    h('div', { className: 'sq-row sq-pop-main' },
+      h('button', { className: 'sq-btn', onClick: () => op('keep') }, '保留这一版'),
+      h('button', { className: 'sq-btn', 'data-kind': 'primary', onClick: () => op('rebase') }, '用新版本重做')))
+}
+
 function Approval({ entry, expectedRevision }) {
   return h(Fragment, null,
     h('div', { className: 'sq-pop-title' }, '需要你批准工具'),
@@ -121,6 +134,7 @@ export function NodePopover({ node, x, y, onDetails, onClose }) {
   let body = null
   if (node.state.status === 'failed') body = node.kind === 'run' ? h(FailedRun, { run, state: node.state }) : h(FailedTask, { node })
   else if (approval) body = h(Approval, { entry: approval, expectedRevision: attempt?.revision })
+  else if (task && node.state.note === '基于旧版本') body = h(Stale, { task })
   else if (task && task.state === 'completed' && task.acceptance_policy?.mode === 'human') body = h(Accept, { task })
   else if (node.kind === 'run' && run?.recovery_hold) body = h(Held, { run })
   return h('div', { className: 'sq-pop', 'data-s': node.state.status, style: { transform: `translate(${x}px, ${y}px)` }, onMouseDown: event => event.stopPropagation(), onClick: event => event.stopPropagation(), role: 'dialog', 'aria-label': '处理这一步' },

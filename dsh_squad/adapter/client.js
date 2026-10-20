@@ -240,6 +240,12 @@ function reasonOf(code, detail = {}) {
       return `出了点问题（${code ?? "未知"}）。`;
   }
 }
+function staleOf(task, tasks = []) {
+  if (task.stale_kept || task.superseded_by || task.state === "cancelled" || task.kind === "review" || task.kind === "leader_step") return [];
+  if (task.acceptance?.decision === "rejected") return [];
+  const ids = /* @__PURE__ */ new Set([...(task.dependencies ?? []).map((dep) => dep.task_id), ...(task.refs ?? []).map((ref) => ref.task_id)]);
+  return tasks.filter((candidate) => ids.has(candidate.task_id) && candidate.superseded_by);
+}
 var latestAttempt = (task, attempts) => {
   const id = task.attempt_ids?.at(-1);
   return id === void 0 ? void 0 : attempts.find((attempt) => attempt.attempt_id === id);
@@ -251,6 +257,7 @@ function statusOf(task, { attempts = [], approvals = [], tasks = [] } = {}) {
   const nameOf = (id) => tasks.find((candidate) => candidate.task_id === id)?.goal;
   if (task.superseded_by) return { status: "stopped", note: "已被返工替代" };
   if (task.state === "cancelled") return { status: "stopped", note: task.ignored ? "已忽略" : "已取消" };
+  if (task.state === "completed" && staleOf(task, tasks).length > 0) return { status: "attention", note: "基于旧版本", stale: staleOf(task, tasks).map((input) => input.task_id) };
   if (approvals.some((entry) => entry.taskId === task.task_id)) return { status: "attention", note: "等你批准工具" };
   if (task.state === "completed" && task.result && !task.acceptance && task.acceptance_policy?.mode === "human") return { status: "attention", note: "等你验收" };
   const uncertain = attempt && attempt.cleanup_state !== "released" && (task.state === "needs_review" || task.state === "interrupted");
@@ -609,6 +616,24 @@ function FailedRun({ run, state }) {
     )
   );
 }
+function Stale({ task }) {
+  const tasks = useStore((s) => s.projection.snapshot?.views?.tasks ?? []);
+  const inputs = (task.dependencies ?? []).map((dep) => tasks.find((candidate) => candidate.task_id === dep.task_id)).filter((input) => input?.superseded_by);
+  const name = inputs[0] ? inputs[0].title || String(inputs[0].goal).split(/[。\n]/)[0].slice(0, 24) : "上游";
+  const op = (which) => act(which === "rebase" ? "用新版本重做" : "保留这一版", "operate", { kind: "task", id: task.task_id, op: which, body: { request_id: requestId(which), expected_revision: task.revision, note: which === "rebase" ? "在 Squad 页面用新版本重做" : "在 Squad 页面保留这一版" } });
+  return (0, import_react3.createElement)(
+    import_react3.Fragment,
+    null,
+    (0, import_react3.createElement)("div", { className: "sq-pop-title" }, "基于旧版本"),
+    (0, import_react3.createElement)("div", null, `它用的是「${name}」被退回的旧版本，那一步已经返工。`),
+    (0, import_react3.createElement)(
+      "div",
+      { className: "sq-row sq-pop-main" },
+      (0, import_react3.createElement)("button", { className: "sq-btn", onClick: () => op("keep") }, "保留这一版"),
+      (0, import_react3.createElement)("button", { className: "sq-btn", "data-kind": "primary", onClick: () => op("rebase") }, "用新版本重做")
+    )
+  );
+}
 function Approval({ entry, expectedRevision }) {
   return (0, import_react3.createElement)(
     import_react3.Fragment,
@@ -676,6 +701,7 @@ function NodePopover({ node, x, y, onDetails, onClose }) {
   let body = null;
   if (node.state.status === "failed") body = node.kind === "run" ? (0, import_react3.createElement)(FailedRun, { run, state: node.state }) : (0, import_react3.createElement)(FailedTask, { node });
   else if (approval) body = (0, import_react3.createElement)(Approval, { entry: approval, expectedRevision: attempt?.revision });
+  else if (task && node.state.note === "基于旧版本") body = (0, import_react3.createElement)(Stale, { task });
   else if (task && task.state === "completed" && task.acceptance_policy?.mode === "human") body = (0, import_react3.createElement)(Accept, { task });
   else if (node.kind === "run" && run?.recovery_hold) body = (0, import_react3.createElement)(Held, { run });
   return (0, import_react3.createElement)(

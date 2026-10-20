@@ -122,3 +122,15 @@ test('a Leader step and a review get their own instructions', () => {
   assert.match(review, /squad_review/)
   assert.doesNotMatch(review, /squad_submit_result once/)
 })
+
+test('the Leader waits while a task is built on a replaced version', async () => {
+  const { runStatus } = await import('../src/run.js')
+  const base = { run_id: 'run-1', goal: 'g' }
+  const status = runStatus([
+    { ...base, task_id: 'b', kind: 'execute', state: 'completed', superseded_by: 'b2', acceptance: { decision: 'rejected' } },
+    { ...base, task_id: 'b2', kind: 'rework', rework_of: 'b', state: 'completed', acceptance: { decision: 'accepted' } },
+    { ...base, task_id: 'c', kind: 'execute', state: 'completed', acceptance: { decision: 'accepted' }, dependencies: [{ task_id: 'b' }] },
+  ], 'run-1')
+  assert.equal(status.done, false)
+  assert.match(status.summary, /replaced version wait for a person/)
+})

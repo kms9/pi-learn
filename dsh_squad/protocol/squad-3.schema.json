@@ -1639,6 +1639,9 @@
         "source": {
           "$ref": "#/$defs/task_Source"
         },
+        "stale_kept": {
+          "type": "boolean"
+        },
         "state": {
           "type": "string"
         },

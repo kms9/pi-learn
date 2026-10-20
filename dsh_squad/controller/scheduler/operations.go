@@ -64,7 +64,7 @@ func (s *Service) RecordAcceptance(ctx context.Context, p Principal, id string, 
 var Operations = map[string][]string{
 	"agent":   {"release"},
 	"run":     {"cancel", "resume", "guidance"},
-	"task":    {"cancel", "amend", "recover", "retry", "restart", "rebind", "accept", "reject"},
+	"task":    {"cancel", "amend", "recover", "retry", "restart", "rebind", "rebase", "keep", "accept", "reject"},
 	"attempt": {"reconcile"},
 	"role":    {"release", "promote"},
 	"leader":  {"release"},
@@ -427,6 +427,32 @@ func (s *Service) taskOperation(tx *sql.Tx, id, op string, q Operation) (any, er
 		return nil, err
 	}
 	switch op {
+	case "rebase":
+		return s.rebase(tx, c)
+	case "keep":
+		stale, err := staleInputs(tx, c)
+		if err != nil {
+			return nil, err
+		}
+		if len(stale) == 0 {
+			return nil, task.Reject("NOT_STALE", "every input is current")
+		}
+		c.StaleKept = true
+		c.Revision++
+		if err := task.SaveTask(tx, c); err != nil {
+			return nil, err
+		}
+		if c.RunID != nil {
+			r, err := task.LoadRun(tx, *c.RunID)
+			if err != nil {
+				return nil, err
+			}
+			r.Revision++
+			if err := task.SaveRun(tx, r); err != nil {
+				return nil, err
+			}
+		}
+		return c, task.EventTx(tx, "stale_kept", c.ID, c.Revision, nil)
 	case "cancel":
 		if err := s.cancelTask(tx, c); err != nil {
 			return nil, err

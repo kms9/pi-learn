@@ -76,15 +76,27 @@ try {
   // Sessions, then Run Guidance at the Controller, once.
   const advice = '例子请用切披萨来讲'
   await host('/api/bot', 'send', { sessionId: bound.roomId, text: advice })
+  // The check ran on the first draft; once that draft is reworked the check is built on
+  // a replaced version (Q41) and the person redoes it with the new one, as from the page.
+  let redone = null
   const finished = await until(async () => {
     const r = (await ctl('GET', `/v2/runs/${created.run_id}`)).out
+    if (redone === null) {
+      const all = ((await ctl('GET', '/v2/snapshot')).out.views.tasks ?? []).filter(task => task.run_id === created.run_id)
+      const replaced = new Set(all.filter(task => task.superseded_by).map(task => task.task_id))
+      const stale = all.find(task => task.state === 'completed' && task.kind === 'execute' && !task.superseded_by && task.acceptance?.decision !== 'rejected' && (task.dependencies ?? []).some(dep => replaced.has(dep.task_id)))
+      if (stale) {
+        await ctl('POST', `/v2/tasks/${stale.task_id}/rebase`, { request_id: `m2-rebase-${Date.now()}`, expected_revision: stale.revision, note: 'drive-m2: redo with the new version' })
+        redone = stale.task_id
+      }
+    }
     return ['completed', 'failed', 'cancelled', 'interrupted'].includes(r.phase) ? r : undefined
   }, 600_000, 1000)
   const tasks = ((await ctl('GET', '/v2/snapshot')).out.views.tasks ?? []).filter(task => task.run_id === created.run_id)
   const byGoal = text => tasks.filter(task => task.kind !== 'leader_step' && task.kind !== 'review' && task.goal.includes(text))
   const [research] = byGoal('梳理')
   const [build] = byGoal('制作一页 HTML 课件')
-  const [checkTask] = byGoal('检查课件')
+  const checkTask = byGoal('检查课件').find(task => task.kind === 'execute')
   const rework = tasks.find(task => task.kind === 'rework')
   const reviews = tasks.filter(task => task.kind === 'review')
   check(finished?.phase === 'completed', 'the Run completed', { phase: finished?.phase, blockers: finished?.blockers, states: tasks.map(task => `${task.kind}:${task.state}:${task.acceptance?.decision ?? '-'}`) })
@@ -104,6 +116,8 @@ try {
   check((finished?.guidance ?? []).filter(text => text.includes(advice)).length === 1, 'the group message became Run Guidance once (M2-2)', finished?.guidance)
   const held = ((await ctl('GET', '/v2/snapshot')).out.views.held_inputs ?? []).filter(row => (row.text ?? '').includes(advice))
   check(held.length >= 1 && held.every(row => row.disposition === `guidance:${created.run_id}`), 'every held copy is marked as guidance for this Run', held.map(row => row.disposition))
+  const redo = tasks.find(task => task.rework_of === redone)
+  check(redone !== null && redo?.acceptance?.decision === 'accepted' && (redo.dependencies ?? []).every(dep => !tasks.find(task => task.task_id === dep.task_id)?.superseded_by), 'the check built on the first draft was redone with the reworked build (Q41)', { redone, redo: redo && { state: redo.state, acceptance: redo.acceptance?.decision } })
   const leaderSteps = tasks.filter(task => task.kind === 'leader_step')
   check(leaderSteps.every(task => task.state === 'completed'), 'every Leader step settled', leaderSteps.map(task => task.state))
   const squad = lines(join(PROJECT, '.dsh-squad/logs/mock.jsonl')).filter(line => line.squad)

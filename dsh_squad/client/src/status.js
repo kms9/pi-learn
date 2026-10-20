@@ -52,6 +52,14 @@ export function reasonOf(code, detail = {}) {
   }
 }
 
+/** Inputs of a task that were replaced since it used them (Q41); empty when current. */
+export function staleOf(task, tasks = []) {
+  if (task.stale_kept || task.superseded_by || task.state === 'cancelled' || task.kind === 'review' || task.kind === 'leader_step') return []
+  if (task.acceptance?.decision === 'rejected') return []
+  const ids = new Set([...(task.dependencies ?? []).map(dep => dep.task_id), ...(task.refs ?? []).map(ref => ref.task_id)])
+  return tasks.filter(candidate => ids.has(candidate.task_id) && candidate.superseded_by)
+}
+
 const latestAttempt = (task, attempts) => {
   const id = task.attempt_ids?.at(-1)
   return id === undefined ? undefined : attempts.find(attempt => attempt.attempt_id === id)
@@ -71,7 +79,8 @@ export function statusOf(task, { attempts = [], approvals = [], tasks = [] } = {
   // 1. Replaced, cancelled, superseded: grey.
   if (task.superseded_by) return { status: 'stopped', note: '已被返工替代' }
   if (task.state === 'cancelled') return { status: 'stopped', note: task.ignored ? '已忽略' : '已取消' }
-  // 2. Waiting on a person.
+  // 2. Waiting on a person: built on a version that was replaced (Q41, D2).
+  if (task.state === 'completed' && staleOf(task, tasks).length > 0) return { status: 'attention', note: '基于旧版本', stale: staleOf(task, tasks).map(input => input.task_id) }
   if (approvals.some(entry => entry.taskId === task.task_id)) return { status: 'attention', note: '等你批准工具' }
   if (task.state === 'completed' && task.result && !task.acceptance && task.acceptance_policy?.mode === 'human') return { status: 'attention', note: '等你验收' }
   // 3. An end nobody could confirm.

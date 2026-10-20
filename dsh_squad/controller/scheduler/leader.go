@@ -42,7 +42,7 @@ func (s *Service) Decide(ctx context.Context, p Principal, id string, q Decision
 	return out, err
 }
 
-var gateCodes = map[string]bool{"GATE_NOT_READY": true, "ACCEPTANCE_PENDING": true, "DEPENDENCY_PENDING": true, "EXECUTION_UNCONFIRMED": true, "INVALID_REWORK": true}
+var gateCodes = map[string]bool{"STALE_INPUT": true, "GATE_NOT_READY": true, "ACCEPTANCE_PENDING": true, "DEPENDENCY_PENDING": true, "EXECUTION_UNCONFIRMED": true, "INVALID_REWORK": true}
 
 func (s *Service) decide(ctx context.Context, p Principal, id string, q Decision) (task.Run, error) {
 	var out task.Run
@@ -206,6 +206,11 @@ func (s *Service) finalGate(tx *sql.Tx, r task.Run, ownAttempt string) error {
 			continue
 		}
 		business++
+		if stale, err := staleInputs(tx, c); err != nil {
+			return err
+		} else if len(stale) > 0 {
+			return task.Reject("STALE_INPUT", c.ID)
+		}
 		if c.State != "completed" || c.Result == nil || len(c.Blockers) > 0 || c.Result.GoalRevision != c.GoalRevision {
 			return task.Reject("GATE_NOT_READY", c.ID)
 		}

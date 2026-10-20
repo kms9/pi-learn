@@ -87,3 +87,12 @@ test('the summary counts across Teams and lists where to jump', () => {
   const onlyB = summaryOf(snapshot, [], 'b')
   assert.equal(onlyB.failed.length + onlyB.attention.length + onlyB.running, 0)
 })
+
+test('a task built on a replaced version needs a person; kept or redone it does not (Q41)', async () => {
+  const { staleOf } = await import('../src/status.js')
+  const build = t({ task_id: 'b', state: 'completed', superseded_by: 'b2', acceptance: { decision: 'rejected' } })
+  const check = t({ task_id: 'c', state: 'completed', acceptance: { decision: 'accepted' }, dependencies: [{ task_id: 'b' }] })
+  assert.deepEqual(statusOf(check, { tasks: [build, check] }), { status: 'attention', note: '基于旧版本', stale: ['b'] })
+  assert.deepEqual(staleOf({ ...check, stale_kept: true }, [build]), [])
+  assert.equal(statusOf({ ...check, acceptance: { decision: 'rejected' } }, { tasks: [build] }).status, 'stopped', 'redone: the old check is replaced')
+})

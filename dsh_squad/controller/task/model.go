@@ -102,7 +102,9 @@ type Origin struct {
 type Contract struct {
 	Origin *Origin `json:"origin,omitempty"`
 	// Ignored marks a task a person chose to drop ("忽略", UI plan D1).
-	Ignored            bool                      `json:"ignored,omitempty"`
+	Ignored bool `json:"ignored,omitempty"`
+	// StaleKept: a person kept this task although an input was replaced (Q41, D2).
+	StaleKept          bool                      `json:"stale_kept,omitempty"`
 	Title              string                    `json:"title,omitempty"`
 	AcceptanceCriteria json.RawMessage           `json:"acceptance_criteria,omitempty"`
 	GuidanceCount      int                       `json:"guidance_count,omitempty"`

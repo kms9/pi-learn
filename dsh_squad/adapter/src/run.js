@@ -17,10 +17,14 @@ export function runStatus(tasks, runId, run) {
     return `- ${task.task_id} | ${task.kind} | role ${task.role_id} | ${task.state} | acceptance ${acceptance}${extra ? ` | ${extra}` : ''} | goal: ${String(task.goal).slice(0, 80)}`
   })
   const reworked = new Set(own.map(task => task.rework_of).filter(Boolean))
+  // Built on a version that was replaced: a person decides (redo or keep), not the Leader.
+  const replaced = new Set(own.filter(task => task.superseded_by).map(task => task.task_id))
+  const stale = own.filter(task => task.state === 'completed' && task.kind !== 'review' && !task.superseded_by && !task.stale_kept && task.acceptance?.decision !== 'rejected'
+    && [...(task.dependencies ?? []).map(dep => dep.task_id), ...(task.refs ?? []).map(ref => ref.task_id)].some(id => replaced.has(id)))
   const rejected = own.filter(task => task.kind !== 'review' && task.acceptance?.decision === 'rejected' && !task.superseded_by && !reworked.has(task.task_id))
   const terminal = state => ['completed', 'failed', 'cancelled', 'interrupted'].includes(state)
   const open = own.filter(task => !terminal(task.state))
-  const done = own.length > 0 && own.every((task) => {
+  const done = own.length > 0 && stale.length === 0 && own.every((task) => {
     if (task.kind === 'review') return terminal(task.state)
     if (task.superseded_by || task.state === 'cancelled') return true
     return task.state === 'completed' && task.acceptance?.decision === 'accepted'
@@ -35,7 +39,8 @@ export function runStatus(tasks, runId, run) {
     done,
     summary: done ? 'every business task is accepted: complete the Run'
       : rejected.length > 0 ? `rejected without rework: ${rejected.map(task => `${task.task_id} (role ${task.role_id})`).join(', ')}; dispatch rework`
-        : `${open.length} task(s) still open: wait`,
+        : stale.length > 0 ? `${stale.length} task(s) built on a replaced version wait for a person: wait`
+          : `${open.length} task(s) still open: wait`,
   }
 }
 
