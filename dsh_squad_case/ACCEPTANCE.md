@@ -141,4 +141,11 @@ tags: [dsh-bot, acceptance, evaluation]
 
 真实模型下的行为与修复：Leader 看到「检查」是基于首版做的，自己补派了对新版的检查，最终关卡也拦下了基于旧版本的那次检查（`STALE_INPUT`）。第一轮里 Leader 对这次旧检查派了 `rework`，Controller 收下了计划，却在验收时拒绝（原检查从未被退回），任务卡住、Run 挂起。已修（`54aa6a1`）：Leader 对「基于旧版本」的任务派返工等同于「用新版本重做」，对仍是最新且已通过的任务派返工在计划时就拒绝。修复后第二轮 Run 完成，且没有人工介入。另有两轮被测试机挂起打断（事件日志 98 秒、7.6 分钟空白后租约过期），已重跑。
 
-（多小队、对照实验：进行中。）
+**多小队（`real-t.mjs teams`，m4 案例）**：三个小队同时开始，187 次模型调用，全部 `deepseek-flash`、`high`（绑定时新建的 Lead A/B/C、Author、Editor、Maker、Auditor 都继承了项目的路由）。
+
+| ID | 结果 | 说明 |
+|---|---|---|
+| DSH-M4-01 | PASS | A、C 立即开始，B 等 A 占用的 reviewer（原子 FIFO）；A 结束后 B 才被接纳；同一个 Reviewer Bot 分别以 `team-a-reviewer`、`team-b-reviewer` 在两个小队的群里审核；三个 Run 全部完成。 |
+| DSH-M4-02 | PASS | C 的 maker 按目标把核对答案交给 auditor（子任务），暂停；子任务完成后父任务在同一个 attempt 的第 2 段接着完成。 |
+
+（对照实验：进行中。）
