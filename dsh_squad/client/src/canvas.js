@@ -10,6 +10,7 @@ import { KIND } from './model.js'
 import { store, useStore } from './store.js'
 import { StatusChip } from './summarybar.js'
 import { NodePopover, hasActions } from './actions.js'
+import { alsoIn } from './teams.js'
 
 const PALETTE = ['#3d5afe', '#00897b', '#f4511e', '#8e24aa', '#c0ca33', '#0288d1', '#d81b60', '#6d4c41']
 const NAMED = { deepseek: '#4d6bfe', blue: '#2563eb', green: '#16a34a', orange: '#ea580c', red: '#dc2626', purple: '#7c3aed', pink: '#db2777', teal: '#0d9488', yellow: '#ca8a04', gray: '#6b7280' }
@@ -30,7 +31,7 @@ export function Avatar({ member, size = 28 }) {
     : h('span', { className: 'sq-avatar', 'aria-hidden': true, style: { width: size, height: size, background: colorOf(member) } }, name.slice(0, 1).toUpperCase())
 }
 
-function NodeCard({ item, selected, isNew, onSelect, onFold }) {
+function NodeCard({ item, selected, isNew, onSelect, onFold, also = [] }) {
   const { node, hidden } = item
   const state = hidden > 0 && node.folds ? node.folds : node.state
   const count = node.children.length
@@ -46,6 +47,7 @@ function NodeCard({ item, selected, isNew, onSelect, onFold }) {
     h('div', { className: 'sq-node-who' },
       h('div', { className: 'sq-node-role' }, node.kind === 'run' ? `Leader · ${node.member?.name ?? ''}` : `${node.member?.name || node.role}${node.task?.kind && node.task.kind !== 'execute' ? ` · ${KIND[node.task.kind] ?? node.task.kind}` : ''}`),
       node.member?.model ? h('div', { className: 'sq-node-model' }, node.member.model) : null),
+    also.length > 0 ? h('span', { className: 'sq-node-also', title: `这位成员也在小队 ${also.join('、')} 工作` }, `也在小队 ${also.join('、')}`) : null,
     h(StatusChip, { state })),
   h('div', { className: 'sq-node-title', title: node.kind === 'run' ? node.run.goal : node.task?.goal }, node.title),
   h('div', { className: 'sq-node-note' }, [['failed', 'attention'].includes(state.status) ? '点开处理' : '', state.note, node.kind === 'run' && node.decisions ? `Leader 已决定 ${node.decisions} 次` : '', node.kind === 'run' && (node.run.guidance ?? []).length ? `${node.run.guidance.length} 条补充指导` : ''].filter(Boolean).slice(0, 2).join(' · ')),
@@ -105,16 +107,21 @@ function Drawer({ node, onClose }) {
       h('pre', { className: 'sq-pre' }, JSON.stringify(task ? { task_id: task.task_id, kind: task.kind, state: task.state, revision: task.revision, origin: task.origin, blockers: task.blockers, attempts: own.map(attempt => ({ id: attempt.attempt_id, state: attempt.state, segment: attempt.segment_id, error: attempt.error, cleanup: attempt.cleanup_state })) } : { run_id: run.run_id, phase: run.phase, revision: run.revision, recovery_hold: run.recovery_hold, blockers: run.blockers }, null, 2))))
 }
 
+// Each Run keeps where the person left it (pan, zoom, folds) while they switch Teams.
+const memory = new Map()
+
 export function RunCanvas({ runId }) {
   const snapshot = useStore(state => state.projection.snapshot)
   const approvals = useStore(state => state.approvals)
   const bots = useStore(state => state.bots)
   const focus = useStore(state => state.focus)
   const tree = useMemo(() => treeOf(snapshot, runId, { approvals, bots }), [snapshot, runId, approvals, bots])
-  const [overrides, setOverrides] = useState({})
+  const bound = useStore(state => state.teams)
+  const [overrides, setOverrides] = useState(() => memory.get(runId)?.overrides ?? {})
   const [selected, setSelected] = useState(null)
   const [details, setDetails] = useState(false)
-  const [view, setView] = useState({ x: 0, y: 24, scale: 1, moved: false })
+  const [view, setView] = useState(() => memory.get(runId)?.view ?? { x: 0, y: 24, scale: 1, moved: false })
+  useEffect(() => { memory.set(runId, { view, overrides }) }, [runId, view, overrides])
   const box = useRef(null)
   const seen = useRef(null)
   const drag = useRef(null)
@@ -190,7 +197,7 @@ export function RunCanvas({ runId }) {
     },
     h('div', { className: 'sq-layer', style: { transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` } },
       h(Edges, { items: placed.nodes, edges: placed.edges, width: placed.width, height: placed.height }),
-      placed.nodes.map(item => h(NodeCard, { key: item.node.id, item, selected: selected === item.node.id, isNew: fresh.has(item.node.id), onSelect: select, onFold: toggle })),
+      placed.nodes.map(item => h(NodeCard, { key: item.node.id, item, selected: selected === item.node.id, isNew: fresh.has(item.node.id), onSelect: select, onFold: toggle, also: item.node.kind === 'task' ? alsoIn(item.node.member?.botId, tree.root.run.team_id, bound) : [] })),
       popover ? h(NodePopover, { key: `pop-${node.id}`, node, x: selectedItem.x + CARD.width + 14, y: selectedItem.y, onDetails: () => setDetails(true), onClose: () => setSelected(null) }) : null)),
     node && !popover ? h(Drawer, { node, onClose: () => setSelected(null) }) : null)
 }

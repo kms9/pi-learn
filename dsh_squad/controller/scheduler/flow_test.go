@@ -749,3 +749,53 @@ func TestControllerCrashRecovery(t *testing.T) {
 		t.Fatalf("retried task %s with %d attempts", got.State, len(got.AttemptIDs))
 	}
 }
+
+// UI plan C7: a person disposes of a held message once.
+func TestHeldMessagesAreDisposedOnce(t *testing.T) {
+	h := newHarness(t)
+	builder := h.register("builder-bot", "builder", "bot-builder", "room-math", "sess-1")
+	for _, id := range []string{"m1", "m2", "m3"} {
+		if _, err := h.svc.Hold(h.ctx, builder, HeldInput{RequestID: "h" + id, Binding: builder.Binding, InputID: id, Wake: "group-relay", Why: "no_admission", Text: "make a quiz"}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := h.svc.DisposeHeld(h.ctx, builder, "m1", HeldDisposal{RequestID: "d0", Disposition: "dismissed"}); err == nil {
+		t.Fatal("a runtime cannot dispose of held messages")
+	}
+	out, err := h.svc.DisposeHeld(h.ctx, h.op, "m1", HeldDisposal{RequestID: "d1", Disposition: "dismissed"})
+	if err != nil || out.Disposition != "dismissed" {
+		t.Fatalf("%+v %v", out, err)
+	}
+	if _, err := h.svc.DisposeHeld(h.ctx, h.op, "m1", HeldDisposal{RequestID: "d2", Disposition: "dismissed"}); err == nil {
+		t.Fatal("a disposed message cannot be disposed again")
+	}
+	h.registerLeader()
+	r, err := h.svc.CreateRun(h.ctx, h.op, CreateRun{RequestID: "run1", TeamID: "math", Goal: "make a quiz", WorkflowID: "lesson"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if out, err := h.svc.DisposeHeld(h.ctx, h.op, "m2", HeldDisposal{RequestID: "d3", Disposition: "started", RunID: r.ID}); err != nil || out.Disposition != "started:"+r.ID {
+		t.Fatalf("%+v %v", out, err)
+	}
+	h.tick()
+	run := h.runOf(r.ID)
+	if out, err := h.svc.DisposeHeld(h.ctx, h.op, "m3", HeldDisposal{RequestID: "d4", Disposition: "guidance", RunID: r.ID, ExpectedRevision: run.Revision}); err != nil || out.Disposition != "guidance:"+r.ID {
+		t.Fatalf("%+v %v", out, err)
+	}
+	if got := h.runOf(r.ID); len(got.Guidance) != 1 || got.Guidance[0] != "make a quiz" {
+		t.Fatalf("guidance %v", got.Guidance)
+	}
+	// One group message, held by two members: dismissing one copy dismisses both.
+	checker := h.register("reviewer-bot", "reviewer", "bot-reviewer", "room-math", "sess-2")
+	for i, p := range []Principal{builder, checker} {
+		if _, err := h.svc.Hold(h.ctx, p, HeldInput{RequestID: fmt.Sprintf("hc%d", i), Binding: p.Binding, InputID: fmt.Sprintf("c%d", i), Wake: "notice", Why: "no_admission", Text: "a notice"}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := h.svc.DisposeHeld(h.ctx, h.op, "c0", HeldDisposal{RequestID: "d5", Disposition: "dismissed"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := h.svc.DisposeHeld(h.ctx, h.op, "c1", HeldDisposal{RequestID: "d6", Disposition: "dismissed"}); err == nil {
+		t.Fatal("the other member's copy was disposed with the first")
+	}
+}

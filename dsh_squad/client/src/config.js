@@ -120,7 +120,9 @@ function WorkflowEditor({ teamId, team, workflowId, files, reload, fresh }) {
 export function ConfigTab() {
   const [{ files, error }, reload] = useConfig()
   const bound = useStore(state => state.teams)
-  const [selected, setSelected] = useState(null)
+  // Opened from a Team's gear: that Team's rules first.
+  const [selected, setSelected] = useState(() => (store.get().configFocus ? { key: store.get().configFocus } : null))
+  useEffect(() => { if (store.get().configFocus) store.set(state => ({ ...state, configFocus: null })) }, [])
   if (error) return h('div', { className: 'sq-main' }, h('div', { className: 'sq-card' }, `读不到配置：${error}`))
   if (files === null) return h('div', { className: 'sq-main' }, h('div', { className: 'sq-muted' }, '读取中…'))
   const { roles, teams } = configOf(files)

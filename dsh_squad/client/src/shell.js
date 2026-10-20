@@ -8,6 +8,7 @@ import { ConfigTab } from './config.js'
 import { ReportsTab } from './reports.js'
 import { store, useStore } from './store.js'
 import { SummaryBar } from './summarybar.js'
+import { Overview, StartPanel, useScope } from './teams.js'
 
 const TABS = { runs: '运行', config: '小队与规则', reports: '实验报告' }
 const open = patch => store.set(state => ({ ...state, open: true, ...patch }))
@@ -38,11 +39,13 @@ function Banner() {
 function Console() {
   const tab = useStore(state => state.tab)
   const runId = useStore(state => state.runId)
+  const { overview, scope } = useScope()
   useEffect(() => {
     // Escape closes the preview first, then the console.
     const onKey = (event) => {
       if (event.key !== 'Escape') return
       if (store.get().preview) store.set(state => ({ ...state, preview: null }))
+      else if (store.get().startOpen) store.set(state => ({ ...state, startOpen: false }))
       else close()
     }
     window.addEventListener('keydown', onKey)
@@ -50,17 +53,19 @@ function Console() {
   }, [])
   const body = tab === 'config' ? h(ConfigTab)
     : tab === 'reports' ? h(ReportsTab)
-      : [h('div', { key: 'side', className: 'sq-side' }, h(RunList)), h('div', { key: 'main', className: 'sq-main' }, h(RunDetail, { runId }))]
+      : overview ? h(Overview)
+        : [h('div', { key: 'side', className: 'sq-side' }, h(RunList, { teamId: scope })), h('div', { key: 'main', className: 'sq-main' }, h(RunDetail, { runId }))]
   return h('div', { className: 'sq-root', role: 'dialog', 'aria-label': 'Squad 小队', onMouseDown: event => { if (event.target === event.currentTarget) close() } },
     h('div', { className: 'sq-shell' },
       h('div', { className: 'sq-head' },
         h('span', { className: 'sq-title' }, 'Squad 小队'),
         h('div', { className: 'sq-tabs', role: 'tablist' }, Object.entries(TABS).map(([id, label]) => h('button', { key: id, role: 'tab', className: 'sq-tab', 'data-on': tab === id || undefined, 'aria-selected': tab === id, onClick: () => store.set(state => ({ ...state, tab: id })) }, label))),
         h('span', { className: 'sq-spacer' }),
+        h('button', { className: 'sq-btn sq-gear', title: '规则', 'aria-label': scope ? `小队 ${scope} 的规则` : '小队与规则', onClick: () => store.set(state => ({ ...state, tab: 'config', configFocus: scope ? `team:${scope}` : null })) }, '⚙ 规则'),
         h('button', { className: 'sq-x', 'aria-label': '关闭', onClick: close }, '×')),
       h(SummaryBar),
       h(Banner),
-      h('div', { className: 'sq-body' }, body)))
+      h('div', { className: 'sq-body' }, body, tab === 'runs' ? h(StartPanel) : null)))
 }
 
 // Courseware runs here, apart from DS Bot: another host name, a sandboxed frame, and
@@ -113,5 +118,5 @@ export function GroupDock({ sessionId }) {
     run ? h('span', null, `${RUN_PHASE[run.phase] ?? run.phase} · ${done}/${tasks.length} 个任务完成`) : h('span', { className: 'sq-muted' }, '还没有 Run'),
     run && !terminal(run.phase) ? h('span', { className: 'sq-muted' }, '在这里说的话会作为补充说明交给 Leader') : null,
     h('span', { className: 'sq-spacer', style: { flex: 1 } }),
-    h('button', { className: 'sq-btn', onClick: () => open({ tab: 'runs', runId: run?.run_id ?? null }) }, run ? '查看进度' : '开始'))
+    h('button', { className: 'sq-btn', onClick: () => open({ tab: 'runs', teamScope: teamId, runId: run?.run_id ?? null, startOpen: !run }) }, run ? '查看进度' : '开始'))
 }

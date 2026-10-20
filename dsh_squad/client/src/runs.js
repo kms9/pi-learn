@@ -24,45 +24,12 @@ export async function act(what, endpoint, payload) {
   }
 }
 
-function StartRun({ snapshot }) {
-  const teams = (snapshot?.views?.teams ?? []).map(team => team.config)
-  const [teamId, setTeam] = useState(teams[0]?.team_id ?? '')
-  const [goal, setGoal] = useState('')
-  const [busy, setBusy] = useState(false)
-  const team = (snapshot?.views?.teams ?? []).find(candidate => candidate.config.team_id === teamId)
-  const workflows = Object.keys(team?.workflows ?? {})
-  const [workflowId, setWorkflow] = useState('')
-  const start = async () => {
-    setBusy(true)
-    try {
-      const run = await call('start-run', { requestId: requestId('run'), teamId, goal, ...(workflowId ? { workflowId } : {}) })
-      store.set(state => ({ ...state, runId: run.run_id }))
-      setGoal('')
-      toast('小队已开始', 'ok')
-    } catch (error) {
-      toast(`没能开始：${error.message}`)
-    } finally {
-      setBusy(false)
-      await refreshNow()
-    }
-  }
-  return h('div', { className: 'sq-card' },
-    h('h3', null, '开始一个小队任务'),
-    h('select', { className: 'sq-select', value: teamId, onChange: event => setTeam(event.target.value), 'aria-label': '小队' },
-      teams.length === 0 ? h('option', { value: '' }, '还没有小队，请先在「小队与规则」里建一个') : teams.map(t => h('option', { key: t.team_id, value: t.team_id }, t.team_id))),
-    workflows.length > 0 ? h('select', { className: 'sq-select', value: workflowId, onChange: event => setWorkflow(event.target.value), 'aria-label': '流程' },
-      h('option', { value: '' }, `默认流程${team?.config?.default_workflow ? `（${team.config.default_workflow}）` : '（由 Leader 安排）'}`),
-      workflows.map(id => h('option', { key: id, value: id }, id))) : null,
-    h('textarea', { className: 'sq-text', placeholder: '要完成什么？例如：认识分数：分数的意义与读写（五年级）', value: goal, onChange: event => setGoal(event.target.value) }),
-    h('button', { className: 'sq-btn', 'data-kind': 'primary', disabled: busy || !teamId || goal.trim() === '', onClick: start }, busy ? '正在开始…' : '开始'))
-}
-
-export function RunList() {
+export function RunList({ teamId = null }) {
   const snapshot = useStore(state => state.projection.snapshot)
   const runId = useStore(state => state.runId)
-  const runs = runsOf(snapshot)
+  const runs = runsOf(snapshot).filter(run => teamId === null || run.team_id === teamId)
   return h(Fragment, null,
-    h(StartRun, { snapshot }),
+    h('button', { className: 'sq-btn', 'data-kind': 'primary', onClick: () => store.set(state => ({ ...state, startOpen: true })) }, '＋ 开始一个小队任务'),
     runs.length === 0 ? h('div', { className: 'sq-muted' }, '还没有 Run。') : null,
     runs.map((run) => {
       const tasks = tasksOf(snapshot, run.run_id).filter(task => task.kind !== 'leader_step')
@@ -101,7 +68,7 @@ export function RunDetail({ runId }) {
         h('button', { className: 'sq-btn', 'data-kind': 'danger', onClick: () => act('取消 Run', 'operate', { kind: 'run', id: run.run_id, op: 'cancel', body: { request_id: requestId('cancel'), expected_revision: run.revision, note: '在 Squad 页面取消' } }) }, '取消 Run'))),
     h('div', { className: 'sq-section' },
       h('div', { className: 'sq-row' }, h('h2', { style: { margin: 0, flex: 1 } }, listView ? '任务列表' : '任务树'), h('button', { className: 'sq-btn', onClick: () => setListView(value => !value) }, listView ? '树视图' : '列表视图')),
-      listView ? null : h(RunCanvas, { runId })),
+      listView ? null : h(RunCanvas, { key: runId, runId })),
     artifacts.length === 0 ? null : h('div', { className: 'sq-section' }, h('h2', null, '成果文件'),
       h('table', { className: 'sq-table' }, h('tbody', null, artifacts.map(art => h('tr', { key: `${art.taskId}:${art.sha256}` },
         h('td', null, art.name ?? art.path), h('td', null, chip(art.superseded ? '已被返工取代' : art.accepted ? '已通过' : '待审核', art.superseded ? 'bad' : art.accepted ? 'ok' : 'warn')),

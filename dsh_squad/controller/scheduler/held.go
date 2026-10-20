@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"slices"
 	"strings"
 	"time"
 
@@ -129,4 +130,133 @@ func (s *Service) classifyHeld(tx *sql.Tx, q *HeldInput) error {
 	}
 	return task.EventTx(tx, "run_guidance", r.ID, r.Revision, map[string]string{"source": "held_input", "input_id": q.InputID})
 
+}
+
+// HeldDisposal is what a person decided about a held message (UI plan C7): drop it,
+// make it guidance for the Team's active Run, or note the Run it started.
+type HeldDisposal struct {
+	RequestID        string `json:"request_id"`
+	Disposition      string `json:"disposition"`
+	RunID            string `json:"run_id,omitempty"`
+	ExpectedRevision int64  `json:"expected_revision,omitempty"`
+}
+
+func (s *Service) DisposeHeld(ctx context.Context, p Principal, inputID string, q HeldDisposal) (HeldInput, error) {
+	var out HeldInput
+	if err := requireOperator(p); err != nil {
+		return out, err
+	}
+	err := s.Store.Transaction(ctx, func(tx *sql.Tx) error {
+		prior, err := replay(tx, p, "held:"+inputID, q.RequestID, q)
+		if err != nil {
+			return err
+		}
+		var body, disposition string
+		if err := tx.QueryRow(`SELECT body,disposition FROM held_inputs WHERE input_id=?`, inputID).Scan(&body, &disposition); err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return task.Reject("HELD_INPUT_NOT_FOUND", inputID)
+			}
+			return err
+		}
+		if err := json.Unmarshal([]byte(body), &out); err != nil {
+			return err
+		}
+		if prior != "" {
+			return nil
+		}
+		if disposition != "pending" {
+			return task.Reject("HELD_INPUT_DISPOSED", disposition)
+		}
+		switch q.Disposition {
+		case "dismissed":
+			out.Disposition = "dismissed"
+		case "started":
+			if _, err := task.LoadRun(tx, q.RunID); err != nil {
+				return task.Reject("INVALID_RUN", q.RunID)
+			}
+			out.Disposition = "started:" + q.RunID
+		case "guidance":
+			r, err := task.LoadRun(tx, q.RunID)
+			if err != nil {
+				return task.Reject("INVALID_RUN", q.RunID)
+			}
+			if err := task.CAS(r.Revision, q.ExpectedRevision); err != nil {
+				return err
+			}
+			if task.Terminal(r.Phase) || strings.TrimSpace(out.Text) == "" {
+				return task.Reject("INVALID_GUIDANCE", "active Run and text required")
+			}
+			if !slices.Contains(r.Guidance, strings.TrimSpace(out.Text)) {
+				r.Guidance = append(r.Guidance, strings.TrimSpace(out.Text))
+				r.GuidanceNotes = append(r.GuidanceNotes, task.GuidanceNote{Text: strings.TrimSpace(out.Text), By: "operator", At: fault.Now()})
+				r.Revision++
+				if err := task.SaveRun(tx, r); err != nil {
+					return err
+				}
+			}
+			out.Disposition = "guidance:" + r.ID
+		default:
+			return task.Reject("INVALID_DISPOSITION", q.Disposition)
+		}
+		copies, err := heldCopies(tx, out)
+		if err != nil {
+			return err
+		}
+		for _, held := range append(copies, out) {
+			held.Disposition = out.Disposition
+			next, err := json.Marshal(held)
+			if err != nil {
+				return err
+			}
+			if _, err := tx.Exec(`UPDATE held_inputs SET disposition=?, body=? WHERE input_id=?`, held.Disposition, string(next), held.InputID); err != nil {
+				return err
+			}
+		}
+		if err := remember(tx, p, "held:"+inputID, q.RequestID, inputID, q); err != nil {
+			return err
+		}
+		return task.EventTx(tx, "held_disposed", inputID, 1, map[string]string{"disposition": out.Disposition})
+	})
+	return out, err
+}
+
+// heldCopies are the other members' copies of one group message (DS Bot relays it to
+// each member it addresses): same group, same text, held around the same time, by a
+// different member. A person decides about the message once.
+func heldCopies(tx *sql.Tx, q HeldInput) ([]HeldInput, error) {
+	self, err := loadInstance(tx, q.Binding.AgentID)
+	if err != nil || self.Host.RoomID == "" {
+		return nil, nil
+	}
+	rows, err := tx.Query(`SELECT body FROM held_inputs WHERE disposition='pending' AND agent_id!=? AND input_id!=?`, q.Binding.AgentID, q.InputID)
+	if err != nil {
+		return nil, err
+	}
+	var found []HeldInput
+	for rows.Next() {
+		var body string
+		var other HeldInput
+		if err := rows.Scan(&body); err != nil {
+			rows.Close()
+			return nil, err
+		}
+		if json.Unmarshal([]byte(body), &other) != nil || strings.TrimSpace(other.Text) != strings.TrimSpace(q.Text) {
+			continue
+		}
+		if gap := other.HeldAt.Sub(q.HeldAt); gap > 2*time.Minute || gap < -2*time.Minute {
+			continue
+		}
+		found = append(found, other)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	var out []HeldInput
+	for _, other := range found {
+		if member, err := loadInstance(tx, other.Binding.AgentID); err == nil && member.Host.RoomID == self.Host.RoomID {
+			out = append(out, other)
+		}
+	}
+	return out, nil
 }

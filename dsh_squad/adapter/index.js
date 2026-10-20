@@ -777,6 +777,9 @@ export function apply(ctx, config = {}) {
       }
       case 'accept':
         return asOperator('POST', `/v2/tasks/${encodeURIComponent(String(body.taskId))}/acceptance`, body.body ?? {})
+      // A held message a person decided about (UI plan C7): dropped, guidance, or the Run it started.
+      case 'dispose':
+        return asOperator('POST', `/v2/held-inputs/${encodeURIComponent(String(body.inputId))}/dispose`, body.body ?? {})
       // A tool approval is answered only while the attempt it belongs to is still the
       // one the card was drawn for (expected_revision).
       case 'approve': {
@@ -866,7 +869,7 @@ export function apply(ctx, config = {}) {
           await handle('manage', { botId: member.bot.id, roomId: room.id, agentId, ...(member.leader ? { mode: 'leader', teamId } : { roleId: member.id, teamId }), ...(frozen ? { frozen } : {}) })
           bound.push({ name: member.name, botId: member.bot.id, agentId, sessionId, leader: member.leader === true })
         }
-        state.teams = { ...(state.teams ?? {}), [teamId]: { roomId: room.id, members: bound } }
+        state.teams = { ...(state.teams ?? {}), [teamId]: { roomId: room.id, roomName: room.name, members: bound } }
         save()
         log('team/bound', { teamId, roomId: room.id, members: bound.map(member => member.agentId) })
         return { teamId, roomId: room.id, roomName: room.name, members: bound }

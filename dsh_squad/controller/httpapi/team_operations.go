@@ -293,6 +293,24 @@ func (s *Server) operationRoutes(v *gin.RouterGroup) {
 		}
 		c.JSON(200, map[string]any{"config_hash": snap.Hash, "roles": roles, "teams": teams, "written": !q.ValidateOnly})
 	})
+	v.POST("/held-inputs/:id/dispose", func(c *gin.Context) {
+		p, err := s.principal(c)
+		if err != nil {
+			teamError(c, err)
+			return
+		}
+		var q scheduler.HeldDisposal
+		if err := decodeTeam(c, &q); err != nil {
+			teamError(c, err)
+			return
+		}
+		out, err := s.team.DisposeHeld(c.Request.Context(), p, c.Param("id"), q)
+		if err != nil {
+			teamError(c, err)
+			return
+		}
+		c.JSON(200, out)
+	})
 	v.POST("/agents/held-inputs", func(c *gin.Context) {
 		p, err := s.principal(c)
 		if err != nil {

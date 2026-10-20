@@ -4,9 +4,10 @@
 import { createElement as h, useEffect, useRef, useState } from 'react'
 import { summaryOf } from './summary.js'
 import { store, useStore } from './store.js'
+import { TeamSwitcher } from './teams.js'
 
 export function jumpTo(item) {
-  store.set(state => ({ ...state, open: true, tab: 'runs', runId: item.runId, teamScope: state.teamScope === null || state.teamScope === undefined ? null : item.teamId, focus: { taskId: item.taskId, runId: item.runId, at: Date.now() } }))
+  store.set(state => ({ ...state, open: true, tab: 'runs', runId: item.runId, teamScope: item.teamId ?? state.teamScope, focus: { taskId: item.taskId, runId: item.runId, at: Date.now() } }))
 }
 
 function Pill({ kind, items, label }) {
@@ -40,14 +41,39 @@ export function SummaryBar() {
   const snapshot = useStore(state => state.projection.snapshot)
   const approvals = useStore(state => state.approvals)
   const scope = useStore(state => state.teamScope ?? null)
+  const started = useStarted(snapshot, scope)
   if (!snapshot) return null
+  // Numbers follow the Team in focus; the two menus always span every Team (§2.4), and
+  // picking an item switches to its Team.
   const sum = summaryOf(snapshot, approvals, scope)
+  const every = scope === null ? sum : summaryOf(snapshot, approvals, null)
   return h('div', { className: 'sq-sum', role: 'status', 'aria-label': '小队概况' },
+    h(TeamSwitcher),
     h('span', { className: 'sq-sum-num' }, '成员 ', h('b', null, sum.members), sum.online < sum.members ? `（${sum.online} 在线）` : ''),
     h('span', { className: 'sq-sum-num' }, '运行中 ', h('b', null, sum.running)),
-    h(Pill, { kind: 'attention', items: sum.attention, label: '需要你处理' }),
-    h(Pill, { kind: 'failed', items: sum.failed, label: '失败' }),
-    sum.queued.map(item => h('button', { key: item.runId, className: 'sq-menu-item sq-muted', onClick: () => jumpTo(item) }, `小队 ${item.teamId} ${item.note}${item.owner ? `（小队 ${item.owner} 正在用）` : ''}`)))
+    h(Pill, { kind: 'attention', items: every.attention, label: '需要你处理' }),
+    h(Pill, { kind: 'failed', items: every.failed, label: '失败' }),
+    every.queued.map(item => h('button', { key: item.runId, className: 'sq-menu-item sq-muted', onClick: () => jumpTo(item) }, `小队 ${item.teamId} ${item.note}${item.owner ? `（小队 ${item.owner} 正在用）` : ''}`)),
+    started.list.map(item => h('button', { key: item.runId, className: 'sq-notice', onClick: () => { started.drop(item.runId); jumpTo({ teamId: item.teamId, runId: item.runId, taskId: null }) } }, `小队 ${item.teamId} 已开始 →`)))
+}
+
+// A Team that starts while the person looks at another one gets a line in the bar,
+// never a switch of view (D6, §4.5).
+function useStarted(snapshot, scope) {
+  const seen = useRef(null)
+  const [list, setList] = useState([])
+  const admitted = (snapshot?.views?.runs ?? []).filter(run => run.admitted)
+  const key = admitted.map(run => run.run_id).sort().join(',')
+  useEffect(() => {
+    if (!snapshot) return
+    if (seen.current === null) { seen.current = new Set(admitted.map(run => run.run_id)); return }
+    const fresh = admitted.filter(run => !seen.current.has(run.run_id))
+    for (const run of fresh) seen.current.add(run.run_id)
+    const others = fresh.filter(run => scope !== null && run.team_id !== scope)
+    if (others.length > 0) setList(current => [...current, ...others.map(run => ({ runId: run.run_id, teamId: run.team_id }))])
+  }, [key])
+  useEffect(() => { setList(current => current.filter(item => item.teamId !== scope)) }, [scope])
+  return { list, drop: runId => setList(current => current.filter(item => item.runId !== runId)) }
 }
 
 // The five-state label used everywhere.
