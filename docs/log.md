@@ -893,3 +893,9 @@ tags:
 - 来源: 用户要求按规划推进 M4；分支 `feat/dsh-m4`；mock 模型、无头 Chrome。
 - 更新: `dsh_squad/controller`（小队范围的角色 runtime、接纳时切换负责人、测试：共用审核、子任务续接、Controller 崩溃恢复）、`dsh_squad/adapter`（续接、带 segment 的请求 id、事件串行与冲突重读、回执先发、独立心跳）、`dsh_squad/client`（恢复卡：迟到结果、重新安排、换人；排队显示）、`dsh_squad/cases/m4`、`probes/drive-m4.mjs`、`dsh_squad/USAGE.md`、规划进度、会话页、Q44/Q45。
 - 说明: 全量 mock 回归 `drive-m4` 13/13、`drive-m3` 18/18、`ui-check` 9/9、`drive-m2` 12/12、`drive-m0` 12/12、`drive-p1` 14/14、`drive-m1` 7/7、`check.sh` 通过。几次失败都对应测试机挂起（日志 4～13 分钟空白），重跑通过。M0–M4 全部开发完成，下一步 T 阶段统一测试；ACCEPTANCE 仍为 NOT_RUN。回归结果文件未提交。
+
+## [2026-10-19] decision | DS Bot Squad 界面与交互规划（任务树版）
+
+- 来源: 用户提供的参考视频要点；现有 Squad 页面（`dsh_squad/client`）与 Controller Run 模型；用户要求只出规划、T 阶段暂缓。
+- 更新: `docs/dsh-squad-ui-plan-2026-10-19.md`（新）、`docs/index.md`、Q46。
+- 说明: 以 Leader 为根的自上而下任务树画布、节点卡片、五种状态（进行中/完成/需要你处理/失败/已停止）及内部状态映射与一句话原因、顶部汇总栏跨小队下拉、失败处理框只留「忽略」「重试」、重试与返工挂在原节点下、Q41 显示为「基于旧版本」、多小队总览 + 切换、深浅主题。列出 Controller/adapter 需新增的 C1–C8、S1–S3，分 P1–P6（约 19 人日），每阶段用无头 Chrome 在 mock 上验收。不做实时花费与用时显示。没有写代码；D1–D6 待用户确认。

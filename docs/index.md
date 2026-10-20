@@ -74,6 +74,7 @@ tags:
 - [[decisions/2026-09-23-p0-identity-fields|2026-09-23 P0 身份字段与 HTTP Registry]]
 
 ## 会话
+- `docs/dsh-squad-ui-plan-2026-10-19.md` — 2026-10-19 Squad 界面与交互规划（任务树画布、五种状态映射、汇总栏、处理框、返工与重试历史、多小队总览、深浅主题、Controller/adapter 新增数据、P1–P6 与 mock 验收）；决定 D1–D6 待确认。
 - `docs/dsh-squad-dev-plan-2026-10-18.md` — 2026-10-18 M0→M4 开发规划：工作包、关键路径、决策点 D1–D12、与 ACCEPTANCE 28 项的对应（D1–D12 已于 2026-10-19 拍板）。
 - [[sessions/2026-10-19-dsh-m4-multi-team|2026-10-19 DS Bot + Squad M4：多小队协同与完整恢复]] — 共用角色、子任务续接、崩溃恢复；drive-m4 13/13，M0–M4 全量 mock 回归通过。
 - [[sessions/2026-10-19-dsh-m3-squad-page|2026-10-19 DS Bot + Squad M3：Squad 页面与对照实验]] — DS Bot 内的 Squad 页面、配置编辑、投影桥、对照实验；drive-m3 18/18、ui-check 9/9。
