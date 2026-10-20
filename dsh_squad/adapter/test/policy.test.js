@@ -95,3 +95,11 @@ test('harness input steers a running attempt but never opens one', () => {
   assert.equal(running.action, 'enter')
   assert.deepEqual(running.keep, ['r'])
 })
+
+test('a held group message keeps what the user said, not the relay around it', async () => {
+  const { userWords } = await import('../src/policy.js')
+  const relay = '[Group chat "team-c 小队" · your turn]\nMembers: the user, Maker and you (admin).\n\nThis round so far, starting with the new message (oldest first):\nUser: 题目里请加一道应用题\nMaker: 好的\nUser: 再加一道选择题\n\nSpeaking order for this round: Lead C (you, now).'
+  assert.equal(userWords(relay), '题目里请加一道应用题\n再加一道选择题')
+  assert.equal(userWords('直接说的话'), '直接说的话')
+  assert.equal(userWords('[Group chat "x" · your turn]\nno round here'), '[Group chat "x" · your turn]\nno round here')
+})

@@ -55,3 +55,10 @@ export function resultValue(text) {
   } catch { /* plain text */ }
   return { answer: raw }
 }
+
+/** A review verdict from a result the model wrote itself, or undefined when it has none. */
+export function reviewVerdict(value) {
+  const decision = String(value?.decision ?? '').trim().toLowerCase()
+  if (decision !== 'accepted' && decision !== 'rejected') return undefined
+  return { decision, reason: String(value?.reason ?? '').trim() || '(no reason)' }
+}

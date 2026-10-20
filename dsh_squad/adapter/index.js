@@ -25,11 +25,11 @@ import { createHash, randomUUID } from 'node:crypto'
 import { appendFileSync, chmodSync, mkdirSync, readdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
-import { decideStep, nextRoute, wakeOf } from './src/policy.js'
+import { decideStep, nextRoute, userWords, wakeOf } from './src/policy.js'
 import { newAttempt, observe, verdictOf } from './src/judge.js'
 import { durableTurnEnd, readSessionEvents } from './src/durable.js'
 import { createClient, discover } from './src/controller.js'
-import { endReport, nextReceipt, resultValue } from './src/reports.js'
+import { endReport, nextReceipt, resultValue, reviewVerdict } from './src/reports.js'
 import { contextHash, taskSection } from './src/context.js'
 import { pathRefusal, refusal, TASK_TOOLS } from './src/toolset.js'
 import { runStatus } from './src/run.js'
@@ -42,6 +42,9 @@ const HOST_PROFILE = 'dsh/0.2.1-rc.2+ds-bot/e13bc34'
 const CAPABILITIES = { input_gate: true, settle_judge: true, route_freeze: true, context_sections: true }
 const SETTLED = new Set(['settled_completed', 'settled_aborted', 'settled_blocked', 'settled_failed'])
 const ENDED = new Set([...SETTLED, 'outcome_unknown', 'superseded'])
+// The exact versions a review task was given; its verdict always names these.
+const pinnedCandidates = task => (task.refs ?? []).map(ref => ({ task_id: ref.task_id, result_revision: ref.result_revision, hash: ref.hash, length: ref.length ?? 0 }))
+
 const TICK_MS = 1000
 const HEARTBEAT_MS = 5000
 const RENEW_MS = 8000
@@ -406,7 +409,8 @@ export function apply(ctx, config = {}) {
   // ---- 1. Every step of a managed Session, before DS Bot's own pre-step logic. ------
   function holdInput(key, binding, message, sessionId, entry) {
     const at = new Date().toISOString()
-    const text = (message?.content ?? []).map(block => (block.type === 'text' ? block.text : '')).join('\n')
+    const full = (message?.content ?? []).map(block => (block.type === 'text' ? block.text : '')).join('\n')
+    const text = entry.wake === 'group-relay' ? userWords(full) : full
     state.held[entry.id] = { sessionId, key, wake: entry.wake, why: entry.why, at, text: text.slice(0, 16_384) }
     if (binding.controller !== undefined) {
       enqueue({ kind: 'hold', key, requestId: `hold-${entry.id}`, input: { request_id: `hold-${entry.id}`, input_id: entry.id, wake: entry.wake, why: entry.why, text: text.slice(0, 16_384), held_at: at } })
@@ -645,9 +649,17 @@ export function apply(ctx, config = {}) {
         file_type: { type: 'string', enum: ['text/html', 'text/markdown', 'text/plain', 'application/json', 'text/csv', 'image/svg+xml'], description: 'Its media type (default text/plain)' },
       },
       async run({ attempt, binding, runtime }, args) {
-        const value = resultValue(args.result)
+        let value = resultValue(args.result)
         if (value === undefined) return 'Write a result first.'
         const t = attempt.dispatch.task
+        // A review handed in through this tool keeps only its verdict: the versions it
+        // covers are the pinned ones it was given, never ones the model wrote out (a
+        // real reviewer cited a file's hash as the result's and the verdict was refused).
+        if (t.kind === 'review') {
+          const verdict = reviewVerdict(value)
+          if (verdict === undefined) return 'This is a review: give your verdict with squad_review (decision accepted or rejected, and the reason).'
+          value = { ...verdict, candidates: pinnedCandidates(t) }
+        }
         const artifacts = []
         if (typeof args.file_content === 'string' && args.file_content !== '') {
           // Immutable and hashed by the Controller (D8); the result cites it by hash.
@@ -670,8 +682,7 @@ export function apply(ctx, config = {}) {
         const t = attempt.dispatch.task
         if (t.kind !== 'review') return 'This is not a review task; use squad_submit_result.'
         // The verdict names exactly the versions this review was given (pinned refs).
-        const candidates = (t.refs ?? []).map(ref => ({ task_id: ref.task_id, result_revision: ref.result_revision, hash: ref.hash, length: ref.length ?? 0 }))
-        const value = { decision: String(args.decision), reason: String(args.reason ?? '').trim() || '(no reason)', candidates }
+        const value = { decision: String(args.decision), reason: String(args.reason ?? '').trim() || '(no reason)', candidates: pinnedCandidates(t) }
         await advanceReceipts(binding, attempt)
         await sendEvent(binding, attempt, `result-${attempt.attemptId}-${attempt.dispatch.segment}`, { type: 'result_proposed', result: { revision: 0, goal_revision: t.applied_revision, attempt_id: '', agent_id: '', value, artifacts: [], refs: [], hash: '' } })
         save()

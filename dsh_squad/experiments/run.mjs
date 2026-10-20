@@ -2,7 +2,8 @@
 // directory, so no group inherits another's Bots, memory or results (D12).
 //
 //   node dsh_squad/experiments/run.mjs [--mock] [--groups S,A,B,C] [--repeats N]
-//        [--goal "..."] [--publish <project>] [--port 3500]
+//        [--goal "..."] [--publish <project>] [--port 3500] [--minutes 10]
+//        [--merge <earlier report>]   keep that report's other groups, run only --groups
 //
 //   S  one strong agent: the goal sent to the Main Bot's own chat
 //   A  DS Bot free collaboration: the preset team, the goal posted in its group
@@ -31,6 +32,8 @@ const repeats = Math.max(1, Number(option('repeats', '1')))
 const goal = option('goal', '认识分数：分数的意义与读写（五年级），做一页可交互的 HTML 课件并说明教学要点')
 const publish = option('publish', undefined)
 const basePort = Number(option('port', '3500'))
+// How long one run may take before it counts as timed out (real models review slowly).
+const limitMs = Number(option('minutes', '10')) * 60_000
 const RUNS = join(HERE, '.runs')
 const sleep = ms => new Promise(done => setTimeout(done, ms))
 
@@ -60,7 +63,7 @@ function usageOf(view) {
 }
 
 // Free modes have no end signal: the team is done when nothing moves for a while.
-async function quiet(api, { quietMs = 8000, timeoutMs = 600_000 } = {}) {
+async function quiet(api, { quietMs = 8000, timeoutMs = limitMs } = {}) {
   const deadline = Date.now() + timeoutMs
   let last = ''
   let since = Date.now()
@@ -92,7 +95,9 @@ async function runOnce(group, index, port) {
   const project = join(RUNS, `${group}-${index}`)
   prepare(group, project)
   const cli = (...more) => execFileSync(CLI, [...more, project, ...(mock ? ['--mock'] : []), '--port', String(port)].filter(Boolean), { encoding: 'utf8' })
-  const result = { ok: false, seconds: null, model_calls: 0, tokens: null, reviews: 0, reworks: 0, human_actions: 0, outcome: 'not run', note: '' }
+  // trace: where every number came from (DSH-M3-03): the project directory keeps the
+  // session logs (route and tool list of each request), memory and Controller data.
+  const result = { ok: false, seconds: null, model_calls: 0, tokens: null, reviews: 0, reworks: 0, human_actions: 0, outcome: 'not run', note: '', trace: { project, run_id: null, config_hash: null, tools: group === 'S' || group === 'A' ? 'DS Bot free mode' : null, memory_entries: null, artifacts: [] } }
   try {
     cli('up')
     const { bot, squad } = await host(project)
@@ -100,6 +105,7 @@ async function runOnce(group, index, port) {
     if (group === 'A') execFileSync(CLI, ['provision', project], { encoding: 'utf8' })
     await quiet(bot, { quietMs: 4000 })
     const before = usageOf(await bot('usage', {}))
+    result.trace.memory_entries = (await Promise.all(bots0(await bot('state')).map(candidate => bot('memory-view', { botId: candidate.id }).then(view => view.entries.length).catch(() => 0)))).reduce((sum, n) => sum + n, 0)
     const started = Date.now()
     const view = await bot('state')
     const bots = Array.isArray(view.bots) ? view.bots : Object.values(view.bots ?? {})
@@ -116,7 +122,7 @@ async function runOnce(group, index, port) {
     } else {
       const run = await squad('ui/start-run', { requestId: `exp-${group}-${index}-${Date.now()}`, teamId: 'math', goal })
       let final
-      for (let i = 0; i < 600 && final === undefined; i += 1) {
+      for (const deadline = Date.now() + limitMs; Date.now() < deadline && final === undefined;) {
         await sleep(1000)
         const snap = (await squad('ui/view')).snapshot
         const current = snap.views.runs.find(candidate => candidate.run_id === run.run_id)
@@ -126,6 +132,10 @@ async function runOnce(group, index, port) {
       result.outcome = final?.current.phase ?? 'timed out'
       result.reviews = final?.tasks.filter(task => task.kind === 'review').length ?? 0
       result.reworks = final?.tasks.filter(task => task.kind === 'rework').length ?? 0
+      result.trace.run_id = run.run_id
+      result.trace.config_hash = final?.current.config?.hash ?? null
+      result.trace.tools = final?.tasks.find(task => task.kind !== 'leader_step')?.allowed_tools ?? null
+      result.trace.artifacts = (final?.tasks ?? []).flatMap(task => (task.result?.artifacts ?? []).map(art => ({ task_id: task.task_id, name: art.name, sha256: art.sha256, accepted: task.acceptance?.decision === 'accepted' })))
       await quiet(bot, { quietMs: 3000, timeoutMs: 60_000 })
     }
     result.seconds = Math.round((Date.now() - started) / 100) / 10
@@ -141,6 +151,7 @@ async function runOnce(group, index, port) {
   return result
 }
 
+const bots0 = view => (Array.isArray(view.bots) ? view.bots : Object.values(view.bots ?? {}))
 const mean = values => (values.length === 0 ? null : values.reduce((sum, value) => sum + value, 0) / values.length)
 const report = {
   schema: 'dsh-squad-experiment/1',
@@ -155,9 +166,29 @@ const report = {
   notes: [
     '每组每次都在全新的项目目录里运行：新的 Bot、新的记忆、新的 Controller 数据（D12）。',
     'Token 和调用次数来自 DS Bot 自己的用量账本，包含记忆、摘要、交接等辅助调用（另列 auxiliary_*）。',
+    '每次运行的 trace 指向它的项目目录：会话日志记着每次请求的模型、思考档位和工具列表，Controller 数据记着输入、结果和成果文件的哈希；没有按价格折算费用（缺少约定的价格表）。',
     'S、A 组没有结束信号：以团队安静下来为结束，「成功」只表示有回复，不代表质量；B、C 组以 Run 通过最终关卡为成功。',
     ...(mock ? ['本报告用脚本化 mock 模型：只证明实验流程能完整跑通，数字不代表真实效果。'] : []),
   ],
+}
+// Groups carried over from an earlier report (--merge): only the groups run now are
+// replaced, so one group can be run again without the others.
+const merge = option('merge', undefined)
+const carried = merge ? JSON.parse(readFileSync(resolve(merge), 'utf8')).groups.filter(group => !groups.includes(group.id)) : []
+if (merge) report.notes.push(`组 ${carried.map(group => group.id).join('、') || '（无）'} 取自之前的报告 ${merge.split('/').at(-1)}。`)
+const outDir = join(HERE, 'reports')
+const path = join(outDir, `${report.id}.json`)
+// Written after every group, so a run stopped halfway keeps the groups that finished.
+function write() {
+  const order = ['S', 'A', 'B', 'C', 'D']
+  const out = { ...report, groups: [...carried, ...report.groups].sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id)) }
+  mkdirSync(outDir, { recursive: true })
+  writeFileSync(path, `${JSON.stringify(out, null, 2)}\n`)
+  if (publish) {
+    const target = join(resolve(publish), '.dsh-squad', 'reports')
+    mkdirSync(target, { recursive: true })
+    writeFileSync(join(target, `${report.id}.json`), `${JSON.stringify(out, null, 2)}\n`)
+  }
 }
 mkdirSync(RUNS, { recursive: true })
 for (const [index, group] of groups.entries()) {
@@ -183,15 +214,8 @@ for (const [index, group] of groups.entries()) {
       human_actions: runs.reduce((sum, run) => sum + run.human_actions, 0),
     },
   })
+  write()
 }
-const outDir = join(HERE, 'reports')
-mkdirSync(outDir, { recursive: true })
-const path = join(outDir, `${report.id}.json`)
-writeFileSync(path, `${JSON.stringify(report, null, 2)}\n`)
+write()
 console.log(`report: ${path}`)
-if (publish) {
-  const target = join(resolve(publish), '.dsh-squad', 'reports')
-  mkdirSync(target, { recursive: true })
-  writeFileSync(join(target, `${report.id}.json`), `${JSON.stringify(report, null, 2)}\n`)
-  console.log(`published to ${target}`)
-}
+if (publish) console.log(`published to ${join(resolve(publish), '.dsh-squad', 'reports')}`)

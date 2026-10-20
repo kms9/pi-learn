@@ -94,3 +94,16 @@ export function decideStep({ messages, step }, binding, active, admissions, rout
   // reach the model with DSH's runtime context).
   return { action: 'reject', reason: messages.length === 0 ? 'no_attempt' : 'no_admission', keep, hold }
 }
+
+// What the user said, out of DS Bot's group relay: the relay wraps a round of the group
+// chat ("This round so far … (oldest first):" then "User: …" and "<Bot>: …" lines) in
+// instructions for the member. A held group message keeps the user's lines only, so the
+// page and the Leader see the words, not the wrapper; anything else is kept as it is.
+export function userWords(text) {
+  const raw = String(text ?? '')
+  const start = raw.indexOf('(oldest first):')
+  if (!raw.startsWith('[Group chat') || start === -1) return raw
+  const round = raw.slice(start + '(oldest first):'.length).split(/\n\s*\n/)[0]
+  const said = round.split('\n').filter(line => line.startsWith('User: ')).map(line => line.slice('User: '.length).trim()).filter(Boolean)
+  return said.length > 0 ? said.join('\n') : raw
+}
