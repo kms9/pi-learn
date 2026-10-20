@@ -52,6 +52,29 @@ func (s *Service) AttemptEvent(ctx context.Context, p Principal, id string, q At
 		if err := task.CAS(a.Revision, q.ExpectedRevision); err != nil {
 			return err
 		}
+		// A cancel is not proof of a stop (DSH-M1-10); the host saying the turn ended,
+		// idle and fenced to this attempt, is. It releases the Bot, nothing else.
+		if q.Type == "settled" && a.State == "cancelled" && a.Cleanup != "released" {
+			if !q.Idle || q.Pending {
+				return task.Reject("NOT_SETTLED", "Pi must be idle without pending work")
+			}
+			a.Cleanup = "released"
+			a.Revision++
+			if err := releaseAttempt(tx, a); err != nil {
+				return err
+			}
+			if err := task.SaveAttempt(tx, a); err != nil {
+				return err
+			}
+			if err := task.EventTx(tx, "cancel_confirmed", id, a.Revision, map[string]any{"task_id": c.ID, "segment": a.Segment}); err != nil {
+				return err
+			}
+			if err := remember(tx, p, "attempt_event:"+id, q.RequestID, id, q); err != nil {
+				return err
+			}
+			out = a
+			return nil
+		}
 		if fault.Now().After(a.LeaseExpiresAt) || a.Cleanup == "released" || a.State == "needs_review" || task.Terminal(a.State) {
 			return task.Reject("EXECUTION_QUARANTINED", "explicit reconciliation required")
 		}

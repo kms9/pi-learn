@@ -22,7 +22,7 @@
 //
 // State: $DSH_HOME/squad-adapter/state.json (0600); every decision: decisions.jsonl.
 import { createHash, randomUUID } from 'node:crypto'
-import { appendFileSync, chmodSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { appendFileSync, chmodSync, mkdirSync, readdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { decideStep, nextRoute, wakeOf } from './src/policy.js'
@@ -31,7 +31,7 @@ import { durableTurnEnd, readSessionEvents } from './src/durable.js'
 import { createClient, discover } from './src/controller.js'
 import { endReport, nextReceipt, resultValue } from './src/reports.js'
 import { contextHash, taskSection } from './src/context.js'
-import { refusal, TASK_TOOLS } from './src/toolset.js'
+import { pathRefusal, refusal, TASK_TOOLS } from './src/toolset.js'
 import { runStatus } from './src/run.js'
 
 export const name = 'dsh-squad-adapter'
@@ -194,6 +194,14 @@ export function apply(ctx, config = {}) {
         if (error?.status >= 400 && error?.status < 500) {
           state.outbox = state.outbox.filter(entry => entry !== report)
           log('report/rejected', { kind: report.kind, requestId: report.requestId, code: error.code, message: error.message })
+          // The Controller no longer takes this attempt (cancelled from the page, or its
+          // lease ran out): stop the Bot's turn once, so no more model work goes into it.
+          // The turn's end is then reported as settled, which proves the stop (DSH-M1-10).
+          if (error.code === 'EXECUTION_QUARANTINED' && attempt !== undefined && !attempt.stopAsked && !ENDED.has(attempt.verdict?.verdict)) {
+            attempt.stopAsked = true
+            void seam.resolveAgent(attempt.sessionId).then(agent => agent.cancel({ kind: 'user' })).catch(() => {})
+            log('attempt/stopped', { attemptId: attempt.attemptId, why: 'quarantined' })
+          }
         } else {
           log('report/retry', { kind: report.kind, requestId: report.requestId, error: String(error?.message ?? error) })
           break
@@ -539,11 +547,20 @@ export function apply(ctx, config = {}) {
   // The tool guard: no tool outside an admitted attempt in a managed Session, and inside
   // one only what its contract allows. Guards are monotonic, so no later listener can
   // turn a denial back into permission.
+  // Where a formal attempt's file tools may go: the Bot's own work directory when it has
+  // one (where relative paths start), DS Bot's workspace, and the project.
+  const readableRoots = (binding) => {
+    const workDir = seam.bots?.().find(bot => bot.id === binding?.botId)?.workDir
+    return [workDir, process.env.DSH_HOME ? join(process.env.DSH_HOME, 'bot', 'workspace') : undefined, projectRoot].filter(Boolean)
+  }
+  const realOf = (path) => { try { return realpathSync(path) } catch { return path } }
   ctx.tools.guard((exec) => {
     const sessionId = exec?.agent?.id
     const { binding } = bindingOf(sessionId)
-    const why = refusal(exec?.name, binding === undefined ? undefined : attemptOf(sessionId), binding !== undefined)
-    if (why !== undefined) log('tool-guard', { sessionId, tool: exec?.name, managed: binding !== undefined })
+    const attempt = binding === undefined ? undefined : attemptOf(sessionId)
+    const why = refusal(exec?.name, attempt, binding !== undefined)
+      ?? (attempt?.allowedTools === undefined ? undefined : pathRefusal(exec?.name, exec?.arguments, readableRoots(binding), realOf))
+    if (why !== undefined) log('tool-guard', { sessionId, tool: exec?.name, managed: binding !== undefined, why })
     return why
   })
 
@@ -554,10 +571,19 @@ export function apply(ctx, config = {}) {
     const { binding } = bindingOf(payload?.agent?.id)
     const frozen = binding?.frozen
     if (attempt === undefined || frozen === undefined) return config
-    if (config?.provider === frozen.provider && config?.model === frozen.model) return config
-    log('model-refused', { sessionId: payload.agent.id, attemptId: attempt.attemptId, route: { provider: config?.provider, model: config?.model }, frozen })
+    const effort = config?.reasoningEffort
+    const sameModel = config?.provider === frozen.provider && config?.model === frozen.model
+    // A Bot made without an explicit thinking level is pinned to the one its first formal
+    // request uses; a later change is then a different route (DSH-M1-09).
+    if (sameModel && frozen.effort === undefined && effort !== undefined) {
+      frozen.effort = effort
+      save()
+      log('route/pinned', { sessionId: payload.agent.id, attemptId: attempt.attemptId, frozen })
+    }
+    if (sameModel && (frozen.effort === undefined || effort === undefined || effort === frozen.effort)) return config
+    log('model-refused', { sessionId: payload.agent.id, attemptId: attempt.attemptId, route: { provider: config?.provider, model: config?.model, effort: effort ?? null }, frozen })
     judge(attempt.attemptId, { type: 'turn/end', turn: attempt.turn, kind: 'model_mismatch' })
-    throw Object.assign(new Error(`Squad: model ${config?.provider}/${config?.model} differs from the frozen ${frozen.provider}/${frozen.model}`), { code: 'squad/model-mismatch' })
+    throw Object.assign(new Error(`Squad: route ${config?.provider}/${config?.model}${effort ? ` (${effort})` : ''} differs from the frozen ${frozen.provider}/${frozen.model}${frozen.effort ? ` (${frozen.effort})` : ''}`), { code: 'squad/model-mismatch' })
   })
 
   // ---- Task context (M1-5) ----------------------------------------------------------
@@ -670,8 +696,20 @@ export function apply(ctx, config = {}) {
           tasks = tasks.map(step => ({ ...step, depends_on: Array.isArray(step.depends_on) ? step.depends_on : [] }))
         }
         await advanceReceipts(binding, attempt)
-        const run = await client.run(runtime, t.run_id)
-        await client.decide(runtime, t.run_id, { request_id: `decide-${attempt.attemptId}-${attempt.dispatch.segment}`, expected_revision: run.revision, attempt_id: attempt.attemptId, action: String(args.action), tasks, note: String(args.note ?? '') })
+        // The Run can move between reading it and deciding (a person accepts a card, a
+        // task settles). The decision is read again against the newer Run once: the
+        // Controller still checks it, and plans another Leader step for what changed.
+        const decide = async () => {
+          const run = await client.run(runtime, t.run_id)
+          return client.decide(runtime, t.run_id, { request_id: `decide-${attempt.attemptId}-${attempt.dispatch.segment}`, expected_revision: run.revision, attempt_id: attempt.attemptId, action: String(args.action), tasks, note: String(args.note ?? '') })
+        }
+        try {
+          await decide()
+        } catch (error) {
+          if (error?.code !== 'REVISION_CONFLICT') throw error
+          log('decide/retry', { attemptId: attempt.attemptId, action: String(args.action) })
+          await decide()
+        }
         // The decision is the step's result at the Controller; the attempt moved on.
         const current = await client.call('GET', `/v2/attempts/${encodeURIComponent(attempt.attemptId)}`, { runtime })
         attempt.dispatch.revision = current.revision
@@ -850,7 +888,9 @@ export function apply(ctx, config = {}) {
         const team = JSON.parse(readFileSync(join(projectRoot, '.agents/dshsquad/teams', teamId, 'team.json'), 'utf8'))
         const display = id => id.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ')
         const members = [{ id: team.leader.agent_ref, leader: true }, ...team.members.map(member => ({ id: member.role_ref }))]
-        const lead = seam.bots().find(bot => bot.name === display(team.leader.agent_ref))
+        // New Bots take the model and thinking level of the Team's Leader Bot, else of any
+        // Bot the project already configured (the preset team's): one route per project (D7).
+        const lead = seam.bots().find(bot => bot.name === display(team.leader.agent_ref) && bot.model) ?? seam.bots().find(bot => typeof bot.model === 'string' && bot.model.includes('/'))
         for (const member of members) {
           member.name = display(member.id)
           let bot = seam.bots().find(candidate => candidate.name === member.name)
@@ -875,7 +915,9 @@ export function apply(ctx, config = {}) {
         for (const member of members) {
           const sessionId = await seam.ensureGroupSession(room.id, member.bot.id)
           if (sessionId === undefined) throw new Error(`no group Session for ${member.name}`)
-          const frozen = typeof member.bot.model === 'string' && member.bot.model.includes('/') ? { provider: member.bot.model.split('/')[0], model: member.bot.model.split('/').slice(1).join('/') } : undefined
+          // The route is frozen with its thinking level (DSH-M1-09): a changed effort is a
+          // different route for a strict Run, refused like a different model.
+          const frozen = typeof member.bot.model === 'string' && member.bot.model.includes('/') ? { provider: member.bot.model.split('/')[0], model: member.bot.model.split('/').slice(1).join('/'), ...(member.bot.effort ? { effort: member.bot.effort } : {}) } : undefined
           const agentId = member.leader ? member.id : `${teamId}-${member.id}`
           await handle('manage', { botId: member.bot.id, roomId: room.id, agentId, ...(member.leader ? { mode: 'leader', teamId } : { roleId: member.id, teamId }), ...(frozen ? { frozen } : {}) })
           bound.push({ name: member.name, botId: member.bot.id, agentId, sessionId, leader: member.leader === true })

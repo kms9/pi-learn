@@ -277,3 +277,55 @@ func TestLeaderWaitOnOlderNewsPlansAnotherStep(t *testing.T) {
 		t.Fatalf("an up-to-date wait planned %d more steps", pendingSteps())
 	}
 }
+
+// DSH-M1-10: cancelling a running task does not free its Bot; the host reporting the
+// turn ended (idle, fenced to the attempt) does, and only then is the next task sent.
+func TestCancelFreesTheBotOnlyWhenTheHostConfirmsTheStop(t *testing.T) {
+	h := newHarness(t)
+	builder := h.register("builder-bot", "builder", "bot-builder", "", "sess-1")
+	first, err := h.svc.CreateTask(h.ctx, h.op, CreateTask{RequestID: "t1", Target: "builder-bot", Goal: "slow work"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	h.tick()
+	out, err := h.svc.Dispatches(h.ctx, builder)
+	if err != nil || len(out) != 1 {
+		t.Fatalf("dispatches %v %v", out, err)
+	}
+	a := out[0]["attempt"].(task.Attempt)
+	for _, step := range []string{"adapter_received", "injection_requested", "input_observed"} {
+		a = h.must(h.event(builder, a, AttemptEvent{Type: step}))
+	}
+	if _, err := h.svc.Operate(h.ctx, h.op, "task", first.ID, "cancel", Operation{RequestID: "c1", ExpectedRevision: h.taskOf(first.ID).Revision, Note: "stop"}); err != nil {
+		t.Fatal(err)
+	}
+	second, err := h.svc.CreateTask(h.ctx, h.op, CreateTask{RequestID: "t2", Target: "builder-bot", Goal: "next work"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	h.tick()
+	// The cancelled attempt is still listed (so the host learns of the cancel); the next task is not.
+	out, _ = h.svc.Dispatches(h.ctx, builder)
+	for _, d := range out {
+		if d["task"].(task.Contract).ID == second.ID {
+			t.Fatal("the next task went out before the stop was confirmed")
+		}
+	}
+	// A renewal is refused: the attempt is cancelled.
+	a, _ = h.attemptOf(a.ID)
+	if _, err := h.event(builder, a, AttemptEvent{Type: "renew"}); err == nil {
+		t.Fatal("a cancelled attempt was renewed")
+	}
+	if _, err := h.event(builder, a, AttemptEvent{Type: "settled", Idle: false, Outcome: "aborted"}); err == nil {
+		t.Fatal("a busy host proved a stop")
+	}
+	a = h.must(h.event(builder, a, AttemptEvent{Type: "settled", Idle: true, Outcome: "aborted"}))
+	if a.Cleanup != "released" || h.taskOf(first.ID).State != "cancelled" {
+		t.Fatalf("attempt %s/%s task %s", a.State, a.Cleanup, h.taskOf(first.ID).State)
+	}
+	h.tick()
+	out, _ = h.svc.Dispatches(h.ctx, builder)
+	if len(out) != 1 || out[0]["task"].(task.Contract).ID != second.ID {
+		t.Fatalf("the next task was not sent after the stop: %v", out)
+	}
+}

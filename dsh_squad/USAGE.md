@@ -109,7 +109,7 @@ SQUAD=1 SQUAD_MOCK=1 DSH_SQUAD_PROJECT=/path/to/project probes/bench.sh <name> <
 | `botId` | DS Bot 的 Bot id |
 | `roomId` | 可选；给出时受控的是该 Bot 在这个群里的会话 |
 | `agentId`、`roleId` | 给出时这个（Bot, 位置）注册为 Controller runtime，从 Controller 拉取正式任务 |
-| `frozen` | 可选 `{provider, model}`；路由不一致时拒绝，不静默回退 |
+| `frozen` | 可选 `{provider, model, effort}`；路由不一致时拒绝，不静默回退。不带 `effort` 时，第一次正式请求用的思考档位会被记下，之后改了档位同样拒绝。`bind-team` 自动冻结成员 Bot 的模型和档位；需要新建的 Bot 沿用项目里已配置的模型和档位（如预置团队的 `deepseek-flash`、`high`） |
 | `policy` | 可选 `{allowResume, allowSelfStart}`，默认都关 |
 
 `unmanage` 取消；`state` 查看绑定、attempt、被扣留的输入和待发报告。受控会话只运行 Controller 准入的任务：其它唤醒（用户、`@Bot`、`message_bot`、群消息、定时、重启续跑、切段自启）一律扣留，并上报给 Controller（快照视图 `held_inputs`）。
@@ -125,6 +125,8 @@ curl -X POST "$ENDPOINT/v2/tasks/direct" \
 
 `GET /v2/tasks/<id>`、`GET /v2/snapshot` 查看进度。
 
+**取消**（`POST /v2/tasks/<id>/cancel`，页面上「忽略这一步」或「取消 Run」也是取消）：取消本身不算停止证明。宿主收到后停下这个 Bot 当前的回合，回合结束并上报 settled 后，Controller 才释放这个 Bot，之后的任务才会发给它。宿主没回应（如已离线）时，执行保持隔离，需要在页面上确认已停止。
+
 ## 7. 受控会话里的任务工具
 
 | 工具 | 作用 |
@@ -138,6 +140,10 @@ curl -X POST "$ENDPOINT/v2/tasks/direct" \
 | `squad_clarify` | 向委派方提问 |
 
 受控会话的系统提示里有 `# Squad task` 段（角色、团队说明、任务、可用工具），其 hash 记在 Adapter 日志。
+
+正式任务里只能用合同允许的工具（默认 `read`、`grep`、`find`、`ls`，加上面的任务工具和只读的 `recall`）；shell、`run_code`、`message_bot`、`post_to_group`、MCP 一律拒绝。文件工具只能访问项目目录、Bot 的工作目录和 DS Bot 工作区，绝对路径指到别处、`..` 跳出或软链接指出去都会在执行前被拒。
+
+Leader 的 `squad_decide` 若遇到 Run 刚被改动（版本冲突），会重读 Run 再提交一次；Controller 照常校验这个决定，并为 Leader 没看到的新进展再安排一步。
 
 ## 8. Team 与 Run（单 Team）
 

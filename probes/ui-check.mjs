@@ -38,7 +38,7 @@ try {
   }
   check(phase === '已完成', 'the Run started from the form completed', phase)
   await page.screenshot({ path: `${out}-run.png` })
-  check((await page.$$('.sq-dag svg g')).length >= 3, 'the task graph has its nodes')
+  check((await page.$$('.sq-node')).length >= 3, 'the task tree has its nodes')
   const previewed = await clickText('.sq-shell button', '预览')
   await sleep(2500)
   const frame = page.frames().find(f => f.url().includes('/v2/artifacts/'))
