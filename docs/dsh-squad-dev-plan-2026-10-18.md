@@ -52,7 +52,7 @@ tags:
 | M2 | 开发完成（2026-10-19） | M2-1～M2-5 落地：`bind-team` 把 Team 绑到一个群（缺的 Bot 自动创建），Leader 用 `squad_decide`、审核用 `squad_review`，退回 → 返工 → 复审 → Leader 完成；Artifact 存 Controller hash 目录（D8）；群里说的话在 Run 中变成 Run Guidance；数学课件案例 `dsh_squad/cases/math`。M2-6 只做到服务端隔离（CSP sandbox、禁网络），界面 iframe 在 M3（Q42）。Memory 快照只读（D12）未做，放到 M3-3 对照实验一起做。回归：`drive-m2` 12/12、`drive-m0` 12/12、`drive-p1` 14/14、`drive-m1` 7/7、`check.sh` 通过 |
 | M3 | 开发完成（2026-10-19） | M3-1 投影桥（宿主路由 `ui/view`、`ui/events`，前端只认 Controller 快照，epoch 变化或事件越过就重读）；M3-2 Squad 页面（DS Bot 客户端插件 `dsh_squad/client`：开始 Run、任务依赖图、三类按钮分开且绑定版本、恢复卡、审核结论、Artifact 隔离预览、群内状态条）；M3-3 对照实验 S/A/B/C 与报告页；M3-4 小队/角色/流程表单编辑，经 Controller 校验并自动升版本。D12 只做到受控任务内记忆只读（Q43）。回归：`drive-m3` 18/18、无头 Chrome `ui-check` 9/9、`drive-m2` 12/12、`drive-m0` 12/12、`drive-p1` 14/14、`drive-m1` 7/7、`check.sh` 通过 |
 | M4 | 开发完成（2026-10-19） | M4-1 共用角色：角色 runtime 带所属小队，Run 被接纳时该小队的 runtime 成为负责人；原子 FIFO 排队（Go 已有）。M4-2 子任务、yield、同一 attempt 续接（Adapter 接受同一 attempt 的新 segment，所有请求 id 带 segment）。M4-3 完整恢复：页面恢复卡可确认停止、采用迟到结果、重试、重新安排、角色换人；Controller 崩溃路径有测试。M4-4 `dsh_squad/cases/m4` + `drive-m4`。全量 mock 回归：`drive-m4` 13/13、`drive-m3` 18/18、`ui-check` 9/9、`drive-m2` 12/12、`drive-m0` 12/12、`drive-p1` 14/14、`drive-m1` 7/7、`check.sh` 通过（drive-m1 在回归中遇到测试机挂起 13 分钟，单独重跑 7/7） |
-| T | 未开始 | 下一步：ACCEPTANCE 28 项统一测试；真实模型只用 `deepseek-flash`（key 由用户提供） |
+| T | 完成（2026-10-20，M0-01 待试用） | 最终代码上 mock 全量回归通过，mock 能覆盖的用例全部 PASS；真实模型（`deepseek-flash`）的路由与 Free 模式、工具/路径限制、数学课件（审核退回、返工、复审、最终关卡、预览隔离）、多小队通过；修了 8 个只在真实运行或新测试里暴露的问题。M0-01 待真人试用；M3-03/04 判 PARTIAL（对照实验 C 组受测试机挂起影响没跑完、没有价格表），见 [[sessions/2026-10-20-dsh-squad-t-stage]]。使用指南 `docs/guide/dsh-squad-使用指南.md` |
 
 ## 0. 起点：已经有什么
 

@@ -9,6 +9,7 @@ tags:
 ---
 
 # 会话索引
+- [[2026-10-20-dsh-squad-t-stage|2026-10-20 DS Bot + Squad T 阶段：统一测试与真实模型]]
 - [[2026-10-19-dsh-squad-ui-p1-p6|2026-10-19 Squad 界面 P1–P6：任务树、处理框、多小队与打磨]]
 - [[2026-10-19-dsh-m4-multi-team|2026-10-19 DS Bot + Squad M4：多小队协同与完整恢复]]
 - [[2026-10-19-dsh-m3-squad-page|2026-10-19 DS Bot + Squad M3：Squad 页面与对照实验]]

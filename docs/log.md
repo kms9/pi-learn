@@ -917,3 +917,9 @@ tags:
 - 来源: 用户决定 Q47 采用换行排列（不按角色叠成一叠）。
 - 更新: `docs/dsh-squad-ui-plan-2026-10-19.md`（决策记录 D7）、Q47 关闭、`dsh_squad/client/src/layout.js`、`canvas.js`、`probes/ui-p6.mjs`、`dsh_squad/USAGE.md`、会话页补充；另修 Controller Leader 步骤按旧状态「wait」导致 Run 卡住的竞态（`seen_revision`），以及 adapter 里工具与循环同时补发回执造成 `REQUEST_ID_CONFLICT` 的竞态（同一 attempt 的回执补发串行）。
 - 说明: 兄弟节点并排超过约六张卡片宽就按顺序换行、每行居中，后续行的连线走左侧通道；适应窗口最小缩放降到 0.2。ui-p6 增加 30 个并行子节点的分行、无重叠、通道连线、折叠复原、适应窗口、Tab 走遍且移入视野等检查。回归：`check.sh`、ui-p1 17/17、ui-p2 16/16、ui-p3 22/22、ui-p4 9/9、ui-p5 20/20、ui-p6 27/27、drive-m2 13/13、drive-m3 18/18、drive-m4 13/13；ui-p6 与 drive-m4 各有运行撞上测试机挂起（事件日志 8～19 分钟空白、随后租约过期），单独重跑通过。截图未提交；T 阶段未开始。
+
+## [2026-10-20] session | DS Bot + Squad T 阶段：统一测试与真实模型
+
+- 来源: 用户同意开始 T 阶段并提供 DeepSeek key（只在 `~/.secrets/deepseek.env`）；分支 `feat/dsh-t`；mock 与 `deepseek-flash`（thinking、effort high）。
+- 更新: `dsh_squad_case/ACCEPTANCE.md`「T 阶段结果」、`dsh_squad/{adapter,controller,experiments}`（8 个修复）、`probes/{drive-accept,real-t,session-log,doc-shots}.mjs`、`dsh_squad/USAGE.md`、`docs/guide/dsh-squad-使用指南.md`（新，README 入口）、会话页 `docs/sessions/2026-10-20-dsh-squad-t-stage.md`、规划进度、Q48、Q49。
+- 说明: 最终代码上 mock 全量回归通过，mock 能覆盖的用例全部 PASS；真实模型下 Free 模式与路由、工具和路径限制、数学课件（审核退回、返工、复审、最终关卡、Leader 重做旧检查、预览隔离）、多小队（FIFO、共用审核、子任务续接）通过。修复：取消的停止证明、思考档位冻结、文件工具路径限制、决定遇冲突重试、新 Bot 继承路由、Leader 返工旧任务、审核引用的版本、扣留消息只留原话。M0-01 待真人试用；M3-03/04 PARTIAL（对照实验 C 组被测试机多次挂起打断，45/60 分钟挂起；没有价格表）。key 未进入仓库、日志、截图和提交。
