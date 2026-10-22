@@ -929,3 +929,9 @@ tags:
 - 来源: 用户要求；上游 tag `v0.2.0`（`ae63b45`），原来钉在 `e13bc34`（v0.1.7-4）。
 - 更新: `dsh-bot` gitlink、`dsh_squad/patches/ds-bot/0001-squad-seam.patch`（迁移到 v0.2.0，seam v5）、`dsh_squad/adapter`（问答与视图卡片答复按用户输入扣留；文件工具路径按 DS Bot 给出的会话目录和总工作区）、`dsh_squad/controller/project/doctor.go`（宿主 profile `dsh/0.2.1-rc.2+ds-bot/ae63b45`）、`dsh_squad/{deploy/dsh-squad,scripts/prepare-ds-bot.sh}`（子模块或补丁变了就重建）、版本号相关文档、`probes/versions.lock.json`。
 - 说明: DSH 仍为 0.2.1-rc.2。补丁只有 `index.js`、`roster.js` 两处上下文冲突，手工迁移；打补丁后 ds-bot 单测 836 项 834 通过 0 失败，`check.sh` 通过。按用户要求这次不跑 mock 回归。
+
+## [2026-10-21] decision | DS Bot v0.2.0 对 Squad 的评估与优化计划
+
+- 来源: 用户要求基于 v0.2.0 原生能力评估并优化 Squad；分支 `feat/dsh-v02`（从 `feat/dsh-t` 拉）。
+- 更新: `docs/dsh-squad-v0.2-assessment-2026-10-21.md`（新）、`docs/index.md`。
+- 说明: 能改用原生的很少（seam `botOf` 可删；扣留消息可改读群日志）。需要守的：记忆复盘会写入受控会话内容（0.1.7 起就有，v0.2.0 多了群记忆，违反 D12）、Bot 在群里的发言被当成用户补充指导、Main Bot 可改受控 Bot 档位（P1）。可借的：`show_view` 在聊天里处理（P2）、页面里配置 key（P3）、桌面版（P4）。O1 不需要产品决定，直接做。
