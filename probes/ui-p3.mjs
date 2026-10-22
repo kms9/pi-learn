@@ -69,6 +69,12 @@ try {
   run('up', PROJECT, '--mock', '--port', port)
   ui = await api()
   await until(async () => (await views(ui)).tasks.some(task => task.run_id === runs['team-a'] && task.state === 'interrupted'), 60_000, 500)
+  // P6 = B: the restarted host proves the stop itself, so the attempt is released.
+  const released = await until(async () => {
+    const v = await views(ui)
+    const task = v.tasks.find(t => t.run_id === runs['team-a'] && t.kind === 'execute')
+    return v.attempts.find(a => a.attempt_id === task?.attempt_ids?.at(-1))?.cleanup_state === 'released'
+  }, 60_000, 500)
 
   browser = await puppeteer.launch({ executablePath: process.env.CHROME ?? '/usr/bin/google-chrome', headless: true, args: ['--no-sandbox'] })
   const page = await browser.newPage()
@@ -89,7 +95,8 @@ try {
     return ok
   }
 
-  console.log('== host restart: guidance, then Retry with the stop confirmed')
+  console.log('== host restart: guidance, then Retry (the host proved the stop)')
+  check(released, 'the restarted host proved the stop and the attempt is released')
   check(await openFrom('failed', '写一页分数讲义'), 'the failed step is listed and opens')
   const reason = await page.$eval('.sq-pop .sq-pop-reason', el => el.innerText).catch(() => '')
   check(/DS Bot 中途重启|很久没有回应/.test(reason), 'the popover says why in one line', reason)
@@ -101,12 +108,14 @@ try {
   const notes = (await views(ui)).runs.find(r => r.run_id === runs['team-a']).guidance_notes ?? []
   check(notes.some(note => note.text === '例子用披萨' && note.task_id), 'guidance about the step reached the Run with the step named', notes)
   await page.screenshot({ path: `${shots}-light-1-failed.png` })
+  // Nothing was retried by itself; Retry needs no confirmation of the stop.
+  const before = (await views(ui)).tasks.find(t => t.run_id === runs['team-a'] && t.kind === 'execute')
+  check(before?.attempt_ids?.length === 1, 'nothing was retried by itself', before?.attempt_ids)
   await clickText('.sq-pop .sq-btn', '重试')
   await sleep(300)
   const confirm = await page.$eval('.sq-pop .sq-pop-confirm', el => el.innerText).catch(() => '')
-  check(/上一次已经停下了/.test(confirm), 'an uncertain end asks one line of confirmation', confirm)
-  await page.screenshot({ path: `${shots}-light-2-confirm.png` })
-  await clickText('.sq-pop .sq-btn', '确认并重试')
+  check(confirm === '', 'a proven stop asks no confirmation', confirm)
+  await page.screenshot({ path: `${shots}-light-2-retry.png` })
   const retried = await until(async () => {
     const v = await views(ui)
     const task = v.tasks.find(t => t.run_id === runs['team-a'] && t.kind === 'execute')

@@ -507,7 +507,10 @@ func validateTeam(t Team, id string, roles map[string]Role) error {
 		}
 		tools[name] = true
 		switch name {
-		case "read", "grep", "find", "ls", "write", "edit":
+		case "read", "grep", "find", "ls":
+		case "write", "edit":
+			// P5 = A: formal work is read-only; results go to the artifact store.
+			return fmt.Errorf("READ_ONLY: formal tasks are read-only (%s); hand results in with squad_submit_result", name)
 		default:
 			return fmt.Errorf("unfenced tool is not supported: %s", name)
 		}
@@ -544,10 +547,8 @@ func validateTeam(t Team, id string, roles map[string]Role) error {
 	} else {
 		return fmt.Errorf("ACCEPTANCE_POLICY_MISSING: Team requires checker or review")
 	}
-	for _, r := range p.WritableRoots {
-		if filepath.IsAbs(r) || r == "" || strings.Contains(filepath.ToSlash(r), "..") || strings.HasPrefix(filepath.ToSlash(r), ".agents") {
-			return fmt.Errorf("invalid writable root %s", r)
-		}
+	if len(p.WritableRoots) > 0 {
+		return fmt.Errorf("READ_ONLY: formal tasks are read-only; writable_roots must be empty")
 	}
 	return nil
 }
@@ -568,6 +569,9 @@ func validateWorkflow(w Workflow, id string, t Team) error {
 		case "execute", "review", "rework", "ask":
 		default:
 			return fmt.Errorf("invalid step kind")
+		}
+		if len(s.WriteSet) > 0 {
+			return fmt.Errorf("READ_ONLY: formal tasks are read-only; step %s has a write_set", s.ID)
 		}
 		if _, err := ParseOutputSchema(s.ExpectedOutput); err != nil {
 			return err

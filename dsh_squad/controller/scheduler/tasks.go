@@ -186,6 +186,10 @@ func (s *Service) createTask(tx *sql.Tx, p Principal, q CreateTask) (task.Contra
 	c.Refs = append([]project.ResultRef{}, q.Refs...)
 	c.Dependencies = append([]task.Dependency{}, q.Dependencies...)
 	c.WriteSet = append([]string{}, q.WriteSet...)
+	// P5 = A: formal work, direct or in a Team, is read-only; results go to the artifact store.
+	if len(c.WriteSet) > 0 {
+		return zero, task.Reject("READ_ONLY", "formal tasks are read-only; hand results in with squad_submit_result")
+	}
 	if q.Kind == "ask" {
 		if len(c.WriteSet) > 0 {
 			return zero, task.Reject("READ_ONLY", "ask cannot write")

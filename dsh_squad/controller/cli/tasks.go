@@ -61,7 +61,7 @@ func newTaskCommand() *cobra.Command {
 	cmd.Flags().String("parent", "", "explicit parent Task ID")
 	cmd.Flags().Int64("expected-revision", 0, "expected parent revision")
 	cmd.Flags().String("kind", "execute", "execute, review, rework or ask")
-	cmd.Flags().StringArray("write", nil, "explicit writable path; repeat for multiple paths")
+	cmd.Flags().StringArray("write", nil, "writable path (refused: formal tasks are read-only, P5)")
 	cmd.Flags().Bool("preview", false, "print without submission")
 	return cmd
 }

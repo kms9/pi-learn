@@ -75,6 +75,44 @@ func (s *Service) AttemptEvent(ctx context.Context, p Principal, id string, q At
 			out = a
 			return nil
 		}
+		// P6 = B: an attempt whose lease ran out is reconciled when its own host shows the
+		// turn ended (idle, fenced to this attempt): the Bot is free again. Nothing is
+		// retried; the task waits for a person, who retries without confirming a stop.
+		if q.Type == "settled" && a.State == "needs_review" && a.Error == "lease_expired" && a.Cleanup != "released" {
+			if !q.Idle || q.Pending {
+				return task.Reject("NOT_SETTLED", "Pi must be idle without pending work")
+			}
+			a.Cleanup = "released"
+			a.Error = "host_reconciled"
+			a.Revision++
+			if err := releaseAttempt(tx, a); err != nil {
+				return err
+			}
+			if err := task.SaveAttempt(tx, a); err != nil {
+				return err
+			}
+			if c.RunID != nil {
+				r, err := task.LoadRun(tx, *c.RunID)
+				if err != nil {
+					return err
+				}
+				if err := s.cleanupRun(tx, &r); err != nil {
+					return err
+				}
+				r.Revision++
+				if err := task.SaveRun(tx, r); err != nil {
+					return err
+				}
+			}
+			if err := task.EventTx(tx, "host_reconciled", id, a.Revision, map[string]any{"task_id": c.ID, "segment": a.Segment}); err != nil {
+				return err
+			}
+			if err := remember(tx, p, "attempt_event:"+id, q.RequestID, id, q); err != nil {
+				return err
+			}
+			out = a
+			return nil
+		}
 		if fault.Now().After(a.LeaseExpiresAt) || a.Cleanup == "released" || a.State == "needs_review" || task.Terminal(a.State) {
 			return task.Reject("EXECUTION_QUARANTINED", "explicit reconciliation required")
 		}

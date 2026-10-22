@@ -33,7 +33,9 @@ Adapter 只上报它亲眼看到的事实：
 6. 结束判定（实时 `turn/end` + 持久日志 + 工具配对 + 审批清零）：
    - `settled_completed` → `settled {idle:true, pending:false, outcome:"completed"}`
    - `settled_aborted` / `settled_blocked` / `settled_failed` → `settled`，`outcome` 为对应值
-   - `outcome_unknown`（含宿主重启）→ `POST /v2/agents/interruption {reason}`，等 operator `reconcile`
+   - `outcome_unknown` → `POST /v2/agents/interruption {reason:"outcome_unknown"}`，等 operator `reconcile`
+   - 宿主重启 → `interruption {reason:"host_restart"}`，随后 `POST /v2/attempts/<id>/stopped {segment_id, fencing_token, binding, idle:true, pending:false}`（旧回合所在进程已不在，P6 = B），执行释放，任务等人重试
+7. 租约过期后（`needs_review`、`lease_expired`），宿主恢复并上报同一 segment、fence 的 `settled {idle:true}`：Controller 释放执行，原因改为 `host_reconciled`，事件 `host_reconciled`；任务不自动重试。其余事件仍以 `EXECUTION_QUARANTINED` 拒绝
 
 `result_proposed` 不等于完成；没有 settled 证据，Task 不会进 `completed`。
 

@@ -199,8 +199,13 @@ try {
     await sleep(15_000)
     const attempt = attemptId ? await attemptOf(attemptId) : undefined
     const replays = squadCalls().filter(call => call.task === t.task_id && call.t >= restartedAt)
-    act('after', { state: done?.state, attemptState: attempt?.state, error: attempt?.error, replays: replays.length })
-    return [expect(done?.state === 'interrupted', `task ended ${done?.state}`), expect(attempt?.error === 'host_restart', `attempt error ${attempt?.error}`), expect(replays.length === 0, `${replays.length} model call(s) after the restart`)].filter(Boolean)
+    const after = await taskOf(t.task_id)
+    act('after', { state: after?.state, attemptState: attempt?.state, error: attempt?.error, cleanup: attempt?.cleanup_state, attempts: after?.attempt_ids?.length, replays: replays.length })
+    // P6 = B: the restarted host proves the stop itself; the attempt is released, nothing
+    // is retried, and a person retries without confirming a stop.
+    return [expect(done?.state === 'interrupted', `task ended ${done?.state}`), expect(attempt?.error === 'host_restart', `attempt error ${attempt?.error}`), expect(replays.length === 0, `${replays.length} model call(s) after the restart`),
+      expect(attempt?.cleanup_state === 'released', `cleanup ${attempt?.cleanup_state}: the host did not prove the stop`),
+      expect(after?.state === 'interrupted' && after?.attempt_ids?.length === 1, `retried by itself: ${after?.state} ${after?.attempt_ids?.length}`)].filter(Boolean)
   })
 } finally {
   console.log(bench('stop'))

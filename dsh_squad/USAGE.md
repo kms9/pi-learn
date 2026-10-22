@@ -82,7 +82,7 @@ dsh_squad/scripts/check.sh                   # 编译、单测、补丁后 ds-bo
   teams/<team>/workflows/<id>.json   # 可选
 ```
 
-`team.json` 的 `policy.allowed_tools` 只能是 `read grep find ls write edit`；在 DSH 里分别对应 `read/read_image`、`grep`、`glob`、`glob`、`write`、`edit/str_replace_editor`。正式任务里其它工具（shell、`run_code`、`message_bot`、MCP 等）一律拒绝。
+`team.json` 的 `policy.allowed_tools` 只能是 `read grep find ls`；在 DSH 里分别对应 `read/read_image`、`grep`、`glob`、`glob`。正式任务是只读的（P5 = A）：`write`/`edit`、非空的 `policy.writable_roots`、工作流步骤的 `write_set`、建任务时的 `write_set`（含 CLI `--write`）都以 `READ_ONLY` 拒绝；成果一律经 `squad_submit_result` 交给 Controller 的产物存储。正式任务里其它工具（shell、`run_code`、`message_bot`、MCP 等）一律拒绝。
 
 ## 3. 手动启动 Controller（`up` 已包含）
 
@@ -187,12 +187,14 @@ Leader 的 `squad_decide` 若遇到 Run 刚被改动（版本冲突），会重�
 
 | 情况 | 你看到的 | 怎么处理 |
 |---|---|---|
-| DS Bot 宿主重启、无法确认结束 | 任务「已中断」，原因 `host_restart`/`outcome_unknown` | 勾选「我确认这次执行已经停止」→「确认已停止」→「重试」或取消 |
+| DS Bot 宿主重启 | 任务「已中断」，原因 `host_restart`；宿主重启后自己上报停止证据（`POST /v2/attempts/<id>/stopped`），执行随即释放 | 直接「重试」或取消，不必确认已停止 |
+| 无法确认结束（宿主没重启） | 任务「已中断」，原因 `outcome_unknown` | 勾选「我确认这次执行已经停止」→「确认已停止」→「重试」或取消 |
+| 很久没有回应（租约过期） | 任务「需人工处理」，原因 `lease_expired`；宿主恢复后上报这一轮已结束（idle、同一 fence），原因变成 `host_reconciled`，执行释放 | 直接「重试」；宿主没恢复时仍要确认已停止 |
 | Controller 重启或崩溃 | Run 暂停（需要你回答：确认继续），任务「需人工处理」 | 同上逐个确认、重试；再在 Run 上「确认继续」 |
 | 迟到的结果 | 卡片列出「执行被隔离后又收到的结果」 | 确认已停止后可「采用这个结果」，不必重做 |
 | 角色换人 | 负责人离线，任务等待 | 卡片列出同角色在线的其他 runtime，点击换人；没有执行的任务点「按当前负责人重新安排」 |
 
-不确定的执行不会自动重来；每一步都绑定卡片画出来时的版本。
+不确定的执行不会自动重来（P6 = B）：宿主能证明已停止时只自动对账、释放 Bot，任务等人点重试；每一步都绑定卡片画出来时的版本。
 
 ## 10. 对照实验（M3-3）
 
@@ -207,9 +209,9 @@ DEEPSEEK_API_KEY=... node dsh_squad/experiments/run.mjs --repeats 3 --publish ~/
 
 ## 9. 故障时
 
-- 机器休眠：Controller 发现自己有超过一个租约周期没在运行时，不在醒来那一刻判租约过期，而是把当时还有效的租约和在线状态再延长一个周期（事件 `controller_resumed`）；宿主醒来后照常续约，执行继续。宿主真的没了，一个周期后照样过期、等人确认。
+- 机器休眠：Controller 发现自己有超过一个租约周期没在运行时，不在醒来那一刻判租约过期，而是把当时还有效的租约和在线状态再延长一个周期（事件 `controller_resumed`）；宿主醒来后照常续约，执行继续。宿主真的没了，一个周期后照样过期；之后宿主恢复并上报这一轮已结束（`settled`、idle），Controller 自动对账（事件 `host_reconciled`），任务等人点重试；宿主一直不回来才需要人确认已停止。
 
-- 宿主重启：进行中的 attempt 上报 `host_restart`，Controller 把任务置为 `interrupted`，不自动重放，等 operator `POST /v2/attempts/<id>/reconcile`。
+- 宿主重启：进行中的 attempt 上报 `host_restart`，Controller 把任务置为 `interrupted`，不自动重放。旧回合所在进程已不在，adapter 随即上报停止证据（`POST /v2/attempts/<id>/stopped`，绑定、segment、fence 都要对得上），执行释放（事件 `adapter_stop_confirmed`）；之后点「重试」即可，不必 `reconcile`。
 - 无法确认结束（`outcome_unknown`）：同上，原因 `outcome_unknown`。
 - DS Bot 切段换了新会话：Adapter 带旧会话重新注册，`binding_epoch` 加 1，旧 attempt 作废。
 

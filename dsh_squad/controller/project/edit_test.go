@@ -97,3 +97,33 @@ func TestConfigEditsAreValidatedBeforeWriting(t *testing.T) {
 		t.Fatal("deleting a role in use must be refused")
 	}
 }
+
+// P5 = A: formal work is read-only; a Team that would write is refused.
+func TestATeamThatWouldWriteIsRefused(t *testing.T) {
+	for name, team := range map[string]string{
+		"write tool":     strings.Replace(teamJSON, `"allowed_tools":["read"]`, `"allowed_tools":["read","write"]`, 1),
+		"edit tool":      strings.Replace(teamJSON, `"allowed_tools":["read"]`, `"allowed_tools":["read","edit"]`, 1),
+		"writable roots": strings.Replace(teamJSON, `"writable_roots":[]`, `"writable_roots":["out"]`, 1),
+	} {
+		if team == teamJSON {
+			t.Fatalf("%s: the fixture did not change", name)
+		}
+		root, _ := filepath.EvalSymlinks(t.TempDir())
+		writeTree(t, root, map[string]string{
+			"roles/builder/role.md":      "---\nname: builder\ndescription: builds\n---\nYou build.\n",
+			"roles/builder/agents.md":    "Be careful.\n",
+			"teams/math/team.json":       teamJSON,
+			"teams/math/instructions.md": "Teach.\n",
+		})
+		files, _ := ConfigFiles(root)
+		hash := ""
+		for _, f := range files {
+			if f.Path == "teams/math/team.json" {
+				hash = f.Hash
+			}
+		}
+		if _, err := ApplyConfigEdits(root, []ConfigEdit{{Path: "teams/math/team.json", Content: team, ExpectedHash: hash}}, true); err == nil || !strings.Contains(err.Error(), "READ_ONLY") {
+			t.Fatalf("%s: want READ_ONLY, got %v", name, err)
+		}
+	}
+}

@@ -525,3 +525,122 @@ func TestHeartbeatSaysWhenTheTeamRunIsUnderWay(t *testing.T) {
 		t.Fatal("a cancelled Run is still reported")
 	}
 }
+
+// P5 = A: a direct task that would write is refused; formal work hands results in.
+func TestFormalWorkIsReadOnly(t *testing.T) {
+	h := newHarness(t)
+	h.register("builder-bot", "builder", "bot-builder", "", "sess-1")
+	_, err := h.svc.CreateTask(h.ctx, h.op, CreateTask{RequestID: "w1", Target: "builder-bot", Goal: "write a page", WriteSet: []string{"out/page.html"}})
+	if e, ok := err.(*task.Error); !ok || e.Code != "READ_ONLY" {
+		t.Fatalf("want READ_ONLY, got %v", err)
+	}
+}
+
+// P6 = B: an attempt whose lease ran out is reconciled when its host reports the turn
+// ended; the task waits for a person and is retried without confirming a stop.
+func TestTheHostReconcilesAnExpiredAttempt(t *testing.T) {
+	h := newHarness(t)
+	builder := h.register("builder-bot", "builder", "bot-builder", "", "sess-1")
+	c, err := h.svc.CreateTask(h.ctx, h.op, CreateTask{RequestID: "t1", Target: "builder-bot", Goal: "long work"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	h.tick()
+	a := h.dispatched(builder)
+	for _, step := range []string{"adapter_received", "injection_requested", "input_observed"} {
+		a = h.must(h.event(builder, a, AttemptEvent{Type: step}))
+	}
+	past := time.Now().UTC().Add(-time.Minute)
+	if err := h.svc.Store.Transaction(h.ctx, func(tx *sql.Tx) error {
+		a, err := task.LoadAttempt(tx, a.ID)
+		if err != nil {
+			return err
+		}
+		a.LeaseExpiresAt = past
+		if err := task.SaveAttempt(tx, a); err != nil {
+			return err
+		}
+		_, err = tx.Exec(`UPDATE execution_leases SET expires_at=? WHERE attempt_id=?`, past.Format(time.RFC3339Nano), a.ID)
+		return err
+	}); err != nil {
+		t.Fatal(err)
+	}
+	h.tick()
+	a, _ = h.attemptOf(a.ID)
+	if a.Error != "lease_expired" || a.Cleanup == "released" {
+		t.Fatalf("the lease did not expire: %s %s", a.Error, a.Cleanup)
+	}
+	if _, err := h.event(builder, a, AttemptEvent{Type: "settled", Idle: false, Outcome: "aborted"}); err == nil {
+		t.Fatal("a busy host reconciled")
+	}
+	a = h.must(h.event(builder, a, AttemptEvent{Type: "settled", Idle: true, Outcome: "aborted"}))
+	if a.Cleanup != "released" || a.Error != "host_reconciled" || h.taskOf(c.ID).State != "needs_review" {
+		t.Fatalf("attempt %s %s task %s", a.Cleanup, a.Error, h.taskOf(c.ID).State)
+	}
+	// A person retries; no stop needs confirming.
+	if _, err := h.svc.Operate(h.ctx, h.op, "task", c.ID, "restart", Operation{RequestID: "r1", ExpectedRevision: h.taskOf(c.ID).Revision, Note: "again"}); err != nil {
+		t.Fatal(err)
+	}
+	if got := h.taskOf(c.ID); len(got.AttemptIDs) < 1 || got.State == "needs_review" {
+		t.Fatalf("not retried: %s", got.State)
+	}
+}
+
+// P6 = B after a host restart: the adapter interrupts, then proves the stop (the turn ran
+// in a process that is gone). The attempt is released; nothing is retried by itself, and
+// a person retries without confirming a stop.
+func TestAHostRestartIsReconciledButNotRetried(t *testing.T) {
+	h := newHarness(t)
+	builder := h.register("builder-bot", "builder", "bot-builder", "", "sess-1")
+	c, err := h.svc.CreateTask(h.ctx, h.op, CreateTask{RequestID: "r1", Target: "builder-bot", Goal: "page"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	h.tick()
+	a := h.startRunning(builder)
+	if err := h.svc.Interrupt(h.ctx, builder, Interruption{RequestID: "i1", Binding: builder.Binding, Reason: "host_restart"}); err != nil {
+		t.Fatal(err)
+	}
+	a, _ = h.attemptOf(a.ID)
+	evidence := StoppedEvidence{RequestID: "s1", ExpectedRevision: a.Revision, Segment: a.Segment, FencingToken: a.FencingToken, Binding: builder.Binding, Idle: true}
+	if _, err := h.svc.Stopped(h.ctx, h.op, a.ID, evidence); err == nil {
+		t.Fatal("the operator cannot send a runtime's stop evidence")
+	}
+	busy := evidence
+	busy.RequestID, busy.Pending = "s0", true
+	if _, err := h.svc.Stopped(h.ctx, builder, a.ID, busy); err == nil {
+		t.Fatal("pending work is no proof of a stop")
+	}
+	stale := evidence
+	stale.RequestID, stale.FencingToken = "s2", a.FencingToken+1
+	if _, err := h.svc.Stopped(h.ctx, builder, a.ID, stale); err == nil {
+		t.Fatal("evidence for another fence was taken")
+	}
+	got, err := h.svc.Stopped(h.ctx, builder, a.ID, evidence)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Cleanup != "released" {
+		t.Fatalf("cleanup %s", got.Cleanup)
+	}
+	// The same evidence again is answered from its record.
+	if again, err := h.svc.Stopped(h.ctx, builder, a.ID, evidence); err != nil || again.Revision != got.Revision {
+		t.Fatalf("replay: %v", err)
+	}
+	// Nothing is retried by itself.
+	h.tick()
+	h.tick()
+	current := h.taskOf(c.ID)
+	if current.State != "interrupted" || len(current.AttemptIDs) != 1 {
+		t.Fatalf("retried by itself: %s %d", current.State, len(current.AttemptIDs))
+	}
+	// A person retries; no stop needs confirming.
+	if _, err := h.svc.Operate(h.ctx, h.op, "task", c.ID, "restart", Operation{RequestID: "x1", ExpectedRevision: current.Revision, ExpectedRuntime: a.Target.RuntimeID, Note: "retry"}); err != nil {
+		t.Fatal(err)
+	}
+	h.tick()
+	second := h.startRunning(builder)
+	if second.ID == a.ID || second.RetryOf != a.ID {
+		t.Fatalf("restart made %s after %s", second.ID, a.ID)
+	}
+}

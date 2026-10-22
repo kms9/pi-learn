@@ -965,3 +965,9 @@ tags:
 - 来源: 评估文档 P3 决定；分支 `feat/dsh-v02`。
 - 更新: `dsh-squad up` 不带 `DEEPSEEK_API_KEY` 也能以真实模型启动（提示在页面填 key）；`probes/real-o6.mjs`；USAGE、使用指南第 3 节（新截图 27，输入框为空）。
 - 说明: 用的是 DSH 自带的「Enter a DeepSeek API key」，key 存在项目的 DSH 凭据库。真实模型验证：环境里没有 key，页面填入后 Chief 用 deepseek-flash、high 回答；全项目只有凭据文件含 key，测试后已删除；截图不含 key。
+
+## [2026-10-22] maintenance | Squad × DS Bot v0.2.0：O7 正式任务只读、自动对账（P5 = A，P6 = B）
+
+- 来源: 评估文档 P4/P5/P6 决定；分支 `feat/dsh-v02`。
+- 更新: Controller `project/config.go`（`write`/`edit`、非空 `writable_roots`、工作流步骤 `write_set` → `READ_ONLY`）、`scheduler/tasks.go`（建任务含子任务的 `write_set` → `READ_ONLY`）、`scheduler/execution.go`（租约过期后宿主上报 idle 的 settled → 释放、`host_reconciled`）；adapter 在 `host_restart` 中断后上报 `/stopped` 停止证据；client 原因文案；`probes/drive-m1.mjs` M1-restart 加对账与不自动重试检查；USAGE、使用指南、协议说明、评估文档计划表；Q49 关闭。
+- 说明: 两条对账路径都不自动重试，任务等人点「重试」，且不再要求确认已停止；`outcome_unknown`（宿主没重启）和宿主一直不回来时仍需人确认。P4（不支持桌面版）的文档已随 O5 提交。

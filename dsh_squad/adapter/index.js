@@ -141,6 +141,9 @@ export function apply(ctx, config = {}) {
     if (end === undefined) return
     if (end.kind === 'settled') enqueue({ kind: 'event', key: attempt.key, attemptId: attempt.attemptId, requestId: `settled-${attempt.attemptId}-${attempt.dispatch?.segment ?? 1}`, body: { type: 'settled', idle: true, pending: false, outcome: end.outcome } })
     else enqueue({ kind: 'interrupt', key: attempt.key, attemptId: attempt.attemptId, requestId: `interrupt-${attempt.attemptId}-${attempt.dispatch?.segment ?? 1}`, reason: end.reason })
+    // P6 = B: the turn ran in a process that is gone, so it has stopped; say so after the
+    // interruption, and the attempt is released. Nothing is retried: a person retries.
+    if (end.reason === 'host_restart') enqueue({ kind: 'stopped', key: attempt.key, attemptId: attempt.attemptId, requestId: `stopped-${attempt.attemptId}-${attempt.dispatch?.segment ?? 1}` })
   }
 
   // Events of one attempt go out one at a time: each carries the revision the last one
@@ -189,6 +192,11 @@ export function apply(ctx, config = {}) {
           await sendEvent(binding, attempt, report.requestId, report.body)
         } else if (report.kind === 'interrupt') {
           await client.interrupt(runtime, report.requestId, report.reason)
+        } else if (report.kind === 'stopped') {
+          const current = await client.call('GET', `/v2/attempts/${encodeURIComponent(report.attemptId)}`)
+          if (current.cleanup_state !== 'released' && ['interrupted', 'cancelled', 'needs_review'].includes(current.state)) {
+            await client.stopped(runtime, report.attemptId, { request_id: report.requestId, expected_revision: current.revision, segment_id: current.segment_id, fencing_token: current.fencing_token, binding: runtime.binding, idle: true, pending: false })
+          }
         } else if (report.kind === 'hold') {
           await client.hold(runtime, report.input)
         }

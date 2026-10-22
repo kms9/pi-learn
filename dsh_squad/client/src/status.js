@@ -24,6 +24,7 @@ export function reasonOf(code, detail = {}) {
     case 'outcome_unknown': return '没能确认这一步是否真正结束。'
     case 'controller_restart': return 'Squad 服务中途重启，这一步被暂停了。'
     case 'lease_expired': return '这一步很久没有回应（可能卡住或电脑休眠过）。'
+    case 'host_reconciled': return '这一步很久没有回应，宿主恢复后确认它已经停下了；点「重试」再做一次。'
     case 'session_changed': return '这个成员换了新的对话段，原来的工作停在一半。'
     case 'acceptance_failed':
     case 'acceptance_rejected': return `结果没有通过验收${detail.reason ? `：${detail.reason}` : '。'}`

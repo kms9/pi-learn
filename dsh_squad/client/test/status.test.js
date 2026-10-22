@@ -26,6 +26,14 @@ test('rule 3: an end nobody confirmed → failed, uncertain', () => {
   }
 })
 
+// P6 = B: the host confirmed the stop, so the end is certain; a person retries.
+test('rule 3: a reconciled end is failed but not uncertain', () => {
+  const s = statusOf(t({ state: 'needs_review' }), { attempts: [a({ state: 'needs_review', error: 'host_reconciled', cleanup_state: 'released' })] })
+  assert.equal(s.status, 'failed')
+  assert.notEqual(s.uncertain, true)
+  assert.match(s.reason, /重试/)
+})
+
 test('rule 4: failed, missing result, rejected, budget → failed with a reason', () => {
   const missing = statusOf(t({ state: 'needs_review' }), { attempts: [a({ state: 'needs_review', error: 'RESULT_MISSING', cleanup_state: 'released' })] })
   assert.equal(missing.status, 'failed')
@@ -54,7 +62,7 @@ test('rule 8: planned, queued, waiting on dependencies → not started', () => {
 })
 
 test('every reason code in §3.2 has words; an unknown one says so', () => {
-  for (const code of ['RESULT_MISSING', 'host_restart', 'outcome_unknown', 'controller_restart', 'lease_expired', 'session_changed', 'acceptance_failed', 'attempt_budget', 'GATE_NOT_READY', 'model_mismatch', 'dependency_interrupted', 'manual_interference']) {
+  for (const code of ['RESULT_MISSING', 'host_restart', 'outcome_unknown', 'controller_restart', 'lease_expired', 'session_changed', 'acceptance_failed', 'attempt_budget', 'GATE_NOT_READY', 'model_mismatch', 'dependency_interrupted', 'manual_interference', 'host_reconciled']) {
     assert.doesNotMatch(reasonOf(code), /出了点问题/, code)
   }
   assert.match(reasonOf('SOMETHING_NEW'), /出了点问题（SOMETHING_NEW）/)
