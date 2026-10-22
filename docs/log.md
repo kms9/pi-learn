@@ -953,3 +953,9 @@ tags:
 - 来源: 用户按推荐拍板 P1–P6；分支 `feat/dsh-v02`。
 - 更新: 评估文档「决策记录」；seam 补丁 v7（`updateBot` 改模型或档位前问 `retune`）、`dsh_squad/adapter`（心跳答复里的 `run_active`，Run 进行中拒绝 `retune`）、Controller（心跳答复 `run_active`）、`probes/drive-accept.mjs`（P1 端到端检查）、`dsh_squad/USAGE.md`、使用指南。
 - 说明: Go、adapter、ds-bot 补丁单测、check.sh 通过；mock 全量回归通过，其中 drive-m4、ui-p5 撞上机器休眠后单独重跑通过；drive-accept 三次各有一项 M1-10 检查因休眠（76～1268 秒）超时，休眠宽限都生效、任务醒来后完成，P1 检查每次都通过。
+
+## [2026-10-22] maintenance | Squad × DS Bot v0.2.0：O5 群里的提醒（P2 = C）
+
+- 来源: 评估文档 P2 决定；分支 `feat/dsh-v02`。
+- 更新: seam 补丁 v8（`postNotice`）、`dsh_squad/adapter`（`src/notices.js` 复用页面的 `summaryOf` 判断，Leader Bot 在小队群发提醒，已提醒的记在状态里）、Squad 页面（`?squad=` 链接打开并定位节点，DS Bot 里点击就地打开）、`dsh-squad up` 传网页地址 `DSH_SQUAD_WEB_URL`、`probes/ui-o5.mjs`、USAGE、使用指南（新截图 26）；USAGE 与指南同时写明不支持桌面版（P4）。
+- 说明: ui-o5 10/10；mock 全量回归通过，drive-m4、ui-p4 撞上机器休眠（96～771 秒）后单独重跑通过；其间一次 ui-p4 重跑 Chrome 启动超时、一次宿主启动时插件上下文失效（未复现，原因未查明）。

@@ -550,7 +550,7 @@ function MiniTree({ snapshot, runId }) {
   );
 }
 function HeldList({ team }) {
-  const [open2, setOpen] = (0, import_react2.useState)(false);
+  const [open3, setOpen] = (0, import_react2.useState)(false);
   if (team.held.length === 0) return null;
   const dispose = async (row, disposition, extra = {}) => {
     try {
@@ -572,8 +572,8 @@ function HeldList({ team }) {
     (0, import_react2.createElement)("button", { className: "sq-link", onClick: (event) => {
       event.stopPropagation();
       setOpen((value) => !value);
-    } }, `${team.held.length} 条消息没交给任何任务 ${open2 ? "▴" : "▾"}`),
-    open2 ? team.held.map((row) => (0, import_react2.createElement)(
+    } }, `${team.held.length} 条消息没交给任何任务 ${open3 ? "▴" : "▾"}`),
+    open3 ? team.held.map((row) => (0, import_react2.createElement)(
       "div",
       { key: row.input_id, className: "sq-held-row", onClick: (event) => event.stopPropagation() },
       (0, import_react2.createElement)("div", null, `“${String(row.text).slice(0, 60)}”`),
@@ -655,7 +655,7 @@ function TeamSwitcher() {
   );
 }
 function StartPanel() {
-  const open2 = useStore((state) => state.startOpen);
+  const open3 = useStore((state) => state.startOpen);
   const snapshot = useStore((state) => state.projection.snapshot);
   const { scope } = useScope();
   const bound = useStore((state) => state.teams);
@@ -666,7 +666,7 @@ function StartPanel() {
   const [busy, setBusy] = (0, import_react2.useState)(false);
   const chosen = teamId ?? scope ?? teams[0]?.team_id ?? "";
   const empty = chosen !== "" && scope !== null && !(snapshot?.views?.runs ?? []).some((run) => run.team_id === chosen);
-  if (!open2 && !empty) return null;
+  if (!open3 && !empty) return null;
   const team = (snapshot?.views?.teams ?? []).find((candidate) => candidate.config.team_id === chosen);
   const workflows = Object.keys(team?.workflows ?? {});
   const close2 = () => store.set((state) => ({ ...state, startOpen: false }));
@@ -687,7 +687,7 @@ function StartPanel() {
   return (0, import_react2.createElement)(
     "aside",
     { className: "sq-start", role: "dialog", "aria-label": "开始一个小队任务" },
-    (0, import_react2.createElement)("div", { className: "sq-row" }, (0, import_react2.createElement)("strong", { style: { flex: 1 } }, "开始一个小队任务"), open2 ? (0, import_react2.createElement)("button", { className: "sq-x", "aria-label": "关闭", onClick: close2 }, "×") : null),
+    (0, import_react2.createElement)("div", { className: "sq-row" }, (0, import_react2.createElement)("strong", { style: { flex: 1 } }, "开始一个小队任务"), open3 ? (0, import_react2.createElement)("button", { className: "sq-x", "aria-label": "关闭", onClick: close2 }, "×") : null),
     (0, import_react2.createElement)("label", null, "小队", (0, import_react2.createElement)("select", { className: "sq-select", value: chosen, onChange: (event) => setTeam(event.target.value) }, teams.map((t) => (0, import_react2.createElement)("option", { key: t.team_id, value: t.team_id }, t.team_id)))),
     bound[chosen] ? null : (0, import_react2.createElement)("div", { className: "sq-muted" }, `还没绑定到群：会自动建群「${chosen} 小队」并把成员拉进去。`),
     workflows.length > 0 ? (0, import_react2.createElement)("label", null, "流程", (0, import_react2.createElement)(
@@ -713,7 +713,7 @@ function jumpTo(item) {
   store.set((state) => ({ ...state, open: true, tab: "runs", runId: item.runId, teamScope: item.teamId ?? state.teamScope, focus: { taskId: item.taskId, runId: item.runId, at: Date.now() } }));
 }
 function Pill({ kind, items, label }) {
-  const [open2, setOpen] = (0, import_react3.useState)(false);
+  const [open3, setOpen] = (0, import_react3.useState)(false);
   const [flash, setFlash] = (0, import_react3.useState)(false);
   const count = (0, import_react3.useRef)(items.length);
   (0, import_react3.useEffect)(() => {
@@ -731,8 +731,8 @@ function Pill({ kind, items, label }) {
   return (0, import_react3.createElement)(
     "span",
     { style: { position: "relative" } },
-    (0, import_react3.createElement)("button", { className: "sq-pill", "data-s": kind, "data-flash": flash || void 0, "aria-expanded": open2, onClick: () => setOpen((value) => !value) }, `${items.length} 个${label} ▾`),
-    open2 ? (0, import_react3.createElement)(
+    (0, import_react3.createElement)("button", { className: "sq-pill", "data-s": kind, "data-flash": flash || void 0, "aria-expanded": open3, onClick: () => setOpen((value) => !value) }, `${items.length} 个${label} ▾`),
+    open3 ? (0, import_react3.createElement)(
       "div",
       { className: "sq-menu", role: "menu", onMouseLeave: () => setOpen(false) },
       groups.map((team) => [
@@ -831,9 +831,9 @@ function FailedTask({ node }) {
   const evidence = useStore((s) => s.projection.snapshot?.views?.evidence ?? []);
   const [step2, setStep] = (0, import_react4.useState)(null);
   const own = (task.attempt_ids ?? []).map((id) => attempts.find((attempt) => attempt.attempt_id === id)).filter(Boolean);
-  const open2 = own.filter((attempt) => attempt.cleanup_state !== "released");
+  const open3 = own.filter((attempt) => attempt.cleanup_state !== "released");
   const late = evidence.filter((row) => own.some((attempt) => attempt.attempt_id === row.attempt_id) && row.disposition === "rejected_late_or_stale");
-  const runtime = open2.at(-1)?.target?.runtime_id ?? own.at(-1)?.target?.runtime_id ?? "";
+  const runtime = open3.at(-1)?.target?.runtime_id ?? own.at(-1)?.target?.runtime_id ?? "";
   const restart = (confirm) => act("重试", "operate", { kind: "task", id: task.task_id, op: "restart", body: { request_id: requestId("restart"), expected_revision: task.revision, expected_runtime: runtime, note: "在 Squad 页面重试", confirm_stopped: confirm } });
   const adopt = (row) => act("采用这份结果", "operate", { kind: "task", id: task.task_id, op: "recover", body: { request_id: requestId("adopt"), expected_revision: task.revision, evidence: `evidence:${row.seq}`, note: "在 Squad 页面采用迟到的结果" } });
   return (0, import_react4.createElement)(
@@ -855,9 +855,9 @@ function FailedTask({ node }) {
       "div",
       { className: "sq-row sq-pop-main" },
       (0, import_react4.createElement)("button", { className: "sq-btn", onClick: () => setStep("ignore") }, "忽略"),
-      (0, import_react4.createElement)("button", { className: "sq-btn", "data-kind": "primary", onClick: () => open2.length > 0 ? setStep("confirm") : restart(false) }, "重试")
+      (0, import_react4.createElement)("button", { className: "sq-btn", "data-kind": "primary", onClick: () => open3.length > 0 ? setStep("confirm") : restart(false) }, "重试")
     ),
-    late.length > 0 && step2 === null ? (0, import_react4.createElement)("div", { className: "sq-pop-extra" }, `它在中断后交了一份结果。`, open2.length === 0 ? (0, import_react4.createElement)("button", { className: "sq-link", onClick: () => adopt(late.at(-1)) }, "采用这份结果") : (0, import_react4.createElement)("span", { className: "sq-muted" }, "（确认停止后可以采用）")) : null
+    late.length > 0 && step2 === null ? (0, import_react4.createElement)("div", { className: "sq-pop-extra" }, `它在中断后交了一份结果。`, open3.length === 0 ? (0, import_react4.createElement)("button", { className: "sq-link", onClick: () => adopt(late.at(-1)) }, "采用这份结果") : (0, import_react4.createElement)("span", { className: "sq-muted" }, "（确认停止后可以采用）")) : null
   );
 }
 function FailedRun({ run, state }) {
@@ -1152,18 +1152,18 @@ function RunCanvas({ runId }) {
   const toggleRef = (0, import_react5.useRef)((id) => setOverrides((current) => ({ ...current, [id]: !foldedRef.current.has(id) })));
   const auto = (0, import_react5.useMemo)(() => tree ? autoFolded(tree.root) : /* @__PURE__ */ new Set(), [tree]);
   const forcedOpen = (0, import_react5.useMemo)(() => {
-    const open2 = /* @__PURE__ */ new Set();
-    if (!tree || !focus?.taskId) return open2;
+    const open3 = /* @__PURE__ */ new Set();
+    if (!tree || !focus?.taskId) return open3;
     const target = [...tree.nodes.values()].find((node2) => node2.task?.task_id === focus.taskId && !node2.children.some((child) => child.task?.task_id === focus.taskId));
     const walk = (node2, path) => {
       if (node2 === target) {
-        for (const id of path) open2.add(id);
+        for (const id of path) open3.add(id);
         return true;
       }
       return node2.children.some((child) => walk(child, [...path, node2.id]));
     };
     if (target) walk(tree.root, []);
-    return open2;
+    return open3;
   }, [tree, focus?.at]);
   const folded = (0, import_react5.useMemo)(() => new Set([...auto, ...Object.entries(overrides).filter(([, value]) => value).map(([id]) => id)].filter((id) => overrides[id] !== false && !forcedOpen.has(id))), [auto, overrides, forcedOpen]);
   const placed = (0, import_react5.useMemo)(() => tree ? layout(tree.root, folded) : null, [tree, folded]);
@@ -2081,11 +2081,52 @@ function installStyles() {
   return () => style.remove();
 }
 
+// src/link-model.js
+function parseSquadLink(search) {
+  const value = new URLSearchParams(search ?? "").get("squad");
+  if (!value) return void 0;
+  const [teamId, runId, taskId] = value.split(":");
+  if (!teamId || !runId) return void 0;
+  return { teamId, runId, taskId: taskId || null };
+}
+
+// src/link.js
+function open2(target) {
+  store.set((state) => ({ ...state, open: true, tab: "runs", teamScope: target.teamId, runId: target.runId, focus: { taskId: target.taskId, runId: target.runId, at: Date.now() } }));
+}
+function followLinks() {
+  const first = parseSquadLink(window.location.search);
+  if (first !== void 0) {
+    open2(first);
+    const url = new URL(window.location.href);
+    url.searchParams.delete("squad");
+    window.history.replaceState(window.history.state, "", url);
+  }
+  const onClick = (event) => {
+    const anchor = event.target?.closest?.("a[href]");
+    if (!anchor) return;
+    let url;
+    try {
+      url = new URL(anchor.getAttribute("href"), window.location.href);
+    } catch {
+      return;
+    }
+    const target = url.pathname === "/" ? parseSquadLink(url.search) : void 0;
+    if (target === void 0) return;
+    event.preventDefault();
+    event.stopPropagation();
+    open2(target);
+  };
+  document.addEventListener("click", onClick, true);
+  return () => document.removeEventListener("click", onClick, true);
+}
+
 // src/index.js
 var inject = ["slots"];
 function apply(ctx) {
   ctx.effect(() => installStyles(), "squad: styles");
   ctx.effect(() => startFeed(), "squad: projection feed");
+  ctx.effect(() => followLinks(), "squad: links from the group");
   const fill = (name, options, component) => ctx.effect(() => ctx.slots.inject(name, () => ctx.slots.register({ name, ...options }, component)), `squad: ${name}`);
   fill("sidebar.footer.action", { id: "squad-open", order: -250 }, SquadButton);
   fill("shell.overlay", { id: "squad", order: 70 }, SquadOverlay);

@@ -75,6 +75,7 @@ dsh_squad/deploy/dsh-squad down ~/my-project
 - 所有数据都在项目目录的 `.dsh-squad/` 里：Bot、聊天记录、记忆、Controller 数据库、日志。停了再起，Bot、群、聊天历史和记忆都还在。
 - `provision` 可以重复执行，已有的 Bot 和群不会重复创建。
 - 只想看看界面、不想花模型费用时，可以加 `--mock` 用模拟模型（每次 `up` 都要带）。
+- **只支持网页版**：Squad 跑在用 `dsh-squad up` 启动的 DS Bot 网页版里。DS Bot v0.2.0 起有独立的桌面版（Windows / macOS），它自带 DeepSeek Harness 和自己的数据目录，不加载 Squad，现阶段不支持。
 
 ## 3. 配置 DeepSeek
 
@@ -201,6 +202,10 @@ key **不写进项目、不写进仓库**。约定放在 `~/.secrets/deepseek.en
 ![最后检查没通过](images/14-final-gate.png)
 
 **等你批准工具**：受控的 Bot 要用需要批准的工具时，点「允许一次」或「拒绝」。
+
+**群里的提醒**：不开 Squad 页面也不会错过。小队有事需要你处理或有步骤失败时，小队的 Leader 会在小队群里发一条提醒，列出是哪一步、为什么，每条后面有「打开 Squad 页面」链接，点开直接定位到那一步的处理框。提醒不会叫醒其他成员，同一件事只提醒一次。
+
+![小队群里的提醒（点链接打开 Squad 页面）](images/26-group-reminder.png)
 
 > 每个按钮都绑定卡片画出来时的版本。任务在你点之前已经变了（别人刚处理过、Bot 刚交了新版本），操作会被拒绝，等页面刷新后再看一眼再点，不会误操作到新版本上。
 

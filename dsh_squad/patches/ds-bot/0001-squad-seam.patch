@@ -168,10 +168,10 @@ index c2cca82..d659a78 100644
        // again as it is written.
 diff --git a/src/host/seam.js b/src/host/seam.js
 new file mode 100644
-index 0000000..24b2caf
+index 0000000..af479c0
 --- /dev/null
 +++ b/src/host/seam.js
-@@ -0,0 +1,98 @@
+@@ -0,0 +1,108 @@
 +// Squad seam: what a separate Squad gate plugin needs from DS Bot, and nothing more. DS
 +// Bot keeps working the same when no gate attaches.
 +//
@@ -191,6 +191,8 @@ index 0000000..24b2caf
 +//   its group and each member's group Session the way the web page would make them.
 +// - approvals / answerApproval: tool approvals a managed member waits on, answered from
 +//   the Squad view as from the group chat.
++// - postNotice(roomId, botId, text): a line in a group from one of its members that
++//   calls nobody (a member's quiet post), for reminders the user reads there.
 +// - folderOf / teamFolder: where a Session works and where the team workspace is (DS Bot
 +//   0.2.0 lets the user move it, and a group may have its own folder), so the gate
 +//   keeps a formal task's file tools to the folders DS Bot itself would use.
@@ -198,7 +200,7 @@ index 0000000..24b2caf
 +import { createUserMessage } from '@deepseek-ai/dsh-llm'
 +import { defineTool } from '@deepseek-ai/dsh-tools'
 +
-+export const SEAM_VERSION = 7
++export const SEAM_VERSION = 8
 +
 +export function install(rt) {
 +  const { ctx } = rt
@@ -262,6 +264,14 @@ index 0000000..24b2caf
 +      // A group that never had a round has no read marks yet; groupSessionFor clears one.
 +      room.seen ??= {}
 +      return (await rt.groupSessionFor(room, member))?.id
++    },
++    postNotice: async (roomId, botId, text) => {
++      const room = rt.roomOf(roomId)
++      const bot = rt.botOf(botId)
++      if (room === undefined || bot === undefined || !room.members.includes(botId)) return false
++      // No "@": a quiet member post that names nobody wakes no one.
++      await rt.postToRoom(room, bot, String(text).replaceAll('@', '＠'), { member: true, quiet: true })
++      return true
 +    },
 +    folderOf: session => rt.sessionFolder?.(session),
 +    teamFolder: () => rt.teamFolder?.(),
@@ -378,10 +388,10 @@ index 0000000..2f3d321
 +})
 diff --git a/test/squad-seam.test.js b/test/squad-seam.test.js
 new file mode 100644
-index 0000000..c0f306b
+index 0000000..7a8e34f
 --- /dev/null
 +++ b/test/squad-seam.test.js
-@@ -0,0 +1,73 @@
+@@ -0,0 +1,85 @@
 +import { test } from 'node:test'
 +import assert from 'node:assert/strict'
 +import { install } from '../src/host/seam.js'
@@ -402,7 +412,7 @@ index 0000000..c0f306b
 +
 +test('without a gate the seam changes nothing', async () => {
 +  const { rt, seam } = runtime()
-+  assert.equal(seam.version, 7)
++  assert.equal(seam.version, 8)
 +  assert.deepEqual(seam.approvals(), [])
 +  assert.equal(typeof seam.ensureGroupSession, 'function')
 +  assert.equal(typeof seam.defineTool, 'function')
@@ -454,4 +464,16 @@ index 0000000..c0f306b
 +  assert.equal(seam.folderOf({ id: 'grp-1' }), '/team/groups/math')
 +  assert.equal(seam.folderOf(undefined), undefined)
 +  assert.equal(seam.teamFolder(), '/team')
++})
++
++test('a notice goes into a group as a quiet post of one of its members', async () => {
++  const { rt, seam } = runtime()
++  const posted = []
++  rt.botOf = id => (id === 'bot-1' ? { id, name: 'Lead' } : undefined)
++  rt.roomOf = id => (id === 'room-1' ? { id, members: ['bot-1'] } : undefined)
++  rt.postToRoom = async (room, bot, text, extra) => { posted.push([room.id, bot.id, text, extra]) }
++  assert.equal(await seam.postNotice('room-1', 'bot-1', 'needs you @Builder'), true)
++  assert.deepEqual(posted, [['room-1', 'bot-1', 'needs you ＠Builder', { member: true, quiet: true }]])
++  assert.equal(await seam.postNotice('room-1', 'bot-2', 'x'), false, 'not a member')
++  assert.equal(await seam.postNotice('room-9', 'bot-1', 'x'), false, 'no such group')
 +})

@@ -33,6 +33,7 @@ import { createClient, discover } from './src/controller.js'
 import { endReport, nextReceipt, resultValue, reviewVerdict } from './src/reports.js'
 import { contextHash, taskSection } from './src/context.js'
 import { pathRefusal, refusal, TASK_TOOLS } from './src/toolset.js'
+import { noticesFor } from './src/notices.js'
 import { runStatus } from './src/run.js'
 
 export const name = 'dsh-squad-adapter'
@@ -48,6 +49,8 @@ const pinnedCandidates = task => (task.refs ?? []).map(ref => ({ task_id: ref.ta
 
 const TICK_MS = 1000
 const HEARTBEAT_MS = 5000
+// How often the Team groups are told what needs a person (P2 = C).
+const NOTICE_MS = 10_000
 const RENEW_MS = 8000
 
 export const bindingKey = owner => (owner === undefined || owner.botId === undefined || !['chat', 'group-member'].includes(owner.place)
@@ -1033,13 +1036,47 @@ export function apply(ctx, config = {}) {
     },
   }), 'squad-adapter: route')
 
+  // ---- Reminders in a Team's group (P2 = C) ------------------------------------------
+  // When the Controller moved on, read its snapshot, work out what needs a person or
+  // failed exactly as the Squad page does, and have each Team's Leader Bot post what is
+  // new in the Team's group, with links that open the page at the node. The post calls
+  // nobody; what was posted is remembered across restarts.
+  let noticing = false
+  let noticeCursor = -1
+  async function notice() {
+    if (noticing || connect() === undefined || typeof seam.postNotice !== 'function') return
+    noticing = true
+    try {
+      const page = await client.call('GET', `/v2/events?after=${Math.max(0, noticeCursor)}`)
+      const events = page?.events ?? []
+      if (noticeCursor >= 0 && events.length === 0) return
+      noticeCursor = Math.max(noticeCursor, 0, events.at(-1)?.seq ?? 0)
+      const snapshot = await client.snapshot()
+      const seen = new Set(state.noticed ?? [])
+      for (const post of noticesFor(snapshot, managedApprovals(), seen, process.env.DSH_SQUAD_WEB_URL ?? '')) {
+        const team = state.teams?.[post.teamId]
+        const lead = team?.members?.find(member => member.leader)
+        if (team === undefined || lead === undefined) continue
+        if (await seam.postNotice(team.roomId, lead.botId, post.text)) {
+          state.noticed = [...(state.noticed ?? []), ...post.keys].slice(-500)
+          save()
+          log('notice', { teamId: post.teamId, items: post.keys.length })
+        }
+      }
+    } finally {
+      noticing = false
+    }
+  }
+
   if (projectRoot !== undefined) {
     ctx.effect(() => {
       const timer = setInterval(() => void tick().catch(error => log('error', { where: 'tick', error: String(error) })), TICK_MS)
       const beats = setInterval(() => void beat().catch(error => log('error', { where: 'beat', error: String(error) })), HEARTBEAT_MS)
+      const notices = setInterval(() => void notice().catch(error => log('error', { where: 'notice', error: String(error) })), NOTICE_MS)
       timer.unref?.()
       beats.unref?.()
-      return () => { clearInterval(timer); clearInterval(beats) }
+      notices.unref?.()
+      return () => { clearInterval(timer); clearInterval(beats); clearInterval(notices) }
     }, 'squad-adapter: controller loop')
   }
   log('adapter/start', { dshHome, projectRoot: projectRoot ?? null, hostId, attempts: Object.keys(state.attempts).length, bindings: Object.keys(state.bindings).length })

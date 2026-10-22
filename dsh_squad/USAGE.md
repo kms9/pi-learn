@@ -15,6 +15,7 @@ dsh_squad/deploy/dsh-squad down ~/my-project
 ```
 
 - 一个项目目录 = 一个 DS Bot 宿主 + 一个 Controller（D4），每人自己部署，不做多租户。
+- 只支持 DSH 网页版加本仓库的部署；DS Bot v0.2.0 的桌面版自带 DSH 和独立数据目录，不加载 Squad 插件，现阶段不支持（评估文档 P4）。
 - `up` 第一次会安装钉住的 DSH、打补丁的 ds-bot 并编译 Controller（放在 `dsh_squad/.build/`）。项目里没有 `.agents/dshsquad/` 时写入默认小队（研究员、实现者、审查者，Team `default`）。
 - 数据在 `<项目>/.dsh-squad/`：`home/`（DS Bot 的 Bot、会话、记忆）、`controller/state.sqlite`、`logs/`、`run/`（pid）、`team.json`（预置的 Bot id）。Controller 的锁、discovery 和 operator 凭据仍在 `.agents/dshsquad/.runtime/`。
 - `--port N` 改网页端口（默认 3400）。`--mock` 每次 `up` 都要带；不带时需要 `DEEPSEEK_API_KEY`（可选 `DEEPSEEK_BASE_URL`，默认 `https://api.deepseek.com`），key 不会写到磁盘。
@@ -28,6 +29,8 @@ dsh_squad/deploy/dsh-squad down ~/my-project
 **汇总栏**（标签下面一行）：小队切换（「全部」+ 每个小队，超过 4 个变成下拉）、成员数、运行中的任务数、「N 个需要你处理」「N 个失败」两个下拉（按小队分组，点一项跳到那个节点，必要时切换小队）、排队中的小队在等谁。新出现的待处理项只让按钮闪一下，不会自己移动视图；你在看别的小队时某个小队开始了，这里多一行「小队 X 已开始 →」，点了才切换。
 
 **五种状态**：进行中（蓝）、完成（绿）、需要你处理（橙）、失败（红）、已停止（灰）；还没开始的是中性色。失败和需要你处理都写明原因（例如「宿主重启，执行结果不确定」「审核退回」）。
+
+**群里的提醒**（P2）：有步骤需要你处理或失败时，小队的 Leader Bot 在小队群里发一条提醒（「【Squad】小队 X 有 N 件事需要你处理」），每项带链接 `http://127.0.0.1:<端口>/?squad=<小队>:<Run>:<任务>`，点开 Squad 页面定位到该节点（在 DS Bot 里点击时就地打开，不刷新）。判断规则和页面的汇总栏完全一样；提醒是不点名的成员发言，不叫醒任何成员；同一件事只提醒一次（记在 adapter 状态里，重启后不重复）。链接用 `dsh-squad up` 时的地址；用别的主机名访问时，在 DS Bot 里点击仍然有效。
 
 **全部小队（总览）**：有两个及以上小队时默认显示。每个小队一张卡片：绑定的群、当前 Run 的目标、缩略树、各状态的任务数、排队原因（「等 reviewer，被小队 A 占用」，点后半句跳到 A）。卡片上的「⚙」打开这个小队的规则，点卡片进入这个小队的任务树。
 

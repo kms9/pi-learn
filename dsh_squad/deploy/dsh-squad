@@ -145,7 +145,7 @@ start_web() {
   fi
   printf '%s\n' "$PORT" > "$RUN/port"
   [ -f "$STATE/host.patch.yml" ] || printf '[]\n' > "$STATE/host.patch.yml"
-  (cd "$HOME_DIR" && DSH_HOME="$HOME_DIR" DSH_SQUAD_PROJECT="$PROJECT" DEEPSEEK_BASE_URL="$base" DEEPSEEK_API_KEY="$key" \
+  (cd "$HOME_DIR" && DSH_HOME="$HOME_DIR" DSH_SQUAD_PROJECT="$PROJECT" DSH_SQUAD_WEB_URL="http://127.0.0.1:$PORT" DEEPSEEK_BASE_URL="$base" DEEPSEEK_API_KEY="$key" \
     setsid "$DSH" --profile web --patch "$STATE/host.patch.yml" --no-open --port "$PORT" \
     </dev/null >"$STATE/logs/web.log" 2>&1 & echo $! >"$RUN/web.pid")
   wait_for 180 "the DS Bot host" grep -q "dsh web: http" "$STATE/logs/web.log"
