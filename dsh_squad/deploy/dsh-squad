@@ -16,7 +16,8 @@
 # submodule's ds-bot with the seam patch, built into dsh_squad/.build on first use.
 #
 # Model: --mock runs ds-bot's scripted mock behind probes/squad-mock.mjs (no key).
-# Otherwise the DeepSeek API: DEEPSEEK_API_KEY in the environment (never written down),
+# Otherwise the DeepSeek API: its key from DS Bot's settings page (DSH's credential store),
+# or DEEPSEEK_API_KEY in the environment (never written down by this script),
 # DEEPSEEK_BASE_URL optional (default https://api.deepseek.com).
 set -eu
 SQUAD="$(cd "$(dirname "$0")/.." && pwd)"
@@ -138,10 +139,12 @@ start_web() {
     base="http://127.0.0.1:$(cat "$RUN/mock-port")/v1"
     key=mock-key
   else
-    [ -n "${DEEPSEEK_API_KEY:-}" ] || { echo "the DeepSeek API needs DEEPSEEK_API_KEY in the environment (or use --mock)" >&2; exit 1; }
+    # The key comes from DS Bot's own settings page (stored in DSH's credential store
+    # under DEEPSEEK_API_KEY, P3) or, as before, from the environment; the store wins.
+    [ -n "${DEEPSEEK_API_KEY:-}" ] || echo "no DEEPSEEK_API_KEY in the environment: enter the DeepSeek key in the page (Enter a DeepSeek API key) after it opens" >&2
     base="${DEEPSEEK_BASE_URL:-https://api.deepseek.com}"
     base="${base%/}/anthropic"
-    key=$DEEPSEEK_API_KEY
+    key=${DEEPSEEK_API_KEY:-}
   fi
   printf '%s\n' "$PORT" > "$RUN/port"
   [ -f "$STATE/host.patch.yml" ] || printf '[]\n' > "$STATE/host.patch.yml"

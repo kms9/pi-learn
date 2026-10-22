@@ -959,3 +959,9 @@ tags:
 - 来源: 评估文档 P2 决定；分支 `feat/dsh-v02`。
 - 更新: seam 补丁 v8（`postNotice`）、`dsh_squad/adapter`（`src/notices.js` 复用页面的 `summaryOf` 判断，Leader Bot 在小队群发提醒，已提醒的记在状态里）、Squad 页面（`?squad=` 链接打开并定位节点，DS Bot 里点击就地打开）、`dsh-squad up` 传网页地址 `DSH_SQUAD_WEB_URL`、`probes/ui-o5.mjs`、USAGE、使用指南（新截图 26）；USAGE 与指南同时写明不支持桌面版（P4）。
 - 说明: ui-o5 10/10；mock 全量回归通过，drive-m4、ui-p4 撞上机器休眠（96～771 秒）后单独重跑通过；其间一次 ui-p4 重跑 Chrome 启动超时、一次宿主启动时插件上下文失效（未复现，原因未查明）。
+
+## [2026-10-22] maintenance | Squad × DS Bot v0.2.0：O6 在页面里填 key（P3 = B）
+
+- 来源: 评估文档 P3 决定；分支 `feat/dsh-v02`。
+- 更新: `dsh-squad up` 不带 `DEEPSEEK_API_KEY` 也能以真实模型启动（提示在页面填 key）；`probes/real-o6.mjs`；USAGE、使用指南第 3 节（新截图 27，输入框为空）。
+- 说明: 用的是 DSH 自带的「Enter a DeepSeek API key」，key 存在项目的 DSH 凭据库。真实模型验证：环境里没有 key，页面填入后 Chief 用 deepseek-flash、high 回答；全项目只有凭据文件含 key，测试后已删除；截图不含 key。

@@ -8,7 +8,8 @@ DS Bot（DSH 宿主）+ Squad Controller 的配置与启动。只写已经能用
 
 ```bash
 dsh_squad/deploy/dsh-squad up ~/my-project --mock      # 开发：脚本化 mock 模型，不需要 key
-DEEPSEEK_API_KEY=... dsh_squad/deploy/dsh-squad up ~/my-project   # 真实 DeepSeek API
+dsh_squad/deploy/dsh-squad up ~/my-project            # 真实 DeepSeek API：打开页面后在「Enter a DeepSeek API key」里填 key
+DEEPSEEK_API_KEY=... dsh_squad/deploy/dsh-squad up ~/my-project   # 或者从环境变量给 key
 dsh_squad/deploy/dsh-squad provision ~/my-project      # 预置 Chief、Researcher、Builder、Reviewer、群「小队群」、一条团队记忆
 dsh_squad/deploy/dsh-squad status ~/my-project         # 进程、Controller 地址、浏览器登录链接
 dsh_squad/deploy/dsh-squad down ~/my-project
@@ -18,7 +19,7 @@ dsh_squad/deploy/dsh-squad down ~/my-project
 - 只支持 DSH 网页版加本仓库的部署；DS Bot v0.2.0 的桌面版自带 DSH 和独立数据目录，不加载 Squad 插件，现阶段不支持（评估文档 P4）。
 - `up` 第一次会安装钉住的 DSH、打补丁的 ds-bot 并编译 Controller（放在 `dsh_squad/.build/`）。项目里没有 `.agents/dshsquad/` 时写入默认小队（研究员、实现者、审查者，Team `default`）。
 - 数据在 `<项目>/.dsh-squad/`：`home/`（DS Bot 的 Bot、会话、记忆）、`controller/state.sqlite`、`logs/`、`run/`（pid）、`team.json`（预置的 Bot id）。Controller 的锁、discovery 和 operator 凭据仍在 `.agents/dshsquad/.runtime/`。
-- `--port N` 改网页端口（默认 3400）。`--mock` 每次 `up` 都要带；不带时需要 `DEEPSEEK_API_KEY`（可选 `DEEPSEEK_BASE_URL`，默认 `https://api.deepseek.com`），key 不会写到磁盘。
+- `--port N` 改网页端口（默认 3400）。`--mock` 每次 `up` 都要带。不带 `--mock` 时用 DeepSeek API：key 可以在打开页面后填（DS Bot 首页「Enter a DeepSeek API key」，存进 DSH 自己的凭据库 `.dsh-squad/home/.credentials.yaml`，P3），也可以由环境变量 `DEEPSEEK_API_KEY` 给（脚本不写到磁盘）；两者都有时用凭据库里的。可选 `DEEPSEEK_BASE_URL`（默认 `https://api.deepseek.com`）。
 - `provision` 可重复执行，已有的 Bot 和群不会重复创建；所有 Bot 用 `deepseek-flash`、推理强度 high（D7）。
 - 这时所有 Bot 都是 Free 模式：正常私聊、群聊、`@Bot`、记忆，Adapter 不接管任何会话。让某个 Bot 受控见第 5 节。
 

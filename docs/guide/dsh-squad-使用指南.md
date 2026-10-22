@@ -79,9 +79,13 @@ dsh_squad/deploy/dsh-squad down ~/my-project
 
 ## 3. 配置 DeepSeek
 
-Squad 只用一个模型：DeepSeek `deepseek-flash`，开思考、推理强度 `high`。预置的 Bot 和小队自动新建的 Bot 都用它。
+Squad 只用一个模型：DeepSeek `deepseek-flash`，开思考、推理强度 `high`。预置的 Bot 和小队自动新建的 Bot 都用它。key 有两种给法，任选其一。
 
-key **不写进项目、不写进仓库**。约定放在 `~/.secrets/deepseek.env`（权限 600），由启动命令所在的 shell 读入环境变量：
+**在页面里填（推荐给不写代码的使用者）**：不带 key 直接 `dsh-squad up`，打开页面后，Chief 会提示还没有模型，点「Enter a DeepSeek API key」，在弹出的框里粘贴 key，点「Save and continue」。key 由 DeepSeek Harness 存在这个项目自己的凭据库里（`.dsh-squad/home/.credentials.yaml`），输入框是遮住的，不会出现在页面、日志或 Squad 里。之后再执行一次 `dsh-squad provision`，预置的小队就用 `deepseek-flash`、high 开始工作。
+
+![在页面里填 DeepSeek key（输入框为空时的样子）](images/27-key-dialog.png)
+
+**从文件读（开发和测试用）**：把 key 放在 `~/.secrets/deepseek.env`（权限 600），由启动命令所在的 shell 读入环境变量：
 
 ```bash
 # ~/.secrets/deepseek.env 的内容形如（这里只是变量名，值换成你自己的）
@@ -91,8 +95,7 @@ key **不写进项目、不写进仓库**。约定放在 `~/.secrets/deepseek.en
 ( set -a; . ~/.secrets/deepseek.env; set +a; dsh_squad/deploy/dsh-squad up ~/my-project )
 ```
 
-- 启动脚本只从环境变量 `DEEPSEEK_API_KEY` 读 key，交给 DS Bot 进程，不会写到磁盘、日志或页面上。
-- 不带 key 又不带 `--mock` 时，`up` 会直接提示缺少 key 并退出。
+- 启动脚本只把环境变量里的 key 交给 DS Bot 进程，不写到磁盘、日志或页面上。两种都有时，用页面里填的那个。
 - 受控任务里 Bot 的模型和思考档位会被「冻结」：小队有任务进行时改不了；万一绕过页面改了，正式任务也会在发请求前被拒，不会悄悄换模型继续做。
 
 ## 4. 打开 Squad 页面
@@ -280,7 +283,7 @@ Run 进行中，在 Run 标题下面的输入框写一句话发给 Leader（例�
 |---|---|
 | 打开页面黄条写「还没连上 Squad Controller」 | Controller 没起来。在机器上运行 `dsh-squad status <项目>` 看进程，再 `dsh-squad up <项目>`。 |
 | 黄条写「有 N 个成员没能接上 Controller」 | 黄条里写了原因。最常见的是改了小队说明或流程但版本没变：到「小队与规则」里保存一次，会自动升版本。 |
-| `up` 报缺少 `DEEPSEEK_API_KEY` | 没有读入 `~/.secrets/deepseek.env`，见第 3 节；或者加 `--mock` 先用模拟模型。 |
+| 打开页面后 Chief 说「还没有模型」 | 还没给 DeepSeek key：在页面上点「Enter a DeepSeek API key」填入（见第 3 节），或用 `--mock` 先用模拟模型。 |
 | 任务卡在「需要你处理」，写「基于旧版本」 | 见第 9 节：用新版本重做，或保留这一版。 |
 | 任务失败，原因是「DS Bot 中途重启」或「很久没有回应」 | 执行结果不确定，系统不会自动重来。点「重试」，确认上一次已经停下后再执行。 |
 | 取消了任务，但这个 Bot 迟迟不接新任务 | 取消不等于已停止：要等宿主报告这一轮真的结束才释放 Bot（通常几秒）。宿主离线时，在处理框里确认已停止。 |
