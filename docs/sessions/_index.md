@@ -3,12 +3,13 @@ title: 会话索引
 type: index
 status: active
 created: 2026-09-07
-updated: 2026-10-18
+updated: 2026-10-22
 tags:
   - project-wiki
 ---
 
 # 会话索引
+- [[2026-10-22-dsh-squad-v02-optimize|2026-10-22 Squad × DS Bot v0.2.0：评估与 O1–O7 优化]]
 - [[2026-10-20-dsh-squad-t-stage|2026-10-20 DS Bot + Squad T 阶段：统一测试与真实模型]]
 - [[2026-10-19-dsh-squad-ui-p1-p6|2026-10-19 Squad 界面 P1–P6：任务树、处理框、多小队与打磨]]
 - [[2026-10-19-dsh-m4-multi-team|2026-10-19 DS Bot + Squad M4：多小队协同与完整恢复]]

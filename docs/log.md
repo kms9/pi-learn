@@ -971,3 +971,9 @@ tags:
 - 来源: 评估文档 P4/P5/P6 决定；分支 `feat/dsh-v02`。
 - 更新: Controller `project/config.go`（`write`/`edit`、非空 `writable_roots`、工作流步骤 `write_set` → `READ_ONLY`）、`scheduler/tasks.go`（建任务含子任务的 `write_set` → `READ_ONLY`）、`scheduler/execution.go`（租约过期后宿主上报 idle 的 settled → 释放、`host_reconciled`）；adapter 在 `host_restart` 中断后上报 `/stopped` 停止证据；client 原因文案；`probes/drive-m1.mjs` M1-restart 加对账与不自动重试检查；USAGE、使用指南、协议说明、评估文档计划表；Q49 关闭。
 - 说明: 两条对账路径都不自动重试，任务等人点「重试」，且不再要求确认已停止；`outcome_unknown`（宿主没重启）和宿主一直不回来时仍需人确认。P4（不支持桌面版）的文档已随 O5 提交。
+
+## [2026-10-22] session | Squad × DS Bot v0.2.0：阶段总结
+
+- 来源: 本阶段 O1–O7 提交 `a44c40f`…`b0fbdd8`。
+- 更新: `docs/sessions/2026-10-22-dsh-squad-v02-optimize.md`、`docs/index.md`、`docs/sessions/_index.md`。
+- 说明: P1–P6 均已落地；暂缓项（调度只读未结束数据、扣留消息读群日志、头像、P2 的 B）记在会话页。

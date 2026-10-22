@@ -74,10 +74,11 @@ tags:
 - [[decisions/2026-09-23-p0-identity-fields|2026-09-23 P0 身份字段与 HTTP Registry]]
 
 ## 会话
-- `docs/dsh-squad-v0.2-assessment-2026-10-21.md` — DS Bot v0.2.0 对 Squad 的影响评估：可改用原生的、需拦截适配的、可借来增强的；优化计划 O1–O6；产品决定 P1–P4。
+- `docs/dsh-squad-v0.2-assessment-2026-10-21.md` — DS Bot v0.2.0 对 Squad 的影响评估：可改用原生的、需拦截适配的、可借来增强的；优化计划 O1–O7（已完成）；产品决定 P1–P6（已拍板）。
 - [[guide/dsh-squad-使用指南|DS Bot + Squad 使用指南]] — 面向非开发用户，按使用流程：部署、配置 DeepSeek、小队与规则、开始任务、任务树、处理节点、返工、补充指导、多小队、成果与实验报告、故障排查；配 T 阶段测试截图。
 - `docs/dsh-squad-ui-plan-2026-10-19.md` — 2026-10-19 Squad 界面与交互规划（任务树画布、五种状态映射、汇总栏、处理框、返工与重试历史、多小队总览、深浅主题、Controller/adapter 新增数据、P1–P6 与 mock 验收）；D1–D7 已拍板，P1–P6 已实现（D7：并行兄弟节点过多时换行）。
 - `docs/dsh-squad-dev-plan-2026-10-18.md` — 2026-10-18 M0→M4 开发规划：工作包、关键路径、决策点 D1–D12、与 ACCEPTANCE 28 项的对应（D1–D12 已于 2026-10-19 拍板）。
+- [[sessions/2026-10-22-dsh-squad-v02-optimize|2026-10-22 Squad × DS Bot v0.2.0：评估与 O1–O7 优化]] — P1–P6 拍板；只读、自动对账、群提醒、页面填 key；mock 全量回归。
 - [[sessions/2026-10-20-dsh-squad-t-stage|2026-10-20 DS Bot + Squad T 阶段：统一测试与真实模型]] — mock 全量回归与 28 项结果、deepseek-flash 真实模型端到端（数学课件、多小队、UI）、8 个修复、测试机挂起的影响、Q48/Q49。
 - [[sessions/2026-10-19-dsh-squad-ui-p1-p6|2026-10-19 Squad 界面 P1–P6：任务树、处理框、多小队与打磨]] — 以 Leader 为根的任务树、五种状态与汇总栏、处理框、重试与返工历史、Q41 一键重做、多小队总览与切换、键盘与断线提示；ui-p1…p6 在 mock 上验收。
 - [[sessions/2026-10-19-dsh-m4-multi-team|2026-10-19 DS Bot + Squad M4：多小队协同与完整恢复]] — 共用角色、子任务续接、崩溃恢复；drive-m4 13/13，M0–M4 全量 mock 回归通过。
