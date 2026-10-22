@@ -121,7 +121,7 @@ try {
     }, 30_000, 500)
     act('registered', { agents: (online ?? []).map(agent => ({ id: agent.binding.agent_id, host: agent.host, epoch: agent.binding.binding_epoch })) })
     return [expect(online, 'Builder and Reviewer did not come online at the Controller'),
-      expect(online?.every(agent => agent.host?.profile === 'dsh/0.2.1-rc.2+ds-bot/e13bc34' && agent.host?.place === 'chat'), 'host binding missing')].filter(Boolean)
+      expect(online?.every(agent => agent.host?.profile === 'dsh/0.2.1-rc.2+ds-bot/ae63b45' && agent.host?.place === 'chat'), 'host binding missing')].filter(Boolean)
   })
 
   await scenario('M1-formal', 'DSH-M1-01: a formal Task runs from dispatch to settled with the full receipt chain', async (act) => {

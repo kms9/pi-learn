@@ -1,6 +1,6 @@
 # Controller 开发规范（DSH Squad）
 
-本目录是 DSH Squad 的 Go 控制面。2026-10-19 决策 D1：从 `pi_squad/controller` 复制过来后独立演进，不与 `pi_squad` 共用；`pi_squad` 不再维护。唯一支持的宿主是 `dsh/0.2.1-rc.2+ds-bot/e13bc34`（`project.HostProfile`，D9）。
+本目录是 DSH Squad 的 Go 控制面。2026-10-19 决策 D1：从 `pi_squad/controller` 复制过来后独立演进，不与 `pi_squad` 共用；`pi_squad` 不再维护。唯一支持的宿主是 `dsh/0.2.1-rc.2+ds-bot/ae63b45`（`project.HostProfile`，D9）。
 
 Gin、Resty、Viper、Cobra、Bubble Tea 只允许出现在本目录。Adapter（`dsh_squad/adapter`）和客户端插件是 JavaScript，不引入这些库。
 

@@ -2,7 +2,7 @@
 
 DS Bot（DSH 宿主）+ Squad Controller 的配置与启动。只写已经能用的功能；进度见 `docs/dsh-squad-dev-plan-2026-10-18.md`。已完成 **M1（DSH Adapter）**、**M0（一键启动与预置团队）**、**M2（单 Team 交付）**、**M3（界面与对照实验）**、**M4（多小队协同与完整恢复）**：按项目目录一条命令启动 DS Bot + Controller；在 DS Bot 页面里建小队、定规则、开始 Run、看进度和成果、处理审核与恢复；多个小队可以共用角色；子任务与暂停续接；崩溃后的恢复；对照实验工具。T 阶段统一测试已在 mock 和 DeepSeek `deepseek-flash` 上完成（结果见 `dsh_squad_case/ACCEPTANCE.md`）。面向非开发用户的使用指南：`docs/guide/dsh-squad-使用指南.md`。
 
-固定版本（D9）：DSH `0.2.1-rc.2`，ds-bot `e13bc34` 加 `patches/ds-bot/0001-squad-seam.patch`。
+固定版本（D9）：DSH `0.2.1-rc.2`，ds-bot `v0.2.0`（`ae63b45`，2026-10-21 从 `e13bc34` 升级）加 `patches/ds-bot/0001-squad-seam.patch`（seam v5）。
 
 ## 0. 最快上手：一个项目目录一条命令
 

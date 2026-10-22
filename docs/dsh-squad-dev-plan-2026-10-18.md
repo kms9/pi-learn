@@ -36,7 +36,7 @@ tags:
 | D6 | **产品目标是非开发用户能完整使用 Squad**：能设定规则（Team/Workflow/Role）、启动小队、在界面看到进度、支持多个 Team。非开发用户试用放到 Squad 功能完成之后 | 新增 M3-4「规则配置与小队启动界面」；试用移到 T 阶段末尾 |
 | D7 | 开发阶段全部用 mock；全部开发完成后才做真实测试，**只接 DeepSeek API（`https://api.deepseek.com`）的 `deepseek-flash`（thinking enabled，`reasoning_effort` high）**。不再要求两家 Provider，相关验收按单模型调整并注明。key 届时由用户提供 | M0-3 预置团队只用一个模型；ACCEPTANCE DSH-M0-02 改为单模型路由与冻结检查；M3-3 对照实验固定单模型 |
 | D8 | Artifact 存储取最简单可行方案：Controller 的 hash 目录。用户关注产品能力，不关注过程产出物本身，不多投入 | M2-3 用 `<runtime>/artifacts/sha256/<hash>`，不做 DSH attachments 集成 |
-| D9 | 固定 DSH 0.2.1-rc.2、DS Bot `e13bc34`；以后定期评估上游最新版本，没有破坏性更新就不升级 | 风险 4 降级；不安排「T 前升级一次」 |
+| D9 | 固定 DSH 0.2.1-rc.2、DS Bot `e13bc34`；以后定期评估上游最新版本，没有破坏性更新就不升级。2026-10-21 按用户要求升级 DS Bot 到 v0.2.0（`ae63b45`），DSH 仍为 0.2.1-rc.2，seam 补丁迁移到 v5 | 风险 4 降级；不安排「T 前升级一次」 |
 | D10 | 里程碑结束用 mock 自动化测试回归；真实模型测试在全部开发完成后进行 | 新增 X-4「里程碑 mock 回归」：每个里程碑末跑 `drive-p1.mjs` 等现有驱动，并保持它们随代码演进可运行 |
 | D11 | 沿用数学知识点课件案例 | M2-5 不变 |
 | D12 | 正式 Run 开始时 Memory 快照只读；对照实验每组用全新 Team | M2-1 做快照只读视图；M3-3 每组新建 Team |

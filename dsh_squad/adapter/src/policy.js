@@ -12,6 +12,9 @@ export function wakeOf(source) {
   if (source === undefined || source === null) return 'unknown'
   if (source.kind === 'squad') return 'squad'
   if (source.kind === 'user') return 'user'
+  // The user answering an ask_user question or a show_view card (DS Bot 0.2.0) is the
+  // user speaking, not harness steering: it never enters a formal attempt unadmitted.
+  if (source.kind === 'user-question-reply') return 'user-answer'
   if (source.kind === 'schedule') return 'schedule'
   if (source.kind === 'bot') {
     if (source.resumed || source.resent || source.role === 'resume') return 'resume'

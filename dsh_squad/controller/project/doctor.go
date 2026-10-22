@@ -16,10 +16,10 @@ import (
 // The only host this Controller schedules on: the pinned DSH release running the
 // pinned ds-bot with the Squad seam patch (2026-10-19 D1, D9).
 const (
-	HostProfile  = "dsh/0.2.1-rc.2+ds-bot/e13bc34"
+	HostProfile  = "dsh/0.2.1-rc.2+ds-bot/ae63b45"
 	DSHVersion   = "0.2.1-rc.2"
-	DSBotVersion = "0.1.7"
-	DSBotCommit  = "e13bc34"
+	DSBotVersion = "0.2.0"
+	DSBotCommit  = "ae63b45"
 )
 
 type CapabilityReport struct {

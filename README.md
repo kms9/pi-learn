@@ -127,7 +127,7 @@ pi-learn/
 └── scripts/                      # 子模块维护脚本
 ```
 
-`dsh_squad_dev` 源自 `pi_squad_dev@f1bb9f47baf92fb99626d8d20504c2787a0e3ac6`；`dsh-bot` 的 gitlink 固定到 `e13bc3419d2695a509520d850a07e63f05c34e07`，`main` 仅是跟踪配置。上游子模块为**只读证据**；需要修改其代码时，采用独立 Fork 或可审核扩展点，不直接改子模块工作区。
+`dsh_squad_dev` 源自 `pi_squad_dev@f1bb9f47baf92fb99626d8d20504c2787a0e3ac6`；`dsh-bot` 的 gitlink 固定到 `ae63b45c0d0e75b5f59fc3042b5043761ee41391`（v0.2.0，2026-10-21 从 `e13bc34` 升级），`main` 仅是跟踪配置。上游子模块为**只读证据**；需要修改其代码时，采用独立 Fork 或可审核扩展点，不直接改子模块工作区。
 
 ## 八、获取项目
 

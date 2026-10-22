@@ -1,6 +1,6 @@
 # DSH Squad Controller
 
-Go 控制面：Team、Run、Task、Attempt、DAG、Review、Acceptance、恢复与事件。开发约束在 [AGENTS.md](AGENTS.md)。2026-10-19 从 `pi_squad/controller` 迁来（D1），只支持宿主 `dsh/0.2.1-rc.2+ds-bot/e13bc34`，协议 `squad/3`（[契约](../protocol/README.md)）。
+Go 控制面：Team、Run、Task、Attempt、DAG、Review、Acceptance、恢复与事件。开发约束在 [AGENTS.md](AGENTS.md)。2026-10-19 从 `pi_squad/controller` 迁来（D1），只支持宿主 `dsh/0.2.1-rc.2+ds-bot/ae63b45`，协议 `squad/3`（[契约](../protocol/README.md)）。
 
 ## 运行
 

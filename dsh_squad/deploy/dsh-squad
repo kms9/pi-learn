@@ -76,7 +76,8 @@ ensure_stack() {
     printf '{ "name": "dsh-squad-harness", "private": true }\n' > "$HARNESS/package.json"
     npm install --prefix "$HARNESS" --no-fund --no-audit "@deepseek-ai/dsh@$DSH_VERSION" >/dev/null
   fi
-  if ! [ -f "$BUILD/ds-bot/src/host/seam.js" ]; then
+  # Built again whenever the dsh-bot submodule or a seam patch changed since the last build.
+  if ! [ -f "$BUILD/ds-bot/src/host/seam.js" ] || [ "$(cat "$BUILD/ds-bot/.squad-build" 2>/dev/null)" != "$("$SQUAD/scripts/prepare-ds-bot.sh" --stamp)" ]; then
     echo "building the patched ds-bot"
     "$SQUAD/scripts/prepare-ds-bot.sh" >/dev/null
   fi

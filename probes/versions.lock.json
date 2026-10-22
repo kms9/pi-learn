@@ -1,5 +1,5 @@
 {
-  "recorded": "2026-10-18",
+  "recorded": "2026-10-21",
   "dsh": {
     "repo": "https://github.com/deepseek-ai/deepseek-harness",
     "tag": "dsh-v0.2.1-rc.2",
@@ -10,10 +10,10 @@
   "dsBot": {
     "repo": "https://github.com/Fei2411/DeepSeek-Bot",
     "branch": "main",
-    "commit": "e13bc3419d2695a509520d850a07e63f05c34e07",
-    "packageVersion": "0.1.7",
-    "latestTag": "v0.1.7 (939a6635), ancestor of main",
-    "declaredDsh": "0.2.0-rc.2 (ds-bot/dev/harness/package.json on main)",
-    "overrideDsh": "0.2.1-rc.2 (upstream branch chore/dsh-0.2.1-rc.2 @5c6e116 makes the same move; not yet merged)"
+    "tag": "v0.2.0",
+    "commit": "ae63b45c0d0e75b5f59fc3042b5043761ee41391",
+    "packageVersion": "0.2.0",
+    "declaredDsh": "0.2.1-rc.2 (ds-bot/dev/harness/package.json at v0.2.0)",
+    "previous": "e13bc3419d2695a509520d850a07e63f05c34e07 (0.1.7, v0.1.7-4)"
   }
 }

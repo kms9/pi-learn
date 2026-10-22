@@ -38,7 +38,7 @@ export const name = 'dsh-squad-adapter'
 export const inject = ['dsBotSeam', 'sessions', 'connection', 'tools', 'systemPrompt']
 
 const ROUTE = '/api/squad-adapter'
-const HOST_PROFILE = 'dsh/0.2.1-rc.2+ds-bot/e13bc34'
+const HOST_PROFILE = 'dsh/0.2.1-rc.2+ds-bot/ae63b45'
 const CAPABILITIES = { input_gate: true, settle_judge: true, route_freeze: true, context_sections: true }
 const SETTLED = new Set(['settled_completed', 'settled_aborted', 'settled_blocked', 'settled_failed'])
 const ENDED = new Set([...SETTLED, 'outcome_unknown', 'superseded'])
@@ -551,11 +551,13 @@ export function apply(ctx, config = {}) {
   // The tool guard: no tool outside an admitted attempt in a managed Session, and inside
   // one only what its contract allows. Guards are monotonic, so no later listener can
   // turn a denial back into permission.
-  // Where a formal attempt's file tools may go: the Bot's own work directory when it has
-  // one (where relative paths start), DS Bot's workspace, and the project.
-  const readableRoots = (binding) => {
-    const workDir = seam.bots?.().find(bot => bot.id === binding?.botId)?.workDir
-    return [workDir, process.env.DSH_HOME ? join(process.env.DSH_HOME, 'bot', 'workspace') : undefined, projectRoot].filter(Boolean)
+  // Where a formal attempt's file tools may go: the folder the Session works in (where
+  // relative paths start; DS Bot 0.2.0 knows it, a group may have its own), the team
+  // workspace wherever the user moved it, and the project.
+  const readableRoots = (binding, session) => {
+    const workDir = seam.folderOf?.(session) ?? seam.bots?.().find(bot => bot.id === binding?.botId)?.workDir
+    const team = seam.teamFolder?.() ?? (process.env.DSH_HOME ? join(process.env.DSH_HOME, 'bot', 'workspace') : undefined)
+    return [workDir, team, projectRoot].filter(Boolean)
   }
   const realOf = (path) => { try { return realpathSync(path) } catch { return path } }
   ctx.tools.guard((exec) => {
@@ -563,7 +565,7 @@ export function apply(ctx, config = {}) {
     const { binding } = bindingOf(sessionId)
     const attempt = binding === undefined ? undefined : attemptOf(sessionId)
     const why = refusal(exec?.name, attempt, binding !== undefined)
-      ?? (attempt?.allowedTools === undefined ? undefined : pathRefusal(exec?.name, exec?.arguments, readableRoots(binding), realOf))
+      ?? (attempt?.allowedTools === undefined ? undefined : pathRefusal(exec?.name, exec?.arguments, readableRoots(binding, exec?.agent?.session), realOf))
     if (why !== undefined) log('tool-guard', { sessionId, tool: exec?.name, managed: binding !== undefined, why })
     return why
   })

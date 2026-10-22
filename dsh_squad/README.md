@@ -2,7 +2,7 @@
 
 把 Squad 的正式任务治理（Controller、DAG、Review、恢复）接到 DS Bot 上。规划与决策见 [`docs/dsh-squad-dev-plan-2026-10-18.md`](../docs/dsh-squad-dev-plan-2026-10-18.md)（D1–D12 于 2026-10-19 拍板）；配置与启动见 [USAGE.md](USAGE.md)。
 
-**上游代码不直接修改。** `dsh-bot/` 子模块钉在 `e13bc34`，DSH 用 npm `0.2.1-rc.2`（D9）。对 ds-bot 的全部改动在一个补丁里，只做 seam（归属 + 拦截，D2）；DSH 一行没改。
+**上游代码不直接修改。** `dsh-bot/` 子模块钉在 `ae63b45`（v0.2.0），DSH 用 npm `0.2.1-rc.2`（D9）。对 ds-bot 的全部改动在一个补丁里，只做 seam（归属 + 拦截，D2）；DSH 一行没改。
 
 | 路径 | 内容 |
 |---|---|

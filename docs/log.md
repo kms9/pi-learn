@@ -923,3 +923,9 @@ tags:
 - 来源: 用户同意开始 T 阶段并提供 DeepSeek key（只在 `~/.secrets/deepseek.env`）；分支 `feat/dsh-t`；mock 与 `deepseek-flash`（thinking、effort high）。
 - 更新: `dsh_squad_case/ACCEPTANCE.md`「T 阶段结果」、`dsh_squad/{adapter,controller,experiments}`（8 个修复）、`probes/{drive-accept,real-t,session-log,doc-shots}.mjs`、`dsh_squad/USAGE.md`、`docs/guide/dsh-squad-使用指南.md`（新，README 入口）、会话页 `docs/sessions/2026-10-20-dsh-squad-t-stage.md`、规划进度、Q48、Q49。
 - 说明: 最终代码上 mock 全量回归通过，mock 能覆盖的用例全部 PASS；真实模型下 Free 模式与路由、工具和路径限制、数学课件（审核退回、返工、复审、最终关卡、Leader 重做旧检查、预览隔离）、多小队（FIFO、共用审核、子任务续接）通过。修复：取消的停止证明、思考档位冻结、文件工具路径限制、决定遇冲突重试、新 Bot 继承路由、Leader 返工旧任务、审核引用的版本、扣留消息只留原话。M0-01 待真人试用；M3-03/04 PARTIAL（对照实验 C 组被测试机多次挂起打断，45/60 分钟挂起；没有价格表）。key 未进入仓库、日志、截图和提交。
+
+## [2026-10-21] maintenance | DS Bot 子模块升级到 v0.2.0
+
+- 来源: 用户要求；上游 tag `v0.2.0`（`ae63b45`），原来钉在 `e13bc34`（v0.1.7-4）。
+- 更新: `dsh-bot` gitlink、`dsh_squad/patches/ds-bot/0001-squad-seam.patch`（迁移到 v0.2.0，seam v5）、`dsh_squad/adapter`（问答与视图卡片答复按用户输入扣留；文件工具路径按 DS Bot 给出的会话目录和总工作区）、`dsh_squad/controller/project/doctor.go`（宿主 profile `dsh/0.2.1-rc.2+ds-bot/ae63b45`）、`dsh_squad/{deploy/dsh-squad,scripts/prepare-ds-bot.sh}`（子模块或补丁变了就重建）、版本号相关文档、`probes/versions.lock.json`。
+- 说明: DSH 仍为 0.2.1-rc.2。补丁只有 `index.js`、`roster.js` 两处上下文冲突，手工迁移；打补丁后 ds-bot 单测 836 项 834 通过 0 失败，`check.sh` 通过。按用户要求这次不跑 mock 回归。

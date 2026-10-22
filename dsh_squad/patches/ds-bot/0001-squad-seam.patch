@@ -1,5 +1,5 @@
 diff --git a/index.js b/index.js
-index 7ba683c..0c3843b 100644
+index 31a0a81..c032ab6 100644
 --- a/index.js
 +++ b/index.js
 @@ -4,6 +4,7 @@
@@ -8,19 +8,19 @@ index 7ba683c..0c3843b 100644
  import * as store from './src/host/store.js'
 +import * as seam from './src/host/seam.js'
  import * as models from './src/host/models.js'
+ import * as providers from './src/host/providers.js'
  import * as permissions from './src/host/permissions.js'
- import * as turns from './src/host/turns.js'
-@@ -41,7 +42,7 @@ export const inject = ['llm', 'tools', 'systemPrompt', 'sessionController', 'ses
+@@ -44,7 +45,7 @@ export const inject = ['llm', 'tools', 'systemPrompt', 'sessionController', 'ses
  // the functions other modules call; they call them through `rt` at run time, never during
  // install. Listeners run and tools are listed in registration order, so this order holds:
  // usage meters model requests after every listener that rewrites them.
--const MODULES = [diagnostics, store, models, permissions, turns, handoffs, delivery, roster, folders, agents, prompt, timeContext, tools, chatIndex, groups, approvals, resume, memory, parts, images, secrets, connectors, capabilities, schedules, browser, usage, update, dshUpdate, channel]
-+const MODULES = [diagnostics, store, seam, models, permissions, turns, handoffs, delivery, roster, folders, agents, prompt, timeContext, tools, chatIndex, groups, approvals, resume, memory, parts, images, secrets, connectors, capabilities, schedules, browser, usage, update, dshUpdate, channel]
+-const MODULES = [diagnostics, store, models, providers, permissions, turns, handoffs, delivery, roster, folders, agents, prompt, timeContext, tools, chatIndex, groups, approvals, resume, memory, parts, images, secrets, connectors, capabilities, schedules, browser, usage, update, dshUpdate, thinking, feed, channel]
++const MODULES = [diagnostics, store, seam, models, providers, permissions, turns, handoffs, delivery, roster, folders, agents, prompt, timeContext, tools, chatIndex, groups, approvals, resume, memory, parts, images, secrets, connectors, capabilities, schedules, browser, usage, update, dshUpdate, thinking, feed, channel]
  
  export function apply(ctx, config = {}) {
    createRuntime(ctx, config)
 diff --git a/src/host/groups.js b/src/host/groups.js
-index 57ec081..a17df18 100644
+index 4cb60fa..fe21813 100644
 --- a/src/host/groups.js
 +++ b/src/host/groups.js
 @@ -181,6 +181,9 @@ export function install(rt) {
@@ -43,10 +43,10 @@ index 57ec081..a17df18 100644
      // deleted, or another turn made the member's Session first: the new one is not kept.
      // Undefined means the member is gone from the group.
 diff --git a/src/host/parts.js b/src/host/parts.js
-index aedd77b..6b42fe4 100644
+index d7222f5..a3dfffc 100644
 --- a/src/host/parts.js
 +++ b/src/host/parts.js
-@@ -778,7 +778,7 @@ export function install(rt) {
+@@ -926,7 +926,7 @@ export function install(rt) {
      if (signal.aborted) throw signal.reason
      const dir = rt.workDirOf(job)
      const intended = dir !== undefined && await rt.isFolder(dir) ? dir : rt.teamFolder()
@@ -55,7 +55,7 @@ index aedd77b..6b42fe4 100644
      const picked = await freshRoute(bot, session)
      if (picked !== undefined) await selectRoute(bot, freshId, picked)
      await rt.applyPermission(bot, freshId, room)
-@@ -842,7 +842,8 @@ export function install(rt) {
+@@ -1013,7 +1013,8 @@ export function install(rt) {
    // Runs first: an earlier part hands its input on, a part past the hard line makes
    // room before the step (condensed in place, or it stops and goes on in a fresh
    // part), and the backend's own pre-step listener sees the wrapper.
@@ -65,7 +65,7 @@ index aedd77b..6b42fe4 100644
      await rt.load()
      const { agent } = payload
      const past = rt.pastOwners.get(agent.id)
-@@ -868,7 +869,7 @@ export function install(rt) {
+@@ -1039,7 +1040,7 @@ export function install(rt) {
      if (lines === undefined || tokens === undefined || tokens < lines.hard || !grown(agent.id, tokens, lines) || readOnly()) return next()
      if (await decide(agent, { midTurn: payload.step > 1 }) === 'compact' && await condense(agent, lines, { inTurn: true, signal: payload.signal })) return next()
      return switchBeforeStep(agent, payload, { hard: true })
@@ -75,7 +75,7 @@ index aedd77b..6b42fe4 100644
    // `messages` left the inbox for this step, so the switch carries them along.
    function switchBeforeStep(agent, payload, options) {
 diff --git a/src/host/resume.js b/src/host/resume.js
-index 11ba454..529d60a 100644
+index 27e5274..3698e3b 100644
 --- a/src/host/resume.js
 +++ b/src/host/resume.js
 @@ -230,10 +230,13 @@ export function install(rt) {
@@ -93,10 +93,10 @@ index 11ba454..529d60a 100644
      }
    }
 diff --git a/src/host/roster.js b/src/host/roster.js
-index 1475afe..ad5efb8 100644
+index c2cca82..4945119 100644
 --- a/src/host/roster.js
 +++ b/src/host/roster.js
-@@ -43,7 +43,9 @@ export function install(rt) {
+@@ -42,7 +42,9 @@ export function install(rt) {
  
    // `dir` is a working folder outside the team workspace. Such a Session is made by cwd
    // alone, so it joins no DSH workspace and the user's own project lists stay as they are.
@@ -107,7 +107,7 @@ index 1475afe..ad5efb8 100644
      // A Bot's tools run here too; while another dsh holds the team, a new Session would
      // belong to no saved Bot.
      const readOnly = rt.readOnly()
-@@ -51,7 +53,14 @@ export function install(rt) {
+@@ -50,7 +52,14 @@ export function install(rt) {
      const usable = dir !== undefined && await rt.isFolder(dir)
      if (dir !== undefined && !usable) rt.warn('ds-bot: the working folder %s is gone; %s starts in the team workspace', dir, title)
      const place = usable ? { cwd: dir } : { workspaceId: await ensureWorkspace() }
@@ -123,16 +123,16 @@ index 1475afe..ad5efb8 100644
      const agent = await rt.resolveAgent(sessionId)
      await ctx.sessionTitle.rename(agent.session, title)
      return sessionId
-@@ -110,7 +119,7 @@ export function install(rt) {
-     const modelRef = model ? await rt.resolveModel(model) : pickModel ? undefined : await rt.defaultModel()
-     const effortId = modelRef !== undefined && effort !== undefined ? await rt.resolveEffort(modelRef, effort) : undefined
+@@ -112,7 +121,7 @@ export function install(rt) {
+     if (effort !== undefined && effort !== '' && modelRef === undefined) throw new Error('Pick a model before choosing a thinking level')
+     const effortId = modelRef === undefined ? undefined : await rt.resolveEffort(modelRef, effort)
      const dir = workDir === undefined || workDir === null ? undefined : await rt.cleanWorkDir(workDir)
 -    const id = await createSession(cleanName, { dir })
 +    const id = await createSession(cleanName, { dir, owner: sessionId => ({ botId: sessionId, place: 'chat' }) })
      try {
        state.bots[id] = {
          id,
-@@ -332,7 +341,7 @@ export function install(rt) {
+@@ -345,7 +354,7 @@ export function install(rt) {
      const title = custom || autoRoomName(members)
      // The group's own Session only relays, so it stays in the team workspace; the
      // group's folder is for its members' Sessions.
@@ -143,10 +143,10 @@ index 1475afe..ad5efb8 100644
        // again as it is written.
 diff --git a/src/host/seam.js b/src/host/seam.js
 new file mode 100644
-index 0000000..1f036db
+index 0000000..7a2de3e
 --- /dev/null
 +++ b/src/host/seam.js
-@@ -0,0 +1,92 @@
+@@ -0,0 +1,97 @@
 +// Squad seam: what a separate Squad gate plugin needs from DS Bot, and nothing more. DS
 +// Bot keeps working the same when no gate attaches.
 +//
@@ -164,11 +164,14 @@ index 0000000..1f036db
 +//   its group and each member's group Session the way the web page would make them.
 +// - approvals / answerApproval: tool approvals a managed member waits on, answered from
 +//   the Squad view as from the group chat.
++// - folderOf / teamFolder: where a Session works and where the team workspace is (DS Bot
++//   0.2.0 lets the user move it, and a group may have its own folder), so the gate
++//   keeps a formal task's file tools to the folders DS Bot itself would use.
 +import { randomUUID } from 'node:crypto'
 +import { createUserMessage } from '@deepseek-ai/dsh-llm'
 +import { defineTool } from '@deepseek-ai/dsh-tools'
 +
-+export const SEAM_VERSION = 4
++export const SEAM_VERSION = 5
 +
 +export function install(rt) {
 +  const { ctx } = rt
@@ -234,6 +237,8 @@ index 0000000..1f036db
 +      room.seen ??= {}
 +      return (await rt.groupSessionFor(room, member))?.id
 +    },
++    folderOf: session => rt.sessionFolder?.(session),
++    teamFolder: () => rt.teamFolder?.(),
 +    ready: () => rt.load(),
 +  }
 +  ctx.provide?.('dsBotSeam', api)
@@ -241,10 +246,10 @@ index 0000000..1f036db
 +}
 diff --git a/test/squad-seam.test.js b/test/squad-seam.test.js
 new file mode 100644
-index 0000000..2ce9f10
+index 0000000..79f45a6
 --- /dev/null
 +++ b/test/squad-seam.test.js
-@@ -0,0 +1,63 @@
+@@ -0,0 +1,72 @@
 +import { test } from 'node:test'
 +import assert from 'node:assert/strict'
 +import { install } from '../src/host/seam.js'
@@ -265,7 +270,7 @@ index 0000000..2ce9f10
 +
 +test('without a gate the seam changes nothing', async () => {
 +  const { rt, seam } = runtime()
-+  assert.equal(seam.version, 4)
++  assert.equal(seam.version, 5)
 +  assert.deepEqual(seam.approvals(), [])
 +  assert.equal(typeof seam.ensureGroupSession, 'function')
 +  assert.equal(typeof seam.defineTool, 'function')
@@ -307,4 +312,13 @@ index 0000000..2ce9f10
 +  const message = seam.createMessage({ text: 'hi', source: { kind: 'squad', attemptId: 'a1', fence: 1 } })
 +  assert.equal(message.role, 'user')
 +  assert.deepEqual(message.source, { kind: 'squad', attemptId: 'a1', fence: 1 })
++})
++
++test('the folders a Session works in come from DS Bot', () => {
++  const { rt, seam } = runtime()
++  rt.sessionFolder = session => (session?.id === 'grp-1' ? '/team/groups/math' : undefined)
++  rt.teamFolder = () => '/team'
++  assert.equal(seam.folderOf({ id: 'grp-1' }), '/team/groups/math')
++  assert.equal(seam.folderOf(undefined), undefined)
++  assert.equal(seam.teamFolder(), '/team')
 +})

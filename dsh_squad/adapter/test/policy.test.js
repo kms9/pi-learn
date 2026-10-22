@@ -103,3 +103,12 @@ test('a held group message keeps what the user said, not the relay around it', a
   assert.equal(userWords('直接说的话'), '直接说的话')
   assert.equal(userWords('[Group chat "x" · your turn]\nno round here'), '[Group chat "x" · your turn]\nno round here')
 })
+
+test('an answer to a question or a view card is the user, held from a formal attempt', () => {
+  assert.equal(wakeOf({ kind: 'user-question-reply', callId: 'c1', outcome: 'answered' }), 'user-answer')
+  const binding = { fence: 1 }
+  const active = { attemptId: 'a1' }
+  const out = decideStep({ messages: [{ id: 'm1', source: { kind: 'user-question-reply', callId: 'c1' } }], step: 2 }, binding, active, new Map(), undefined)
+  assert.deepEqual(out.keep, [])
+  assert.deepEqual(out.hold.map(entry => entry.why), ['no_admission'])
+})
