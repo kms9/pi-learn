@@ -109,7 +109,7 @@ SQUAD=1 SQUAD_MOCK=1 DSH_SQUAD_PROJECT=/path/to/project probes/bench.sh <name> <
 | `botId` | DS Bot 的 Bot id |
 | `roomId` | 可选；给出时受控的是该 Bot 在这个群里的会话 |
 | `agentId`、`roleId` | 给出时这个（Bot, 位置）注册为 Controller runtime，从 Controller 拉取正式任务 |
-| `frozen` | 可选 `{provider, model, effort}`；路由不一致时拒绝，不静默回退。不带 `effort` 时，第一次正式请求用的思考档位会被记下，之后改了档位同样拒绝。`bind-team` 自动冻结成员 Bot 的模型和档位；需要新建的 Bot 沿用项目里已配置的模型和档位（如预置团队的 `deepseek-flash`、`high`） |
+| `frozen` | 可选 `{provider, model, effort}`；路由不一致时拒绝，不静默回退。不带 `effort` 时，第一次正式请求用的思考档位会被记下，之后改了档位同样拒绝。`bind-team` 自动冻结成员 Bot 的模型和档位；需要新建的 Bot 沿用项目里已配置的模型和档位（如预置团队的 `deepseek-flash`、`high`）。小队有 Run 进行时，改这些 Bot 的模型或档位（页面上或 Main Bot 的 `update_bot`）会被拒绝，提示等 Run 结束（P1，seam v7 的 `retune` 询问）；其他修改照常 |
 | `policy` | 可选 `{allowResume, allowSelfStart}`，默认都关 |
 
 `unmanage` 取消；`state` 查看绑定、attempt、被扣留的输入和待发报告。受控会话只运行 Controller 准入的任务：其它唤醒（用户、`@Bot`、`message_bot`、群消息、定时、重启续跑、切段自启）一律扣留，并上报给 Controller（快照视图 `held_inputs`）。

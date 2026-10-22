@@ -947,3 +947,9 @@ tags:
 - 来源: `docs/dsh-squad-v0.2-assessment-2026-10-21.md` 计划；分支 `feat/dsh-v02`。
 - 更新: Controller（心跳 `route`/`folder`、`Host.Folder`、无变化的心跳不写事件、新增 Go 用例）、adapter（心跳带冻结路由和会话目录）、Squad 页面（至少每 15 秒重读快照）、`dsh_squad/protocol/README.md`、评估文档计划表。
 - 说明: 调度只读未结束数据、扣留消息读群日志、头像形象暂缓（理由见评估文档）。
+
+## [2026-10-22] decision | Squad × DS Bot v0.2.0：P1–P6 拍板，O2 完成
+
+- 来源: 用户按推荐拍板 P1–P6；分支 `feat/dsh-v02`。
+- 更新: 评估文档「决策记录」；seam 补丁 v7（`updateBot` 改模型或档位前问 `retune`）、`dsh_squad/adapter`（心跳答复里的 `run_active`，Run 进行中拒绝 `retune`）、Controller（心跳答复 `run_active`）、`probes/drive-accept.mjs`（P1 端到端检查）、`dsh_squad/USAGE.md`、使用指南。
+- 说明: Go、adapter、ds-bot 补丁单测、check.sh 通过；mock 全量回归通过，其中 drive-m4、ui-p5 撞上机器休眠后单独重跑通过；drive-accept 三次各有一项 M1-10 检查因休眠（76～1268 秒）超时，休眠宽限都生效、任务醒来后完成，P1 检查每次都通过。

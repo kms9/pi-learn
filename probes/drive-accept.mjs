@@ -77,6 +77,20 @@ try {
 
   console.log('== DSH-M2-04 person acceptance: old cards refused, the exact one passes')
   const created = await a.ui('start-run', { requestId: id('acc'), teamId: 'math', goal: '认识分数：分数的意义与读写（五年级）' })
+
+  console.log('== P1 a managed Bot keeps its model and thinking level while its Team works')
+  // Two heartbeats after the Run is admitted, the host knows the Team is busy.
+  await until(async () => (await views()).runs.find(r => r.run_id === created.run_id)?.admitted, 30_000, 300)
+  await sleep(11_000)
+  const busyBot = bound.members.find(member => member.agentId === 'math-builder')
+  const busyState = await a.bot('state')
+  const busyNow = Object.values(busyState.bots ?? {}).find(bot => bot.id === busyBot.botId)
+  const busyLevels = (await a.bot('efforts', { ref: busyNow?.model ?? '' })).efforts?.map(effort => effort.id) ?? []
+  const otherLevel = busyLevels.find(effort => effort !== (busyNow?.effort ?? 'high'))
+  const retune = await refused(a.bot('update-bot', { id: busyBot.botId, effort: otherLevel }))
+  if (retune === null) await a.bot('update-bot', { id: busyBot.botId, effort: busyNow?.effort ?? 'high' })
+  check('P1', /working in a Squad Run/.test(retune ?? ''), 'changing a managed Bot\'s thinking level mid-Run is refused, with the reason', retune)
+  check('P1', (await refused(a.bot('update-bot', { id: busyBot.botId, role: '制作' }))) === null, 'other changes to that Bot still go through')
   let staleTried = false
   const finished = await until(async () => {
     const v = await views()

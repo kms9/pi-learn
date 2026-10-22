@@ -75,21 +75,24 @@ func validHost(h Host) bool {
 }
 
 type Instance struct {
-	Route              *Route          `json:"route,omitempty"`
-	Host               Host            `json:"host"`
-	UnderlyingActivity string          `json:"underlying_activity"`
-	RoleSnapshot       project.Role    `json:"role_snapshot"`
-	AvailableTools     []string        `json:"available_tools"`
-	Binding            task.Binding    `json:"binding"`
-	Mode               string          `json:"mode"`
-	RoleID             string          `json:"role_id,omitempty"`
-	TeamID             string          `json:"team_id,omitempty"`
-	Activity           string          `json:"activity"`
-	LastSeen           time.Time       `json:"last_seen"`
-	Presence           string          `json:"presence"`
-	Revoked            bool            `json:"revoked"`
-	Capabilities       map[string]bool `json:"capabilities"`
-	RoleHash           string          `json:"role_hash"`
+	Route              *Route       `json:"route,omitempty"`
+	Host               Host         `json:"host"`
+	UnderlyingActivity string       `json:"underlying_activity"`
+	RoleSnapshot       project.Role `json:"role_snapshot"`
+	AvailableTools     []string     `json:"available_tools"`
+	Binding            task.Binding `json:"binding"`
+	Mode               string       `json:"mode"`
+	RoleID             string       `json:"role_id,omitempty"`
+	TeamID             string       `json:"team_id,omitempty"`
+	Activity           string       `json:"activity"`
+	LastSeen           time.Time    `json:"last_seen"`
+	Presence           string       `json:"presence"`
+	Revoked            bool         `json:"revoked"`
+	// RunActive, in a heartbeat's answer only: the runtime's Team has a Run under way,
+	// so the host keeps the Bot's model and thinking level (P1).
+	RunActive    bool            `json:"run_active,omitempty"`
+	Capabilities map[string]bool `json:"capabilities"`
+	RoleHash     string          `json:"role_hash"`
 }
 type Register struct {
 	Route             *Route          `json:"route,omitempty"`
@@ -538,6 +541,13 @@ func (s *Service) HeartbeatWith(ctx context.Context, p Principal, extra Heartbea
 			return err
 		}
 		out = i
+		if i.TeamID != "" {
+			var n int
+			if err := tx.QueryRow(`SELECT count(*) FROM runs WHERE team_id=? AND admitted=1 AND cleanup!='released' AND json_extract(body,'$.phase') NOT IN ('completed','failed','cancelled','interrupted')`, i.TeamID).Scan(&n); err != nil {
+				return err
+			}
+			out.RunActive = n > 0
+		}
 		// A heartbeat that changes nothing a page shows writes no event: presence is read
 		// from last_seen, and every few seconds per runtime would otherwise make most of
 		// the event log and send pages for a fresh snapshot each time.

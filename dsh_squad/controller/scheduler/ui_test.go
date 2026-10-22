@@ -491,3 +491,37 @@ func TestQuietHeartbeatsWriteNoEvents(t *testing.T) {
 		t.Fatalf("a change of activity wrote %d events", got-before)
 	}
 }
+
+// P1: a heartbeat's answer says whether the runtime's Team has a Run under way, so the
+// host can keep the Bot's model and thinking level until it ends.
+func TestHeartbeatSaysWhenTheTeamRunIsUnderWay(t *testing.T) {
+	h := newHarness(t)
+	h.registerLeader()
+	h.registerAs("math-builder", "role", "builder", "math", "bot-builder", "room-math")
+	p := h.principal("math-builder")
+	beat := func() bool {
+		out, err := h.svc.Heartbeat(h.ctx, p, p.Binding, "idle")
+		if err != nil {
+			t.Fatal(err)
+		}
+		return out.RunActive
+	}
+	if beat() {
+		t.Fatal("a Run is under way before any was made")
+	}
+	r, err := h.svc.CreateRun(h.ctx, h.op, CreateRun{RequestID: "run1", TeamID: "math", Goal: "teach", WorkflowID: "lesson"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	h.tick()
+	if !beat() {
+		t.Fatal("the admitted Run is not reported")
+	}
+	if _, err := h.svc.Operate(h.ctx, h.op, "run", r.ID, "cancel", Operation{RequestID: "c1", ExpectedRevision: h.runOf(r.ID).Revision, Note: "stop"}); err != nil {
+		t.Fatal(err)
+	}
+	h.tick()
+	if beat() {
+		t.Fatal("a cancelled Run is still reported")
+	}
+}

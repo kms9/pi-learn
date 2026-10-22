@@ -107,7 +107,7 @@ index 27e5274..3698e3b 100644
      }
    }
 diff --git a/src/host/roster.js b/src/host/roster.js
-index c2cca82..4945119 100644
+index c2cca82..d659a78 100644
 --- a/src/host/roster.js
 +++ b/src/host/roster.js
 @@ -42,7 +42,9 @@ export function install(rt) {
@@ -146,7 +146,18 @@ index c2cca82..4945119 100644
      try {
        state.bots[id] = {
          id,
-@@ -345,7 +354,7 @@ export function install(rt) {
+@@ -226,6 +235,10 @@ export function install(rt) {
+         effortId = await rt.resolveEffort(effortRef, patch.effort)
+       }
+     }
++    // A Bot doing work in a Squad Run keeps its model and thinking level until the Run
++    // ends (Squad seam): its formal work is frozen to them.
++    const retunes = (modelRef !== undefined && (modelRef ?? null) !== (bot.model ?? null)) || (effortId !== undefined && (effortId ?? null) !== (bot.effort ?? null))
++    if (retunes && rt.seam?.allows?.(id, 'retune') === false) throw new Error(`${bot.name} is working in a Squad Run; change its model or thinking level after the Run ends`)
+     if (patch.name !== undefined) {
+       const next = String(patch.name).trim().slice(0, 40)
+       const clash = rt.findBot(next)
+@@ -345,7 +358,7 @@ export function install(rt) {
      const title = custom || autoRoomName(members)
      // The group's own Session only relays, so it stays in the team workspace; the
      // group's folder is for its members' Sessions.
@@ -157,10 +168,10 @@ index c2cca82..4945119 100644
        // again as it is written.
 diff --git a/src/host/seam.js b/src/host/seam.js
 new file mode 100644
-index 0000000..e9fca85
+index 0000000..24b2caf
 --- /dev/null
 +++ b/src/host/seam.js
-@@ -0,0 +1,97 @@
+@@ -0,0 +1,98 @@
 +// Squad seam: what a separate Squad gate plugin needs from DS Bot, and nothing more. DS
 +// Bot keeps working the same when no gate attaches.
 +//
@@ -170,7 +181,8 @@ index 0000000..e9fca85
 +// - preStep: DS Bot's own outermost pre-step listener (parts.js) hands every step to the
 +//   gate first, so the gate's place in the chain does not depend on plugin order.
 +// - allows(sessionId, what): DS Bot asks before it starts work on its own ('resume'),
-+//   and before it reviews a Session's turn into memory ('memory-review').
++//   before it reviews a Session's turn into memory ('memory-review'), and before a Bot's
++//   model or thinking level changes ('retune', asked with the Bot's id).
 +// - createMessage / resolveAgent / chatOf / groupSessionOf: what the gate needs to put an
 +//   admitted input into a Bot Session the way DS Bot does.
 +// - defineTool / bots: the gate's task tools are made with the DSH tools DS Bot itself
@@ -186,7 +198,7 @@ index 0000000..e9fca85
 +import { createUserMessage } from '@deepseek-ai/dsh-llm'
 +import { defineTool } from '@deepseek-ai/dsh-tools'
 +
-+export const SEAM_VERSION = 6
++export const SEAM_VERSION = 7
 +
 +export function install(rt) {
 +  const { ctx } = rt
@@ -260,10 +272,10 @@ index 0000000..e9fca85
 +}
 diff --git a/test/squad-memory.test.js b/test/squad-memory.test.js
 new file mode 100644
-index 0000000..0ad7ae6
+index 0000000..2f3d321
 --- /dev/null
 +++ b/test/squad-memory.test.js
-@@ -0,0 +1,82 @@
+@@ -0,0 +1,100 @@
 +// Squad seam: a Session a gate manages is never reviewed into memory; the others are.
 +import assert from 'node:assert/strict'
 +import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
@@ -346,9 +358,27 @@ index 0000000..0ad7ae6
 +  assert.equal(requests.length, 1)
 +  assert.deepEqual(asked, [['b2', 'memory-review'], ['m1', 'memory-review']])
 +})
++
++test('a Bot working in a Squad Run keeps its model and thinking level; other changes go through', async (t) => {
++  const { seam, call, stop } = start()
++  t.after(() => stop())
++  await call('state', {})
++  const asked = []
++  seam.attachGate({ allows: (id, what) => { asked.push([id, what]); return !(id === 'b2' && what === 'retune') } })
++  const refused = await call('update-bot', { id: 'b2', effort: 'high' })
++  assert.equal(refused.ok, false)
++  assert.match(refused.error.message, /Writer is working in a Squad Run/)
++  assert.equal((await call('update-bot', { id: 'b2', role: 'Editor' })).ok, true, 'a change that is no retune')
++  assert.equal((await call('update-bot', { id: 'm1', effort: 'high' })).ok, true, 'a free Bot')
++  assert.deepEqual(asked.filter(([, what]) => what === 'retune'), [['b2', 'retune'], ['m1', 'retune']])
++  const state = (await call('state', {})).value
++  const bots = Array.isArray(state.bots) ? state.bots : Object.values(state.bots)
++  assert.equal(bots.find(bot => bot.id === 'b2').effort, undefined)
++  assert.equal(bots.find(bot => bot.id === 'b2').role, 'Editor')
++})
 diff --git a/test/squad-seam.test.js b/test/squad-seam.test.js
 new file mode 100644
-index 0000000..7a00d55
+index 0000000..c0f306b
 --- /dev/null
 +++ b/test/squad-seam.test.js
 @@ -0,0 +1,73 @@
@@ -372,7 +402,7 @@ index 0000000..7a00d55
 +
 +test('without a gate the seam changes nothing', async () => {
 +  const { rt, seam } = runtime()
-+  assert.equal(seam.version, 6)
++  assert.equal(seam.version, 7)
 +  assert.deepEqual(seam.approvals(), [])
 +  assert.equal(typeof seam.ensureGroupSession, 'function')
 +  assert.equal(typeof seam.defineTool, 'function')

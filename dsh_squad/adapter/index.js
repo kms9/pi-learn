@@ -326,7 +326,10 @@ export function apply(ctx, config = {}) {
           const agent = await seam.resolveAgent(runtime.binding.session_id).catch(() => undefined)
           const folder = agent === undefined ? undefined : seam.folderOf?.(agent.session)
           if (typeof folder === 'string') extra.folder = folder
-          await client.heartbeat(runtime, activeOf(key) === undefined ? 'idle' : 'working', extra)
+          const seen = await client.heartbeat(runtime, activeOf(key) === undefined ? 'idle' : 'working', extra)
+          // Whether this runtime's Team has a Run under way: its Bot then keeps its model
+          // and thinking level (P1, seam 'retune').
+          binding.runActive = seen?.run_active === true
         } catch (error) {
           lost(error)
           // A binding the Controller no longer knows registers again on the next tick.
@@ -488,6 +491,13 @@ export function apply(ctx, config = {}) {
 
   // ---- 2. Work DS Bot would start on its own after a restart. ------------------------
   function allows(sessionId, what, detail) {
+    // 'retune' is asked with a Bot's id: refused while any of its managed places works
+    // in a Team whose Run is under way (P1).
+    if (what === 'retune') {
+      const busy = Object.values(state.bindings).find(entry => entry.botId === sessionId && entry.controller !== undefined && entry.runActive === true)
+      if (busy !== undefined) log('retune/refused', { botId: sessionId, agentId: busy.controller.agentId, detail })
+      return busy === undefined
+    }
     const { key, binding } = bindingOf(sessionId)
     if (binding === undefined) return true
     // A managed Session does formal work: DS Bot's memory review must not write what was
