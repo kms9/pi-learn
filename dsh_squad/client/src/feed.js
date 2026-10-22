@@ -7,8 +7,13 @@ import { store, toast } from './store.js'
 
 let timer = null
 let running = false
+// Presence is read from the snapshot and quiet heartbeats write no events, so the page
+// reads a fresh snapshot at least this often even when nothing else moved.
+const PRESENCE_MS = 15_000
+let refreshedAt = 0
 
 async function refresh() {
+  refreshedAt = Date.now()
   const view = await call('view')
   const before = store.get()
   // Back after a drop: say so once, the banner goes away by itself.
@@ -21,7 +26,7 @@ async function refresh() {
 async function step() {
   const { projection } = store.get()
   try {
-    if (projection.stale || projection.snapshot === null) return await refresh()
+    if (projection.stale || projection.snapshot === null || Date.now() - refreshedAt > PRESENCE_MS) return await refresh()
     const page = await call('events', { after: projection.revision })
     if (page?.connected === false) return store.set(state => ({ ...state, connected: false }))
     if (readEvents(projection, page).resnapshot) await refresh()

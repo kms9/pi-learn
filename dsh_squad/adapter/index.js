@@ -320,7 +320,13 @@ export function apply(ctx, config = {}) {
         const runtime = runtimeOf(binding)
         if (runtime === undefined) continue
         try {
-          await client.heartbeat(runtime, activeOf(key) === undefined ? 'idle' : 'working')
+          // With presence: the frozen route as now pinned, and where the Session works.
+          const extra = {}
+          if (binding.frozen) extra.route = { provider: binding.frozen.provider, model: binding.frozen.model, ...(binding.frozen.effort ? { effort: binding.frozen.effort } : {}) }
+          const agent = await seam.resolveAgent(runtime.binding.session_id).catch(() => undefined)
+          const folder = agent === undefined ? undefined : seam.folderOf?.(agent.session)
+          if (typeof folder === 'string') extra.folder = folder
+          await client.heartbeat(runtime, activeOf(key) === undefined ? 'idle' : 'working', extra)
         } catch (error) {
           lost(error)
           // A binding the Controller no longer knows registers again on the next tick.

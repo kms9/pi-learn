@@ -11,6 +11,7 @@ DSH Squad Controller（`dsh_squad/controller`）与 DSH 宿主里的 Adapter（`
 | 注册 | — | 必带 `host`：`profile`（必须是 `dsh/0.2.1-rc.2+ds-bot/ae63b45`）、`host_id`、`bot_id`、`place`（`chat` 或 `group-member`）、群里时 `room_id`。同一（Bot, 位置）在线时不能被另一个身份注册（`HOST_PLACE_TAKEN`） |
 | 能力 | Pi 钩子名 | `input_gate`、`settle_judge`、`route_freeze`、`context_sections`、`memory_review_gate`（宿主不让 DS Bot 的记忆复盘读写受控会话，D12），缺一不派发 |
 | 业务截止 | 120 秒 `deadline_at` | 无（2026-10-04 决策）。只有 lease、心跳这类通信超时 |
+| 心跳 | 只报活动 | `POST /v2/agents/heartbeat` 可另带 `route`（冻结路由；Controller 只补上原来没有的思考档位，从不换模型）和 `folder`（会话工作目录，DS Bot 0.2.0 的总工作区或群文件夹，只用于显示）。Controller 自己停了超过一个租约（机器休眠）时，醒来给仍有效的租约和在线状态一个周期的宽限（事件 `controller_resumed`） |
 | 父任务结束 | — | 有未结束的 child 或依赖未回传时，`result_proposed` 返回 `CHILDREN_PENDING` |
 | 中断原因 | 4 种 | 另加 `host_restart`、`outcome_unknown` |
 | 被扣留的输入 | 无 | `POST /v2/agents/held-inputs`，持久化，快照视图 `held_inputs`，处理方式待定（M2） |

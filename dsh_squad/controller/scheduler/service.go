@@ -45,6 +45,9 @@ type Host struct {
 	BotID   string `json:"bot_id"`
 	RoomID  string `json:"room_id,omitempty"`
 	Place   string `json:"place"`
+	// Folder is where the Session works (DS Bot 0.2.0: the team workspace, a group's own
+	// folder, or the Bot's); shown, never used to grant paths.
+	Folder string `json:"folder,omitempty"`
 }
 
 // Route is the model a runtime's Bot is frozen to, as the host reports it (UI plan S1).
@@ -59,7 +62,7 @@ type Route struct {
 var RequiredCapabilities = []string{"input_gate", "settle_judge", "route_freeze", "context_sections", "memory_review_gate"}
 
 func validHost(h Host) bool {
-	if h.Profile != project.HostProfile || strings.TrimSpace(h.HostID) == "" || len(h.HostID) > 128 || strings.TrimSpace(h.BotID) == "" || len(h.BotID) > 128 || len(h.RoomID) > 128 {
+	if h.Profile != project.HostProfile || strings.TrimSpace(h.HostID) == "" || len(h.HostID) > 128 || strings.TrimSpace(h.BotID) == "" || len(h.BotID) > 128 || len(h.RoomID) > 128 || len(h.Folder) > 1024 {
 		return false
 	}
 	switch h.Place {
@@ -113,6 +116,11 @@ type HeartbeatRequest struct {
 	Binding    task.Binding `json:"binding"`
 	Activity   string       `json:"activity"`
 	Underlying string       `json:"underlying_activity"`
+	// Route: the frozen route as the host now holds it; only a thinking level the
+	// Controller did not know yet is taken (the host pins it at the first formal
+	// request), never another model. Folder: where the Session works now.
+	Route  *Route `json:"route,omitempty"`
+	Folder string `json:"folder,omitempty"`
 }
 
 func New(ctx context.Context, store *task.Store, snapshot project.Snapshot, cfg Config, token string) (*Service, error) {
@@ -479,6 +487,16 @@ func (s *Service) Register(ctx context.Context, q Register) (Instance, error) {
 	return result, err
 }
 func (s *Service) Heartbeat(ctx context.Context, p Principal, b task.Binding, activity string, underlying ...string) (Instance, error) {
+	return s.HeartbeatWith(ctx, p, HeartbeatRequest{Binding: b, Activity: activity, Underlying: strings.Join(underlying, "")})
+}
+
+// HeartbeatWith is Heartbeat with what the host reports beside presence.
+func (s *Service) HeartbeatWith(ctx context.Context, p Principal, extra HeartbeatRequest) (Instance, error) {
+	b, activity := extra.Binding, extra.Activity
+	var underlying []string
+	if extra.Underlying != "" {
+		underlying = []string{extra.Underlying}
+	}
 	var out Instance
 	err := s.Store.Transaction(ctx, func(tx *sql.Tx) error {
 		i, err := loadInstance(tx, p.Binding.AgentID)
@@ -493,16 +511,24 @@ func (s *Service) Heartbeat(ctx context.Context, p Principal, b task.Binding, ac
 		default:
 			return task.Reject("INVALID_ACTIVITY", "unknown activity")
 		}
-		if !s.Online(i) {
+		wasOnline := s.Online(i)
+		if !wasOnline {
 			if err := invalidateMessages(tx, i.Binding, "offline"); err != nil {
 				return err
 			}
 		}
+		before := fmt.Sprint(i.Activity, i.UnderlyingActivity, i.Route, i.Host.Folder)
 		i.LastSeen = fault.Now()
 		i.Activity = activity
 		i.UnderlyingActivity = activity
 		if len(underlying) > 0 && (underlying[0] == "idle" || underlying[0] == "working") {
 			i.UnderlyingActivity = underlying[0]
+		}
+		if extra.Route != nil && i.Route != nil && extra.Route.Provider == i.Route.Provider && extra.Route.Model == i.Route.Model && i.Route.Effort == "" && len(extra.Route.Effort) <= 64 {
+			i.Route.Effort = extra.Route.Effort
+		}
+		if folder := strings.TrimSpace(extra.Folder); folder != "" && len(folder) <= 1024 {
+			i.Host.Folder = folder
 		}
 		var hash string
 		if err := tx.QueryRow(`SELECT token_hash FROM instances WHERE agent_id=?`, b.AgentID).Scan(&hash); err != nil {
@@ -512,6 +538,12 @@ func (s *Service) Heartbeat(ctx context.Context, p Principal, b task.Binding, ac
 			return err
 		}
 		out = i
+		// A heartbeat that changes nothing a page shows writes no event: presence is read
+		// from last_seen, and every few seconds per runtime would otherwise make most of
+		// the event log and send pages for a fresh snapshot each time.
+		if wasOnline && before == fmt.Sprint(i.Activity, i.UnderlyingActivity, i.Route, i.Host.Folder) {
+			return nil
+		}
 		return task.EventTx(tx, "heartbeat", b.AgentID, b.BindingEpoch, map[string]string{"activity": activity})
 	})
 	return out, err

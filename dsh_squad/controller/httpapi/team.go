@@ -177,7 +177,7 @@ func (s *Server) teamRoutes(r *gin.Engine) {
 			teamError(c, err)
 			return
 		}
-		out, err := s.team.Heartbeat(c.Request.Context(), p, q.Binding, q.Activity, q.Underlying)
+		out, err := s.team.HeartbeatWith(c.Request.Context(), p, q)
 		if err != nil {
 			teamError(c, err)
 			return

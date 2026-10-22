@@ -941,3 +941,9 @@ tags:
 - 来源: `docs/dsh-squad-v0.2-assessment-2026-10-21.md`（补了 Go Controller 一节、P5、P6）；分支 `feat/dsh-v02`。
 - 更新: seam 补丁 v6（记忆复盘先问 `memory-review`、删 `botOf`、新增 `test/squad-memory.test.js`）、`dsh_squad/adapter`（受控会话拒绝记忆复盘、声明 `memory_review_gate`）、`dsh_squad/controller`（必需能力 `memory_review_gate`；`group-post` 不再转成补充指导；暂停宽限 `forgivePause`）、`dsh_squad/{USAGE.md,protocol/README.md}`、使用指南、Q49。
 - 说明: mock 全量回归通过（check、drive-m0/m1/p1/m2/m3/m4、ui-check、ui-p1…p6、drive-accept）。等待产品决定：P1–P6。
+
+## [2026-10-21] maintenance | Squad × DS Bot v0.2.0：O3、O4（部分）
+
+- 来源: `docs/dsh-squad-v0.2-assessment-2026-10-21.md` 计划；分支 `feat/dsh-v02`。
+- 更新: Controller（心跳 `route`/`folder`、`Host.Folder`、无变化的心跳不写事件、新增 Go 用例）、adapter（心跳带冻结路由和会话目录）、Squad 页面（至少每 15 秒重读快照）、`dsh_squad/protocol/README.md`、评估文档计划表。
+- 说明: 调度只读未结束数据、扣留消息读群日志、头像形象暂缓（理由见评估文档）。

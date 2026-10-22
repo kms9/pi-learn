@@ -150,7 +150,10 @@ var toast = (text, kind = "error") => store.set((state) => ({ ...state, toast: {
 // src/feed.js
 var timer = null;
 var running = false;
+var PRESENCE_MS = 15e3;
+var refreshedAt = 0;
 async function refresh() {
+  refreshedAt = Date.now();
   const view = await call("view");
   const before = store.get();
   if (view.connected !== false && (before.projection.stale && before.projection.snapshot !== null || before.connected === false)) toast("已重新连上，状态已更新", "ok");
@@ -159,7 +162,7 @@ async function refresh() {
 async function step() {
   const { projection } = store.get();
   try {
-    if (projection.stale || projection.snapshot === null) return await refresh();
+    if (projection.stale || projection.snapshot === null || Date.now() - refreshedAt > PRESENCE_MS) return await refresh();
     const page = await call("events", { after: projection.revision });
     if (page?.connected === false) return store.set((state) => ({ ...state, connected: false }));
     if (readEvents(projection, page).resnapshot) await refresh();

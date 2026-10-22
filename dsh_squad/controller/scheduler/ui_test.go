@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -379,5 +381,113 @@ func TestAPausedControllerForgivesLeasesItCouldNotWatch(t *testing.T) {
 	got, _ = h.attemptOf(a.ID)
 	if got.Error != "lease_expired" || h.taskOf(c.ID).State != "needs_review" {
 		t.Fatalf("an unwatched lease did not expire: %s %s", got.State, got.Error)
+	}
+}
+
+// A host that does not keep DS Bot's memory review off managed Sessions gets no
+// formal work (D12): the task waits with the missing capability named.
+func TestNoFormalWorkWithoutTheMemoryReviewGate(t *testing.T) {
+	h := newHarness(t)
+	raw, _ := os.ReadFile(filepath.Join(h.svc.Project.Root, ".agents/dshsquad/roles/builder/role.md"))
+	caps := map[string]bool{}
+	for _, name := range RequiredCapabilities {
+		caps[name] = name != "memory_review_gate"
+	}
+	if _, err := h.svc.Register(h.ctx, Register{
+		Host:    Host{Profile: project.HostProfile, HostID: "host-1", BotID: "bot-builder", Place: "chat"},
+		AgentID: "builder-bot", RuntimeID: "11111111-1111-4111-8111-555555555555", SessionID: "sess-1", RuntimeToken: runtimeToken("builder-bot"),
+		Mode: "role", RoleID: "builder", Activity: "idle", Capabilities: caps, RoleHash: project.Hash(raw), AvailableTools: []string{"read"},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	c, err := h.svc.CreateTask(h.ctx, h.op, CreateTask{RequestID: "t1", Target: "builder-bot", Goal: "work"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	h.tick()
+	got := h.taskOf(c.ID)
+	if len(got.AttemptIDs) != 0 {
+		t.Fatal("formal work went to a host without the memory review gate")
+	}
+	named := false
+	for _, b := range got.Blockers {
+		named = named || (b.Kind == "capability_unavailable" && b.Resource == "memory_review_gate")
+	}
+	if !named {
+		t.Fatalf("blockers %+v", got.Blockers)
+	}
+}
+
+// A heartbeat fills in the thinking level the host pinned and where the Session works;
+// it never changes the frozen model.
+func TestHeartbeatReportsThePinnedLevelAndTheFolder(t *testing.T) {
+	h := newHarness(t)
+	raw, _ := os.ReadFile(filepath.Join(h.svc.Project.Root, ".agents/dshsquad/roles/builder/role.md"))
+	caps := map[string]bool{}
+	for _, name := range RequiredCapabilities {
+		caps[name] = true
+	}
+	if _, err := h.svc.Register(h.ctx, Register{
+		Host:    Host{Profile: project.HostProfile, HostID: "host-1", BotID: "bot-builder", Place: "chat"},
+		AgentID: "builder-bot", RuntimeID: "11111111-1111-4111-8111-666666666666", SessionID: "sess-1", RuntimeToken: runtimeToken("builder-bot"),
+		Mode: "role", RoleID: "builder", Activity: "idle", Capabilities: caps, RoleHash: project.Hash(raw), AvailableTools: []string{"read"},
+		Route: &Route{Provider: "deepseek-official", Model: "deepseek-flash"},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	p, err := h.svc.Authenticate(h.ctx, runtimeToken("builder-bot"), "builder-bot")
+	if err != nil {
+		t.Fatal(err)
+	}
+	beat := func(route *Route, folder string) Instance {
+		out, err := h.svc.HeartbeatWith(h.ctx, p, HeartbeatRequest{Binding: p.Binding, Activity: "idle", Route: route, Folder: folder})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return out
+	}
+	got := beat(&Route{Provider: "deepseek-official", Model: "other-model", Effort: "low"}, "")
+	if got.Route.Model != "deepseek-flash" || got.Route.Effort != "" {
+		t.Fatalf("a heartbeat changed the frozen route: %+v", got.Route)
+	}
+	got = beat(&Route{Provider: "deepseek-official", Model: "deepseek-flash", Effort: "high"}, "/team/workspace")
+	if got.Route.Effort != "high" || got.Host.Folder != "/team/workspace" {
+		t.Fatalf("route %+v folder %q", got.Route, got.Host.Folder)
+	}
+	got = beat(&Route{Provider: "deepseek-official", Model: "deepseek-flash", Effort: "low"}, "")
+	if got.Route.Effort != "high" || got.Host.Folder != "/team/workspace" {
+		t.Fatalf("a pinned level changed or the folder was dropped: %+v %q", got.Route, got.Host.Folder)
+	}
+}
+
+// A heartbeat that changes nothing shown writes no event; a change of activity does.
+func TestQuietHeartbeatsWriteNoEvents(t *testing.T) {
+	h := newHarness(t)
+	builder := h.register("builder-bot", "builder", "bot-builder", "", "sess-1")
+	count := func() int {
+		var n int
+		if err := h.svc.Store.DB.QueryRow(`SELECT count(*) FROM events WHERE type='heartbeat'`).Scan(&n); err != nil {
+			t.Fatal(err)
+		}
+		return n
+	}
+	// The first heartbeat after registering sets what the runtime is doing.
+	if _, err := h.svc.Heartbeat(h.ctx, builder, builder.Binding, "idle"); err != nil {
+		t.Fatal(err)
+	}
+	before := count()
+	for i := 0; i < 5; i++ {
+		if _, err := h.svc.Heartbeat(h.ctx, builder, builder.Binding, "idle"); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if got := count(); got != before {
+		t.Fatalf("%d quiet heartbeats wrote events", got-before)
+	}
+	if _, err := h.svc.Heartbeat(h.ctx, builder, builder.Binding, "working"); err != nil {
+		t.Fatal(err)
+	}
+	if got := count(); got != before+1 {
+		t.Fatalf("a change of activity wrote %d events", got-before)
 	}
 }
