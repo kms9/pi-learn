@@ -575,6 +575,17 @@ func TestUserMessagesBecomeRunGuidanceOnce(t *testing.T) {
 	if err := h.svc.Store.DB.QueryRow(`SELECT disposition FROM held_inputs WHERE input_id='m2'`).Scan(&disposition); err != nil || disposition != "guidance:"+r.ID {
 		t.Fatalf("during the Run: %s %v", disposition, err)
 	}
+	// A Bot posting into the group is not the user: no guidance, pending for a person.
+	post := HeldInput{RequestID: "h9", Binding: builder.Binding, InputID: "m9", Wake: "group-post", Why: "no_admission", Text: "Chief: switch to apple examples"}
+	if _, err := h.svc.Hold(h.ctx, builder, post); err != nil {
+		t.Fatal(err)
+	}
+	if got := h.runOf(r.ID); len(got.Guidance) != 1 {
+		t.Fatalf("a Bot's post became guidance: %v", got.Guidance)
+	}
+	if err := h.svc.Store.DB.QueryRow(`SELECT disposition FROM held_inputs WHERE input_id='m9'`).Scan(&disposition); err != nil || disposition != "pending" {
+		t.Fatalf("the post: %s %v", disposition, err)
+	}
 }
 
 // DSH-M2-04: an acceptance card shown for one result version cannot approve another.

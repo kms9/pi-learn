@@ -9,7 +9,7 @@ DSH Squad Controller（`dsh_squad/controller`）与 DSH 宿主里的 Adapter（`
 | 请求头 | `X-Pi-Squad-*` | `X-Squad-Protocol: squad/3`、`X-Squad-Controller`、`X-Squad-Agent`、`X-Squad-Binding` |
 | runtime | 一个 Pi 进程一个 runtime | 一个 DSH 宿主进程里多个 runtime：每个受控（Bot, 位置）各自注册、各自持凭据 |
 | 注册 | — | 必带 `host`：`profile`（必须是 `dsh/0.2.1-rc.2+ds-bot/ae63b45`）、`host_id`、`bot_id`、`place`（`chat` 或 `group-member`）、群里时 `room_id`。同一（Bot, 位置）在线时不能被另一个身份注册（`HOST_PLACE_TAKEN`） |
-| 能力 | Pi 钩子名 | `input_gate`、`settle_judge`、`route_freeze`、`context_sections`，缺一不派发 |
+| 能力 | Pi 钩子名 | `input_gate`、`settle_judge`、`route_freeze`、`context_sections`、`memory_review_gate`（宿主不让 DS Bot 的记忆复盘读写受控会话，D12），缺一不派发 |
 | 业务截止 | 120 秒 `deadline_at` | 无（2026-10-04 决策）。只有 lease、心跳这类通信超时 |
 | 父任务结束 | — | 有未结束的 child 或依赖未回传时，`result_proposed` 返回 `CHILDREN_PENDING` |
 | 中断原因 | 4 种 | 另加 `host_restart`、`outcome_unknown` |

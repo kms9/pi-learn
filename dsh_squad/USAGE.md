@@ -161,7 +161,7 @@ Leader 的 `squad_decide` 若遇到 Run 刚被改动（版本冲突），会重�
 - 被退回的版本保留，返工是新任务（`superseded_by` 指向返工）。
 - Leader 只能对两类任务派 `rework`：审核退回的任务，或已完成但用到的上游版本已被替换（「基于旧版本」）的任务。后一种等同于页面上的「用新版本重做」，派出时旧版本就标为已替换。对已通过且仍是最新版本的任务派 `rework` 会被直接拒绝并说明原因。
 
-**群里说话**：Run 进行中，用户在 Team 的群里（或直接对成员）说的话会被扣留，并作为 Run Guidance 交给 Leader（同一句只记一次）；没有进行中的 Run 时保持 `pending`。处理 pending 的消息（operator）：`POST /v2/held-inputs/<input_id>/dispose {"request_id","disposition":"dismissed|started|guidance","run_id"?,"expected_revision"?}`；`started` 记下用它开始的 Run，`guidance` 把它加入进行中的 Run（要带 Run 的当前版本）；同一群消息在其他成员处的副本一起处理。
+**群里说话**：Run 进行中，用户在 Team 的群里（或直接对成员）说的话会被扣留，并作为 Run Guidance 交给 Leader（同一句只记一次）；没有进行中的 Run 时保持 `pending`。处理 pending 的消息（operator）：`POST /v2/held-inputs/<input_id>/dispose {"request_id","disposition":"dismissed|started|guidance","run_id"?,"expected_revision"?}`；`started` 记下用它开始的 Run，`guidance` 把它加入进行中的 Run（要带 Run 的当前版本）；同一群消息在其他成员处的副本一起处理。只有用户说的话会转成补充指导：群转发里只取用户的原话；Bot 在群里的发言（`post_to_group`，DS Bot 0.2.0 起任何成员都能从私聊发）不算，保持 `pending` 由人处理。
 
 **提交文件（Artifact）**：`squad_submit_result` 可带 `file_name`、`file_content`、`file_type`。文件存进 Controller 的内容寻址目录（`.dsh-squad/controller/artifacts/sha256/<hash>`，只写一次），结果以 `artifact:sha256/<hash>` 引用。`GET /v2/artifacts/sha256/<hash>` 读回；HTML 带 `Content-Security-Policy: sandbox` 且禁止任何网络请求，脚本拿不到 DS Bot 的 Cookie 或接口。
 
@@ -199,9 +199,11 @@ DEEPSEEK_API_KEY=... node dsh_squad/experiments/run.mjs --repeats 3 --publish ~/
 
 同一个任务（`--goal`，默认数学课件）用四种做法各跑一遍：S 单个 Agent、A DS Bot 自由协作、B Squad 任务 DAG（完成即通过，不审核）、C Squad DAG + 独立审核。每组每次都在新的项目目录里起一对新的 DS Bot + Controller，互不继承 Bot、记忆和结果（D12）；所有组用同一个模型（D7）。Token 和调用次数取自 DS Bot 的用量账本，含记忆、摘要等辅助调用。报告写到 `dsh_squad/experiments/reports/`，`--publish` 时同时放进该项目，在「实验报告」标签里看。mock 跑出的报告会标明「数字不代表真实效果」。
 
-正式 Run 里受控会话的记忆是只读的：可以 `recall`，不能 `remember`/`forget`（D12）。
+正式 Run 里受控会话的记忆是只读的：可以 `recall`，不能 `remember`/`forget`（D12）。DS Bot 每轮之后的自动记忆复盘也不会处理受控会话（seam v6 的 `memory-review` 询问，adapter 一律回答否），所以小队群里正式工作的内容不会进入 Bot、群或团队记忆；Controller 把这项列为宿主必需能力 `memory_review_gate`。
 
 ## 9. 故障时
+
+- 机器休眠：Controller 发现自己有超过一个租约周期没在运行时，不在醒来那一刻判租约过期，而是把当时还有效的租约和在线状态再延长一个周期（事件 `controller_resumed`）；宿主醒来后照常续约，执行继续。宿主真的没了，一个周期后照样过期、等人确认。
 
 - 宿主重启：进行中的 attempt 上报 `host_restart`，Controller 把任务置为 `interrupted`，不自动重放，等 operator `POST /v2/attempts/<id>/reconcile`。
 - 无法确认结束（`outcome_unknown`）：同上，原因 `outcome_unknown`。

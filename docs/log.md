@@ -935,3 +935,9 @@ tags:
 - 来源: 用户要求基于 v0.2.0 原生能力评估并优化 Squad；分支 `feat/dsh-v02`（从 `feat/dsh-t` 拉）。
 - 更新: `docs/dsh-squad-v0.2-assessment-2026-10-21.md`（新）、`docs/index.md`。
 - 说明: 能改用原生的很少（seam `botOf` 可删；扣留消息可改读群日志）。需要守的：记忆复盘会写入受控会话内容（0.1.7 起就有，v0.2.0 多了群记忆，违反 D12）、Bot 在群里的发言被当成用户补充指导、Main Bot 可改受控 Bot 档位（P1）。可借的：`show_view` 在聊天里处理（P2）、页面里配置 key（P3）、桌面版（P4）。O1 不需要产品决定，直接做。
+
+## [2026-10-21] maintenance | Squad × DS Bot v0.2.0：O1 守住规则
+
+- 来源: `docs/dsh-squad-v0.2-assessment-2026-10-21.md`（补了 Go Controller 一节、P5、P6）；分支 `feat/dsh-v02`。
+- 更新: seam 补丁 v6（记忆复盘先问 `memory-review`、删 `botOf`、新增 `test/squad-memory.test.js`）、`dsh_squad/adapter`（受控会话拒绝记忆复盘、声明 `memory_review_gate`）、`dsh_squad/controller`（必需能力 `memory_review_gate`；`group-post` 不再转成补充指导；暂停宽限 `forgivePause`）、`dsh_squad/{USAGE.md,protocol/README.md}`、使用指南、Q49。
+- 说明: mock 全量回归通过（check、drive-m0/m1/p1/m2/m3/m4、ui-check、ui-p1…p6、drive-accept）。等待产品决定：P1–P6。

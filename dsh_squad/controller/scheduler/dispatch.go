@@ -12,9 +12,18 @@ import (
 )
 
 func (s *Service) Tick(ctx context.Context) error {
+	now := fault.Now()
+	paused := !s.lastTick.IsZero() && now.Sub(s.lastTick) > s.Config.LeaseTTL
+	since := s.lastTick
+	s.lastTick = now
 	return s.Store.Transaction(ctx, func(tx *sql.Tx) error {
 		if err := consumeOutbox(tx); err != nil {
 			return err
+		}
+		if paused {
+			if err := s.forgivePause(tx, since, now); err != nil {
+				return err
+			}
 		}
 		if err := s.invalidateChangedResults(tx); err != nil {
 			return err
@@ -419,4 +428,54 @@ func (s *Service) expire(tx *sql.Tx) error {
 		}
 	}
 	return nil
+}
+
+// forgivePause runs when the Controller itself was not running for longer than a lease
+// (the machine slept, Q49): it saw no heartbeat or renewal in that time, so it cannot
+// tell a stopped host from a sleeping one. Leases and presence that were live when it
+// stopped get one lease (one heartbeat timeout) from now instead of expiring at once;
+// a host that really is gone still expires after that. Nothing is resumed or retried:
+// an execution that was already uncertain stays so.
+func (s *Service) forgivePause(tx *sql.Tx, since, now time.Time) error {
+	until := now.Add(s.Config.LeaseTTL)
+	rows, err := tx.Query(`SELECT attempt_id FROM execution_leases WHERE expires_at>=? AND expires_at<?`, since.Format(time.RFC3339Nano), until.Format(time.RFC3339Nano))
+	if err != nil {
+		return err
+	}
+	var ids []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			rows.Close()
+			return err
+		}
+		ids = append(ids, id)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	for _, id := range ids {
+		a, err := task.LoadAttempt(tx, id)
+		if err != nil {
+			return err
+		}
+		if a.Error == "lease_expired" || task.Terminal(a.State) || a.State == "needs_review" {
+			continue
+		}
+		a.LeaseExpiresAt = until
+		a.Revision++
+		if err := task.SaveAttempt(tx, a); err != nil {
+			return err
+		}
+		if _, err := tx.Exec(`UPDATE execution_leases SET expires_at=? WHERE attempt_id=?`, until.Format(time.RFC3339Nano), id); err != nil {
+			return err
+		}
+	}
+	// Runtimes that were online when the Controller stopped count as seen now.
+	seen := since.Add(-s.Config.HeartbeatTimeout).Format(time.RFC3339Nano)
+	if _, err := tx.Exec(`UPDATE instances SET last_seen=? WHERE revoked=0 AND last_seen>=?`, now.Format(time.RFC3339Nano), seen); err != nil {
+		return err
+	}
+	return task.EventTx(tx, "controller_resumed", "controller", 1, map[string]any{"paused_seconds": int(now.Sub(since).Seconds()), "leases_extended": len(ids)})
 }

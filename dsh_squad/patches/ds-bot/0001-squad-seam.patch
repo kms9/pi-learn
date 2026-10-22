@@ -42,6 +42,20 @@ index 4cb60fa..fe21813 100644
      // While the Session was made the member may have left or been deleted, the group been
      // deleted, or another turn made the member's Session first: the new one is not kept.
      // Undefined means the member is gone from the group.
+diff --git a/src/host/memory.js b/src/host/memory.js
+index becf5ab..19395b5 100644
+--- a/src/host/memory.js
++++ b/src/host/memory.js
+@@ -1480,6 +1480,9 @@ export function install(rt) {
+       turnOwners.delete(id)
+       const seen = reviewOf(id) ?? started
+       if (seen === undefined) return
++      // A Session a Squad gate manages does formal work, which no review may write into
++      // memory (Squad seam).
++      if (rt.seam?.allows?.(id, 'memory-review') === false) return
+       const timer = setTimeout(() => {
+         reviewTimers.delete(id)
+         queueReview(seen)
 diff --git a/src/host/parts.js b/src/host/parts.js
 index d7222f5..a3dfffc 100644
 --- a/src/host/parts.js
@@ -143,7 +157,7 @@ index c2cca82..4945119 100644
        // again as it is written.
 diff --git a/src/host/seam.js b/src/host/seam.js
 new file mode 100644
-index 0000000..7a2de3e
+index 0000000..e9fca85
 --- /dev/null
 +++ b/src/host/seam.js
 @@ -0,0 +1,97 @@
@@ -155,7 +169,8 @@ index 0000000..7a2de3e
 +//   very first event (agent/created), not only once state.json is saved.
 +// - preStep: DS Bot's own outermost pre-step listener (parts.js) hands every step to the
 +//   gate first, so the gate's place in the chain does not depend on plugin order.
-+// - allows(sessionId, what): DS Bot asks before it starts work on its own ('resume').
++// - allows(sessionId, what): DS Bot asks before it starts work on its own ('resume'),
++//   and before it reviews a Session's turn into memory ('memory-review').
 +// - createMessage / resolveAgent / chatOf / groupSessionOf: what the gate needs to put an
 +//   admitted input into a Bot Session the way DS Bot does.
 +// - defineTool / bots: the gate's task tools are made with the DSH tools DS Bot itself
@@ -171,7 +186,7 @@ index 0000000..7a2de3e
 +import { createUserMessage } from '@deepseek-ai/dsh-llm'
 +import { defineTool } from '@deepseek-ai/dsh-tools'
 +
-+export const SEAM_VERSION = 5
++export const SEAM_VERSION = 6
 +
 +export function install(rt) {
 +  const { ctx } = rt
@@ -221,7 +236,6 @@ index 0000000..7a2de3e
 +    resolveAgent: sessionId => rt.resolveAgent(sessionId),
 +    chatOf: botId => rt.chatOf(botId),
 +    groupSessionOf: (roomId, botId) => rt.roomOf(roomId)?.sessions?.[botId],
-+    botOf: botId => rt.botOf(botId),
 +    bots: () => Object.values(rt.state?.bots ?? {}),
 +    defineTool,
 +    rooms: () => Object.values(rt.state?.rooms ?? {}),
@@ -244,12 +258,100 @@ index 0000000..7a2de3e
 +  ctx.provide?.('dsBotSeam', api)
 +  rt.seam = { reserve, release, preStep, allows, ownerOf }
 +}
+diff --git a/test/squad-memory.test.js b/test/squad-memory.test.js
+new file mode 100644
+index 0000000..0ad7ae6
+--- /dev/null
++++ b/test/squad-memory.test.js
+@@ -0,0 +1,82 @@
++// Squad seam: a Session a gate manages is never reviewed into memory; the others are.
++import assert from 'node:assert/strict'
++import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
++import { tmpdir } from 'node:os'
++import { join } from 'node:path'
++import { test } from 'node:test'
++import { apply } from '../index.js'
++import { fakeContext } from './fake-ctx.js'
++
++const TEAM = {
++  version: 1,
++  mainBotIds: ['m1'],
++  revision: 1,
++  whaleStored: true,
++  bots: {
++    m1: { id: 'm1', sessionId: 'm1', name: 'Chief', role: 'Chief', model: 'deepseek/v4', instructions: '', createdAt: 1 },
++    b2: { id: 'b2', sessionId: 'b2', name: 'Writer', role: 'Writer', model: 'deepseek/v4', instructions: '', createdAt: 2 },
++  },
++  rooms: {},
++}
++const chat = text => [
++  { event: { seq: 10, type: 'user/message', data: { source: { kind: 'user' }, content: [{ type: 'text', text }] } } },
++  { event: { seq: 11, type: 'assistant/message', data: { message: { content: [{ type: 'text', text: 'Noted.' }] } } } },
++]
++
++function start() {
++  const home = mkdtempSync(join(tmpdir(), 'ds-bot-squad-memory-'))
++  writeFileSync(join(home, 'state.json'), JSON.stringify(TEAM))
++  const ctx = fakeContext()
++  const provided = {}
++  ctx.provide = (name, value) => { provided[name] = value }
++  const requests = []
++  const history = { m1: chat('I like tea'), b2: chat('Use pizza in every example') }
++  Object.assign(ctx, {
++    llm: {
++      listProviders: () => [{ id: 'deepseek', name: 'DeepSeek' }],
++      listModels: async () => [{ id: 'v4' }],
++      resolveModelInfo: async () => ({ reasoning: { efforts: [{ id: 'high' }] } }),
++      async* stream(request) {
++        requests.push(request)
++        yield { type: 'text-delta', index: 0, text: JSON.stringify({ changes: [{ op: 'add', text: 'A fact' }] }) }
++        yield { type: 'finish', reason: { kind: 'stop' } }
++      },
++    },
++    sessionController: {
++      resolveAgent: async sessionId => ({ agent: { session: { id: sessionId, seq: 12 } } }),
++      selectModel: async () => {},
++      page: async ({ address }) => ({ records: history[address.sessionId] ?? [], hasMore: false }),
++    },
++    sessions: { messageProjections: [] },
++    workspaceRegistry: { archiveSession: async () => {} },
++  })
++  let route
++  const register = ctx.connection.fetch.register
++  ctx.connection.fetch.register = (options) => { route = options; return register(options) }
++  apply(ctx, { home, memoryReviewDelayMs: 0 })
++  const call = async (endpoint, payload) => (await route.fetch(new Request('http://localhost/api/bot', { method: 'POST', body: JSON.stringify({ endpoint, payload }) }))).json()
++  const reviewed = async () => {
++    for (let tries = 0; tries < 200; tries += 1) {
++      await new Promise(done => setTimeout(done, 5))
++      if ((await call('state', {})).value.memoryReviews === 0) return
++    }
++    throw new Error('the memory review did not finish')
++  }
++  const stop = async () => { await ctx.dispose(); rmSync(home, { recursive: true, force: true, maxRetries: 5 }) }
++  return { ctx, seam: provided.dsBotSeam, requests, call, reviewed, stop }
++}
++
++test('a managed Session is not reviewed into memory; a free one still is', async (t) => {
++  const { ctx, seam, requests, call, reviewed, stop } = start()
++  t.after(() => stop())
++  await call('state', {})
++  const asked = []
++  seam.attachGate({ allows: (sessionId, what) => { asked.push([sessionId, what]); return !(sessionId === 'b2' && what === 'memory-review') } })
++  ctx.emit('agent/status', { agent: { id: 'b2' }, status: 'idle' })
++  await reviewed()
++  assert.equal(requests.length, 0, 'the managed Session reached the review model')
++  ctx.emit('agent/status', { agent: { id: 'm1' }, status: 'idle' })
++  await reviewed()
++  assert.equal(requests.length, 1)
++  assert.deepEqual(asked, [['b2', 'memory-review'], ['m1', 'memory-review']])
++})
 diff --git a/test/squad-seam.test.js b/test/squad-seam.test.js
 new file mode 100644
-index 0000000..79f45a6
+index 0000000..7a00d55
 --- /dev/null
 +++ b/test/squad-seam.test.js
-@@ -0,0 +1,72 @@
+@@ -0,0 +1,73 @@
 +import { test } from 'node:test'
 +import assert from 'node:assert/strict'
 +import { install } from '../src/host/seam.js'
@@ -270,7 +372,7 @@ index 0000000..79f45a6
 +
 +test('without a gate the seam changes nothing', async () => {
 +  const { rt, seam } = runtime()
-+  assert.equal(seam.version, 5)
++  assert.equal(seam.version, 6)
 +  assert.deepEqual(seam.approvals(), [])
 +  assert.equal(typeof seam.ensureGroupSession, 'function')
 +  assert.equal(typeof seam.defineTool, 'function')
@@ -308,7 +410,8 @@ index 0000000..79f45a6
 +  assert.equal(await rt.seam.preStep({ step: 2 }, async () => 'inner'), 'inner')
 +  assert.equal(rt.seam.allows('chat-1', 'resume'), false)
 +  assert.equal(rt.seam.allows('chat-1', 'resend'), true)
-+  assert.deepEqual(seen, [['chat-1', 'resume'], ['chat-1', 'resend']])
++  assert.equal(rt.seam.allows('chat-1', 'memory-review'), true)
++  assert.deepEqual(seen, [['chat-1', 'resume'], ['chat-1', 'resend'], ['chat-1', 'memory-review']])
 +  const message = seam.createMessage({ text: 'hi', source: { kind: 'squad', attemptId: 'a1', fence: 1 } })
 +  assert.equal(message.role, 'user')
 +  assert.deepEqual(message.source, { kind: 'squad', attemptId: 'a1', fence: 1 })

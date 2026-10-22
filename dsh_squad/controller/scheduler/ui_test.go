@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/kms9/pi-learn/dsh_squad/controller/project"
 	"github.com/kms9/pi-learn/dsh_squad/controller/task"
@@ -327,5 +328,56 @@ func TestCancelFreesTheBotOnlyWhenTheHostConfirmsTheStop(t *testing.T) {
 	out, _ = h.svc.Dispatches(h.ctx, builder)
 	if len(out) != 1 || out[0]["task"].(task.Contract).ID != second.ID {
 		t.Fatalf("the next task was not sent after the stop: %v", out)
+	}
+}
+
+// Q49: a Controller that was not running itself (the machine slept) gives a running
+// attempt one more lease instead of expiring it at once; one that kept running still
+// expires a lease nobody renewed.
+func TestAPausedControllerForgivesLeasesItCouldNotWatch(t *testing.T) {
+	h := newHarness(t)
+	builder := h.register("builder-bot", "builder", "bot-builder", "", "sess-1")
+	c, err := h.svc.CreateTask(h.ctx, h.op, CreateTask{RequestID: "t1", Target: "builder-bot", Goal: "long work"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	h.tick()
+	a := h.dispatched(builder)
+	for _, step := range []string{"adapter_received", "injection_requested", "input_observed"} {
+		a = h.must(h.event(builder, a, AttemptEvent{Type: step}))
+	}
+	backdate := func() {
+		past := time.Now().UTC().Add(-time.Minute)
+		if err := h.svc.Store.Transaction(h.ctx, func(tx *sql.Tx) error {
+			a, err := task.LoadAttempt(tx, a.ID)
+			if err != nil {
+				return err
+			}
+			a.LeaseExpiresAt = past
+			if err := task.SaveAttempt(tx, a); err != nil {
+				return err
+			}
+			_, err = tx.Exec(`UPDATE execution_leases SET expires_at=? WHERE attempt_id=?`, past.Format(time.RFC3339Nano), a.ID)
+			return err
+		}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	// The lease ran out while the Controller was asleep for two leases.
+	backdate()
+	h.svc.lastTick = time.Now().UTC().Add(-2*h.svc.Config.LeaseTTL - time.Minute)
+	h.tick()
+	got, _ := h.attemptOf(a.ID)
+	if got.State == "needs_review" || got.Error == "lease_expired" || !got.LeaseExpiresAt.After(time.Now()) {
+		t.Fatalf("a paused Controller expired the lease: %s %s %v", got.State, got.Error, got.LeaseExpiresAt)
+	}
+	// The host renews as it would after waking; the attempt goes on.
+	got = h.must(h.event(builder, got, AttemptEvent{Type: "renew"}))
+	// Without a pause, a lease nobody renewed expires as before.
+	backdate()
+	h.tick()
+	got, _ = h.attemptOf(a.ID)
+	if got.Error != "lease_expired" || h.taskOf(c.ID).State != "needs_review" {
+		t.Fatalf("an unwatched lease did not expire: %s %s", got.State, got.Error)
 	}
 }

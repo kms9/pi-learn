@@ -4,7 +4,8 @@
 //
 // - every step of a managed Session is decided here first, before DS Bot's own pre-step
 //   logic, whatever order the plugins loaded in (src/policy.js);
-// - DS Bot asks before it resumes or resends work on its own (seam.allows);
+// - DS Bot asks before it resumes or resends work on its own, and before it reviews a
+//   turn into memory (seam.allows);
 // - each admitted attempt is judged done only by live and durable ends together, with
 //   every tool call paired (src/judge.js), and only then reported settled;
 // - a model route that differs from the frozen one is refused before the request goes
@@ -39,7 +40,7 @@ export const inject = ['dsBotSeam', 'sessions', 'connection', 'tools', 'systemPr
 
 const ROUTE = '/api/squad-adapter'
 const HOST_PROFILE = 'dsh/0.2.1-rc.2+ds-bot/ae63b45'
-const CAPABILITIES = { input_gate: true, settle_judge: true, route_freeze: true, context_sections: true }
+const CAPABILITIES = { input_gate: true, settle_judge: true, route_freeze: true, context_sections: true, memory_review_gate: true }
 const SETTLED = new Set(['settled_completed', 'settled_aborted', 'settled_blocked', 'settled_failed'])
 const ENDED = new Set([...SETTLED, 'outcome_unknown', 'superseded'])
 // The exact versions a review task was given; its verdict always names these.
@@ -483,6 +484,9 @@ export function apply(ctx, config = {}) {
   function allows(sessionId, what, detail) {
     const { key, binding } = bindingOf(sessionId)
     if (binding === undefined) return true
+    // A managed Session does formal work: DS Bot's memory review must not write what was
+    // said there into any memory (D12), during a Run or after it.
+    if (what === 'memory-review') return false
     const allowed = binding.policy?.allowResume === true
     log('self-start', { sessionId, key, what, allowed, detail })
     return allowed

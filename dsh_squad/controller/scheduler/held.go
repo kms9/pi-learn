@@ -73,8 +73,11 @@ func (s *Service) Hold(ctx context.Context, p Principal, q HeldInput) (HeldInput
 }
 
 // Wake-ups that are the user speaking to the Team (M2-2): straight to a member, or in
-// the Team's group (DS Bot relays one group message to every member it addresses).
-var userWakes = map[string]bool{"user": true, "group-relay": true, "group-post": true}
+// the Team's group (DS Bot relays one group message to every member it addresses; the
+// adapter keeps the user's lines of it). A Bot's post into the group (group-post; in
+// DS Bot 0.2.0 any member may post from its own chat) is not the user: it stays pending
+// for a person.
+var userWakes = map[string]bool{"user": true, "group-relay": true}
 
 // classifyHeld turns what the user says to a Team with an active Run into Run Guidance,
 // once per text however many members held a copy; the Leader's next step reads it.

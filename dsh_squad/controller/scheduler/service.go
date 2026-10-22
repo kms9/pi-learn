@@ -32,6 +32,9 @@ type Service struct {
 	OperatorHash string
 	// ArtifactDir is the content-addressed artifact store (D8); empty disables it.
 	ArtifactDir string
+	// lastTick is when Tick last ran; a gap longer than a lease means the Controller
+	// itself was not running (a machine asleep), see forgivePause.
+	lastTick time.Time
 }
 
 // Host says where a runtime lives (squad/3). One DSH host process runs many
@@ -52,7 +55,8 @@ type Route struct {
 }
 
 // Capabilities a runtime must declare before it receives formal work.
-var RequiredCapabilities = []string{"input_gate", "settle_judge", "route_freeze", "context_sections"}
+// memory_review_gate: the host keeps DS Bot's memory review off managed Sessions (D12).
+var RequiredCapabilities = []string{"input_gate", "settle_judge", "route_freeze", "context_sections", "memory_review_gate"}
 
 func validHost(h Host) bool {
 	if h.Profile != project.HostProfile || strings.TrimSpace(h.HostID) == "" || len(h.HostID) > 128 || strings.TrimSpace(h.BotID) == "" || len(h.BotID) > 128 || len(h.RoomID) > 128 {
