@@ -255,7 +255,7 @@ func (s *Service) ensureLeaderSteps(tx *sql.Tx) error {
 		return err
 	}
 	for _, r := range runs {
-		if !r.Admitted || r.RecoveryHold || task.Terminal(r.Phase) || r.LeaderRevision >= r.Revision {
+		if !r.Admitted || r.RecoveryHold || task.Terminal(r.Phase) || r.LeaderRevision >= r.Revision || r.Config.Config.Leader.Mode == "fixed" {
 			continue
 		}
 		var n int

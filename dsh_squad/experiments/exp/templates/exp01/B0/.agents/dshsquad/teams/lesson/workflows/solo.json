@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "workflow_id": "solo",
+  "steps": [
+    {
+      "id": "build",
+      "title": "build",
+      "role_ref": "author",
+      "kind": "execute",
+      "goal": "按任务说明完成 lesson.html，自查后提交。",
+      "depends_on": []
+    }
+  ]
+}

@@ -50,8 +50,12 @@ type Member struct {
 	RoleRef        string `json:"role_ref"`
 	Responsibility string `json:"responsibility"`
 }
+
+// Mode "" or "llm": an LLM Leader decides each step. "fixed": the Controller runs the
+// workflow itself, with no Leader step (EXP-01 to EXP-04, docs/dsh-squad-EXP01-04-实验计划-2026-10-29.md).
 type Leader struct {
 	AgentRef string `json:"agent_ref"`
+	Mode     string `json:"mode,omitempty"`
 }
 type Team struct {
 	SchemaVersion    int      `json:"schema_version"`
@@ -497,6 +501,9 @@ func Load(root string) (Snapshot, error) {
 }
 func validateTeam(t Team, id string, roles map[string]Role) error {
 	p := t.Policy
+	if t.Leader.Mode != "" && t.Leader.Mode != "llm" && t.Leader.Mode != "fixed" {
+		return fmt.Errorf("invalid leader mode in team %s", id)
+	}
 	if t.SchemaVersion != 1 || t.TeamID != id || t.ConfigVersion < 1 || !ValidID(t.Leader.AgentRef) || t.InstructionsFile != "instructions.md" || len(t.Members) == 0 || p.RunAdmission != "fifo_single_active" || p.MaxParallelTasks < 1 || p.MaxDelegateDepth < 1 || p.MaxTotalTasks < 1 || p.MaxAttemptsPerTask < 1 || p.AllowedTools == nil || p.WritableRoots == nil {
 		return fmt.Errorf("invalid or missing team fields: %s", id)
 	}

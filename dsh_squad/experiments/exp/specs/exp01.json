@@ -1,0 +1,19 @@
+{
+  "experiment": "exp01",
+  "title": "EXP-01 单页互动模块：B0 单智能体、B1 单智能体加流程、P1 三角色 DAG",
+  "team": "lesson",
+  "artifact": "lesson.html",
+  "arms": [
+    "B0",
+    "B1",
+    "P1"
+  ],
+  "final_steps": {
+    "B0": "build",
+    "B1": "fix",
+    "P1": "build"
+  },
+  "repeats": 5,
+  "minutes": 30,
+  "goal": "为初三学生做一页可交互的讲解页面，讲二次函数 y = ax² + bx + c 的图像与性质，以 y = x² − 2x − 3 为例。只交付一个单文件 lesson.html，不引用任何外部资源（不用外部脚本、样式、字体、图片）。\n\n需求：\nR1 坐标系带刻度，x 从 −4 到 6，画出函数曲线（data-testid=\"curve\" 的 path）。\nR2 三个滑块 a、b、c（data-testid=\"slider-a\"、\"slider-b\"、\"slider-c\"；a 在 [−3, 3] 且 a ≠ 0，b、c 在 [−6, 6]），拖动时曲线实时更新。\nR3 显示顶点坐标（data-testid=\"vertex\"）、对称轴（data-testid=\"axis\"）、与 x 轴交点（data-testid=\"roots\"）；判别式 Δ < 0 时 roots 的文字包含「无实数根」。\nR4 讲解三部分：配方求顶点（data-testid=\"explain-completing-square\"）、求根公式（data-testid=\"explain-root-formula\"）、开口方向与 a 的关系（data-testid=\"explain-opening\"）。\nR5 练习：给出一条抛物线，学生输入顶点坐标。输入框 data-testid=\"practice-x\"（横坐标）和 \"practice-y\"（纵坐标），提交按钮 data-testid=\"practice-submit\"，容差 ±0.01。反馈元素 data-testid=\"feedback\" 的属性 data-result 为 \"correct\" 或 \"wrong\"，并有文字。\nR6 单文件，无任何外部网络请求。\nR7 375 px 宽时不横向滚动，控件在视口内可以点击。\nR8 所有控件有可访问名称，可以用 Tab 键到达，反馈有文字（不只靠颜色）。\n\n页面必须暴露接口 window.lesson（判题依赖它，不得改名）：\n- setParams({a, b, c})：设置参数并重绘曲线、文字和滑块；\n- getParams()：返回 {a, b, c}；\n- toPixel(x, y)：返回数学点 (x, y) 在曲线所在 SVG 中的 [px, py]，坐标系与 path 的 d 属性相同（不要对 path 或 svg 的祖先元素设置 transform）；\n- practice()：返回当前练习的 {a, b, c, vertex: [h, k]}。\n\n交付前请对照 R1–R8 与接口逐条检查，然后提交 lesson.html。"
+}

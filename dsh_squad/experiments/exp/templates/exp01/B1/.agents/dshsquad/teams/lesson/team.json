@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "team_id": "lesson",
+  "config_version": 1,
+  "leader": {
+    "agent_ref": "chief"
+  },
+  "members": [
+    {
+      "role_ref": "author",
+      "responsibility": "做出课件"
+    }
+  ],
+  "instructions_file": "instructions.md",
+  "default_workflow": "sop",
+  "policy": {
+    "run_admission": "fifo_single_active",
+    "max_parallel_tasks": 2,
+    "max_delegate_depth": 2,
+    "max_total_tasks": 20,
+    "max_attempts_per_task": 3,
+    "allowed_tools": [
+      "read",
+      "grep",
+      "find",
+      "ls"
+    ],
+    "writable_roots": [],
+    "acceptance_policy": {
+      "mode": "on_completion",
+      "child_policy": "separate"
+    }
+  }
+}

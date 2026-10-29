@@ -49,6 +49,9 @@ func (s *Service) Tick(ctx context.Context) error {
 		if err := s.ensureLeaderSteps(tx); err != nil {
 			return err
 		}
+		if err := s.ensureFixedFlow(tx); err != nil {
+			return err
+		}
 		tasks, err := readTasks(tx)
 		if err != nil {
 			return err

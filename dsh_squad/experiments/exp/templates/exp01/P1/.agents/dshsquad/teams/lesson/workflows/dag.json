@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "workflow_id": "dag",
+  "steps": [
+    {
+      "id": "design",
+      "title": "design",
+      "role_ref": "designer",
+      "kind": "execute",
+      "goal": "写设计：需求对照表和接口方案，不写 HTML。",
+      "depends_on": []
+    },
+    {
+      "id": "build",
+      "title": "build",
+      "role_ref": "builder",
+      "kind": "execute",
+      "goal": "依据已通过审核的设计写出完整 lesson.html 并提交。",
+      "depends_on": [
+        {
+          "step": "design",
+          "condition": "acceptance_accepted"
+        }
+      ],
+      "refs": [
+        {
+          "task_id": "design",
+          "result_revision": 0,
+          "hash": "",
+          "length": 0
+        }
+      ]
+    }
+  ]
+}
