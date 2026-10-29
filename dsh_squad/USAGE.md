@@ -217,7 +217,7 @@ node dsh_squad/experiments/exp/run.mjs exp01 --repeats 5                  # 真�
 node dsh_squad/experiments/exp/run.mjs exp01 --repeats 5 --resume dsh_squad/experiments/exp/reports/<报告>.json
 ```
 
-每个 arm（`specs/<exp>.json`，模板在 `templates/<exp>/<arm>/`）每轮一个全新项目目录，在 `exp/.runs/` 下，只留本机。轮次交错执行。`repeat` 是第几轮，`order` 是运行序号。`goal_success` 要求成果被 Controller 验收且判题的必过检查全部通过。判题脚本在 `exp/judges/`，不在任何项目目录里。`--resume` 跳过报告里已有的 `(arm, repeat)`，用于机器重启后接着跑；`--mock` 与报告模式不一致时拒绝续跑。判题改动后，`node dsh_squad/experiments/exp/rejudge.mjs <报告>.json` 用新判题重判报告里存档的成果，旧结论另存为 `<报告>.judge-v<旧版本>.json`。
+每个 arm（`specs/<exp>.json`，模板在 `templates/<exp>/<arm>/`）每轮一个全新项目目录，在 `exp/.runs/` 下，只留本机。轮次交错执行。`repeat` 是第几轮，`order` 是运行序号。`goal_success` 要求成果被 Controller 验收且判题的必过检查全部通过。判题脚本在 `exp/judges/`，不在任何项目目录里。`--resume` 跳过报告里已有且有效的 `(arm, repeat)`，用于机器重启后接着跑；`--mock` 与报告模式不一致时拒绝续跑。时限（`minutes`）按单调时钟计算，机器睡眠期间不计时。运行中机器睡眠时（`environment_interrupted`），这次运行保留在报告里、标 `discarded_first`，不计入结果，并重跑，最多三次；续跑时这类记录不算已完成，汇总脚本 `exp/summarize.mjs <报告>.json` 也不计入。`exp02`（单摆）与 `exp03`（独立验收，输入文件由运行器拷进项目的 `input/`）的规格、模板和判题已在仓库中，真实运行前先用 `--mock` 验证。判题改动后，`node dsh_squad/experiments/exp/rejudge.mjs <报告>.json` 用新判题重判报告里存档的成果，旧结论另存为 `<报告>.judge-v<旧版本>.json`。
 
 ## 9. 故障时
 
