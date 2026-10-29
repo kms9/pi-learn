@@ -1,0 +1,1 @@
+{"schema_version":1,"workflow_id":"era","steps":[{"id":"executor","title":"executor","role_ref":"executor","kind":"execute","goal":"按任务说明修改 input/lesson.html：增加「已知顶点和一点求解析式」的练习，保持原有功能，交付完整的 lesson.html。可用 squad_check_page 自查。","depends_on":[],"reviewers":["reviewer","auditor"]}]}

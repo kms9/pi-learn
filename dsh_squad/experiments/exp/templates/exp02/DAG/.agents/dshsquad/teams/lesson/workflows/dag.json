@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "workflow_id": "dag",
+  "steps": [
+    {
+      "id": "goal",
+      "title": "goal",
+      "role_ref": "goal",
+      "kind": "execute",
+      "goal": "写教学目标与学情：对照 R1–R10 写出教学目标、学情假设和需求对照表。不写 HTML。",
+      "depends_on": []
+    },
+    {
+      "id": "physics",
+      "title": "physics",
+      "role_ref": "physics",
+      "kind": "execute",
+      "goal": "写学科规格：单摆周期公式与适用条件，摆长与摆角的范围，10 个周期的测量方法，T–√L 拟合斜率的计算，以及 window.lessonState 需要返回的物理量。不写 HTML。",
+      "depends_on": [
+        {
+          "step": "goal",
+          "condition": "execution_completed"
+        }
+      ],
+      "refs": [
+        {
+          "task_id": "goal",
+          "result_revision": 0,
+          "hash": "",
+          "length": 0
+        }
+      ]
+    },
+    {
+      "id": "ux",
+      "title": "ux",
+      "role_ref": "ux",
+      "kind": "execute",
+      "goal": "写交互规格：控件与它们的 data-testid，开始、暂停、继续、重置与改参数的状态机，表格与图的布局，小测的判题方式，移动端与无障碍要求。不写 HTML。",
+      "depends_on": [
+        {
+          "step": "goal",
+          "condition": "execution_completed"
+        }
+      ],
+      "refs": [
+        {
+          "task_id": "goal",
+          "result_revision": 0,
+          "hash": "",
+          "length": 0
+        }
+      ]
+    },
+    {
+      "id": "builder",
+      "title": "builder",
+      "role_ref": "builder",
+      "kind": "execute",
+      "goal": "依据学科规格和交互规格写出完整的 lesson.html 并提交（不再修改规格）。提交的版本由测试员审核，再由教学审核员审核。",
+      "depends_on": [
+        {
+          "step": "physics",
+          "condition": "execution_completed"
+        },
+        {
+          "step": "ux",
+          "condition": "execution_completed"
+        }
+      ],
+      "refs": [
+        {
+          "task_id": "physics",
+          "result_revision": 0,
+          "hash": "",
+          "length": 0
+        },
+        {
+          "task_id": "ux",
+          "result_revision": 0,
+          "hash": "",
+          "length": 0
+        }
+      ],
+      "reviewers": [
+        "tester",
+        "pedagogy"
+      ]
+    }
+  ]
+}

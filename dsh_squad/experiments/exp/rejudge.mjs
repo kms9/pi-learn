@@ -6,8 +6,9 @@
 import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { judgeExp01 } from './judges/exp01.mjs'
 import { judgeExp02 } from './judges/exp02.mjs'
+import { judgeExp03 } from './judges/exp03.mjs'
 
-const JUDGES = { exp01: judgeExp01, exp02: judgeExp02 }
+const JUDGES = { exp01: judgeExp01, exp02: judgeExp02, exp03: judgeExp03 }
 const [file] = process.argv.slice(2)
 if (!file) {
   console.error('usage: rejudge.mjs <report.json>')

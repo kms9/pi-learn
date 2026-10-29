@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "team_id": "lesson",
+  "config_version": 1,
+  "leader": {
+    "agent_ref": "chief",
+    "mode": "fixed"
+  },
+  "members": [
+    {
+      "role_ref": "goal",
+      "responsibility": "教学目标与学情"
+    },
+    {
+      "role_ref": "physics",
+      "responsibility": "学科规格"
+    },
+    {
+      "role_ref": "ux",
+      "responsibility": "交互规格"
+    },
+    {
+      "role_ref": "builder",
+      "responsibility": "实现"
+    },
+    {
+      "role_ref": "tester",
+      "responsibility": "测试审核"
+    },
+    {
+      "role_ref": "pedagogy",
+      "responsibility": "教学审核"
+    }
+  ],
+  "instructions_file": "instructions.md",
+  "default_workflow": "dag",
+  "policy": {
+    "run_admission": "fifo_single_active",
+    "max_parallel_tasks": 2,
+    "max_delegate_depth": 2,
+    "max_total_tasks": 20,
+    "max_attempts_per_task": 3,
+    "allowed_tools": [
+      "read",
+      "grep",
+      "find",
+      "ls"
+    ],
+    "writable_roots": [],
+    "acceptance_policy": {
+      "mode": "on_completion",
+      "child_policy": "separate"
+    }
+  }
+}

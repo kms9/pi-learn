@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>二次函数 y = ax² + bx + c</title>
+<style>
+body { margin: 0; padding: 16px; font-family: system-ui, "Noto Sans CJK SC", "PingFang SC", sans-serif; color: #1d1d1f; background: #fff; font-size: 16px; line-height: 1.6; }
+main { max-width: 720px; margin: 0 auto; }
+h1 { font-size: 1.4rem; margin: 0 0 8px; }
+h2 { font-size: 1.1rem; margin: 20px 0 8px; }
+svg { width: 100%; height: auto; display: block; border: 1px solid #c7c7cc; background: #fafafa; }
+.controls { display: grid; gap: 12px; margin: 12px 0; }
+.controls label { display: block; font-weight: 600; }
+.controls input[type=range] { width: 100%; }
+.facts p { margin: 4px 0; }
+.practice { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.practice input { width: 6em; font-size: 1rem; padding: 6px; }
+button { font-size: 1rem; padding: 8px 14px; min-height: 44px; }
+.feedback { font-weight: 600; min-height: 1.6em; }
+.ok { color: #14653a; }
+.bad { color: #9b1c1c; }
+</style>
+</head>
+<body>
+<main>
+  <h1>二次函数 y = ax² + bx + c</h1>
+  <p>拖动滑块，观察 a、b、c 怎样改变图像。</p>
+
+  <svg data-testid="plot" viewBox="0 0 640 400" role="img" aria-label="二次函数图像，x 从 -4 到 6">
+    <line x1="40" y1="200" x2="600" y2="200" stroke="#8e8e93"/>
+    <line x1="264" y1="20" x2="264" y2="380" stroke="#8e8e93"/>
+    <g id="ticks" font-size="11" fill="#3a3a3c"></g>
+    <path data-testid="curve" d="" fill="none" stroke="#0a5bd3" stroke-width="2.5"/>
+    <circle data-testid="vertex-point" r="4" fill="#9b1c1c" cx="0" cy="0"/>
+  </svg>
+
+  <div class="controls">
+    <div><label for="slider-a">a（二次项系数，a ≠ 0）：<span id="value-a"></span></label>
+      <input type="range" id="slider-a" data-testid="slider-a" min="-3" max="3" step="0.5"></div>
+    <div><label for="slider-b">b（一次项系数）：<span id="value-b"></span></label>
+      <input type="range" id="slider-b" data-testid="slider-b" min="-6" max="6" step="0.5"></div>
+    <div><label for="slider-c">c（常数项）：<span id="value-c"></span></label>
+      <input type="range" id="slider-c" data-testid="slider-c" min="-6" max="6" step="0.5"></div>
+  </div>
+  <p><button type="button" id="anim-toggle" data-testid="anim-toggle">演示开口变化：播放</button></p>
+
+  <section class="facts">
+    <h2>图像的性质</h2>
+    <p data-testid="vertex"></p>
+    <p data-testid="axis"></p>
+    <p data-testid="roots"></p>
+  </section>
+
+  <section>
+    <h2>讲解</h2>
+    <p data-testid="explain-completing-square">配方：y = a(x + b/2a)² + (4ac − b²)/4a，顶点为 (−b/2a, (4ac − b²)/4a)。</p>
+    <p data-testid="explain-root-formula">求根公式：x = (−b ± √Δ) / 2a，其中 Δ = b² − 4ac。Δ &lt; 0 时没有实数根。</p>
+    <p data-testid="explain-opening" id="opening"></p>
+  </section>
+
+  <section>
+    <h2>练习</h2>
+    <p id="question"></p>
+    <div class="practice">
+      <label for="practice-x">顶点横坐标</label>
+      <input type="text" id="practice-x" data-testid="practice-x" inputmode="decimal">
+      <label for="practice-y">顶点纵坐标</label>
+      <input type="text" id="practice-y" data-testid="practice-y" inputmode="decimal">
+      <button type="button" id="practice-submit" data-testid="practice-submit">提交</button>
+    </div>
+    <p class="feedback" data-testid="feedback" data-result="none" role="status"></p>
+  </section>
+</main>
+
+<script>
+(function () {
+  var X0 = -4, X1 = 6, Y1 = 8, TOL = 0.01, ANIM_MS = 4000
+  var PRACTICE = { a: 2, b: -8, c: 5 }
+  var params = { a: 1, b: -2, c: -3 }
+  var svgNS = 'http://www.w3.org/2000/svg'
+  var curve = document.querySelector('[data-testid=curve]')
+  var dot = document.querySelector('[data-testid=vertex-point]')
+  var toggle = document.getElementById('anim-toggle')
+  // TODO: 键盘焦点顺序已经按页面从上到下排列；以后可以再加快捷键。
+  var anim = { elapsed: 0, since: 0, playing: false, frame: null }
+
+  function toPixel(x, y) { return [40 + (x - X0) / (X1 - X0) * 560, 200 - y / Y1 * 180] }
+  function f(x, p) { return p.a * x * x + p.b * x + p.c }
+  function fmt(v) { return String(Number(v.toFixed(3))) }
+  function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)) }
+  function vertexX(p) { return -p.b / (2 * p.a) }
+
+  // Ticks, drawn once.
+  var ticks = document.getElementById('ticks')
+  for (var x = X0; x <= X1; x += 1) {
+    var t = document.createElementNS(svgNS, 'text')
+    var px = toPixel(x, 0)[0]
+    t.setAttribute('x', String(px - 4)); t.setAttribute('y', '214'); t.textContent = String(x)
+    ticks.appendChild(t)
+  }
+
+  function draw() {
+    var d = ''
+    for (var s = X0; s <= X1 + 1e-9; s += 0.05) {
+      var q = toPixel(s, f(s, params))
+      d += (d === '' ? 'M' : 'L') + q[0].toFixed(2) + ' ' + q[1].toFixed(2) + ' '
+    }
+    curve.setAttribute('d', d.trim())
+    var h = vertexX(params)
+    var k = params.c - params.b * params.b / (4 * params.a)
+    var delta = params.b * params.b - 4 * params.a * params.c
+    var p = toPixel(h, k)
+    dot.setAttribute('cx', p[0].toFixed(2))
+    dot.setAttribute('cy', clamp(p[1], 0, 400).toFixed(2))
+    document.querySelector('[data-testid=vertex]').textContent = '顶点坐标：(' + fmt(h) + ', ' + fmt(k) + ')'
+    document.querySelector('[data-testid=axis]').textContent = '对称轴：x = ' + fmt(h)
+    var roots
+    if (delta < 0) roots = '与 x 轴没有交点：无实数根'
+    else if (delta === 0) roots = '与 x 轴交点：x = ' + fmt(h)
+    else {
+      var r1 = (-params.b + Math.sqrt(delta)) / (2 * params.a)
+      var r2 = (-params.b - Math.sqrt(delta)) / (2 * params.a)
+      roots = '与 x 轴交点：x = ' + fmt(r1) + '、x = ' + fmt(r2)
+    }
+    document.querySelector('[data-testid=roots]').textContent = roots
+    document.getElementById('opening').textContent = params.a > 0
+      ? 'a > 0，开口向上，图像有最低点。'
+      : 'a < 0，开口向下，图像有最高点。'
+    ;['a', 'b', 'c'].forEach(function (n) {
+      document.getElementById('value-' + n).textContent = fmt(params[n])
+      document.getElementById('slider-' + n).value = String(params[n])
+    })
+  }
+
+  function setParams(p) {
+    var next = { a: Number(p.a), b: Number(p.b), c: Number(p.c) }
+    if (!isFinite(next.a) || !isFinite(next.b) || !isFinite(next.c) || next.a === 0) throw new Error('a must be a number other than 0')
+    params = next
+    draw()
+  }
+
+  // The demonstration: a moves from 0.5 to 3 over ANIM_MS. Pausing keeps the progress.
+  function stopAnimation() {
+    cancelAnimationFrame(anim.frame)
+    anim.frame = null
+    anim.playing = false
+    toggle.textContent = '演示开口变化：播放'
+  }
+  function step(now) {
+    var t = Math.min(1, (anim.elapsed + (now - anim.since)) / ANIM_MS)
+    setParams({ a: 0.5 + t * 2.5, b: params.b, c: params.c })
+    if (t >= 1) {
+      anim.elapsed = ANIM_MS
+      stopAnimation()
+      return
+    }
+    anim.frame = requestAnimationFrame(step)
+  }
+  function play() {
+    if (anim.elapsed >= ANIM_MS) anim.elapsed = 0
+    anim.since = performance.now()
+    anim.playing = true
+    toggle.textContent = '演示开口变化：暂停'
+    anim.frame = requestAnimationFrame(step)
+  }
+  function pause() {
+    anim.elapsed += performance.now() - anim.since
+    stopAnimation()
+  }
+  toggle.addEventListener('click', function () { if (anim.playing) pause(); else play() })
+
+  ;['a', 'b', 'c'].forEach(function (n) {
+    document.getElementById('slider-' + n).addEventListener('input', function (e) {
+      stopAnimation()
+      var next = { a: params.a, b: params.b, c: params.c }
+      next[n] = Number(e.target.value)
+      if (next.a === 0) next.a = n === 'a' ? 0.5 : params.a
+      setParams(next)
+    })
+  })
+
+  var practiceVertex = [-PRACTICE.b / (2 * PRACTICE.a), PRACTICE.c - PRACTICE.b * PRACTICE.b / (4 * PRACTICE.a)]
+  document.getElementById('question').textContent = '练习：函数 y = 2x² − 8x + 5 的顶点坐标是多少？'
+
+  document.getElementById('practice-submit').addEventListener('click', function () {
+    var rawX = document.querySelector('[data-testid=practice-x]').value
+    var rawY = document.querySelector('[data-testid=practice-y]').value
+    var x = parseFloat(rawX)
+    var y = parseFloat(rawY)
+    var fb = document.querySelector('[data-testid=feedback]')
+    var okX = Math.abs(x - practiceVertex[0]) <= TOL
+    var okY = Math.abs(y - practiceVertex[1]) <= TOL
+    var right = okX && okY
+    fb.setAttribute('data-result', right ? 'correct' : 'wrong')
+    fb.className = 'feedback ' + (right ? 'ok' : 'bad')
+    fb.textContent = right
+      ? '回答正确：顶点是 (' + fmt(practiceVertex[0]) + ', ' + fmt(practiceVertex[1]) + ')。'
+      : '还不对。顶点的横坐标是 −b/2a，先算它再算纵坐标。'
+  })
+
+  window.lesson = {
+    setParams: setParams,
+    getParams: function () { return { a: params.a, b: params.b, c: params.c } },
+    toPixel: toPixel,
+    practice: function () { return { a: PRACTICE.a, b: PRACTICE.b, c: PRACTICE.c, vertex: practiceVertex.slice() } }
+  }
+  draw()
+})()
+</script>
+</body>
+</html>

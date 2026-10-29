@@ -18,13 +18,14 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { judgeExp01 } from './judges/exp01.mjs'
 import { judgeExp02 } from './judges/exp02.mjs'
+import { judgeExp03 } from './judges/exp03.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const SQUAD = dirname(dirname(HERE))
 const CLI = join(SQUAD, 'deploy', 'dsh-squad')
 const RUNS = join(HERE, '.runs')
 const REPORTS = join(HERE, 'reports')
-const JUDGES = { exp01: judgeExp01, exp02: judgeExp02 }
+const JUDGES = { exp01: judgeExp01, exp02: judgeExp02, exp03: judgeExp03 }
 
 const [expId, ...rest] = process.argv.slice(2)
 const option = (name, fallback) => { const i = rest.indexOf(`--${name}`); return i === -1 ? fallback : rest[i + 1] }
@@ -83,6 +84,11 @@ function prepare(arm, project) {
   rmSync(project, { recursive: true, force: true })
   mkdirSync(project, { recursive: true })
   cpSync(join(HERE, 'templates', expId, arm, '.agents'), join(project, '.agents'), { recursive: true })
+  // Task inputs (plan §1.3): copied into the project, where the formal task can read them.
+  for (const [target, source] of Object.entries(spec.inputs ?? {})) {
+    mkdirSync(dirname(join(project, target)), { recursive: true })
+    cpSync(join(HERE, source), join(project, target))
+  }
 }
 
 function cli(project, ...more) {

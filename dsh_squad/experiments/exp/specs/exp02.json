@@ -1,0 +1,19 @@
+{
+  "experiment": "exp02",
+  "title": "EXP-02 复杂互动实验：单摆周期与摆长的关系（B0 单智能体、B1 单智能体加 SOP、固定 DAG 团队）",
+  "team": "lesson",
+  "artifact": "lesson.html",
+  "arms": [
+    "B0",
+    "B1",
+    "DAG"
+  ],
+  "final_steps": {
+    "B0": "build",
+    "B1": "fix",
+    "DAG": "builder"
+  },
+  "repeats": 5,
+  "minutes": 60,
+  "goal": "为高一物理做一个互动实验页面 lesson.html：探究单摆周期与摆长的关系。只交付一个单文件 lesson.html，不引用任何外部资源（不用外部脚本、样式、字体、图片）。取 g = 9.8 m/s²。\n\n需求：\nR1 教学目标与实验原理：页面有 data-testid=\"goal\"（教学目标）和 data-testid=\"principle\"（原理）两段文字；原理写出小角度时 T = 2π√(L/g)，并写明适用条件（摆角不超过 10°）。页面还有 data-testid=\"theory\"，显示当前摆长 L 对应的理论周期 T（保留 3 位小数）。\nR2 单摆动画：滑块 data-testid=\"length\"（摆长 L，0.2～2.0 m）和 data-testid=\"angle\"（初始摆角 θ，2°～30°）；按钮 data-testid=\"start\"、\"pause\"、\"reset\"（开始、暂停、重置）。开始、暂停、继续时角度连续；重置回到初始摆角、时间归零；动画运行中改动 L 或 θ，动画从初始状态重新开始。\nR3 动画物理正确（小角度）：页面必须暴露 window.lessonState()（判题依赖它，不得改名），返回 { running, t, lengthM, theta0Deg, angleDeg, series }：t 为模拟时间（秒），angleDeg 为当前摆角（度，向右为正），series 为按时间升序的最近采样 [{t, angleDeg}, …]，至少保留最近 30 秒、最多 6000 个点。θ = 5° 时测得的周期与 2π√(L/g) 的误差应小于 3%。\nR4 测量：按钮 data-testid=\"measure\"（测 10 个周期）。点击后动画开始运行，记录 10 个完整周期所用的时间（模拟时间），在 data-testid=\"table\" 的表格中新增一行 data-testid=\"row\"，三个单元格依次为「L = … m」「10T = … s」「T = … s」（T 保留 3 位小数）。\nR5 T–√L 图：data-testid=\"chart\" 的 SVG 图，横轴为 √L，纵轴为 T，每个测量行对应一个点 data-testid=\"point\"；data-testid=\"slope\" 显示过原点的最小二乘拟合斜率（首个数字即斜率），与理论值 2π/√g ≈ 2.007 比较，误差应小于 5%。\nR6 大摆角提示：θ > 10° 时出现 data-testid=\"warning\"，文字包含「近似」。\nR7 小测：三道数值题，每题有输入框 data-testid=\"quiz-1-input\"（同理 quiz-2、quiz-3）、提交按钮 data-testid=\"quiz-N-submit\"、反馈 data-testid=\"quiz-N-feedback\"（属性 data-result 为 correct 或 wrong，并有文字）。题目：(1) L = 0.25 m 时的 T（保留 2 位小数）；(2) L = 1.00 m 时的 T（保留 2 位小数）；(3) 摆长变为原来的 4 倍，周期变为原来的几倍。答案容差 ±0.01；非数字输入判错，不报错。\nR8 单文件、无外部资源、无控制台错误。\nR9 375 px 宽时不横向滚动，控件在视口内可以点击。\nR10 控件有可访问名称，可以用 Tab 键到达，动画可以暂停，反馈有文字（不只靠颜色）。\n\n交付前请对照 R1–R10 与 window.lessonState() 逐条检查，然后提交 lesson.html。"
+}

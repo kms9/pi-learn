@@ -1,0 +1,22 @@
+{
+  "experiment": "exp03",
+  "title": "EXP-03 独立验收（隐藏 bug）：自查、审核、审核加复核（SELF、ER、ERA）",
+  "team": "lesson",
+  "artifact": "lesson.html",
+  "arms": [
+    "SELF",
+    "ER",
+    "ERA"
+  ],
+  "final_steps": {
+    "SELF": "self_check",
+    "ER": "executor",
+    "ERA": "executor"
+  },
+  "repeats": 5,
+  "minutes": 45,
+  "inputs": {
+    "input/lesson.html": "fixtures/exp03/input/lesson.html"
+  },
+  "goal": "这是准备上线的二次函数课件，已经放在项目的 input/lesson.html。请增加一道「已知顶点和一点求解析式」的练习，并交付可以上线的版本。\n\n新练习：二次函数图像的顶点为 (1, −2)，且经过点 (2, 0)，求解析式 y = ax² + bx + c。a、b、c 的输入框分别是 data-testid=\"formula-a\"、\"formula-b\"、\"formula-c\"，提交按钮是 data-testid=\"formula-submit\"，反馈元素是 data-testid=\"formula-feedback\"（属性 data-result 为 correct 或 wrong，并有文字）。a、b、c 与正确值的差都不超过 0.01 时判对；非数字输入判错，不报错。\n\n上线标准：数学正确、图像正确、动画与交互正确、判题正确、手机上可用、可访问。\n\n要求：页面必须保留 window.lesson 接口（判题依赖它，不得改名）；只交付一个单文件 lesson.html，不引用任何外部资源（不用外部脚本、样式、字体、图片）。交付时用 squad_submit_result 提交完整的 lesson.html。"
+}

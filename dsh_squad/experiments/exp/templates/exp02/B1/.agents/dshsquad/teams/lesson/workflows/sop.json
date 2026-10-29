@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "workflow_id": "sop",
+  "steps": [
+    {
+      "id": "plan",
+      "title": "plan",
+      "role_ref": "author",
+      "kind": "execute",
+      "goal": "只写设计，不写 HTML：逐条列出 R1–R10 的实现方案（页面结构、控件、函数、window.lessonState 接口、物理与测量的计算方式）。",
+      "depends_on": []
+    },
+    {
+      "id": "execute",
+      "title": "execute",
+      "role_ref": "author",
+      "kind": "execute",
+      "goal": "依据设计写出完整的 lesson.html 并提交（不再修改设计）。",
+      "depends_on": [
+        {
+          "step": "plan",
+          "condition": "execution_completed"
+        }
+      ],
+      "refs": [
+        {
+          "task_id": "plan",
+          "result_revision": 0,
+          "hash": "",
+          "length": 0
+        }
+      ]
+    },
+    {
+      "id": "check",
+      "title": "check",
+      "role_ref": "author",
+      "kind": "execute",
+      "goal": "逐条对照 R1–R10 检查 lesson.html：用 squad_check_page 取证（task_id 填 execute 步骤的任务编号），再读页面内容，列出问题和位置；本步骤不修改文件。",
+      "depends_on": [
+        {
+          "step": "execute",
+          "condition": "execution_completed"
+        }
+      ],
+      "refs": [
+        {
+          "task_id": "execute",
+          "result_revision": 0,
+          "hash": "",
+          "length": 0
+        }
+      ]
+    },
+    {
+      "id": "fix",
+      "title": "fix",
+      "role_ref": "author",
+      "kind": "execute",
+      "goal": "依据检查意见修复 lesson.html，提交最终版本。",
+      "depends_on": [
+        {
+          "step": "check",
+          "condition": "execution_completed"
+        }
+      ],
+      "refs": [
+        {
+          "task_id": "execute",
+          "result_revision": 0,
+          "hash": "",
+          "length": 0
+        },
+        {
+          "task_id": "check",
+          "result_revision": 0,
+          "hash": "",
+          "length": 0
+        }
+      ]
+    }
+  ]
+}

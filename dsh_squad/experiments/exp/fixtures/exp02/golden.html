@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>单摆周期与摆长的关系</title>
+<style>
+  :root { --ink: #1f2937; --muted: #4b5563; --line: #cbd5e1; --accent: #1d4ed8; --ok: #166534; --bad: #991b1b; --warn: #92400e; }
+  body { margin: 0; font-family: "Noto Sans CJK SC", "Microsoft YaHei", sans-serif; color: var(--ink); background: #f8fafc; line-height: 1.6; }
+  main { max-width: 760px; margin: 0 auto; padding: 16px; box-sizing: border-box; }
+  h1 { font-size: 22px; margin: 8px 0 12px; }
+  h2 { font-size: 18px; margin: 20px 0 8px; }
+  section { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin-bottom: 14px; }
+  p { margin: 6px 0; }
+  .controls { display: grid; gap: 10px; }
+  label { display: block; font-weight: 600; }
+  input[type="range"] { width: 100%; box-sizing: border-box; height: 28px; accent-color: var(--accent); }
+  .buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  button { font: inherit; padding: 8px 14px; border: 1px solid var(--accent); background: var(--accent); color: #fff; border-radius: 6px; cursor: pointer; min-height: 40px; }
+  button.secondary { background: #fff; color: var(--accent); }
+  button:focus-visible, input:focus-visible { outline: 3px solid #93c5fd; outline-offset: 2px; }
+  svg { width: 100%; height: auto; display: block; background: #fff; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th, td { border-bottom: 1px solid var(--line); padding: 6px 4px; text-align: left; }
+  .warning { color: var(--warn); font-weight: 600; margin: 6px 0 0; }
+  .quiz-item { border-top: 1px dashed var(--line); padding-top: 10px; margin-top: 10px; }
+  .quiz-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .quiz-row input { font: inherit; padding: 8px; width: 120px; min-height: 40px; box-sizing: border-box; }
+  .feedback { margin: 6px 0 0; min-height: 1.6em; }
+  .feedback[data-result="correct"] { color: var(--ok); }
+  .feedback[data-result="wrong"] { color: var(--bad); }
+  .muted { color: var(--muted); font-size: 14px; }
+  @media (max-width: 480px) { main { padding: 12px; } h1 { font-size: 20px; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>探究单摆周期与摆长的关系</h1>
+
+  <section>
+    <h2>教学目标</h2>
+    <p data-testid="goal">通过测量不同摆长的单摆周期，发现周期与摆长的关系，并用图像求重力加速度。</p>
+    <h2>实验原理</h2>
+    <p data-testid="principle">摆角很小时（不超过 10°），单摆的周期 T = 2π√(L/g)，其中 L 为摆长，g 取 9.8 m/s²。</p>
+    <p class="muted">只有摆角不超过 10° 时，上式才近似成立。</p>
+  </section>
+
+  <section>
+    <h2>单摆动画</h2>
+    <div class="controls">
+      <div><label for="length">摆长 L（m）：<span id="length-value">1.00</span></label>
+        <input id="length" data-testid="length" type="range" min="0.2" max="2" step="0.01" value="1"></div>
+      <div><label for="angle">初始摆角 θ（°）：<span id="angle-value">5</span></label>
+        <input id="angle" data-testid="angle" type="range" min="2" max="30" step="1" value="5"></div>
+    </div>
+    <div class="buttons">
+      <button type="button" id="start" data-testid="start">开始</button>
+      <button type="button" id="pause" class="secondary" data-testid="pause">暂停</button>
+      <button type="button" id="reset" class="secondary" data-testid="reset">重置</button>
+      <button type="button" id="measure" data-testid="measure">测 10 个周期</button>
+    </div>
+    <p class="muted">时间 <span id="clock">0.00</span> s　摆角 <span id="now-angle">5.0</span>°</p>
+    <p class="warning" data-testid="warning" id="warning" hidden>摆角较大（θ &gt; 10°），周期公式只是近似，结果会偏大。</p>
+    <p data-testid="theory">理论周期 T = 2π√(L/g) = 2.007 s</p>
+    <svg id="pendulum" viewBox="0 0 320 240" role="img" aria-labelledby="pendulum-title">
+      <title id="pendulum-title">单摆示意图</title>
+      <line x1="160" y1="16" x2="160" y2="30" stroke="#1f2937" stroke-width="3"></line>
+      <line id="rod" x1="160" y1="16" x2="260" y2="216" stroke="#64748b" stroke-width="2"></line>
+      <circle id="bob" cx="260" cy="216" r="12" fill="#1d4ed8"></circle>
+    </svg>
+  </section>
+
+  <section>
+    <h2>测量数据与图像</h2>
+    <table>
+      <thead><tr><th scope="col">摆长</th><th scope="col">10 个周期</th><th scope="col">周期</th></tr></thead>
+      <tbody data-testid="table" id="table-body"></tbody>
+    </table>
+    <svg id="chart" data-testid="chart" viewBox="0 0 320 240" role="img" aria-labelledby="chart-title">
+      <title id="chart-title">周期 T 与 √L 的关系图</title>
+      <line x1="40" y1="200" x2="310" y2="200" stroke="#1f2937"></line>
+      <line x1="40" y1="20" x2="40" y2="200" stroke="#1f2937"></line>
+      <text x="170" y="236" font-size="12" fill="#1f2937">√L（√m）</text>
+      <text x="4" y="16" font-size="12" fill="#1f2937">T（s）</text>
+      <line id="fit" x1="40" y1="200" x2="40" y2="200" stroke="#1d4ed8" stroke-width="2"></line>
+      <g id="points"></g>
+    </svg>
+    <p><span class="feedback" data-testid="slope" id="slope">拟合斜率 k 尚未得出（至少需要一组测量）</span></p>
+  </section>
+
+  <section>
+    <h2>小测</h2>
+    <div class="quiz-item">
+      <p id="quiz-1-q">1. L = 0.25 m 时单摆的周期 T 为多少秒（保留 2 位小数）？</p>
+      <div class="quiz-row">
+        <label for="quiz-1-input">答案（s）</label>
+        <input id="quiz-1-input" data-testid="quiz-1-input" type="text" inputmode="decimal" autocomplete="off">
+        <button type="button" id="quiz-1-submit" data-testid="quiz-1-submit">提交</button>
+      </div>
+      <p class="feedback" data-testid="quiz-1-feedback" data-result="wrong" aria-live="polite"></p>
+    </div>
+    <div class="quiz-item">
+      <p id="quiz-2-q">2. L = 1.00 m 时单摆的周期 T 为多少秒（保留 2 位小数）？</p>
+      <div class="quiz-row">
+        <label for="quiz-2-input">答案（s）</label>
+        <input id="quiz-2-input" data-testid="quiz-2-input" type="text" inputmode="decimal" autocomplete="off">
+        <button type="button" id="quiz-2-submit" data-testid="quiz-2-submit">提交</button>
+      </div>
+      <p class="feedback" data-testid="quiz-2-feedback" data-result="wrong" aria-live="polite"></p>
+    </div>
+    <div class="quiz-item">
+      <p id="quiz-3-q">3. 摆长变为原来的 4 倍，周期变为原来的几倍？</p>
+      <div class="quiz-row">
+        <label for="quiz-3-input">答案（倍）</label>
+        <input id="quiz-3-input" data-testid="quiz-3-input" type="text" inputmode="decimal" autocomplete="off">
+        <button type="button" id="quiz-3-submit" data-testid="quiz-3-submit">提交</button>
+      </div>
+      <p class="feedback" data-testid="quiz-3-feedback" data-result="wrong" aria-live="polite"></p>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  var G = 9.8;
+  var STEP = 1 / 240;
+  var SAMPLE_EVERY = 2;
+  var MAX_SERIES = 6000;
+  var state = { L: 1, theta0: 5 * Math.PI / 180, theta: 5 * Math.PI / 180, omega: 0, t: 0, running: false, steps: 0, series: [], ups: null, measureRows: [] };
+  var acc = 0;
+  var last = null;
+  var $ = function (id) { return document.getElementById(id); };
+  var lengthInput = $('length');
+  var angleInput = $('angle');
+  var rod = $('rod');
+  var bob = $('bob');
+  var PIVOT = { x: 160, y: 16 };
+  var PX_PER_M = 100;
+
+  function deg(rad) { return rad * 180 / Math.PI; }
+  function theory(L) { return 2 * Math.PI * Math.sqrt(L / G); }
+
+  function accel(theta) { return -(G / state.L) * Math.sin(theta); }
+
+  function sample() {
+    state.series.push({ t: state.t, angleDeg: deg(state.theta) });
+    if (state.series.length > MAX_SERIES) state.series.splice(0, state.series.length - MAX_SERIES);
+  }
+
+  function step(h) {
+    var th = state.theta, w = state.omega;
+    var k1t = w, k1w = accel(th);
+    var k2t = w + h / 2 * k1w, k2w = accel(th + h / 2 * k1t);
+    var k3t = w + h / 2 * k2w, k3w = accel(th + h / 2 * k2t);
+    var k4t = w + h * k3w, k4w = accel(th + h * k3t);
+    state.theta = th + h / 6 * (k1t + 2 * k2t + 2 * k3t + k4t);
+    state.omega = w + h / 6 * (k1w + 2 * k2w + 2 * k3w + k4w);
+    state.t += h;
+    state.steps += 1;
+    // An upward zero crossing, every step (the sample series is thinner).
+    if (state.ups !== null && th < 0 && state.theta >= 0) state.ups.push(state.t);
+    if (state.steps % SAMPLE_EVERY === 0) sample();
+    if (state.measuring && state.ups.length >= 11) finishMeasure();
+  }
+
+  function reset() {
+    state.theta = state.theta0;
+    state.omega = 0;
+    state.t = 0;
+    state.steps = 0;
+    state.series = [];
+    state.ups = null;
+    state.measuring = false;
+    acc = 0;
+  }
+
+  function setLength(v) {
+    state.L = Number(v);
+    $('length-value').textContent = state.L.toFixed(2);
+    updateTheory();
+  }
+
+  function updateTheory() {
+    var T = theory(state.L);
+    document.querySelector('[data-testid="theory"]').textContent = '理论周期 T = 2π√(L/g) = ' + T.toFixed(3) + ' s（L = ' + state.L.toFixed(2) + ' m）';
+  }
+
+  function setAngle(v) {
+    state.theta0 = Number(v) * Math.PI / 180;
+    $('angle-value').textContent = String(Number(v));
+    $('warning').hidden = !(Number(v) > 10);
+  }
+
+  function draw() {
+    var x = PIVOT.x + state.L * PX_PER_M * Math.sin(state.theta);
+    var y = PIVOT.y + state.L * PX_PER_M * Math.cos(state.theta);
+    rod.setAttribute('x2', x.toFixed(2));
+    rod.setAttribute('y2', y.toFixed(2));
+    bob.setAttribute('cx', x.toFixed(2));
+    bob.setAttribute('cy', y.toFixed(2));
+    $('clock').textContent = state.t.toFixed(2);
+    $('now-angle').textContent = deg(state.theta).toFixed(1);
+  }
+
+  function frame(now) {
+    if (last === null) last = now;
+    var dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    if (state.running) {
+      acc += dt;
+      while (acc >= STEP) { step(STEP); acc -= STEP; }
+    }
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  function start() { state.running = true; }
+  function pause() { state.running = false; }
+
+  // Measure: from the first upward crossing, the time of ten full periods (11 crossings).
+  function measure() {
+    reset();
+    state.ups = [];
+    state.measuring = true;
+    state.running = true;
+  }
+
+  function finishMeasure() {
+    state.measuring = false;
+    state.running = false;
+    var tenT = state.ups[10] - state.ups[0];
+    var T = tenT / 10;
+    var L = state.L;
+    var tr = document.createElement('tr');
+    tr.setAttribute('data-testid', 'row');
+    tr.innerHTML = '<td>L = ' + L.toFixed(2) + ' m</td><td>10T = ' + tenT.toFixed(2) + ' s</td><td>T = ' + T.toFixed(3) + ' s</td>';
+    $('table-body').appendChild(tr);
+    state.measureRows.push({ L: L, T: T });
+    drawChart();
+  }
+
+  function drawChart() {
+    var rows = state.measureRows;
+    var g = $('points');
+    g.innerHTML = '';
+    var xmax = 1.5, ymax = 3;
+    var X = function (sqrtL) { return 40 + sqrtL / xmax * 260; };
+    var Y = function (T) { return 200 - T / ymax * 180; };
+    var num = 0, den = 0;
+    rows.forEach(function (r) {
+      var x = Math.sqrt(r.L);
+      num += x * r.T;
+      den += x * x;
+      var c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      c.setAttribute('data-testid', 'point');
+      c.setAttribute('cx', X(x).toFixed(2));
+      c.setAttribute('cy', Y(r.T).toFixed(2));
+      c.setAttribute('r', '4');
+      c.setAttribute('fill', '#1d4ed8');
+      g.appendChild(c);
+    });
+    if (den > 0) {
+      var k = num / den;
+      var fit = $('fit');
+      fit.setAttribute('x2', X(xmax).toFixed(2));
+      fit.setAttribute('y2', Y(k * xmax).toFixed(2));
+      $('slope').textContent = '拟合斜率 k = ' + k.toFixed(3) + ' s/√m（理论值 2π/√g ≈ ' + (2 * Math.PI / Math.sqrt(G)).toFixed(3) + '）';
+    }
+  }
+
+  // Upward zero crossings of a series, linearly interpolated.
+  window.lessonState = function () {
+    return {
+      running: state.running,
+      t: state.t,
+      lengthM: state.L,
+      theta0Deg: deg(state.theta0),
+      angleDeg: deg(state.theta),
+      series: state.series.slice(-6000),
+    };
+  };
+
+  function answer(id, expected, tolerance) {
+    var input = $('quiz-' + id + '-input');
+    var out = document.querySelector('[data-testid="quiz-' + id + '-feedback"]');
+    var raw = String(input.value).trim().replace(',', '.');
+    var value = raw === '' ? NaN : Number(raw);
+    var ok = Number.isFinite(value) && Math.abs(value - expected) <= tolerance + 1e-9;
+    out.setAttribute('data-result', ok ? 'correct' : 'wrong');
+    out.textContent = ok ? '正确。' : '不正确，请再检查计算。';
+  }
+
+  lengthInput.addEventListener('input', function () { setLength(lengthInput.value); reset(); });
+  angleInput.addEventListener('input', function () { setAngle(angleInput.value); reset(); });
+  $('start').addEventListener('click', start);
+  $('pause').addEventListener('click', pause);
+  $('reset').addEventListener('click', function () { reset(); state.running = false; });
+  $('measure').addEventListener('click', measure);
+  document.querySelectorAll('[id^="quiz-"][id$="-input"]').forEach(function (el) { el.addEventListener('keydown', function (e) { if (e.key === 'Enter') e.target.nextElementSibling.click(); }); });
+  $('quiz-1-submit').addEventListener('click', function () { answer(1, 1.00, 0.01); });
+  $('quiz-2-submit').addEventListener('click', function () { answer(2, 2.01, 0.01); });
+  $('quiz-3-submit').addEventListener('click', function () { answer(3, 2, 0.01); });
+
+  setLength(lengthInput.value);
+  setAngle(angleInput.value);
+  reset();
+  draw();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
