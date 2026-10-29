@@ -41,6 +41,25 @@ func fixedHarness(t *testing.T) (*harness, string) {
 	return h, r.ID
 }
 
+// With no Leader to pass the goal on, each step task carries the Run's task description
+// in front of its own instruction (EXP-01: the author never saw the task otherwise).
+func TestFixedFlowStepsCarryTheRunGoal(t *testing.T) {
+	h, runID := fixedHarness(t)
+	steps := 0
+	for _, c := range h.runTasks(runID) {
+		if c.Kind != "execute" {
+			continue
+		}
+		steps++
+		if !strings.HasPrefix(c.Goal, "teach\n\n") || !strings.Contains(c.Goal, "build the lesson") {
+			t.Fatalf("step %s goal does not carry the run goal and its instruction: %q", c.ID, c.Goal)
+		}
+	}
+	if steps == 0 {
+		t.Fatal("no step task was planned")
+	}
+}
+
 // The reviewer rejects the first build (drive does so), so the Controller plans one
 // rework with its reason, the review of the rework is created by ensureReviews, and the
 // Run completes without any Leader step.

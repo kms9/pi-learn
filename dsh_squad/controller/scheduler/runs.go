@@ -236,7 +236,14 @@ func (s *Service) materialize(tx *sql.Tx, r task.Run, w project.Workflow, origin
 		ids[step.ID] = id
 	}
 	for _, step := range w.Steps {
-		c := baseTask(ids[step.ID], step.Kind, step.Goal, r.Config.Config.Policy)
+		goal := step.Goal
+		if r.Config.Config.Leader.Mode == "fixed" && origin.Kind == "workflow" {
+			// A fixed Run has no Leader to pass its goal on, so each step carries the
+			// Run's task description in front of its own instruction. A rework already
+			// carries it in the goal it is copied from.
+			goal = r.Goal + "\n\n" + step.Goal
+		}
+		c := baseTask(ids[step.ID], step.Kind, goal, r.Config.Config.Policy)
 		c.Scope = "team"
 		c.RunID = &r.ID
 		c.TeamID = &r.TeamID

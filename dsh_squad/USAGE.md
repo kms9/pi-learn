@@ -207,6 +207,17 @@ DEEPSEEK_API_KEY=... node dsh_squad/experiments/run.mjs --repeats 3 --publish ~/
 
 正式 Run 里受控会话的记忆是只读的：可以 `recall`，不能 `remember`/`forget`（D12）。DS Bot 每轮之后的自动记忆复盘也不会处理受控会话（seam v6 的 `memory-review` 询问，adapter 一律回答否），所以小队群里正式工作的内容不会进入 Bot、群或团队记忆；Controller 把这项列为宿主必需能力 `memory_review_gate`。
 
+### 10.1 EXP-01～04 运行器（`exp/run.mjs`）
+
+```bash
+node dsh_squad/experiments/exp/run.mjs exp01 --mock --repeats 1          # 只验证流程，不调用模型
+set -a; . ~/.secrets/deepseek.env; set +a                                 # 密钥只进环境变量，不写进仓库
+node dsh_squad/experiments/exp/run.mjs exp01 --repeats 5                  # 真实运行，报告写到 exp/reports/
+node dsh_squad/experiments/exp/run.mjs exp01 --repeats 5 --resume dsh_squad/experiments/exp/reports/<报告>.json
+```
+
+每个 arm（`specs/<exp>.json`，模板在 `templates/<exp>/<arm>/`）每轮一个全新项目目录，在 `exp/.runs/` 下，只留本机。轮次交错执行。`repeat` 是第几轮，`order` 是运行序号。`goal_success` 要求成果被 Controller 验收且判题的必过检查全部通过。判题脚本在 `exp/judges/`，不在任何项目目录里。`--resume` 跳过报告里已有的 `(arm, repeat)`，用于机器重启后接着跑；`--mock` 与报告模式不一致时拒绝续跑。
+
 ## 9. 故障时
 
 - 机器休眠：Controller 发现自己有超过一个租约周期没在运行时，不在醒来那一刻判租约过期，而是把当时还有效的租约和在线状态再延长一个周期（事件 `controller_resumed`）；宿主醒来后照常续约，执行继续。宿主真的没了，一个周期后照样过期；之后宿主恢复并上报这一轮已结束（`settled`、idle），Controller 自动对账（事件 `host_reconciled`），任务等人点重试；宿主一直不回来才需要人确认已停止。

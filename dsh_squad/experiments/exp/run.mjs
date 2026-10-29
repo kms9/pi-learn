@@ -4,12 +4,13 @@
 // deterministic scripts outside the project, and nothing here calls an LLM.
 //
 //   node dsh_squad/experiments/exp/run.mjs <exp> [--arms B0,B1,P1] [--repeats 5]
-//        [--minutes 30] [--port 3600] [--mock]
+//        [--minutes 30] [--port 3600] [--mock] [--resume reports/<report>.json]
 //
 // Arms and their templates come from specs/<exp>.json and templates/<exp>/<arm>/.
 // Arms run interleaved by repeat (round 1 of every arm, then round 2, ...). A run during
 // which the machine slept is marked environment_interrupted and run again once (plan §6).
-// Writes dsh-squad-experiment/2 into reports/ (not committed). Evidence stays local.
+// Writes dsh-squad-experiment/2 into reports/. The report and its Markdown summary are
+// committed (plan §8 decision 8); the Runs' evidence in .runs/ stays local.
 import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
@@ -87,16 +88,16 @@ function cli(project, ...more) {
   return execFileSync(CLI, [...more, project, ...(mock ? ['--mock'] : []), '--port', String(basePort)], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
 }
 
-async function runOnce(arm, index) {
-  const project = join(RUNS, `${expId}-${arm}-${index}`)
+async function runOnce(arm, round, order) {
+  const project = join(RUNS, `${expId}-${arm}-${round + 1}`)
   prepare(arm, project)
   const sleptBefore = sleeps.ms
   const started = Date.now()
-  const record = { arm, repeat: index + 1, project, outcome: 'not run', run_id: null, seconds: null, suspended_seconds: 0, environment_interrupted: false, final: null, judge: null, error: null }
+  const record = { arm, repeat: round + 1, order: order + 1, project, outcome: 'not run', run_id: null, seconds: null, suspended_seconds: 0, environment_interrupted: false, final: null, judge: null, error: null, goal_success: false }
   try {
     cli(project, 'up')
     const { ui } = await host(project)
-    const run = await ui('start-run', { requestId: `${expId}-${arm}-${index}-${Date.now()}`, teamId: spec.team, goal: spec.goal })
+    const run = await ui('start-run', { requestId: `${expId}-${arm}-${round + 1}-${Date.now()}`, teamId: spec.team, goal: spec.goal })
     record.run_id = run.run_id
     let current
     let tasks = []
@@ -135,12 +136,14 @@ async function runOnce(arm, index) {
     record.seconds = Math.round((Date.now() - started) / 100) / 10
     record.suspended_seconds = Math.round((sleeps.ms - sleptBefore) / 100) / 10
     record.environment_interrupted = record.suspended_seconds > 5
+    // Goal Success needs the Controller's acceptance as well as the judge's must-checks.
+    record.goal_success = record.final?.accepted === true && record.judge?.must_passed === true
   }
   return record
 }
 
 const stamp = new Date().toISOString().replace(/[:.]/g, '-')
-const report = {
+const fresh = {
   schema: 'dsh-squad-experiment/2',
   id: `${expId}-${stamp}`,
   experiment: expId,
@@ -153,25 +156,35 @@ const report = {
   task: { goal: spec.goal, artifact: spec.artifact, final_steps: spec.final_steps ?? { all: spec.final_step } },
   runs: [],
 }
-const path = join(REPORTS, `${report.id}.json`)
+// --resume <report> continues an experiment that stopped (a restart kills the runner, the
+// Runs it finished stay in the report). Every (arm, repeat) already in the report is skipped.
+const resumeFrom = option('resume', '')
+const report = resumeFrom ? JSON.parse(readFileSync(resumeFrom, 'utf8')) : fresh
+if (resumeFrom && (report.experiment !== expId || report.mock !== mock)) {
+  console.error(`${resumeFrom} is not a ${expId} report in the same mode (mock=${mock})`)
+  process.exit(2)
+}
+const path = resumeFrom || join(REPORTS, `${report.id}.json`)
+const done = new Set(report.runs.filter(r => r.discarded_first !== true).map(r => `${r.arm}:${r.repeat}`))
 function write() {
-  mkdirSync(REPORTS, { recursive: true })
+  mkdirSync(dirname(path), { recursive: true })
   writeFileSync(path, `${JSON.stringify(report, null, 2)}\n`)
 }
 mkdirSync(RUNS, { recursive: true })
 for (let round = 0; round < repeats; round += 1) {
   for (const [armIndex, arm] of arms.entries()) {
+    const order = round * arms.length + armIndex
     console.log(`== ${expId} ${arm} round ${round + 1}/${repeats}`)
-    let record = await runOnce(arm, round * 10 + armIndex)
+    if (done.has(`${arm}:${round + 1}`)) { console.log('   already in the report; skipped'); continue }
+    let record = await runOnce(arm, round, order)
     if (record.environment_interrupted) {
       console.log(`   environment interrupted (${record.suspended_seconds}s asleep); running once more`)
       record.discarded_first = true
       report.runs.push(record)
-      record = await runOnce(arm, round * 10 + armIndex)
+      record = await runOnce(arm, round, order)
     }
     report.runs.push(record)
-    const passed = record.judge?.goal_success === true
-    console.log(`   ${record.outcome} ${record.seconds}s goal_success=${passed} ${record.judge ? `coverage=${record.judge.requirement_coverage.toFixed(2)}` : (record.judge_error ?? record.error ?? 'no artifact')}`)
+    console.log(`   ${record.outcome} ${record.seconds}s goal_success=${record.goal_success} ${record.judge ? `coverage=${record.judge.requirement_coverage.toFixed(2)}` : (record.judge_error ?? record.error ?? 'no artifact')}`)
     write()
   }
 }
