@@ -3,7 +3,8 @@
   "team_id": "lesson",
   "config_version": 1,
   "leader": {
-    "agent_ref": "chief"
+    "agent_ref": "chief",
+    "mode": "fixed"
   },
   "members": [
     {
