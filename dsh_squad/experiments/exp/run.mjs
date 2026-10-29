@@ -115,11 +115,17 @@ async function runOnce(arm, index) {
       const file = join(project, 'final', spec.artifact)
       mkdirSync(dirname(file), { recursive: true })
       writeFileSync(file, record.final.text)
-      const runs = []
-      for (let round = 0; round < 3; round += 1) runs.push(await judge(file))
-      const first = JSON.stringify(runs[0].checks.map(c => [c.id, c.ok]))
-      record.judge = { ...runs[0], consistent: runs.every(r => JSON.stringify(r.checks.map(c => [c.id, c.ok])) === first) }
       delete record.final.text
+      // Judging is separate from the Run: a judge failure is recorded as judge_error and
+      // leaves the Run's outcome as the Controller reported it.
+      try {
+        const runs = []
+        for (let round = 0; round < 3; round += 1) runs.push(await judge(file))
+        const first = JSON.stringify(runs[0].checks.map(c => [c.id, c.ok]))
+        record.judge = { ...runs[0], consistent: runs.every(r => JSON.stringify(r.checks.map(c => [c.id, c.ok])) === first) }
+      } catch (error) {
+        record.judge_error = String(error.message ?? error).slice(0, 400)
+      }
     }
   } catch (error) {
     record.error = String(error.message ?? error).slice(0, 400)
@@ -165,7 +171,7 @@ for (let round = 0; round < repeats; round += 1) {
     }
     report.runs.push(record)
     const passed = record.judge?.goal_success === true
-    console.log(`   ${record.outcome} ${record.seconds}s goal_success=${passed} ${record.judge ? `coverage=${record.judge.requirement_coverage.toFixed(2)}` : record.error ?? ''}`)
+    console.log(`   ${record.outcome} ${record.seconds}s goal_success=${passed} ${record.judge ? `coverage=${record.judge.requirement_coverage.toFixed(2)}` : (record.judge_error ?? record.error ?? 'no artifact')}`)
     write()
   }
 }

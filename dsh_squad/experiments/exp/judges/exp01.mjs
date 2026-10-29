@@ -183,45 +183,64 @@ async function accessibility(page) {
   return problems.length === 0 ? { ok: true } : { ok: false, detail: problems.slice(0, 6).join('; ') }
 }
 
+// A check that throws (a missing window.lesson method, a broken page) fails that check
+// with the reason; it does not stop the other checks or the run.
 export async function judgeExp01(file) {
   const browser = await launch()
   const checks = []
   const add = (id, level, result) => checks.push({ id, level, ok: result.ok, detail: result.detail ?? null })
+  const guard = async (id, level, body) => {
+    try {
+      add(id, level, await body())
+    } catch (error) {
+      add(id, level, { ok: false, detail: `exception: ${String(error.message ?? error).slice(0, 160)}` })
+    }
+  }
   try {
     const { page, external, errors, hasLesson } = await openPage(browser, file, DESKTOP)
     add('C0', 'must', { ok: hasLesson, detail: hasLesson ? null : 'window.lesson is not defined' })
-    if (!hasLesson) {
-      await page.close()
-    } else {
-      const r1 = []
-      for (const params of FIXED_CURVES) r1.push(await curveMatches(page, params))
-      add('R1', 'must', r1.every(r => r.ok) ? { ok: true } : { ok: false, detail: r1.find(r => !r.ok).detail })
-      const sets = paramSets()
-      const r2 = []
-      for (const params of sets) r2.push(await curveMatches(page, params))
-      const sliders = await sliderMoves(page)
-      add('R2', 'must', r2.every(r => r.ok) && sliders.ok ? { ok: true } : { ok: false, detail: r2.find(r => !r.ok)?.detail ?? sliders.detail })
-      add('R3', 'must', await factsText(page, sets))
-      add('R4', 'must', await explanations(page))
-      add('R5', 'must', await practice(page))
-      add('R8', 'should', await accessibility(page))
-      await page.close()
+    if (hasLesson) {
+      await guard('R1', 'must', async () => {
+        const r1 = []
+        for (const params of FIXED_CURVES) r1.push(await curveMatches(page, params))
+        return r1.every(r => r.ok) ? { ok: true } : { ok: false, detail: r1.find(r => !r.ok).detail }
+      })
+      await guard('R2', 'must', async () => {
+        const sets = paramSets()
+        const r2 = []
+        for (const params of sets) r2.push(await curveMatches(page, params))
+        const sliders = await sliderMoves(page)
+        return r2.every(r => r.ok) && sliders.ok ? { ok: true } : { ok: false, detail: r2.find(r => !r.ok)?.detail ?? sliders.detail }
+      })
+      await guard('R3', 'must', () => factsText(page, paramSets()))
+      await guard('R4', 'must', () => explanations(page))
+      await guard('R5', 'must', () => practice(page))
+      await guard('R8', 'should', () => accessibility(page))
     }
-    const mobile = await mobileLayout(browser, file)
-    add('R7', 'should', mobile.width <= MOBILE.width && mobile.outside.length === 0 ? { ok: true } : { ok: false, detail: `scrollWidth ${mobile.width}; outside: ${mobile.outside.join(',') || 'none'}` })
-    add('R6', 'must', { ok: external.length + mobile.external === 0, detail: external.length + mobile.external > 0 ? `${external.length + mobile.external} external request(s)` : null })
-    add('C1', 'must', { ok: errors.length === 0 && mobile.errors === 0, detail: errors.length + mobile.errors > 0 ? errors.slice(0, 2).join(' | ') : null })
+    await page.close()
+    let mobile = { width: 0, outside: [], external: 0, errors: 0 }
+    await guard('R7', 'should', async () => {
+      mobile = await mobileLayout(browser, file)
+      return mobile.width <= MOBILE.width && mobile.outside.length === 0 ? { ok: true } : { ok: false, detail: `scrollWidth ${mobile.width}; outside: ${mobile.outside.join(',') || 'none'}` }
+    })
+    const extEnd = external.length + mobile.external
+    add('R6', 'must', { ok: extEnd === 0, detail: extEnd > 0 ? `${extEnd} external request(s)` : null })
+    const errs = errors.length + mobile.errors
+    add('C1', 'must', { ok: errs === 0, detail: errs > 0 ? errors.slice(0, 2).join(' | ') : null })
+  } catch (error) {
+    add('C0', 'must', { ok: false, detail: `exception: ${String(error.message ?? error).slice(0, 160)}` })
   } finally {
     await browser.close()
   }
   const must = checks.filter(c => c.level === 'must')
+  const requirements = checks.filter(c => c.id.startsWith('R'))
   return {
     judge: 'exp01',
-    version: 1,
+    version: 2,
     tools: TOOLS,
     checks,
     must_passed: must.every(c => c.ok),
-    requirement_coverage: checks.filter(c => c.id.startsWith('R')).filter(c => c.ok).length / checks.filter(c => c.id.startsWith('R')).length,
+    requirement_coverage: requirements.filter(c => c.ok).length / requirements.length,
     goal_success: must.every(c => c.ok),
   }
 }
