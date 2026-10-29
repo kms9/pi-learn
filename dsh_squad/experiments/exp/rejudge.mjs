@@ -5,8 +5,9 @@
 //   node dsh_squad/experiments/exp/rejudge.mjs dsh_squad/experiments/exp/reports/<report>.json
 import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { judgeExp01 } from './judges/exp01.mjs'
+import { judgeExp02 } from './judges/exp02.mjs'
 
-const JUDGES = { exp01: judgeExp01 }
+const JUDGES = { exp01: judgeExp01, exp02: judgeExp02 }
 const [file] = process.argv.slice(2)
 if (!file) {
   console.error('usage: rejudge.mjs <report.json>')
@@ -33,7 +34,7 @@ for (const record of report.runs) {
   const first = JSON.stringify(runs[0].checks.map(c => [c.id, c.ok]))
   record.judge = { ...runs[0], consistent: runs.every(r => JSON.stringify(r.checks.map(c => [c.id, c.ok])) === first) }
   delete record.judge_error
-  record.goal_success = record.final.accepted === true && record.judge.must_passed === true
+  record.goal_success = record.outcome === 'completed' && record.final.accepted === true && record.judge.must_passed === true
   console.log(`${record.arm} ${record.repeat}: goal_success=${record.goal_success} coverage=${record.judge.requirement_coverage.toFixed(3)} consistent=${record.judge.consistent}`)
 }
 if (versions.size > 0) {

@@ -10,6 +10,11 @@ import (
 
 // A Team in leader mode "fixed": the workflow runs without any Leader step.
 func fixedHarness(t *testing.T) (*harness, string) {
+	return fixedHarnessWith(t, "")
+}
+
+// fixedHarnessWith is fixedHarness with the team's workflow replaced by workflow, unless it is empty.
+func fixedHarnessWith(t *testing.T, workflow string) (*harness, string) {
 	t.Helper()
 	h := newHarness(t)
 	files, _ := project.ConfigFiles(h.svc.Project.Root)
@@ -23,11 +28,15 @@ func fixedHarness(t *testing.T) (*harness, string) {
 	if team == content["teams/math/team.json"] {
 		t.Fatalf("fixture changed: %s", team)
 	}
-	if _, err := project.ApplyConfigEdits(h.svc.Project.Root, []project.ConfigEdit{
+	edits := []project.ConfigEdit{
 		{Path: "roles/checker/role.md", Content: roleDoc("checker")},
 		{Path: "roles/checker/agents.md", Content: "Check.\n"},
 		{Path: "teams/math/team.json", Content: team, ExpectedHash: hash["teams/math/team.json"]},
-	}, false); err != nil {
+	}
+	if workflow != "" {
+		edits = append(edits, project.ConfigEdit{Path: "teams/math/workflows/lesson.json", Content: workflow, ExpectedHash: hash["teams/math/workflows/lesson.json"]})
+	}
+	if _, err := project.ApplyConfigEdits(h.svc.Project.Root, edits, false); err != nil {
 		t.Fatal(err)
 	}
 	h.registerLeader()
@@ -57,6 +66,41 @@ func TestFixedFlowStepsCarryTheRunGoal(t *testing.T) {
 	}
 	if steps == 0 {
 		t.Fatal("no step task was planned")
+	}
+}
+
+// A step that waits for a rejected step's acceptance waits for the rework that replaces it
+// (EXP-01 P1: the builder waited forever on a rejected design). The rework's acceptance
+// moves the dependency, so the dependent runs on the accepted version.
+func TestFixedFlowADependentRunsOnTheAcceptedReworkOfItsInput(t *testing.T) {
+	workflow := `{"schema_version":1,"workflow_id":"lesson","steps":[` +
+		`{"id":"design","title":"design","role_ref":"builder","kind":"execute","goal":"design the lesson","depends_on":[]},` +
+		`{"id":"build","title":"build","role_ref":"builder","kind":"execute","goal":"build the lesson","depends_on":[{"step":"design","condition":"acceptance_accepted"}]}]}`
+	h, runID := fixedHarnessWith(t, workflow)
+	h.drive(runID, func([]task.Contract, []string) bool { return false })
+	if r := h.runOf(runID); r.Phase != "completed" {
+		t.Fatalf("phase %q, want completed", r.Phase)
+	}
+	var design, rework, build task.Contract
+	for _, c := range h.runTasks(runID) {
+		switch {
+		case c.Kind != "execute":
+		case c.ReworkOf != "":
+			rework = c
+		case c.Title == "design":
+			design = c
+		case c.Title == "build":
+			build = c
+		}
+	}
+	if rework.ID == "" || rework.ReworkOf != design.ID || design.SupersededBy != rework.ID {
+		t.Fatalf("the design was not reworked: design=%s rework=%+v", design.ID, rework.ID)
+	}
+	if len(build.Dependencies) != 1 || build.Dependencies[0].TaskID != rework.ID {
+		t.Fatalf("the build still waits for the rejected design: %+v", build.Dependencies)
+	}
+	if build.State != "completed" {
+		t.Fatalf("build state %q, want completed", build.State)
 	}
 }
 

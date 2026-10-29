@@ -17,13 +17,14 @@ import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { judgeExp01 } from './judges/exp01.mjs'
+import { judgeExp02 } from './judges/exp02.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const SQUAD = dirname(dirname(HERE))
 const CLI = join(SQUAD, 'deploy', 'dsh-squad')
 const RUNS = join(HERE, '.runs')
 const REPORTS = join(HERE, 'reports')
-const JUDGES = { exp01: judgeExp01 }
+const JUDGES = { exp01: judgeExp01, exp02: judgeExp02 }
 
 const [expId, ...rest] = process.argv.slice(2)
 const option = (name, fallback) => { const i = rest.indexOf(`--${name}`); return i === -1 ? fallback : rest[i + 1] }
@@ -108,7 +109,9 @@ async function runOnce(arm, round, order) {
       tasks = snap.views.tasks.filter(task => task.run_id === run.run_id)
       if (['completed', 'failed', 'cancelled', 'interrupted'].includes(current?.phase)) break
     }
-    record.outcome = current?.phase ?? 'timed out'
+    // A Run that is still going at the limit is a Runtime Failure (plan §6), not its phase.
+    const terminal = ['completed', 'failed', 'cancelled', 'interrupted'].includes(current?.phase)
+    record.outcome = terminal ? current.phase : 'timed_out'
     record.phase_at_end = current?.phase ?? null
     record.final = await finalArtifact(project, tasks, spec.final_steps?.[arm] ?? spec.final_step)
     record.counts = { tasks: tasks.length, kinds: tasks.reduce((acc, t) => ({ ...acc, [t.kind]: (acc[t.kind] ?? 0) + 1 }), {}) }
@@ -137,7 +140,7 @@ async function runOnce(arm, round, order) {
     record.suspended_seconds = Math.round((sleeps.ms - sleptBefore) / 100) / 10
     record.environment_interrupted = record.suspended_seconds > 5
     // Goal Success needs the Controller's acceptance as well as the judge's must-checks.
-    record.goal_success = record.final?.accepted === true && record.judge?.must_passed === true
+    record.goal_success = record.outcome === 'completed' && record.final?.accepted === true && record.judge?.must_passed === true
   }
   return record
 }

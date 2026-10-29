@@ -54,6 +54,37 @@ func (s *Service) validateArtifacts(c task.Contract, r task.Result) error {
 	}
 	return nil
 }
+// rewireDependents moves the edges of planned tasks from a superseded task to the rework
+// that replaced it. Their condition stays the same, so a step that waits for the acceptance
+// of a rejected step waits for the accepted rework instead, and reads that version. Tasks
+// that already started keep their edge; their input is stale and the stale check handles it.
+func rewireDependents(tx *sql.Tx, old task.Contract, replacement task.Contract) error {
+	all, err := readTasks(tx)
+	if err != nil {
+		return err
+	}
+	for _, d := range all {
+		if d.State != "planned" || d.RunID == nil || old.RunID == nil || *d.RunID != *old.RunID {
+			continue
+		}
+		changed := false
+		for i := range d.Dependencies {
+			if d.Dependencies[i].TaskID == old.ID {
+				d.Dependencies[i].TaskID = replacement.ID
+				changed = true
+			}
+		}
+		if !changed {
+			continue
+		}
+		d.Revision++
+		if err := task.SaveTask(tx, d); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func saveAcceptance(tx *sql.Tx, c *task.Contract, a task.Acceptance) error {
 	c.Acceptance = &a
 	if a.Decision == "accepted" && c.ReworkOf != "" {
@@ -67,6 +98,9 @@ func saveAcceptance(tx *sql.Tx, c *task.Contract, a task.Acceptance) error {
 		old.SupersededBy = c.ID
 		old.Revision++
 		if err := task.SaveTask(tx, old); err != nil {
+			return err
+		}
+		if err := rewireDependents(tx, old, *c); err != nil {
 			return err
 		}
 	}
