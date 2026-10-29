@@ -122,14 +122,18 @@ async function explanations(page) {
 // R5: the practice reads its vertex from window.lesson.practice(); the judge types an
 // answer, submits, and reads data-result on the feedback element.
 async function practice(page) {
+  // Typed the way a student types: keystrokes, so a number field drops the spaces a text
+  // field would keep. Assigning .value would bypass that and test the wrong thing.
   const submit = async (x, y) => {
-    await page.evaluate((xv, yv) => {
-      document.querySelector('[data-testid=practice-x]').value = xv
-      document.querySelector('[data-testid=practice-y]').value = yv
-      document.querySelector('[data-testid=practice-x]').dispatchEvent(new Event('input', { bubbles: true }))
-      document.querySelector('[data-testid=practice-y]').dispatchEvent(new Event('input', { bubbles: true }))
-      document.querySelector('[data-testid=practice-submit]').click()
-    }, x, y)
+    for (const [id, value] of [['practice-x', x], ['practice-y', y]]) {
+      await page.click(`[data-testid=${id}]`)
+      await page.keyboard.down('Control')
+      await page.keyboard.press('KeyA')
+      await page.keyboard.up('Control')
+      await page.keyboard.press('Backspace')
+      await page.keyboard.type(value)
+    }
+    await page.click('[data-testid=practice-submit]')
     await settle(page)
     return page.evaluate(() => document.querySelector('[data-testid=feedback]')?.getAttribute('data-result') ?? 'none')
   }
@@ -236,7 +240,7 @@ export async function judgeExp01(file) {
   const requirements = checks.filter(c => c.id.startsWith('R'))
   return {
     judge: 'exp01',
-    version: 2,
+    version: 3,
     tools: TOOLS,
     checks,
     must_passed: must.every(c => c.ok),

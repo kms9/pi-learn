@@ -135,7 +135,8 @@ curl -X POST "$ENDPOINT/v2/tasks/direct" \
 
 | 工具 | 作用 |
 |---|---|
-| `squad_task` | 读当前任务：目标、验收、上游结果 |
+| `squad_task` | 读当前任务：目标、验收、上游结果；上游结果附带的文字产物（HTML、文本、JSON、SVG）整份可见，其他类型只列名字 |
+| `squad_check_page` | 无头浏览器取证（断网）：控制台错误、会发出的请求、375 与 1280 px 横向溢出、可见文字、没有可访问名称的控件。`html` 传草稿，或 `task_id` 指向一个提交过 HTML 的任务；只读，不改 Run。需要宿主上有 `puppeteer-core`（环境变量 `DSH_EXP_TOOLS` 指向安装目录，默认 `~/.cache/dsh-exp-tools`）和 Chrome（`CHROME`，默认 `/usr/bin/google-chrome`） |
 | `squad_submit_result` | 提交结果（JSON 对象或文字），可附一个文件（`file_name`、`file_content`、`file_type`）；只有提交并且回合确认结束（实时 + 持久日志 + 工具配对），任务才算完成 |
 | `squad_review` | 审核任务：`accepted` 或 `rejected` 加理由，自动引用被审的精确版本 |
 | `squad_decide` | Leader 步骤：`dispatch`（附步骤 JSON）、`wait`、`complete` |
@@ -216,7 +217,7 @@ node dsh_squad/experiments/exp/run.mjs exp01 --repeats 5                  # 真�
 node dsh_squad/experiments/exp/run.mjs exp01 --repeats 5 --resume dsh_squad/experiments/exp/reports/<报告>.json
 ```
 
-每个 arm（`specs/<exp>.json`，模板在 `templates/<exp>/<arm>/`）每轮一个全新项目目录，在 `exp/.runs/` 下，只留本机。轮次交错执行。`repeat` 是第几轮，`order` 是运行序号。`goal_success` 要求成果被 Controller 验收且判题的必过检查全部通过。判题脚本在 `exp/judges/`，不在任何项目目录里。`--resume` 跳过报告里已有的 `(arm, repeat)`，用于机器重启后接着跑；`--mock` 与报告模式不一致时拒绝续跑。
+每个 arm（`specs/<exp>.json`，模板在 `templates/<exp>/<arm>/`）每轮一个全新项目目录，在 `exp/.runs/` 下，只留本机。轮次交错执行。`repeat` 是第几轮，`order` 是运行序号。`goal_success` 要求成果被 Controller 验收且判题的必过检查全部通过。判题脚本在 `exp/judges/`，不在任何项目目录里。`--resume` 跳过报告里已有的 `(arm, repeat)`，用于机器重启后接着跑；`--mock` 与报告模式不一致时拒绝续跑。判题改动后，`node dsh_squad/experiments/exp/rejudge.mjs <报告>.json` 用新判题重判报告里存档的成果，旧结论另存为 `<报告>.judge-v<旧版本>.json`。
 
 ## 9. 故障时
 

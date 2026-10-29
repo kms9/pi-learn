@@ -28,6 +28,8 @@ import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { decideStep, nextRoute, userWords, wakeOf } from './src/policy.js'
 import { newAttempt, observe, verdictOf } from './src/judge.js'
+import { checkPage } from './src/pagecheck.js'
+import { artifactLines, htmlArtifact } from './src/artifacts.js'
 import { durableTurnEnd, readSessionEvents } from './src/durable.js'
 import { createClient, discover } from './src/controller.js'
 import { endReport, nextReceipt, resultValue, reviewVerdict } from './src/reports.js'
@@ -646,6 +648,7 @@ export function apply(ctx, config = {}) {
     return { attempt, binding, key, runtime: runtimeOf(binding) }
   }
   const failure = error => `Refused by the Controller: ${error?.code ?? ''} ${error?.message ?? error}`.trim()
+  const readArtifact = hex => client.artifact(hex)
   const tools = [
     {
       name: 'squad_task',
@@ -664,12 +667,30 @@ export function apply(ctx, config = {}) {
           if ((t.refs ?? []).some(ref => ref.task_id === dep.task_id)) continue
           const input = await client.task(runtime, dep.task_id).catch(error => ({ error }))
           lines.push(input.error ? `waited for ${dep.task_id}: unavailable` : `waited for ${dep.task_id} (${input.state}): ${JSON.stringify(input.result?.value ?? null)}`)
+          if (!input.error) lines.push(...await artifactLines(input.result, readArtifact))
         }
         for (const ref of t.refs ?? []) {
           const input = await client.task(runtime, ref.task_id).catch(error => ({ error }))
           lines.push(input.error ? `input ${ref.task_id}: unavailable (${input.error.code ?? input.error})` : `input ${ref.task_id} (revision ${input.result?.revision}): ${JSON.stringify(input.result?.value ?? null)}`)
+          if (!input.error) lines.push(...await artifactLines(input.result, readArtifact))
         }
         return lines.join('\n')
+      },
+    },
+    {
+      name: 'squad_check_page',
+      description: 'Check an HTML page in a headless browser with the network blocked: its console errors, the requests it would make, horizontal overflow at 375 and 1280 px, its visible text, and the controls with no accessible name. Give the page itself (html) before you submit it, or the task_id of a task that submitted a page. Read-only; it changes nothing in the Run.',
+      parameters: {
+        html: { type: 'string', description: 'The full HTML of a page you wrote' },
+        task_id: { type: 'string', description: 'Or the id of a task you read, to check the HTML artifact it submitted' },
+      },
+      async run({ runtime }, args) {
+        if (args.html !== undefined && args.html !== '') return checkPage(String(args.html))
+        if (args.task_id === undefined) return 'Page check: give html, or the task_id of a task that submitted a page.'
+        const input = await client.task(runtime, String(args.task_id)).catch(error => ({ error }))
+        if (input.error) return `Page check: task ${args.task_id} is unavailable.`
+        const html = await htmlArtifact(input.result, readArtifact)
+        return html === undefined ? `Page check: task ${args.task_id} submitted no HTML artifact.` : checkPage(html)
       },
     },
     {

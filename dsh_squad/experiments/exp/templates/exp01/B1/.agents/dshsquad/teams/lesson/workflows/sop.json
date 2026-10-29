@@ -36,7 +36,7 @@
       "title": "check",
       "role_ref": "author",
       "kind": "execute",
-      "goal": "逐条对照 R1–R8 检查 lesson.html（读代码与文字），列出问题和位置；本步骤不修改文件。",
+      "goal": "逐条对照 R1–R8 检查 lesson.html：用 squad_check_page 取证（task_id 填 execute 步骤的任务编号），再读页面内容，列出问题和位置；本步骤不修改文件。",
       "depends_on": [
         {
           "step": "execute",

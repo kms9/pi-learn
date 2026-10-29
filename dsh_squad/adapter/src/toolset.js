@@ -4,7 +4,7 @@
 // Anything not listed — shell, run_code, message_bot, post_to_group, MCP — is refused
 // in a formal attempt, because its side effects cannot be fenced (MIGRATION_PLAN §5).
 
-export const TASK_TOOLS = ['squad_task', 'squad_submit_result', 'squad_review', 'squad_decide', 'squad_yield', 'squad_delegate', 'squad_clarify']
+export const TASK_TOOLS = ['squad_task', 'squad_check_page', 'squad_submit_result', 'squad_review', 'squad_decide', 'squad_yield', 'squad_delegate', 'squad_clarify']
 
 const DSH_NAMES = {
   read: ['read', 'read_image'],

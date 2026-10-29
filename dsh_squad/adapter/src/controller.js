@@ -56,6 +56,12 @@ export function createClient({ endpoint, controllerId, fetch = globalThis.fetch,
     run: (runtime, runId) => call('GET', `/v2/runs/${encodeURIComponent(runId)}`, { runtime }),
     decide: (runtime, runId, body) => call('POST', `/v2/runs/${encodeURIComponent(runId)}/decisions`, { runtime, body }),
     uploadArtifact: (runtime, body) => call('POST', '/v2/artifacts', { runtime, body }),
+    // The bytes of an artifact by digest. The Controller serves them on loopback without a credential.
+    artifact: async hex => {
+      const response = await fetch(`${endpoint}/v2/artifacts/sha256/${encodeURIComponent(hex)}`, { headers: { 'x-squad-protocol': PROTOCOL, 'x-squad-controller': controllerId }, signal: AbortSignal.timeout(timeoutMs) })
+      if (!response.ok) throw new ControllerError(response.status, undefined)
+      return Buffer.from(await response.arrayBuffer())
+    },
     clarify: (runtime, attemptId, body) => call('POST', `/v2/attempts/${encodeURIComponent(attemptId)}/clarify`, { runtime, body }),
   }
 }

@@ -7,7 +7,7 @@
       "title": "build",
       "role_ref": "author",
       "kind": "execute",
-      "goal": "按任务说明完成 lesson.html，自查后提交。",
+      "goal": "按任务说明完成 lesson.html。交付前可用 squad_check_page 把页面 html 交给浏览器取证，自查后提交。",
       "depends_on": []
     }
   ]
