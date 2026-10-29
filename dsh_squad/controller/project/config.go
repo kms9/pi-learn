@@ -34,7 +34,11 @@ type AcceptancePolicy struct {
 	Mode        string `json:"mode"`
 	CheckerRef  string `json:"checker_ref,omitempty"`
 	ReviewerRef string `json:"reviewer_ref,omitempty"`
-	ChildPolicy string `json:"child_policy"`
+	// ReviewerRefs is a review chain (D6): the roles that review a result one after the
+	// other. The result is accepted when the last one accepts, and rejected by any of them.
+	// A task of a chain carries it in the policy of its own step; ReviewerRef is the first.
+	ReviewerRefs []string `json:"reviewer_refs,omitempty"`
+	ChildPolicy  string   `json:"child_policy"`
 }
 type Policy struct {
 	RunAdmission       string           `json:"run_admission"`
@@ -89,7 +93,9 @@ type Step struct {
 	Refs           []ResultRef     `json:"refs,omitempty"`
 	ExpectedOutput json.RawMessage `json:"expected_output,omitempty"`
 	Acceptance     json.RawMessage `json:"acceptance,omitempty"`
-	WriteSet       []string        `json:"write_set,omitempty"`
+	// Reviewers is the review chain of this step's result (D6); empty means the team's policy.
+	Reviewers []string `json:"reviewers,omitempty"`
+	WriteSet  []string `json:"write_set,omitempty"`
 }
 type Workflow struct {
 	SchemaVersion int    `json:"schema_version"`
@@ -536,6 +542,9 @@ func validateTeam(t Team, id string, roles map[string]Role) error {
 	if a.Mode != "review" && a.Mode != "checker" && a.Mode != "on_completion" && a.Mode != "human" {
 		return fmt.Errorf("ACCEPTANCE_POLICY_MISSING: Team requires checker, review or on_completion")
 	}
+	if len(a.ReviewerRefs) > 0 {
+		return fmt.Errorf("a team takes one reviewer_ref; a review chain is set per workflow step")
+	}
 	if a.ChildPolicy != "inherit_parent" && a.ChildPolicy != "separate" {
 		return fmt.Errorf("invalid child_policy")
 	}
@@ -579,6 +588,18 @@ func validateWorkflow(w Workflow, id string, t Team) error {
 		}
 		if len(s.WriteSet) > 0 {
 			return fmt.Errorf("READ_ONLY: formal tasks are read-only; step %s has a write_set", s.ID)
+		}
+		if len(s.Reviewers) > 0 {
+			if s.Kind != "execute" {
+				return fmt.Errorf("REVIEWERS_NOT_ALLOWED: step %s: only an execute step has a review chain", s.ID)
+			}
+			seenReviewer := map[string]bool{}
+			for _, ref := range s.Reviewers {
+				if !roles[ref] || ref == s.RoleRef || seenReviewer[ref] {
+					return fmt.Errorf("invalid reviewers in step %s", s.ID)
+				}
+				seenReviewer[ref] = true
+			}
 		}
 		if _, err := ParseOutputSchema(s.ExpectedOutput); err != nil {
 			return err

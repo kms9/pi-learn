@@ -156,7 +156,17 @@ func (s *Service) applyAcceptance(tx *sql.Tx, c *task.Contract) error {
 			if !sameScope(*c, v) || v.Result == nil || v.State != "completed" || v.Result.Hash != ref.Hash || v.Result.Revision != ref.ResultRevision || v.GoalRevision != v.Result.GoalRevision {
 				return task.Reject("RESULT_VERSION_CONFLICT", ref.TaskID)
 			}
-			if v.AcceptancePolicy == nil || v.AcceptancePolicy.Mode != "review" || v.AcceptancePolicy.ReviewerRef != c.RoleID {
+			if v.AcceptancePolicy == nil || v.AcceptancePolicy.Mode != "review" {
+				return task.Reject("REVIEWER_NOT_AUTHORIZED", ref.TaskID)
+			}
+			// A chain of reviewers reviews the result in order: this reviewer is the next one.
+			chain := reviewChain(v.AcceptancePolicy)
+			all, err := readTasks(tx)
+			if err != nil {
+				return err
+			}
+			accepted := acceptedReviews(all, v, c.ID)
+			if accepted >= len(chain) || chain[accepted] != c.RoleID {
 				return task.Reject("REVIEWER_NOT_AUTHORIZED", ref.TaskID)
 			}
 			if v.Result.AgentID == c.Result.AgentID || v.RoleID == c.RoleID {
@@ -173,6 +183,10 @@ func (s *Service) applyAcceptance(tx *sql.Tx, c *task.Contract) error {
 			}
 			if err := s.validateArtifacts(v, *v.Result); err != nil {
 				return err
+			}
+			if verdict.Decision == "accepted" && accepted+1 < len(chain) {
+				// Not the last reviewer: the next one of the chain reviews the result before it is accepted.
+				continue
 			}
 			if err := saveAcceptance(tx, &v, task.Acceptance{Decision: verdict.Decision, Mode: "review", ResultHash: v.Result.Hash, GoalRevision: v.GoalRevision, ReviewerID: c.Result.AgentID, Reason: verdict.Reason, Evidence: verdict.Candidates}); err != nil {
 				return err

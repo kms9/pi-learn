@@ -78,6 +78,10 @@ func (s *Service) planFixedReworks(tx *sql.Tx, r task.Run, tasks []task.Contract
 			Goal: c.Goal + "\n\n审核退回，意见：" + c.Acceptance.Reason, ReworkOf: c.ID,
 			DependsOn: []project.Dependency{}, Refs: append([]project.ResultRef{}, c.Refs...),
 		}
+		// A rework of a result that a review chain judged goes through the same chain again.
+		if c.AcceptancePolicy != nil && len(c.AcceptancePolicy.ReviewerRefs) > 0 {
+			step.Reviewers = append([]string{}, c.AcceptancePolicy.ReviewerRefs...)
+		}
 		for _, d := range c.Dependencies {
 			step.DependsOn = append(step.DependsOn, project.Dependency{Step: d.TaskID, Condition: d.Condition})
 		}

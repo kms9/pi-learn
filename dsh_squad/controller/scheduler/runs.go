@@ -244,6 +244,12 @@ func (s *Service) materialize(tx *sql.Tx, r task.Run, w project.Workflow, origin
 			goal = r.Goal + "\n\n" + step.Goal
 		}
 		c := baseTask(ids[step.ID], step.Kind, goal, r.Config.Config.Policy)
+		if len(step.Reviewers) > 0 {
+			// The step's own review chain replaces the team's acceptance for this result (D6).
+			p := *c.AcceptancePolicy
+			p.Mode, p.CheckerRef, p.ReviewerRef, p.ReviewerRefs = "review", "", step.Reviewers[0], append([]string{}, step.Reviewers...)
+			c.AcceptancePolicy = &p
+		}
 		c.Scope = "team"
 		c.RunID = &r.ID
 		c.TeamID = &r.TeamID

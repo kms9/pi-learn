@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"database/sql"
+	"encoding/json"
 
 	"github.com/kms9/pi-learn/dsh_squad/controller/project"
 	"github.com/kms9/pi-learn/dsh_squad/controller/task"
@@ -26,21 +27,13 @@ func (s *Service) ensureReviews(tx *sql.Tx) error {
 		if r.RecoveryHold || task.Terminal(r.Phase) {
 			continue
 		}
-		existing := false
-		for _, review := range all {
-			if review.Kind != "review" || review.State == "cancelled" {
-				continue
-			}
-			for _, d := range review.Dependencies {
-				if d.TaskID == c.ID {
-					existing = true
-				}
-			}
-		}
-		if existing {
+		chain := reviewChain(c.AcceptancePolicy)
+		next := nextReviewer(all, c, chain)
+		if next < 0 {
 			continue
 		}
-		if c.AcceptancePolicy.ReviewerRef == c.RoleID {
+		reviewer := chain[next]
+		if reviewer == c.RoleID {
 			c.State = "needs_review"
 			c.Revision++
 			blocker(&c, "self_review", c.ID)
@@ -75,7 +68,7 @@ func (s *Service) ensureReviews(tx *sql.Tx) error {
 		review.Scope = "team"
 		review.TeamID = c.TeamID
 		review.RunID = c.RunID
-		review.RoleID = c.AcceptancePolicy.ReviewerRef
+		review.RoleID = reviewer
 		review.Origin = &task.Origin{Kind: "review", By: c.ID}
 		review.AcceptancePolicy = nil
 		review.Dependencies = []task.Dependency{{TaskID: c.ID, Condition: "execution_completed"}}
@@ -90,6 +83,71 @@ func (s *Service) ensureReviews(tx *sql.Tx) error {
 	}
 	return nil
 }
+// reviewChain is the reviewers of a result in the order they review it: the team's single
+// reviewer, or a step's chain (D6).
+func reviewChain(p *project.AcceptancePolicy) []string {
+	if len(p.ReviewerRefs) > 0 {
+		return p.ReviewerRefs
+	}
+	return []string{p.ReviewerRef}
+}
+
+// nextReviewer is the index in chain of the reviewer whose review of c is due, or -1 when
+// none is due: a review is still running, one rejected c, or every reviewer has accepted.
+// Reviews of c come one after the other, so the number of accepted reviews is the stage.
+func nextReviewer(all []task.Contract, c task.Contract, chain []string) int {
+	done := 0
+	for _, review := range all {
+		if review.Kind != "review" || review.State == "cancelled" || !dependsOn(review, c.ID) {
+			continue
+		}
+		if review.State != "completed" || reviewDecision(review) != "accepted" {
+			return -1
+		}
+		done++
+	}
+	if done >= len(chain) {
+		return -1
+	}
+	return done
+}
+
+// acceptedReviews counts the completed reviews of c that accepted it, leaving out except
+// (the review whose verdict is being applied).
+func acceptedReviews(all []task.Contract, c task.Contract, except string) int {
+	n := 0
+	for _, review := range all {
+		if review.Kind == "review" && review.ID != except && review.State == "completed" && dependsOn(review, c.ID) && reviewDecision(review) == "accepted" {
+			n++
+		}
+	}
+	return n
+}
+
+// dependsOn says whether the task has an edge to id.
+func dependsOn(c task.Contract, id string) bool {
+	for _, d := range c.Dependencies {
+		if d.TaskID == id {
+			return true
+		}
+	}
+	return false
+}
+
+// reviewDecision is the verdict a completed review gave, or "" when it has none.
+func reviewDecision(review task.Contract) string {
+	if review.Result == nil {
+		return ""
+	}
+	var verdict struct {
+		Decision string `json:"decision"`
+	}
+	if err := json.Unmarshal(review.Result.Value, &verdict); err != nil {
+		return ""
+	}
+	return verdict.Decision
+}
+
 func (s *Service) validateResultRefs(tx *sql.Tx, c task.Contract, r task.Result) error {
 	return s.validateEvidenceGraph(tx, c, r, map[string]bool{})
 }

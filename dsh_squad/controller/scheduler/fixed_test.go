@@ -104,6 +104,51 @@ func TestFixedFlowADependentRunsOnTheAcceptedReworkOfItsInput(t *testing.T) {
 	}
 }
 
+// A step with a review chain is accepted only by its last reviewer. The first version is
+// rejected by the first reviewer; the rework goes through the whole chain again (reviewer,
+// then checker), and the dependent step runs on the version the chain accepted.
+func TestFixedFlowAReviewChainAcceptsOnlyAfterItsLastReviewer(t *testing.T) {
+	workflow := `{"schema_version":1,"workflow_id":"lesson","steps":[` +
+		`{"id":"design","title":"design","role_ref":"builder","kind":"execute","goal":"design the lesson","depends_on":[],"reviewers":["reviewer","checker"]},` +
+		`{"id":"build","title":"build","role_ref":"builder","kind":"execute","goal":"build the lesson","depends_on":[{"step":"design","condition":"acceptance_accepted"}]}]}`
+	h, runID := fixedHarnessWith(t, workflow)
+	h.drive(runID, func([]task.Contract, []string) bool { return false })
+	if r := h.runOf(runID); r.Phase != "completed" {
+		t.Fatalf("phase %q, want completed", r.Phase)
+	}
+	tasks := h.runTasks(runID)
+	var design, rework, build task.Contract
+	for _, c := range tasks {
+		switch {
+		case c.Kind != "execute":
+		case c.ReworkOf != "":
+			rework = c
+		case c.Title == "design":
+			design = c
+		case c.Title == "build":
+			build = c
+		}
+	}
+	if rework.ID == "" || design.SupersededBy != rework.ID {
+		t.Fatalf("the design was not reworked: design=%s rework=%+v", design.ID, rework.ID)
+	}
+	if rework.Acceptance == nil || rework.Acceptance.Decision != "accepted" {
+		t.Fatalf("the rework is not accepted: %+v", rework.Acceptance)
+	}
+	var reviewers []string
+	for _, c := range tasks {
+		if c.Kind == "review" && dependsOn(c, rework.ID) {
+			reviewers = append(reviewers, c.RoleID)
+		}
+	}
+	if len(reviewers) != 2 || !(reviewers[0] == "reviewer" && reviewers[1] == "checker" || reviewers[0] == "checker" && reviewers[1] == "reviewer") {
+		t.Fatalf("the rework was not reviewed by the whole chain: %v", reviewers)
+	}
+	if len(build.Dependencies) != 1 || build.Dependencies[0].TaskID != rework.ID || build.State != "completed" {
+		t.Fatalf("the build did not run on the accepted rework: deps=%+v state=%q", build.Dependencies, build.State)
+	}
+}
+
 // The reviewer rejects the first build (drive does so), so the Controller plans one
 // rework with its reason, the review of the rework is created by ensureReviews, and the
 // Run completes without any Leader step.
