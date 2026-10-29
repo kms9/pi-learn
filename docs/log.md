@@ -983,3 +983,9 @@ tags:
 - 来源: 用户要求；`docs/log.md` 2026-10-18～22 各条、各阶段会话页、`docs/dsh-squad-p0-probe-report-2026-10-18.md`、`docs/dsh-squad-v0.2-assessment-2026-10-21.md`、`dsh_squad_case/ACCEPTANCE.md`、提交说明 `6219ea3`…`6af039a`、本机对照实验报告（未入库）。
 - 更新: `docs/dsh-squad-验证与实验总结-2026-10-28.md`（新）、`docs/index.md`。
 - 说明: `dsh_squad_dev` 从 `232e8b7` 快进到 `feat/dsh-v02`（`6af039a`），包含 p0-probe、p1-seam、dev-plan、m0～m4、ui-plan、dsh-t、v02 的全部提交。总结按实验逐个写目的、观点、过程、结果、结论，附总表；单列 v0.2.0 引入但没有专门回归的路径，并指出 T 阶段真实模型结果都在 DS Bot `e13bc34` 上，v0.2.0 上只有 O6 跑过真实模型。工作区里 2026-10-22 回归重录的 `probes/scenarios-p1/` 和未跟踪的 `probes/scenarios-m1/` 属于运行记录，没有纳入。
+
+## [2026-10-29] decision | EXP-01～04 实验计划；12 个决策按推荐拍板，开始开发
+
+- 来源: kms9 对 `docs/dsh-squad-EXP01-04-实验计划-2026-10-29.md` 第 8 节的答复（全部按推荐）；分支 `feat/dsh-exp`（从 `97571ff`）。
+- 更新: `docs/dsh-squad-EXP01-04-实验计划-2026-10-29.md`（新）、`docs/index.md`。
+- 说明: 决策要点：D 模型先 `deepseek-flash`，之后只补跑 EXP-02；每组 5/5/5/3 次；题目认可（单摆、二次函数、12 bug + 2 诱饵、15 改进机会）；允许在 v0.2.0 上于 `dsh_squad/` 开发新功能（只改补丁，不改上游）；单智能体放进 Squad；固定分解用固定编排 Leader；LLM 判分用 `deepseek-v4-pro`；只提交汇总；EXP-02 加 B1；先在本机跑、用 inhibit 并验证；axe-core 用于无障碍判题；EXP-04 门槛 k=5。
