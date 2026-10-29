@@ -12,7 +12,7 @@ if (!file) {
   process.exit(2)
 }
 const report = JSON.parse(readFileSync(file, 'utf8'))
-const runs = report.runs.filter(r => r.discarded_first !== true)
+const runs = report.runs.filter(r => r.discarded_first !== true && r.environment_interrupted !== true)
 const discarded = report.runs.length - runs.length
 
 const median = xs => {

@@ -108,7 +108,8 @@ async function runOnce(arm, round, order) {
     record.run_id = run.run_id
     let current
     let tasks = []
-    for (const deadline = Date.now() + limitMs; Date.now() < deadline;) {
+    // The limit counts active time: the monotonic clock does not run while the machine sleeps.
+    for (const deadline = performance.now() + limitMs; performance.now() < deadline;) {
       await sleep(2000)
       const snap = (await ui('view')).snapshot
       current = snap.views.runs.find(candidate => candidate.run_id === run.run_id)
@@ -174,7 +175,7 @@ if (resumeFrom && (report.experiment !== expId || report.mock !== mock)) {
   process.exit(2)
 }
 const path = resumeFrom || join(REPORTS, `${report.id}.json`)
-const done = new Set(report.runs.filter(r => r.discarded_first !== true).map(r => `${r.arm}:${r.repeat}`))
+const done = new Set(report.runs.filter(r => r.discarded_first !== true && r.environment_interrupted !== true).map(r => `${r.arm}:${r.repeat}`))
 function write() {
   mkdirSync(dirname(path), { recursive: true })
   writeFileSync(path, `${JSON.stringify(report, null, 2)}\n`)
@@ -185,9 +186,11 @@ for (let round = 0; round < repeats; round += 1) {
     const order = round * arms.length + armIndex
     console.log(`== ${expId} ${arm} round ${round + 1}/${repeats}`)
     if (done.has(`${arm}:${round + 1}`)) { console.log('   already in the report; skipped'); continue }
+    // A run the machine slept through is not a result (plan §6): it stays in the report, marked
+    // discarded, and the run is repeated, up to three attempts in all.
     let record = await runOnce(arm, round, order)
-    if (record.environment_interrupted) {
-      console.log(`   environment interrupted (${record.suspended_seconds}s asleep); running once more`)
+    for (let attempt = 1; record.environment_interrupted && attempt < 3; attempt += 1) {
+      console.log(`   environment interrupted (${record.suspended_seconds}s asleep); running again`)
       record.discarded_first = true
       report.runs.push(record)
       record = await runOnce(arm, round, order)
