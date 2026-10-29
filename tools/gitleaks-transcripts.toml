@@ -1,0 +1,10 @@
+# gitleaks config for transcripts/: default rules, plus an allowlist for plain
+# 40-hex git commit SHAs, which the sourcegraph-access-token rule misreads as tokens.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "git commit SHAs (40 lowercase hex)"
+targetRules = ["sourcegraph-access-token"]
+regexTarget = "secret"
+regexes = ['''^[0-9a-f]{40}$''']
