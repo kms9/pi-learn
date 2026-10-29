@@ -977,3 +977,9 @@ tags:
 - 来源: 本阶段 O1–O7 提交 `a44c40f`…`b0fbdd8`。
 - 更新: `docs/sessions/2026-10-22-dsh-squad-v02-optimize.md`、`docs/index.md`、`docs/sessions/_index.md`。
 - 说明: P1–P6 均已落地；暂缓项（调度只读未结束数据、扣留消息读群日志、头像、P2 的 B）记在会话页。
+
+## [2026-10-28] session | DS Bot + Squad 验证与实验总结；合并到 dsh_squad_dev
+
+- 来源: 用户要求；`docs/log.md` 2026-10-18～22 各条、各阶段会话页、`docs/dsh-squad-p0-probe-report-2026-10-18.md`、`docs/dsh-squad-v0.2-assessment-2026-10-21.md`、`dsh_squad_case/ACCEPTANCE.md`、提交说明 `6219ea3`…`6af039a`、本机对照实验报告（未入库）。
+- 更新: `docs/dsh-squad-验证与实验总结-2026-10-28.md`（新）、`docs/index.md`。
+- 说明: `dsh_squad_dev` 从 `232e8b7` 快进到 `feat/dsh-v02`（`6af039a`），包含 p0-probe、p1-seam、dev-plan、m0～m4、ui-plan、dsh-t、v02 的全部提交。总结按实验逐个写目的、观点、过程、结果、结论，附总表；单列 v0.2.0 引入但没有专门回归的路径，并指出 T 阶段真实模型结果都在 DS Bot `e13bc34` 上，v0.2.0 上只有 O6 跑过真实模型。工作区里 2026-10-22 回归重录的 `probes/scenarios-p1/` 和未跟踪的 `probes/scenarios-m1/` 属于运行记录，没有纳入。
