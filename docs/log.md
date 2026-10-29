@@ -983,3 +983,9 @@ tags:
 - 来源: 用户要求；`docs/log.md` 2026-10-18～22 各条、各阶段会话页、`docs/dsh-squad-p0-probe-report-2026-10-18.md`、`docs/dsh-squad-v0.2-assessment-2026-10-21.md`、`dsh_squad_case/ACCEPTANCE.md`、提交说明 `6219ea3`…`6af039a`、本机对照实验报告（未入库）。
 - 更新: `docs/dsh-squad-验证与实验总结-2026-10-28.md`（新）、`docs/index.md`。
 - 说明: `dsh_squad_dev` 从 `232e8b7` 快进到 `feat/dsh-v02`（`6af039a`），包含 p0-probe、p1-seam、dev-plan、m0～m4、ui-plan、dsh-t、v02 的全部提交。总结按实验逐个写目的、观点、过程、结果、结论，附总表；单列 v0.2.0 引入但没有专门回归的路径，并指出 T 阶段真实模型结果都在 DS Bot `e13bc34` 上，v0.2.0 上只有 O6 跑过真实模型。工作区里 2026-10-22 回归重录的 `probes/scenarios-p1/` 和未跟踪的 `probes/scenarios-m1/` 属于运行记录，没有纳入。
+
+## [2026-10-29] session | 支线：DS Bot + Squad 编排对比实验（S / A / B / C 各一次）
+
+- 来源: 分支 `feat/dsh-exp-lite`（基于 `97571ff`，不含 `feat/dsh-exp` 的 Controller 改动）；`dsh_squad/experiments/run.mjs` 默认目标（认识分数）；deepseek-flash、effort high；报告 `dsh_squad/experiments/reports/exp-2026-10-29T09-50-06-910Z.json`（本机，未提交）。
+- 更新: `docs/dsh-squad-编排对比实验-2026-10-29.md`（新）、`docs/assets/dsh-squad-lite-2026-10-29/`（判题汇总、四份课件、时间线、团队配置）、`docs/guide/images/exp-lite/`（Squad 页面截图 10 张、课件截图 4 张）、`dsh_squad/experiments/lite/`（判题、收集、时间线、截图脚本）、`docs/index.md`。
+- 说明: 耗时 S 882.9 s / A 262.7 s / B 434.4 s / C 2,205.8 s（其中外部监控记录一次 522 s 停顿，C 的 Controller 记录 `controller_resumed`）；调用次数 80 / 21 / 51 / 218；token 9.87M / 0.77M / 1.60M / 22.77M。四组 13/14 项通过（唯一未过的是 axe 无障碍检查）。验证一：团队编排未带来可测的覆盖率收益，C 的审核确实抓到并修正一处事实错误。验证二：DAG 的可见内容更多、无障碍标签更好，代价约 2 倍 token。判题修正：知识检查改为读取页面全部文本，S 的 K6 由未过变为通过（修正前结果保留为 `summary-v1.json`）。每组只跑一次，不构成统计结论。

@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="description" content="五年级下册一页课件：分数的意义与读写、分数单位、分数与除法、真分数与假分数、分率与具体量，含点击涂色、判断、填空三类可交互练习与教学要点说明。">
+<title>认识分数 · 分数的意义与读写（五年级下册）</title>
+<script>document.documentElement.classList.remove("no-js");</script>
+<style>
+:root{
+  --paper:#f7f3ea;--card:#fffdf8;--ink:#22312e;--ink-2:#5d6c68;
+  --line:#e7ddcc;--amber:#dd8a3c;--amber-d:#a9661f;--amber-s:#fdf0dd;
+  --teal:#2f7f76;--teal-d:#1f5d56;--teal-s:#e4f2ef;
+  --red:#b94a37;--red-s:#fbeae6;--green:#2f7d52;--green-s:#e6f3ea;
+  --shadow:0 1px 2px rgba(34,49,46,.05),0 18px 40px -34px rgba(34,49,46,.55);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:74px}
+body{margin:0;color:var(--ink);background-color:var(--paper);background-image:radial-gradient(rgba(120,100,70,.055) 1px,transparent 1px);background-size:22px 22px;font:16px/1.75 "PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+h2,h3,p{margin-top:0}
+p{margin:0 0 12px}
+a{color:var(--teal-d)}
+button,input{font-family:inherit}
+:focus-visible{outline:3px solid #2f7f76;outline-offset:2px;border-radius:8px}
+.noscript{margin:0;padding:12px 18px;background:#fff3cd;color:#7a5b13;font-size:.9rem;text-align:center;border-bottom:1px solid #f0dc9b}
+
+/* 顶部 */
+.hero{position:relative;overflow:hidden;padding:62px 22px 54px;color:#fff;background:radial-gradient(130% 160% at 12% -10%,#3f9488 0%,#27665e 48%,#1b413c 100%)}
+.hero-inner{position:relative;z-index:2;max-width:920px;margin:0 auto}
+.deco{position:absolute;z-index:1;font-weight:800;line-height:1;color:rgba(255,255,255,.06);pointer-events:none;user-select:none;font-size:clamp(88px,17vw,170px)}
+.d1{top:-16px;right:-4px;transform:rotate(-8deg)}
+.d2{bottom:-52px;left:-14px;font-size:clamp(66px,13vw,120px);transform:rotate(5deg)}
+.eyebrow{margin:0 0 12px;font-size:.8rem;letter-spacing:.18em;color:#bfe0da;font-weight:600}
+.hero h1{margin:0;font-size:clamp(2.3rem,7vw,3.9rem);line-height:1.1;letter-spacing:.05em;font-weight:800}
+.hero h1 span{color:#ffc07c}
+.sub{margin:16px 0 0;font-size:clamp(1rem,2.4vw,1.15rem);color:#dbeeea;max-width:34em}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+.chip{padding:5px 12px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);font-size:.8rem;color:#e8f4f1}
+
+/* 目录 */
+.nav{position:sticky;top:0;z-index:20;background:rgba(247,243,234,.92);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav-inner{max-width:920px;margin:0 auto;display:flex;gap:4px;overflow-x:auto;padding:8px 14px;scrollbar-width:none}
+.nav-inner::-webkit-scrollbar{display:none}
+.nav a{flex:0 0 auto;padding:6px 12px;border-radius:999px;font-size:.86rem;color:var(--ink-2);text-decoration:none;border:1px solid transparent;white-space:nowrap}
+.nav a:hover{background:#fff;color:var(--teal-d)}
+.nav a.active{color:var(--teal-d);background:#fff;border-color:var(--line);font-weight:700}
+
+/* 版面 */
+main{max-width:920px;margin:0 auto;padding:22px 18px 30px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:clamp(20px,4vw,34px);margin:22px 0;box-shadow:var(--shadow)}
+.card>p:last-child{margin-bottom:0}
+.sec-head{display:flex;gap:14px;align-items:flex-start;margin-bottom:16px}
+.sec-num{flex:0 0 auto;width:42px;height:42px;border-radius:13px;background:var(--teal-d);color:#fff;display:grid;place-items:center;font-weight:800;font-size:.9rem;letter-spacing:.04em}
+.sec-head h2{margin:0;font-size:clamp(1.28rem,3.2vw,1.5rem);line-height:1.35}
+.sec-sub{margin:3px 0 0;font-size:.85rem;color:var(--ink-2)}
+h3{font-size:1.02rem;margin:0 0 6px;font-weight:700}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media (max-width:680px){.grid2,.grid3{grid-template-columns:1fr}}
+
+/* 通用卡片 */
+.mini{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 17px}
+.mini p{margin:0 0 8px;font-size:.92rem}
+.mini p:last-child{margin-bottom:0}
+.key{position:relative;margin:18px 0 20px;padding:18px 20px;border-radius:14px;background:linear-gradient(135deg,#fff5e7,#fbe7cd);border:1px solid #f0d7b2}
+.key::before{content:"核心";position:absolute;top:-11px;left:16px;padding:1px 10px;border-radius:999px;background:var(--amber);color:#fff;font-size:.72rem;font-weight:700;letter-spacing:.1em}
+.key p{margin:0;font-weight:600}
+.key strong{color:var(--amber-d)}
+.def{padding:15px 18px;border-left:3px solid var(--teal);background:var(--teal-s);border-radius:0 12px 12px 0;margin:14px 0}
+.def p{margin:0}
+.tip{margin:16px 0 0;padding:11px 15px;border-radius:12px;border:1px dashed #dcc9a8;background:#fffaf0;font-size:.9rem;color:#7a5a2e}
+.note-box{margin:14px 0;padding:13px 16px;border-radius:12px;background:#f4f8f6;border:1px solid #dbe9e4;font-size:.92rem}
+.note-box p:last-child{margin-bottom:0}
+.example-line{margin:14px 0 0;padding:12px 16px;border-radius:12px;background:#fbf6ec;border:1px solid var(--line);font-size:.95rem}
+.unit1{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0 0}
+.u1{padding:3px 12px;border-radius:999px;background:#f6f0e3;border:1px solid var(--line);font-size:.84rem}
+.u1-note{font-size:.84rem;color:var(--ink-2)}
+
+/* 对错面板 */
+.panel{padding:16px;border-radius:14px;border:1px solid var(--line);background:#fff;text-align:center}
+.panel.right{border-color:#cfe6d8;background:#f7fbf9}
+.panel.wrong{border-color:#efc9bf;background:#fff8f5}
+.panel .cap{margin:10px 0 0;font-size:.88rem;color:var(--ink-2)}
+.panel .cap b{color:var(--ink)}
+
+/* 饼图 */
+.pie{width:134px;height:134px;display:grid;place-items:center;margin:0 auto}
+.pie svg{width:100%;height:100%;display:block}
+.pie.sm{width:96px;height:96px}
+
+/* 分数排版 */
+.f{display:inline-flex;flex-direction:column;align-items:stretch;justify-content:center;text-align:center;vertical-align:middle;line-height:1.08;font-weight:700;font-size:.9em;margin:0 .15em;position:relative;top:-.06em}
+.f>span{display:block;padding:0 .22em}
+.f>span+span{border-top:1.7px solid currentColor}
+.f.lg{font-size:1.5rem}
+.f.xl{font-size:2.2rem;line-height:1.02}
+
+/* 解剖图 */
+.anatomy{display:grid;grid-template-columns:52px auto 1fr;align-items:center;gap:8px 16px;padding:20px 22px;margin:16px 0;border:1px dashed #d9c9ad;border-radius:16px;background:#fffaf1}
+.anatomy .n{font-size:1.7rem;font-weight:800;text-align:center;color:var(--amber-d);line-height:1.2}
+.anatomy .bar{height:3px;background:var(--ink);border-radius:2px}
+.anatomy .tag{font-size:.76rem;padding:1px 10px;border-radius:999px;background:var(--teal-s);color:var(--teal-d);font-weight:700;justify-self:start}
+.anatomy .desc{margin:0;font-size:.9rem;color:var(--ink-2)}
+
+/* 步骤 */
+.steps{list-style:none;margin:8px 0 10px;padding:0;counter-reset:s}
+.steps li{position:relative;padding-left:30px;margin:7px 0;font-size:.94rem;counter-increment:s}
+.steps li::before{content:counter(s);position:absolute;left:0;top:4px;width:20px;height:20px;border-radius:50%;background:var(--teal);color:#fff;font-size:.72rem;font-weight:700;display:grid;place-items:center}
+.note-line{margin:0;font-size:.94rem;color:var(--ink-2)}
+.note-line b{color:var(--ink)}
+
+/* 除法公式与表格 */
+.formula{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;padding:16px;margin:14px 0;border-radius:14px;background:#f2f8f6;border:1px solid #d5e8e2;font-size:1.3rem;font-weight:700}
+.formula .note{font-size:.8rem;font-weight:500;color:var(--ink-2)}
+.map{width:100%;border-collapse:collapse;margin:14px 0;font-size:.94rem}
+.map th,.map td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left}
+.map th{font-size:.78rem;letter-spacing:.08em;color:var(--ink-2);background:#f7f2e8;font-weight:600}
+.map td:first-child{font-weight:600}
+.map .arrow{text-align:center;width:2.6em;color:var(--amber-d)}
+.map tr:last-child td{border-bottom:0}
+
+/* 小实验 */
+.lab{margin:18px 0 0;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fff}
+.lab-head{display:flex;align-items:center;gap:8px;padding:11px 18px;background:#f4efe4;border-bottom:1px solid var(--line);font-weight:700;font-size:.9rem}
+.lab-head .dot{width:8px;height:8px;border-radius:50%;background:var(--amber)}
+.lab-body{display:grid;grid-template-columns:170px 1fr;gap:22px;align-items:center;padding:20px}
+@media (max-width:600px){.lab-body{grid-template-columns:1fr}}
+.lab-ctrl label{display:block;margin:10px 0 3px;font-size:.85rem;color:var(--ink-2)}
+.lab-ctrl label b{color:var(--ink);font-size:.95rem}
+.lab-ctrl input[type=range]{width:100%;height:26px;accent-color:var(--teal);cursor:pointer}
+.lab-readout{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+.readout-tip{font-size:.8rem;color:var(--ink-2)}
+.lab-text{margin:12px 0 0;font-size:.9rem;color:var(--ink-2);line-height:1.7}
+.lab-text b{color:var(--teal-d)}
+
+/* 条形演示 */
+.bar-demo{margin:16px 0 4px}
+.bar-row{display:grid;grid-template-columns:84px 1fr;gap:12px;align-items:center;margin:8px 0}
+.bar-label{font-size:.83rem;color:var(--ink-2);text-align:right}
+.bar{display:flex;height:34px;border-radius:9px;overflow:hidden;border:1px solid #dccdb4;background:#fff}
+.bar .seg{display:flex;align-items:center;justify-content:center;padding:0 6px;font-size:.74rem;white-space:nowrap;overflow:hidden}
+.bar .used{background:linear-gradient(180deg,#f6b46a,#e79a45);color:#4a2c0c;font-weight:700}
+.bar .rest{flex:1;background:repeating-linear-gradient(45deg,#fdf6ea,#fdf6ea 6px,#f7ecd8 6px,#f7ecd8 12px);color:#8a785c}
+.bar-cap{margin:2px 0 14px 96px;font-size:.86rem;color:var(--ink-2)}
+.bar-cap b{color:var(--amber-d)}
+@media (max-width:600px){.bar-cap{margin-left:0}}
+
+/* 展开答案 */
+.reveal-btn{display:inline-flex;align-items:center;gap:8px;margin-top:4px;padding:8px 16px;border-radius:999px;border:1px solid #e3cba6;background:#fff7ea;color:var(--amber-d);font-size:.86rem;font-weight:700;cursor:pointer;transition:background .2s,transform .1s}
+.reveal-btn:hover{background:#fdefd8}
+.reveal-btn:active{transform:scale(.98)}
+.reveal-btn .chev{display:inline-block;transition:transform .25s;font-size:.8em}
+.reveal-btn[aria-expanded=true]{background:#fdefd8}
+.reveal-btn[aria-expanded=true] .chev{transform:rotate(180deg)}
+.answer-wrap{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease;margin-top:0}
+.answer-wrap.open{grid-template-rows:1fr;margin-top:12px}
+.answer-inner{overflow:hidden;min-height:0}
+.answer{margin:0;padding:14px 16px;border-radius:12px;background:#f4f9f7;border:1px solid #d9ebe5;font-size:.94rem}
+.answer p{margin:0 0 8px}
+.answer p:last-child{margin-bottom:0}
+.answer .ans-label{margin:0 0 6px;font-size:.72rem;letter-spacing:.12em;color:var(--teal-d);font-weight:700}
+.no-js .answer-wrap{grid-template-rows:1fr;margin-top:12px}
+
+/* 误区手风琴 */
+.mistake{border:1px solid var(--line);border-radius:14px;margin:10px 0;background:#fff;overflow:hidden}
+.mistake-q{width:100%;display:flex;align-items:center;gap:12px;padding:13px 16px;border:0;background:none;color:var(--ink);text-align:left;cursor:pointer}
+.mistake-q:hover{background:#fbf6ec}
+.mistake-q[aria-expanded=true]{background:#fbf6ec}
+.mk-num{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:var(--red-s);color:var(--red);font-size:.8rem;font-weight:800;display:grid;place-items:center}
+.mk-text{flex:1;font-size:.94rem;line-height:1.6}
+.mk-toggle{flex:0 0 auto;font-size:.78rem;font-weight:700;color:var(--amber-d);white-space:nowrap}
+.mistake .answer-wrap{margin:0}
+.mistake .answer-wrap.open{margin:0 14px 14px}
+
+/* 例题 */
+.ex{border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin:16px 0;background:#fff}
+.ex-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.ex-head h3{margin:0;font-size:1.02rem}
+.star{color:#e3a33f;font-size:.76rem;letter-spacing:.12em}
+.ex-q p{margin:0 0 8px;font-size:.95rem}
+.ex-q p:last-child{margin-bottom:0}
+.verdict{display:inline-flex;align-items:center;gap:5px;padding:1px 9px;border-radius:999px;font-size:.76rem;font-weight:800;margin-right:6px}
+.verdict.no{background:var(--red-s);color:var(--red)}
+.verdict.yes{background:var(--green-s);color:var(--green)}
+
+/* 交互练习 */
+.subhead{display:flex;align-items:center;gap:8px;margin:24px 0 6px;font-size:1rem;font-weight:700}
+.subhead .dot{width:9px;height:9px;border-radius:50%;background:var(--amber)}
+.subnote{margin:0 0 12px;font-size:.86rem;color:var(--ink-2)}
+.draw-lab{display:grid;grid-template-columns:188px 1fr;gap:20px;align-items:center;padding:18px;border:1px solid var(--line);border-radius:14px;background:#fff}
+@media (max-width:600px){.draw-lab{grid-template-columns:1fr}}
+.draw-pie{width:168px;height:168px;margin:0 auto}
+.slice{fill:#fdf2e0;stroke:#b8976a;stroke-width:.8;cursor:pointer;transition:fill .15s}
+.slice:hover:not(.on){fill:#f7d3a6}
+.slice.on{fill:#eaa055}
+.slice:focus{outline:none;stroke:#2f7f76;stroke-width:2.2}
+.draw-frac{margin:0 0 4px}
+.draw-text{margin:0 0 10px;font-size:.92rem;color:var(--ink-2);line-height:1.7}
+.draw-text b{color:var(--teal-d)}
+.mini-btn{padding:6px 14px;border-radius:999px;border:1px solid #e3cba6;background:#fff7ea;color:var(--amber-d);font-size:.82rem;font-weight:700;cursor:pointer}
+.mini-btn:hover{background:#fdefd8}
+.judge,.fill{border:1px solid var(--line);border-radius:14px;background:#fff;padding:4px 18px 16px}
+.jq{padding:14px 0;border-top:1px solid var(--line)}
+.jq:first-of-type{border-top:0}
+.jq-text{margin:0 0 8px;font-size:.94rem}
+.jbtns{display:flex;gap:8px}
+.jbtn{padding:6px 24px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:.88rem;color:var(--ink);cursor:pointer}
+.jbtn:hover:not(:disabled){border-color:var(--teal);background:#f7fbfa}
+.jbtn.ok{background:var(--green-s);border-color:#8fc7a8;color:#1f5b3a;font-weight:700}
+.jbtn.no{background:var(--red-s);border-color:#e0b0a4;color:var(--red);font-weight:700}
+.jbtn:disabled{cursor:default}
+.fq{padding:14px 0;border-top:1px solid var(--line)}
+.fq:first-of-type{border-top:0}
+.fq-text{display:block;margin:0 0 8px;font-size:.94rem}
+.fq-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.fill-input{width:130px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-size:.9rem;background:#fff;color:var(--ink)}
+.fill-input.ok{border-color:#8fc7a8;background:var(--green-s);color:#1f5b3a;font-weight:700}
+.fill-input.no{border-color:#e0b0a4;background:var(--red-s)}
+.check-btn{padding:6px 16px;border-radius:8px;border:1px solid #e3cba6;background:#fff7ea;color:var(--amber-d);font-size:.82rem;font-weight:700;cursor:pointer}
+.check-btn:hover{background:#fdefd8}
+.feedback{display:none;margin:10px 0 0;font-size:.86rem;color:var(--ink-2);line-height:1.65;padding:9px 12px;border-radius:10px;background:#f8f4ea}
+.feedback.show{display:block}
+.fb-ok{color:var(--green)}
+.fb-no{color:var(--red)}
+
+/* 目标、小结与教学要点 */
+.goal-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.goal-list li{display:flex;gap:10px;padding:14px;border-radius:14px;background:#fff;border:1px solid var(--line)}
+.goal-ico{flex:0 0 auto;width:24px;height:24px;border-radius:50%;background:var(--teal-s);color:var(--teal-d);font-size:.78rem;font-weight:800;display:grid;place-items:center}
+.goal-list b{font-size:.94rem}
+.goal-list p{margin:2px 0 0;font-size:.84rem;color:var(--ink-2);line-height:1.6}
+@media (max-width:680px){.goal-list{grid-template-columns:1fr}}
+.big-line{margin:10px 0;font-size:.95rem;color:var(--ink-2)}
+.big-line b{color:var(--teal-d);font-size:1.1rem}
+.takeaway{display:grid;gap:10px}
+.takeaway>div{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;border-radius:14px;background:#f9f5ec;border:1px solid var(--line)}
+.tk-num{flex:0 0 auto;width:30px;height:30px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:800;font-size:.9rem}
+.takeaway p{margin:0;font-size:.97rem}
+.takeaway b{color:var(--teal-d)}
+.homework{margin:16px 0 0;font-size:.9rem;color:var(--ink-2)}
+.notes-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px}
+@media (max-width:680px){.notes-grid{grid-template-columns:1fr}}
+.notes-box{padding:14px 16px;border-radius:12px;border:1px solid var(--line);background:#fff}
+.notes-box b{display:block;font-size:.9rem;color:var(--teal-d);margin-bottom:4px}
+.notes-box p{margin:0;font-size:.86rem;color:var(--ink-2);line-height:1.7}
+
+.foot{max-width:920px;margin:0 auto;padding:6px 20px 44px;color:var(--ink-2);font-size:.8rem;line-height:1.85}
+.foot p{margin:0 0 4px}
+
+@media print{
+  body{background:#fff}
+  .nav,.reveal-btn,.deco,.chips,.mini-btn,.check-btn,.jbtn{display:none}
+  .hero{padding:30px 22px;background:#1b413c !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .card{box-shadow:none;break-inside:avoid;border-color:#ccc}
+  .answer-wrap{grid-template-rows:1fr !important;margin-top:12px !important}
+  .answer-inner{overflow:visible}
+  .feedback{display:block !important}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{transition-duration:.01ms !important;animation-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+
+<noscript><div class="noscript">本课件的图示、涂色和“点开答案”需要浏览器启用 JavaScript；答案已默认展开显示。</div></noscript>
+
+<header class="hero">
+  <span class="deco d1" aria-hidden="true">3/4</span>
+  <span class="deco d2" aria-hidden="true">1/2</span>
+  <div class="hero-inner">
+    <p class="eyebrow">人教版 · 五年级下册 · 分数的意义和性质</p>
+    <h1>认识<span>分数</span></h1>
+    <p class="sub">分数，从“平均分”开始。会读、会写、会讲道理，才算真的认识它。</p>
+    <div class="chips">
+      <span class="chip">五年级 数学</span>
+      <span class="chip">一页课件</span>
+      <span class="chip">答案可点开</span>
+      <span class="chip">涂色 · 判断 · 填空</span>
+    </div>
+  </div>
+</header>
+
+<nav class="nav" aria-label="本课目录">
+  <div class="nav-inner">
+    <a href="#goal">目标</a>
+    <a href="#meaning">意义</a>
+    <a href="#unit">分数单位</a>
+    <a href="#read">读写</a>
+    <a href="#divide">除法</a>
+    <a href="#proper">真/假</a>
+    <a href="#rate">分率</a>
+    <a href="#mistakes">误区</a>
+    <a href="#examples">例题</a>
+    <a href="#practice">练习</a>
+    <a href="#notes">要点</a>
+  </div>
+</nav>
+
+<main>
+
+  <section class="card" id="goal">
+    <div class="sec-head">
+      <span class="sec-num">00</span>
+      <div>
+        <h2>本课学习目标</h2>
+        <p class="sec-sub">一页看懂：分数从哪来，怎么读、怎么写、怎么用。</p>
+      </div>
+    </div>
+    <ul class="goal-list">
+      <li>
+        <span class="goal-ico">1</span>
+        <div><b>说清意义</b><p>能把一个整体平均分，并用分数表示其中的一份或几份。</p></div>
+      </li>
+      <li>
+        <span class="goal-ico">2</span>
+        <div><b>规范读写</b><p>认准分子、分母、分数线，读作、写作都不颠倒。</p></div>
+      </li>
+      <li>
+        <span class="goal-ico">3</span>
+        <div><b>会算会用</b><p>会找分数单位，会用分数与除法的关系求商、比大小。</p></div>
+      </li>
+    </ul>
+  </section>
+
+  <section class="card" id="meaning">
+    <div class="sec-head">
+      <span class="sec-num">01</span>
+      <div>
+        <h2>分数的意义</h2>
+        <p class="sec-sub">把一个整体平均分，是分数产生的前提。</p>
+      </div>
+    </div>
+
+    <div class="key">
+      <p>把一个整体（也就是单位“1”）<strong>平均分成若干份</strong>，表示这样<strong>一份或几份</strong>的数，叫做分数。</p>
+    </div>
+
+    <div class="grid3">
+      <div class="mini">
+        <h3>① 先平均分</h3>
+        <p>每份要<strong>同样大</strong>，通常平均分成 2 份或更多份。不平均分，就不能用分数表示其中一份。</p>
+      </div>
+      <div class="mini">
+        <h3>② 单位“1”</h3>
+        <p>一个物体、一个计量单位，或由许多物体组成的<strong>一个整体</strong>，都可以看作单位“1”。</p>
+      </div>
+      <div class="mini">
+        <h3>③ 分几份、取几份</h3>
+        <p>平均分成几份 → <strong>分母</strong>；取了几份 → <strong>分子</strong>。</p>
+      </div>
+    </div>
+
+    <div class="unit1">
+      <span class="u1">一个圆</span>
+      <span class="u1">一条线段</span>
+      <span class="u1">一盒 12 支笔</span>
+      <span class="u1">全班 40 人</span>
+      <span class="u1-note">都可以看作单位“1”</span>
+    </div>
+
+    <h3 style="margin-top:22px">看图分辨：什么才是“平均分成 3 份”</h3>
+    <div class="grid2">
+      <div class="panel right">
+        <div class="pie" data-pie="8,3"></div>
+        <p class="cap"><b>平均分成 8 份，涂色 3 份</b><br>涂色部分是 <span class="f"><span>3</span><span>8</span></span></p>
+      </div>
+      <div class="panel wrong">
+        <div class="pie" data-uneven="30,160,170"></div>
+        <p class="cap"><b>只分成 3 份，每份不一样大</b><br>不能说每份是 <span class="f"><span>1</span><span>3</span></span></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="unit">
+    <div class="sec-head">
+      <span class="sec-num">02</span>
+      <div>
+        <h2>分数单位</h2>
+        <p class="sec-sub">分母决定“一小份”有多大。</p>
+      </div>
+    </div>
+
+    <div class="def">
+      <p>把单位“1”平均分成若干份，表示其中<b>一份</b>的数，叫做<b>分数单位</b>。</p>
+    </div>
+
+    <div class="grid2">
+      <div class="mini">
+        <h3>怎么看</h3>
+        <p>只看<b>分母</b>：分母是几，分数单位就是<b>几分之一</b>。</p>
+      </div>
+      <div class="mini">
+        <h3>有几个</h3>
+        <p>看<b>分子</b>：分子是几，就有几个这样的分数单位。</p>
+      </div>
+    </div>
+
+    <p class="example-line">例：<span class="f"><span>5</span><span>8</span></span> 的分数单位是 <span class="f"><span>1</span><span>8</span></span>，<span class="f"><span>5</span><span>8</span></span> 里有 <b>5</b> 个 <span class="f"><span>1</span><span>8</span></span>。</p>
+
+    <div class="lab">
+      <div class="lab-head"><span class="dot"></span>分数单位小实验 · 拖动滑块</div>
+      <div class="lab-body">
+        <div class="pie" id="labPie"></div>
+        <div class="lab-ctrl">
+          <div class="lab-readout">
+            <span class="f lg" aria-hidden="true"><span id="labNum">2</span><span id="labDen">5</span></span>
+            <span class="readout-tip">← 这个分数会跟着滑块变</span>
+          </div>
+          <label for="denRange">分母（平均分成几份）<b id="denVal">5</b></label>
+          <input id="denRange" type="range" min="2" max="12" value="5" step="1">
+          <label for="numRange">分子（取几份）<b id="numVal">2</b></label>
+          <input id="numRange" type="range" min="1" max="5" value="2" step="1">
+          <p class="lab-text" id="labText" aria-live="polite">把单位“1”平均分成 <b>5</b> 份，取 <b>2</b> 份，就是 <b>2/5</b>。它的分数单位是 <b>1/5</b>，里面有 <b>2</b> 个 1/5。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="read">
+    <div class="sec-head">
+      <span class="sec-num">03</span>
+      <div>
+        <h2>读写规范</h2>
+        <p class="sec-sub">先认三部分，再按顺序读、按顺序写。</p>
+      </div>
+    </div>
+
+    <div class="anatomy">
+      <span class="n">3</span>
+      <span class="tag">分子</span>
+      <p class="desc">取了 <b>3</b> 份</p>
+      <span class="bar"></span>
+      <span class="tag">分数线</span>
+      <p class="desc">平均分</p>
+      <span class="n">4</span>
+      <span class="tag">分母</span>
+      <p class="desc">平均分成 <b>4</b> 份</p>
+    </div>
+
+    <div class="grid2">
+      <div class="mini">
+        <h3>读作：从下往上</h3>
+        <ol class="steps">
+          <li>先读<b>分母</b>：四</li>
+          <li>再读“<b>分之</b>”</li>
+          <li>最后读<b>分子</b>：三</li>
+        </ol>
+        <p class="note-line"><span class="f"><span>3</span><span>4</span></span> 读作：<b>四分之三</b></p>
+      </div>
+      <div class="mini">
+        <h3>写作：先横线、后下、再上</h3>
+        <ol class="steps">
+          <li>先写<b>分数线</b></li>
+          <li>再写<b>分母</b>：4</li>
+          <li>最后写<b>分子</b>：3</li>
+        </ol>
+        <p class="note-line">写作：<span class="f"><span>3</span><span>4</span></span></p>
+      </div>
+    </div>
+
+    <div class="tip">规范提醒：分数线要写平，分子在上、分母在下；<b>不要</b>把 <span class="f"><span>3</span><span>4</span></span> 读成“三分之四”，也不要把写分数的顺序倒过来。</div>
+  </section>
+
+  <section class="card" id="divide">
+    <div class="sec-head">
+      <span class="sec-num">04</span>
+      <div>
+        <h2>分数与除法的关系</h2>
+        <p class="sec-sub">被除数相当于分子，除数相当于分母，除号相当于分数线。</p>
+      </div>
+    </div>
+
+    <div class="formula">a ÷ b = <span class="f xl"><span>a</span><span>b</span></span> <span class="note">（b ≠ 0）</span></div>
+
+    <table class="map">
+      <thead>
+        <tr><th>除法</th><th></th><th>分数</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>被除数</td><td class="arrow">→</td><td>分子</td></tr>
+        <tr><td>除数</td><td class="arrow">→</td><td>分母</td></tr>
+        <tr><td>除号 ÷</td><td class="arrow">→</td><td>分数线</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note-box">
+      <p><b>为什么分母不能是 0？</b></p>
+      <p>因为除数不能是 0 —— 除以 0 没有意义，所以分母不能为 0。</p>
+    </div>
+
+    <p>两个方向都要会：3 ÷ 4 的商是 <span class="f"><span>3</span><span>4</span></span>；反过来，<span class="f"><span>3</span><span>4</span></span> 也可以看作 3 ÷ 4。</p>
+    <p class="example-line">例：3 米长的绳子平均分成 4 段，每段 3 ÷ 4 = <span class="f"><span>3</span><span>4</span></span>（米）。</p>
+  </section>
+
+  <section class="card" id="proper">
+    <div class="sec-head">
+      <span class="sec-num">05</span>
+      <div>
+        <h2>真分数与假分数</h2>
+        <p class="sec-sub">分数不一定小于 1（延伸内容）。</p>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="mini">
+        <h3>真分数</h3>
+        <p>分子<b>小于</b>分母，如 <span class="f"><span>3</span><span>4</span></span>、<span class="f"><span>5</span><span>8</span></span>。</p>
+        <p class="big-line">真分数 <b>&lt; 1</b></p>
+        <div class="pie sm" data-pie="4,3"></div>
+      </div>
+      <div class="mini">
+        <h3>假分数</h3>
+        <p>分子<b>大于或等于</b>分母，如 <span class="f"><span>7</span><span>7</span></span>、<span class="f"><span>8</span><span>5</span></span>。</p>
+        <p class="big-line">假分数 <b>≥ 1</b></p>
+        <div class="pie sm" data-pie="7,7"></div>
+      </div>
+    </div>
+
+    <div class="tip">所以不要说“分数都小于 1”：<span class="f"><span>7</span><span>7</span></span> = 1，<span class="f"><span>8</span><span>5</span></span> 比 1 大。</div>
+  </section>
+
+  <section class="card" id="rate">
+    <div class="sec-head">
+      <span class="sec-num">06</span>
+      <div>
+        <h2>分率与具体数量</h2>
+        <p class="sec-sub">同一个“三分之一”，带不带单位，意思不一样。</p>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="mini">
+        <h3>不带单位 → 分率</h3>
+        <p>表示占单位“1”的几分之几。</p>
+        <p>例：男生是女生的 <span class="f"><span>4</span><span>5</span></span>。</p>
+      </div>
+      <div class="mini">
+        <h3>带单位 → 具体数量</h3>
+        <p>表示一个固定的长度、重量等。</p>
+        <p>例：<span class="f"><span>3</span><span>4</span></span> 米 = 0.75 米。</p>
+      </div>
+    </div>
+
+    <div class="bar-demo">
+      <div class="bar-row">
+        <span class="bar-label">全长 2 米</span>
+        <div class="bar">
+          <span class="seg used" style="width:33.333%">用去全长的 1/3</span>
+          <span class="seg rest">剩下</span>
+        </div>
+      </div>
+      <p class="bar-cap">全长的 1/3 = 2 ÷ 3 = <b>2/3 米</b></p>
+
+      <div class="bar-row">
+        <span class="bar-label">1 米</span>
+        <div class="bar">
+          <span class="seg used" style="width:33.333%">1/3 米</span>
+          <span class="seg rest">…</span>
+        </div>
+      </div>
+      <p class="bar-cap">用去 1/3 米，就是 <b>1/3 米</b>，是个固定长度</p>
+    </div>
+
+    <div class="key">
+      <p>带单位的分数是“<strong>多少</strong>”，不带单位的分数是“<strong>几分之几</strong>”，两者不能直接比较。</p>
+    </div>
+  </section>
+
+  <section class="card" id="mistakes">
+    <div class="sec-head">
+      <span class="sec-num">07</span>
+      <div>
+        <h2>常见误区</h2>
+        <p class="sec-sub">先自己判断，再点“揭晓判断”核对说理。</p>
+      </div>
+    </div>
+
+    <div class="mistake">
+      <button class="mistake-q" type="button" aria-expanded="false" aria-controls="m1" data-reveal data-label-closed="揭晓判断" data-label-open="收起分析">
+        <span class="mk-num">1</span>
+        <span class="mk-text">“把一个圆分成 3 份，每份就是 <span class="f"><span>1</span><span>3</span></span>。”</span>
+        <span class="mk-toggle toggle-label">揭晓判断</span>
+      </button>
+      <div class="answer-wrap" id="m1">
+        <div class="answer-inner">
+          <div class="answer">
+            <p class="ans-label">判断与说理</p>
+            <p><span class="verdict no">✗ 错</span>必须“<b>平均分</b>”成 3 份，每份才是 <span class="f"><span>1</span><span>3</span></span>。只是分成 3 份，每份可能不一样大。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mistake">
+      <button class="mistake-q" type="button" aria-expanded="false" aria-controls="m2" data-reveal data-label-closed="揭晓判断" data-label-open="收起分析">
+        <span class="mk-num">2</span>
+        <span class="mk-text">“5 ÷ 0 可以写成分数 5/0。”</span>
+        <span class="mk-toggle toggle-label">揭晓判断</span>
+      </button>
+      <div class="answer-wrap" id="m2">
+        <div class="answer-inner">
+          <div class="answer">
+            <p class="ans-label">判断与说理</p>
+            <p><span class="verdict no">✗ 错</span>除数不能是 0，所以<b>分母不能为 0</b>。5 ÷ 0 没有意义，不能写成 5/0。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mistake">
+      <button class="mistake-q" type="button" aria-expanded="false" aria-controls="m3" data-reveal data-label-closed="揭晓判断" data-label-open="收起分析">
+        <span class="mk-num">3</span>
+        <span class="mk-text">“<span class="f"><span>3</span><span>4</span></span> 读作‘三分之四’。”</span>
+        <span class="mk-toggle toggle-label">揭晓判断</span>
+      </button>
+      <div class="answer-wrap" id="m3">
+        <div class="answer-inner">
+          <div class="answer">
+            <p class="ans-label">判断与说理</p>
+            <p><span class="verdict no">✗ 错</span>读分数先读分母，再读“分之”，最后读分子，所以读作“四分之三”。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mistake">
+      <button class="mistake-q" type="button" aria-expanded="false" aria-controls="m4" data-reveal data-label-closed="揭晓判断" data-label-open="收起分析">
+        <span class="mk-num">4</span>
+        <span class="mk-text">“写 <span class="f"><span>3</span><span>4</span></span> 时，先写分子 3，再写分数线，最后写分母 4。”</span>
+        <span class="mk-toggle toggle-label">揭晓判断</span>
+      </button>
+      <div class="answer-wrap" id="m4">
+        <div class="answer-inner">
+          <div class="answer">
+            <p class="ans-label">判断与说理</p>
+            <p><span class="verdict no">✗ 错</span>写分数要按顺序：先写分数线，再写分母，最后写分子。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mistake">
+      <button class="mistake-q" type="button" aria-expanded="false" aria-controls="m5" data-reveal data-label-closed="揭晓判断" data-label-open="收起分析">
+        <span class="mk-num">5</span>
+        <span class="mk-text">“<span class="f"><span>3</span><span>4</span></span> 的分数单位是 <span class="f"><span>3</span><span>4</span></span>。”</span>
+        <span class="mk-toggle toggle-label">揭晓判断</span>
+      </button>
+      <div class="answer-wrap" id="m5">
+        <div class="answer-inner">
+          <div class="answer">
+            <p class="ans-label">判断与说理</p>
+            <p><span class="verdict no">✗ 错</span>分数单位只看分母，是 <span class="f"><span>1</span><span>4</span></span>；<span class="f"><span>3</span><span>4</span></span> 里有 3 个 <span class="f"><span>1</span><span>4</span></span>。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mistake">
+      <button class="mistake-q" type="button" aria-expanded="false" aria-controls="m6" data-reveal data-label-closed="揭晓判断" data-label-open="收起分析">
+        <span class="mk-num">6</span>
+        <span class="mk-text">“2 米长的绳子，用去 <span class="f"><span>1</span><span>3</span></span>，就是用去 <span class="f"><span>1</span><span>3</span></span> 米。”</span>
+        <span class="mk-toggle toggle-label">揭晓判断</span>
+      </button>
+      <div class="answer-wrap" id="m6">
+        <div class="answer-inner">
+          <div class="answer">
+            <p class="ans-label">判断与说理</p>
+            <p><span class="verdict no">✗ 错</span><span class="f"><span>1</span><span>3</span></span> 表示全长的三分之一，是 2 ÷ 3 = <span class="f"><span>2</span><span>3</span></span> 米；<span class="f"><span>1</span><span>3</span></span> 米是固定长度，两者不相等。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mistake">
+      <button class="mistake-q" type="button" aria-expanded="false" aria-controls="m7" data-reveal data-label-closed="揭晓判断" data-label-open="收起分析">
+        <span class="mk-num">7</span>
+        <span class="mk-text">“男生 20 人，女生 25 人，男生是女生的 25 ÷ 20。”</span>
+        <span class="mk-toggle toggle-label">揭晓判断</span>
+      </button>
+      <div class="answer-wrap" id="m7">
+        <div class="answer-inner">
+          <div class="answer">
+            <p class="ans-label">判断与说理</p>
+            <p><span class="verdict no">✗ 错</span>“是、占、相当于”后面是谁，就以谁为单位“1”。女生是单位“1”，应算 20 ÷ 25 = <span class="f"><span>4</span><span>5</span></span>。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mistake">
+      <button class="mistake-q" type="button" aria-expanded="false" aria-controls="m8" data-reveal data-label-closed="揭晓判断" data-label-open="收起分析">
+        <span class="mk-num">8</span>
+        <span class="mk-text">“分数都比 1 小。”</span>
+        <span class="mk-toggle toggle-label">揭晓判断</span>
+      </button>
+      <div class="answer-wrap" id="m8">
+        <div class="answer-inner">
+          <div class="answer">
+            <p class="ans-label">判断与说理</p>
+            <p><span class="verdict no">✗ 错</span>假分数大于或等于 1，如 <span class="f"><span>7</span><span>7</span></span> = 1，<span class="f"><span>8</span><span>5</span></span> 比 1 大。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="examples">
+    <div class="sec-head">
+      <span class="sec-num">08</span>
+      <div>
+        <h2>例题：由浅入深</h2>
+        <p class="sec-sub">难度：★ 基础　★★ 提高　★★★ 挑战。先做，再点开答案。</p>
+      </div>
+    </div>
+
+    <article class="ex">
+      <div class="ex-head">
+        <span class="star">★</span>
+        <h3>例 1　意义与读写</h3>
+      </div>
+      <div class="ex-q">
+        <p>一个圆被平均分成 8 份，涂色 3 份。</p>
+        <div class="pie sm" data-pie="8,3" style="margin:4px 0 10px"></div>
+        <p>(1) 涂色部分用分数表示是多少？读作什么？<br>
+           (2) 它的分数单位是多少？有几个这样的分数单位？<br>
+           (3) 空白部分用分数表示是多少？</p>
+      </div>
+      <button class="reveal-btn" type="button" aria-expanded="false" aria-controls="a1" data-reveal data-label-closed="看答案" data-label-open="收起答案">
+        <span class="toggle-label">看答案</span><span class="chev" aria-hidden="true">▾</span>
+      </button>
+      <div class="answer-wrap" id="a1">
+        <div class="answer-inner">
+          <div class="answer">
+            <p class="ans-label">参考答案</p>
+            <p>(1) <span class="f"><span>3</span><span>8</span></span>，读作“八分之三”。</p>
+            <p>(2) 分数单位是 <span class="f"><span>1</span><span>8</span></span>，<span class="f"><span>3</span><span>8</span></span> 里有 3 个 <span class="f"><span>1</span><span>8</span></span>。</p>
+            <p>(3) 空白部分是 <span class="f"><span>5</span><span>8</span></span>。</p>
+            <p><b>解析：</b>平均分成 8 份 → 分母是 8；涂色 3 份 → 分子是 3；空白 8 - 3 = 5 份。</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="ex">
+      <div class="ex-head">
+        <span class="star">★</span>
+        <h3>例 2　判断辨析</h3>
+      </div>
+      <div class="ex-q">
+        <p>判断对错，并说明理由。</p>
+        <p>(1) 把一张纸分成 4 份，每份是这张纸的 <span class="f"><span>1</span><span>4</span></span>。<br>
+           (2) <span class="f"><span>3</span><span>7</span></span> 的分数单位是 <span class="f"><span>1</span><span>7</span></span>，它有 3 个这样的分数单位。<br>
+           (3) 因为 5 &gt; 3，所以 <span class="f"><span>1</span><span>5</span></span> &gt; <span class="f"><span>1</span><span>3</span></span>。</p>
+      </div>
+      <button class="reveal-btn" type="button" aria-expanded="false" aria-controls="a2" data-reveal data-label-closed="看答案" data-label-open="收起答案">
+        <span class="toggle-label">看答案</span><span class="chev" aria-hidden="true">▾</span>
+      </button>
+      <div class="answer-wrap" id="a2">
+        <div class="answer-inner">
+          <div class="answer">
+            <p class="ans-label">参考答案</p>
+            <p>(1) <span class="verdict no">✗ 错</span>必须把纸“平均分”成 4 份，每份才是 <span class="f"><span>1</span><span>4</span></span>。</p>
+            <p>(2) <span class="verdict yes">✓ 对</span>分数单位只看分母，<span class="f"><span>3</span><span>7</span></span> 的分数单位是 <span class="f"><span>1</span><span>7</span></span>，有 3 个。</p>
+            <p>(3) <span class="verdict no">✗ 错</span>分子相同，分母越大分数越小，所以 <span class="f"><span>1</span><span>3</span></span> &gt; <span class="f"><span>1</span><span>5</span></span>。</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="ex">
+      <div class="ex-head">
+        <span class="star">★★</span>
+        <h3>例 3　分数与除法</h3>
+      </div>
+      <div class="ex-q">
+        <p>把一根 3 米长的绳子平均分成 4 段。</p>
+        <p>(1) 每段长多少米？<br>
+           (2) 每段是全长的几分之几？</p>
+      </div>
+      <button class="reveal-btn" type="button" aria-expanded="false" aria-controls="a3" data-reveal data-label-closed="看答案" data-label-open="收起答案">
+        <span class="toggle-label">看答案</span><span class="chev" aria-hidden="true">▾</span>
+      </button>
+      <div class="answer-wrap" id="a3">
+        <div class="answer-inner">
+          <div class="answer">
+            <p class="ans-label">参考答案</p>
+            <p>(1) 3 ÷ 4 = <span class="f"><span>3</span><span>4</span></span>（米）。</p>
+            <p>(2) <span class="f"><span>1</span><span>4</span></span>。</p>
+            <p><b>解析：</b>求具体长度用“总长 ÷ 段数”；求占全长的几分之几，把全长看作单位“1”，平均分成 4 段，每段是 <span class="f"><span>1</span><span>4</span></span>。</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="ex">
+      <div class="ex-head">
+        <span class="star">★★</span>
+        <h3>例 4　比较大小</h3>
+      </div>
+      <div class="ex-q">
+        <p>比较下面各组分数的大小，并说理。</p>
+        <p>(1) <span class="f"><span>2</span><span>5</span></span> 和 <span class="f"><span>2</span><span>7</span></span><br>
+           (2) <span class="f"><span>3</span><span>4</span></span> 和 <span class="f"><span>5</span><span>8</span></span></p>
+      </div>
+      <button class="reveal-btn" type="button" aria-expanded="false" aria-controls="a4" data-reveal data-label-closed="看答案" data-label-open="收起答案">
+        <span class="toggle-label">看答案</span><span class="chev" aria-hidden="true">▾</span>
+      </button>
+      <div class="answer-wrap" id="a4">
+        <div class="answer-inner">
+          <div class="answer">
+            <p class="ans-label">参考答案</p>
+            <p>(1) <span class="f"><span>2</span><span>5</span></span> &gt; <span class="f"><span>2</span><span>7</span></span>。分子相同，分母小的分数大。</p>
+            <p>(2) <span class="f"><span>3</span><span>4</span></span> = <span class="f"><span>6</span><span>8</span></span>，<span class="f"><span>6</span><span>8</span></span> &gt; <span class="f"><span>5</span><span>8</span></span>，所以 <span class="f"><span>3</span><span>4</span></span> &gt; <span class="f"><span>5</span><span>8</span></span>。先通分再比较。</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="ex">
+      <div class="ex-head">
+        <span class="star">★★★</span>
+        <h3>例 5　单位“1”与分率</h3>
+      </div>
+      <div class="ex-q">
+        <p>把 4 个同样大小的苹果平均分给 5 个小朋友。</p>
+        <p>(1) 每个小朋友分到几个苹果？<br>
+           (2) 每个小朋友分到这些苹果的几分之几？</p>
+      </div>
+      <button class="reveal-btn" type="button" aria-expanded="false" aria-controls="a5" data-reveal data-label-closed="看答案" data-label-open="收起答案">
+        <span class="toggle-label">看答案</span><span class="chev" aria-hidden="true">▾</span>
+      </button>
+      <div class="answer-wrap" id="a5">
+        <div class="answer-inner">
+          <div class="answer">
+            <p class="ans-label">参考答案</p>
+            <p>(1) 4 ÷ 5 = <span class="f"><span>4</span><span>5</span></span>（个）。</p>
+            <p>(2) <span class="f"><span>1</span><span>5</span></span>。</p>
+            <p><b>解析：</b>第 (1) 问求具体数量，单位是“个”；第 (2) 问把 4 个苹果看作单位“1”，平均分成 5 份，每份是 <span class="f"><span>1</span><span>5</span></span>。</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="ex">
+      <div class="ex-head">
+        <span class="star">★★★</span>
+        <h3>例 6　分率与具体量</h3>
+      </div>
+      <div class="ex-q">
+        <p>一根 2 米长的彩带，第一次用去全长的 <span class="f"><span>1</span><span>3</span></span>，第二次用去 <span class="f"><span>1</span><span>3</span></span> 米。哪次用去得多？</p>
+      </div>
+      <button class="reveal-btn" type="button" aria-expanded="false" aria-controls="a6" data-reveal data-label-closed="看答案" data-label-open="收起答案">
+        <span class="toggle-label">看答案</span><span class="chev" aria-hidden="true">▾</span>
+      </button>
+      <div class="answer-wrap" id="a6">
+        <div class="answer-inner">
+          <div class="answer">
+            <p class="ans-label">参考答案</p>
+            <p>第一次：2 ÷ 3 = <span class="f"><span>2</span><span>3</span></span>（米）；第二次：<span class="f"><span>1</span><span>3</span></span>（米）。</p>
+            <p><span class="f"><span>2</span><span>3</span></span> &gt; <span class="f"><span>1</span><span>3</span></span>，所以第一次用去得多。</p>
+            <p><b>解析：</b>第一次的 <span class="f"><span>1</span><span>3</span></span> 是“全长的 <span class="f"><span>1</span><span>3</span></span>”，要先求 2 米的 <span class="f"><span>1</span><span>3</span></span>；第二次的 <span class="f"><span>1</span><span>3</span></span> 米是具体长度。带单位的分数与不带单位的分数不能直接比较。</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="ex">
+      <div class="ex-head">
+        <span class="star">★★★</span>
+        <h3>例 7　开放表达</h3>
+      </div>
+      <div class="ex-q">
+        <p>用“<span class="f"><span>3</span><span>4</span></span>”说一句话，并画图表示它的意思，再说明它和“<span class="f"><span>3</span><span>4</span></span> 米”有什么不同。</p>
+      </div>
+      <button class="reveal-btn" type="button" aria-expanded="false" aria-controls="a7" data-reveal data-label-closed="看答案" data-label-open="收起答案">
+        <span class="toggle-label">看答案</span><span class="chev" aria-hidden="true">▾</span>
+      </button>
+      <div class="answer-wrap" id="a7">
+        <div class="answer-inner">
+          <div class="answer">
+            <p class="ans-label">参考答案</p>
+            <p>把一个蛋糕平均分成 4 份，取其中 3 份，就是 <span class="f"><span>3</span><span>4</span></span>。</p>
+            <div class="pie sm" data-pie="4,3" style="margin:8px 0"></div>
+            <p><b>不同：</b><span class="f"><span>3</span><span>4</span></span> 不带单位，表示“占单位‘1’的几分之几”；<span class="f"><span>3</span><span>4</span></span> 米带单位，表示 0.75 米这样一个具体长度。</p>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section class="card" id="practice">
+    <div class="sec-head">
+      <span class="sec-num">09</span>
+      <div>
+        <h2>可交互练习</h2>
+        <p class="sec-sub">三关：涂一涂、判一判、填一填。每关都有即时反馈。</p>
+      </div>
+    </div>
+
+    <h3 class="subhead"><span class="dot"></span>9.1 涂一涂：点扇形涂色</h3>
+    <p class="subnote">一个圆平均分成 8 份。点一点扇形给它涂色，再点一下取消，看看表示几分之几。</p>
+
+    <div class="draw-lab">
+      <div class="pie draw-pie" id="drawPie"></div>
+      <div>
+        <p class="draw-frac"><span class="f lg"><span id="drawNum">0</span><span>8</span></span></p>
+        <p class="draw-text" id="drawText" aria-live="polite">还没有涂色。点一点扇形，给它涂上颜色。</p>
+        <button class="mini-btn" type="button" id="drawReset">全部擦掉</button>
+      </div>
+    </div>
+
+    <h3 class="subhead"><span class="dot"></span>9.2 判一判：点“对”或“错”</h3>
+    <p class="subnote">读句子，点“对”或“错”，立刻看理由；答对会自动计数。</p>
+
+    <div class="judge" id="judge">
+      <div class="judge-head" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--line);font-size:.86rem;font-weight:700;color:var(--teal-d)">
+        <span>共 5 题</span>
+        <span id="judgeScore">答对 0 / 5</span>
+      </div>
+
+      <div class="jq">
+        <p class="jq-text"><b>1.</b> 把一根绳子分成 3 段，每段就是 <span class="f"><span>1</span><span>3</span></span>。</p>
+        <div class="jbtns">
+          <button class="jbtn" type="button" data-correct="false" data-why="必须平均分成 3 段，每段才是 1/3。">对</button>
+          <button class="jbtn" type="button" data-correct="true" data-why="没有说“平均分”，每段可能不一样大，所以这句话错。">错</button>
+        </div>
+        <p class="feedback" aria-live="polite"></p>
+      </div>
+
+      <div class="jq">
+        <p class="jq-text"><b>2.</b> <span class="f"><span>5</span><span>8</span></span> 读作“五分之八”。</p>
+        <div class="jbtns">
+          <button class="jbtn" type="button" data-correct="false" data-why="先读分母八，再读“分之”，最后读分子五，读作“八分之五”。">对</button>
+          <button class="jbtn" type="button" data-correct="true" data-why="读作“八分之五”：分母在前，分子在后。">错</button>
+        </div>
+        <p class="feedback" aria-live="polite"></p>
+      </div>
+
+      <div class="jq">
+        <p class="jq-text"><b>3.</b> <span class="f"><span>3</span><span>4</span></span> 的分数单位是 <span class="f"><span>1</span><span>4</span></span>。</p>
+        <div class="jbtns">
+          <button class="jbtn" type="button" data-correct="true" data-why="分数单位只看分母：分母是 4，分数单位就是 1/4。">对</button>
+          <button class="jbtn" type="button" data-correct="false" data-why="分数单位不是整个分数，而是其中的一份，即 1/4。">错</button>
+        </div>
+        <p class="feedback" aria-live="polite"></p>
+      </div>
+
+      <div class="jq">
+        <p class="jq-text"><b>4.</b> 5 ÷ 0 可以写成分数 5/0。</p>
+        <div class="jbtns">
+          <button class="jbtn" type="button" data-correct="false" data-why="除数不能是 0，分母也就不能为 0；5÷0 没有意义。">对</button>
+          <button class="jbtn" type="button" data-correct="true" data-why="分母不能为 0，所以不能写成 5/0。">错</button>
+        </div>
+        <p class="feedback" aria-live="polite"></p>
+      </div>
+
+      <div class="jq">
+        <p class="jq-text"><b>5.</b> <span class="f"><span>7</span><span>7</span></span> = 1。</p>
+        <div class="jbtns">
+          <button class="jbtn" type="button" data-correct="true" data-why="7 份全部取完，就是整个单位“1”，所以 7/7 = 1。">对</button>
+          <button class="jbtn" type="button" data-correct="false" data-why="分子和分母相等时分数等于 1，不是小于 1。">错</button>
+        </div>
+        <p class="feedback" aria-live="polite"></p>
+      </div>
+
+      <div style="padding:10px 0 0">
+        <button class="mini-btn" type="button" id="judgeReset">重做判断</button>
+      </div>
+    </div>
+
+    <h3 class="subhead"><span class="dot"></span>9.3 填一填：输入答案再检查</h3>
+    <p class="subnote">分数写成“1/5”这样即可；按回车或点“检查”，答对后输入框会变绿。</p>
+
+    <div class="fill" id="fill">
+      <div class="fq">
+        <label class="fq-text" for="f1"><b>1.</b> <span class="f"><span>3</span><span>5</span></span> 的分数单位是（　　）。</label>
+        <div class="fq-row">
+          <input id="f1" class="fill-input" type="text" autocomplete="off" data-answer="1/5|1／5" placeholder="如 1/5" aria-label="第 1 题答案">
+          <button class="check-btn" type="button" data-for="f1" data-tip="分数单位只看分母，分母是 5，分数单位就是 1/5。" data-hint="分数单位的分母要和原分数一样，分子是 1。">检查</button>
+        </div>
+        <p class="feedback" aria-live="polite"></p>
+      </div>
+
+      <div class="fq">
+        <label class="fq-text" for="f2"><b>2.</b> 把单位“1”平均分成 7 份，取 4 份，是（　　）。</label>
+        <div class="fq-row">
+          <input id="f2" class="fill-input" type="text" autocomplete="off" data-answer="4/7|4／7" placeholder="如 4/7" aria-label="第 2 题答案">
+          <button class="check-btn" type="button" data-for="f2" data-tip="平均分成 7 份，分母是 7；取 4 份，分子是 4。" data-hint="分母是平均分成的份数，分子是取的份数。">检查</button>
+        </div>
+        <p class="feedback" aria-live="polite"></p>
+      </div>
+
+      <div class="fq">
+        <label class="fq-text" for="f3"><b>3.</b> <span class="f"><span>5</span><span>8</span></span> 读作（　　）。</label>
+        <div class="fq-row">
+          <input id="f3" class="fill-input" type="text" autocomplete="off" data-answer="八分之五" placeholder="如 八分之五" aria-label="第 3 题答案">
+          <button class="check-btn" type="button" data-for="f3" data-tip="读分数先读分母，再读“分之”，最后读分子。" data-hint="先读分母“八”，再读“分之”，最后读分子“五”。">检查</button>
+        </div>
+        <p class="feedback" aria-live="polite"></p>
+      </div>
+
+      <div class="fq">
+        <label class="fq-text" for="f4"><b>4.</b> 3 ÷ 5 =（　　）。</label>
+        <div class="fq-row">
+          <input id="f4" class="fill-input" type="text" autocomplete="off" data-answer="3/5|3／5" placeholder="如 3/5" aria-label="第 4 题答案">
+          <button class="check-btn" type="button" data-for="f4" data-tip="被除数相当于分子，除数相当于分母：3÷5 = 3/5。" data-hint="被除数作分子，除数作分母。">检查</button>
+        </div>
+        <p class="feedback" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="summary">
+    <div class="sec-head">
+      <span class="sec-num">10</span>
+      <div>
+        <h2>三句话记住本课</h2>
+        <p class="sec-sub">合上课件，试着复述这三句。</p>
+      </div>
+    </div>
+    <div class="takeaway">
+      <div><span class="tk-num">1</span><p>分数来自<b>平均分</b>：不平均分，就没有分数。</p></div>
+      <div><span class="tk-num">2</span><p>认准<b>单位“1”</b>：是谁的几分之几，就把谁看作单位“1”。</p></div>
+      <div><span class="tk-num">3</span><p>分数单位看<b>分母</b>；带单位是数量，不带单位是分率。</p></div>
+    </div>
+    <p class="homework">课后练一练：折一张纸表示 <span class="f"><span>3</span><span>4</span></span>，再和同桌说一说“<span class="f"><span>3</span><span>4</span></span>”和“<span class="f"><span>3</span><span>4</span></span> 米”有什么不同。</p>
+  </section>
+
+  <section class="card" id="notes">
+    <div class="sec-head">
+      <span class="sec-num">11</span>
+      <div>
+        <h2>教学要点说明（教师用）</h2>
+        <p class="sec-sub">一页课件配套的简短教学提示，可直接用于备课。</p>
+      </div>
+    </div>
+    <div class="notes-grid">
+      <div class="notes-box">
+        <b>适用与课时</b>
+        <p>人教版五年级下册《分数的意义和性质》，1 课时（约 30 分钟）；也可用于六年级复习。</p>
+      </div>
+      <div class="notes-box">
+        <b>目标与重难点</b>
+        <p>目标：理解分数的意义；规范读写、认识分数单位；理解分数与除法的关系。重点：分数的意义与分数单位。难点：确定单位“1”；区分分率与具体数量。</p>
+      </div>
+      <div class="notes-box">
+        <b>环节建议</b>
+        <p>导入 3′（分物情境）→ 意义 6′ → 分数单位 6′ → 读写 5′ → 分数与除法 5′ → 练习与小结 5′。每个定义先操作（折纸、涂色、分物），再抽象成符号。</p>
+      </div>
+      <div class="notes-box">
+        <b>使用与评价</b>
+        <p>例题先让学生独立做，再点“看答案”；练习先涂一涂、判一判、填一填。评价看三点：能否用自己的话说清意义、能否规范读写并找准分数单位、能否区分“全长的 1/3”和“1/3 米”。</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <p>依据人教版小学数学三年级上册“分数的初步认识”、五年级下册“分数的意义和性质”的通行表述编写；不同教材版本对“单位‘1’”的叫法可能略有差异，定义本身一致。</p>
+  <p>整页为单个 HTML 文件，图示由页面内脚本绘制，不使用外部字体、图片或网络资源；浏览器直接打开即可使用。</p>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  function polar(cx,cy,r,deg){
+    var a=deg*Math.PI/180;
+    return [cx+r*Math.cos(a),cy+r*Math.sin(a)];
+  }
+  function sectorPath(cx,cy,r,a0,a1){
+    var p0=polar(cx,cy,r,a0),p1=polar(cx,cy,r,a1);
+    var large=(a1-a0)>180?1:0;
+    return "M "+cx+" "+cy+" L "+p0[0].toFixed(2)+" "+p0[1].toFixed(2)+" A "+r+" "+r+" 0 "+large+" 1 "+p1[0].toFixed(2)+" "+p1[1].toFixed(2)+" Z";
+  }
+  function pieMarkup(fills){
+    var r=45,n=fills.length,i,parts="";
+    parts+='<circle cx="50" cy="50" r="45" fill="#fdf2e0"/>';
+    for(i=0;i<n;i++){
+      if(!fills[i]){continue;}
+      var a0=-90+i*360/n,a1=-90+(i+1)*360/n;
+      parts+='<path d="'+sectorPath(50,50,r,a0,a1)+'" fill="'+fills[i]+'"/>';
+    }
+    for(i=0;i<n;i++){
+      var a=-90+i*360/n;
+      var pt=polar(50,50,r,a);
+      parts+='<line x1="50" y1="50" x2="'+pt[0].toFixed(2)+'" y2="'+pt[1].toFixed(2)+'" stroke="#bd9f74" stroke-width="'+(n>10?0.5:0.85)+'"/>';
+    }
+    parts+='<circle cx="50" cy="50" r="45" fill="none" stroke="#b8976a" stroke-width="1.2"/>';
+    return '<svg viewBox="0 0 100 100" aria-hidden="true">'+parts+'</svg>';
+  }
+  function unevenMarkup(angles,fills){
+    var r=45,start=-90,i,parts="";
+    parts+='<circle cx="50" cy="50" r="45" fill="#fdf2e0"/>';
+    for(i=0;i<angles.length;i++){
+      var a0=start,a1=start+angles[i];
+      parts+='<path d="'+sectorPath(50,50,r,a0,a1)+'" fill="'+fills[i%fills.length]+'" stroke="#ffffff" stroke-width="1"/>';
+      start=a1;
+    }
+    parts+='<circle cx="50" cy="50" r="45" fill="none" stroke="#b8976a" stroke-width="1.2"/>';
+    return '<svg viewBox="0 0 100 100" aria-hidden="true">'+parts+'</svg>';
+  }
+
+  var i,k,parts,arr,fills;
+
+  var pies=document.querySelectorAll("[data-pie]");
+  for(i=0;i<pies.length;i++){
+    parts=pies[i].getAttribute("data-pie").split(",");
+    var n=parseInt(parts[0],10);
+    var f=parseInt(parts[1],10);
+    fills=[];
+    for(k=0;k<n;k++){fills.push(k<f?"#eaa055":null);}
+    pies[i].innerHTML=pieMarkup(fills);
+  }
+
+  var uneven=document.querySelectorAll("[data-uneven]");
+  for(i=0;i<uneven.length;i++){
+    parts=uneven[i].getAttribute("data-uneven").split(",");
+    arr=[];
+    for(k=0;k<parts.length;k++){arr.push(parseFloat(parts[k]));}
+    uneven[i].innerHTML=unevenMarkup(arr,["#eaa055","#f3c083","#fbe3c2"]);
+  }
+
+  /* 分数单位小实验 */
+  var denRange=document.getElementById("denRange");
+  var numRange=document.getElementById("numRange");
+  var denVal=document.getElementById("denVal");
+  var numVal=document.getElementById("numVal");
+  var labPie=document.getElementById("labPie");
+  var labNum=document.getElementById("labNum");
+  var labDen=document.getElementById("labDen");
+  var labText=document.getElementById("labText");
+
+  function updateLab(){
+    if(!denRange||!numRange||!labPie){return;}
+    var d=parseInt(denRange.value,10);
+    if(isNaN(d)||d<2){d=2;}
+    numRange.max=String(d);
+    var m=parseInt(numRange.value,10);
+    if(isNaN(m)||m<1){m=1;}
+    if(m>d){m=d;}
+    numRange.value=String(m);
+    if(denVal){denVal.textContent=String(d);}
+    if(numVal){numVal.textContent=String(m);}
+    if(labNum){labNum.textContent=String(m);}
+    if(labDen){labDen.textContent=String(d);}
+    var arr2=[];
+    for(var j=0;j<d;j++){arr2.push(j<m?"#eaa055":null);}
+    labPie.innerHTML=pieMarkup(arr2);
+    if(labText){
+      labText.innerHTML="把单位“1”平均分成 <b>"+d+"</b> 份，取 <b>"+m+"</b> 份，就是 <b>"+m+"/"+d+"</b>。它的分数单位是 <b>1/"+d+"</b>，里面有 <b>"+m+"</b> 个 1/"+d+"。";
+    }
+  }
+  if(denRange&&numRange){
+    denRange.addEventListener("input",updateLab);
+    numRange.addEventListener("input",updateLab);
+    updateLab();
+  }
+
+  /* 答案展开 */
+  var btns=document.querySelectorAll("[data-reveal]");
+  function onReveal(btn){
+    var open=btn.getAttribute("aria-expanded")==="true";
+    var id=btn.getAttribute("aria-controls");
+    var target=id?document.getElementById(id):null;
+    btn.setAttribute("aria-expanded",open?"false":"true");
+    if(target){target.classList.toggle("open",!open);}
+    var lbl=btn.querySelector(".toggle-label");
+    if(lbl){
+      var closed=btn.getAttribute("data-label-closed")||"看答案";
+      var opened=btn.getAttribute("data-label-open")||"收起答案";
+      lbl.textContent=open?closed:opened;
+    }
+  }
+  for(i=0;i<btns.length;i++){
+    (function(btn){
+      btn.addEventListener("click",function(){onReveal(btn);});
+    })(btns[i]);
+  }
+
+  /* 9.1 点击涂色 */
+  var drawPie=document.getElementById("drawPie");
+  if(drawPie){
+    var DPARTS=8;
+    var numerals=["零","一","二","三","四","五","六","七","八"];
+    var svgParts='<svg viewBox="0 0 100 100" role="group" aria-label="平均分成 8 份的圆">';
+    svgParts+='<circle cx="50" cy="50" r="45" fill="#fdf2e0"/>';
+    for(i=0;i<DPARTS;i++){
+      var da0=-90+i*360/DPARTS,da1=-90+(i+1)*360/DPARTS;
+      svgParts+='<path class="slice" tabindex="0" role="button" aria-label="第 '+(i+1)+' 份，点击涂色" data-i="'+i+'" d="'+sectorPath(50,50,45,da0,da1)+'"/>';
+    }
+    svgParts+='<circle cx="50" cy="50" r="45" fill="none" stroke="#b8976a" stroke-width="1.2" pointer-events="none"/>';
+    svgParts+='</svg>';
+    drawPie.innerHTML=svgParts;
+
+    var slices=drawPie.querySelectorAll(".slice");
+    var drawNum=document.getElementById("drawNum");
+    var drawText=document.getElementById("drawText");
+
+    function updateDraw(){
+      var count=0;
+      for(var s=0;s<slices.length;s++){
+        if(slices[s].classList.contains("on")){count++;}
+      }
+      if(drawNum){drawNum.textContent=String(count);}
+      if(drawText){
+        if(count===0){
+          drawText.innerHTML="还没有涂色。点一点扇形，给它涂上颜色。";
+        }else if(count===DPARTS){
+          drawText.innerHTML="涂满 8 份，就是 <b>8/8 = 1</b>。";
+        }else{
+          drawText.innerHTML="涂了 <b>"+count+"</b> 份，表示 <b>"+count+"/8</b>，读作“<b>八分之"+numerals[count]+"</b>”。";
+        }
+      }
+    }
+    drawPie.addEventListener("click",function(e){
+      var t=e.target;
+      if(!t||!t.classList||!t.classList.contains("slice")){return;}
+      t.classList.toggle("on");
+      updateDraw();
+    });
+    drawPie.addEventListener("keydown",function(e){
+      var t=e.target;
+      if(!t||!t.classList||!t.classList.contains("slice")){return;}
+      if(e.key==="Enter"||e.key===" "||e.key==="Spacebar"){
+        e.preventDefault();
+        t.classList.toggle("on");
+        updateDraw();
+      }
+    });
+    var drawReset=document.getElementById("drawReset");
+    if(drawReset){
+      drawReset.addEventListener("click",function(){
+        for(var s=0;s<slices.length;s++){slices[s].classList.remove("on");}
+        updateDraw();
+      });
+    }
+    updateDraw();
+  }
+
+  /* 9.2 判断 */
+  var judge=document.getElementById("judge");
+  if(judge){
+    var jbtns=judge.querySelectorAll(".jbtn");
+    var jqAll=judge.querySelectorAll(".jq");
+    var jRight=0,jAnswered=0;
+    var judgeScore=document.getElementById("judgeScore");
+
+    function updateJudge(){
+      if(judgeScore){judgeScore.textContent="答对 "+jRight+" / "+jqAll.length;}
+    }
+    for(i=0;i<jbtns.length;i++){
+      (function(btn){
+        btn.addEventListener("click",function(){
+          var q=btn.closest(".jq");
+          if(!q||q.getAttribute("data-done")==="1"){return;}
+          q.setAttribute("data-done","1");
+          var ok=btn.getAttribute("data-correct")==="true";
+          var all=q.querySelectorAll(".jbtn");
+          for(var b=0;b<all.length;b++){
+            all[b].disabled=true;
+            if(all[b].getAttribute("data-correct")==="true"){all[b].classList.add("ok");}
+          }
+          if(!ok){btn.classList.add("no");}
+          var fb=q.querySelector(".feedback");
+          if(fb){
+            var why=btn.getAttribute("data-why")||"";
+            fb.innerHTML=(ok?'<b class="fb-ok">✓ 答对了！</b>':'<b class="fb-no">✗ 再想一想。</b>')+why;
+            fb.classList.add("show");
+          }
+          jAnswered++;
+          if(ok){jRight++;}
+          updateJudge();
+        });
+      })(jbtns[i]);
+    }
+    var judgeReset=document.getElementById("judgeReset");
+    if(judgeReset){
+      judgeReset.addEventListener("click",function(){
+        jAnswered=0;jRight=0;
+        for(var q=0;q<jqAll.length;q++){
+          jqAll[q].removeAttribute("data-done");
+          var fb=jqAll[q].querySelector(".feedback");
+          if(fb){fb.textContent="";fb.classList.remove("show");}
+          var bs=jqAll[q].querySelectorAll(".jbtn");
+          for(var b=0;b<bs.length;b++){
+            bs[b].disabled=false;
+            bs[b].classList.remove("ok","no");
+          }
+        }
+        updateJudge();
+      });
+    }
+    updateJudge();
+  }
+
+  /* 9.3 填空 */
+  var fill=document.getElementById("fill");
+  if(fill){
+    function norm(v){
+      return (v||"").replace(/\s+/g,"").replace(/／/g,"/").replace(/。$/,"").replace(/，$/,"");
+    }
+    var checks=fill.querySelectorAll(".check-btn");
+    for(i=0;i<checks.length;i++){
+      (function(btn){
+        btn.addEventListener("click",function(){
+          var id=btn.getAttribute("data-for");
+          var input=id?document.getElementById(id):null;
+          if(!input){return;}
+          var q=input.closest(".fq");
+          var fb=q?q.querySelector(".feedback"):null;
+          var answers=(input.getAttribute("data-answer")||"").split("|");
+          var val=norm(input.value);
+          var ok=false;
+          for(var a=0;a<answers.length;a++){
+            if(val!==""&&norm(answers[a])===val){ok=true;break;}
+          }
+          if(ok){
+            input.classList.add("ok");
+            input.classList.remove("no");
+            input.readOnly=true;
+            if(fb){
+              fb.innerHTML='<b class="fb-ok">✓ 正确！</b>'+(btn.getAttribute("data-tip")||"");
+              fb.classList.add("show");
+            }
+          }else{
+            input.classList.add("no");
+            input.classList.remove("ok");
+            if(fb){
+              fb.innerHTML='<b class="fb-no">✗ 再想想。</b>提示：'+(btn.getAttribute("data-hint")||"再读一遍题目。");
+              fb.classList.add("show");
+            }
+          }
+        });
+      })(checks[i]);
+    }
+    var inputs=fill.querySelectorAll(".fill-input");
+    for(i=0;i<inputs.length;i++){
+      (function(inp){
+        inp.addEventListener("keydown",function(e){
+          if(e.key==="Enter"){
+            e.preventDefault();
+            var btn=fill.querySelector('.check-btn[data-for="'+inp.id+'"]');
+            if(btn){btn.click();}
+          }
+        });
+      })(inputs[i]);
+    }
+  }
+
+  /* 目录高亮 */
+  var links=document.querySelectorAll(".nav a");
+  var targets=[];
+  for(i=0;i<links.length;i++){
+    var el=document.querySelector(links[i].getAttribute("href"));
+    if(el){targets.push({link:links[i],el:el});}
+  }
+  if(window.IntersectionObserver&&targets.length){
+    var io=new IntersectionObserver(function(entries){
+      for(var e=0;e<entries.length;e++){
+        if(entries[e].isIntersecting){
+          for(var t=0;t<targets.length;t++){targets[t].link.classList.remove("active");}
+          for(var u=0;u<targets.length;u++){
+            if(targets[u].el===entries[e].target){
+              targets[u].link.classList.add("active");
+              break;
+            }
+          }
+        }
+      }
+    },{rootMargin:"-45% 0px -50% 0px",threshold:0});
+    for(i=0;i<targets.length;i++){io.observe(targets[i].el);}
+  }
+})();
+</script>
+
+</body>
+</html>

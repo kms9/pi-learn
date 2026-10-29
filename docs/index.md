@@ -74,6 +74,7 @@ tags:
 - [[decisions/2026-09-23-p0-identity-fields|2026-09-23 P0 身份字段与 HTTP Registry]]
 
 ## 会话
+- `docs/dsh-squad-编排对比实验-2026-10-29.md` — 支线对比实验（S 单 Agent / A 自由群 / B DAG / C DAG + 审核，每组一次，deepseek-flash）：配置原文、DAG 与 mermaid、过程时间线、截图、逐条覆盖与结论；结论只描述这一次运行。
 - `docs/dsh-squad-验证与实验总结-2026-10-28.md` — DS Bot + Squad 全部验证与实验汇总（P0 探针、P1 seam、M0～M4、对照实验、UI P1～P6、T 阶段 mock 与真实模型、v0.2.0 升级与 O1～O7）：逐个写目的、观点、过程、结果、结论，附总表与「仍未验证」清单。
 - `docs/dsh-squad-v0.2-assessment-2026-10-21.md` — DS Bot v0.2.0 对 Squad 的影响评估：可改用原生的、需拦截适配的、可借来增强的；优化计划 O1–O7（已完成）；产品决定 P1–P6（已拍板）。
 - [[guide/dsh-squad-使用指南|DS Bot + Squad 使用指南]] — 面向非开发用户，按使用流程：部署、配置 DeepSeek、小队与规则、开始任务、任务树、处理节点、返工、补充指导、多小队、成果与实验报告、故障排查；配 T 阶段测试截图。

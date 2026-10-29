@@ -1,0 +1,2182 @@
+<!doctype html>
+<html lang="zh-CN" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>认识分数｜分数的意义与读写 · 五年级互动课件</title>
+<meta name="description" content="一页式五年级数学互动课件：在平均分中理解分数的意义，认识分子、分母和分数线，练习分数的读写、分数单位与分数和除法的联系。">
+<script>document.documentElement.classList.replace('no-js','js');</script>
+<style>
+  :root{
+    --paper:#f3ecdd;
+    --paper-deep:#ebe1cd;
+    --surface:#fffdf8;
+    --surface-soft:#faf3e5;
+    --ink:#1e2c2a;
+    --ink-soft:#35443f;
+    --muted:#68736d;
+    --line:#d9cdb8;
+    --line-strong:#c2b39a;
+    --accent:#cf5c36;
+    --accent-deep:#a94324;
+    --accent-soft:#f6d8c8;
+    --green:#276b5a;
+    --green-deep:#1c5144;
+    --green-soft:#dcebe3;
+    --yellow:#eebc4f;
+    --yellow-soft:#f8e7b9;
+    --blue:#3b648c;
+    --danger:#b34033;
+    --shadow:0 2px 0 rgba(113,94,62,.1), 0 26px 56px -32px rgba(42,48,40,.35);
+    --shadow-soft:0 1px 0 rgba(113,94,62,.08), 0 16px 34px -24px rgba(42,48,40,.28);
+    --radius:30px;
+    --font-sans:"Noto Sans CJK SC","Noto Sans SC","PingFang SC","Microsoft YaHei","Heiti SC",sans-serif;
+    --font-serif:"Noto Serif CJK SC","Noto Serif SC","Songti SC","STSong","SimSun",serif;
+  }
+
+  *{box-sizing:border-box;}
+  [hidden]{display:none!important;}
+  html{scroll-behavior:smooth;scroll-padding-top:92px;}
+  body{
+    margin:0;
+    min-width:320px;
+    color:var(--ink);
+    font-family:var(--font-sans);
+    background-color:var(--paper);
+    background-image:
+      radial-gradient(circle at 8% 4%, rgba(238,188,79,.19), transparent 27rem),
+      radial-gradient(circle at 94% 14%, rgba(207,92,54,.1), transparent 30rem),
+      linear-gradient(90deg, rgba(255,255,255,.2), transparent 30%, rgba(255,255,255,.18) 70%, transparent);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  body:has(.teacher-drawer[open]),body.drawer-open{overflow:hidden;}
+  ::selection{background:var(--yellow-soft);color:var(--ink);}
+  a{color:inherit;}
+  button,input{font:inherit;}
+  button{color:inherit;}
+  img,svg{display:block;max-width:100%;}
+  h1,h2,h3,p,ul,ol{margin-top:0;}
+  p{line-height:1.8;}
+  :focus-visible{outline:3px solid var(--yellow);outline-offset:3px;}
+
+  .container{width:min(1180px, calc(100% - 48px));margin-inline:auto;}
+  .nowrap{white-space:nowrap;}
+  .sr-only{
+    position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;
+    overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
+  }
+  .skip-link{
+    position:fixed;top:10px;left:10px;z-index:1000;padding:10px 16px;
+    border-radius:999px;background:var(--ink);color:var(--surface);
+    transform:translateY(-160%);transition:transform .2s;
+  }
+  .skip-link:focus{transform:none;}
+
+  .eyebrow{
+    display:flex;align-items:center;gap:10px;margin:0 0 12px;
+    color:var(--accent-deep);font-size:12px;font-weight:800;
+    letter-spacing:.16em;text-transform:uppercase;
+  }
+  .eyebrow::before{content:"";width:22px;height:2px;background:currentColor;border-radius:99px;}
+  .eyebrow.is-light{color:var(--yellow);}
+
+  /* ---------- header ---------- */
+  .site-header{
+    position:sticky;top:0;z-index:60;
+    background:rgba(243,236,221,.82);
+    border-bottom:1px solid transparent;
+    backdrop-filter:blur(16px) saturate(1.2);
+    -webkit-backdrop-filter:blur(16px) saturate(1.2);
+    transition:border-color .25s, box-shadow .25s, background .25s;
+  }
+  .site-header.is-scrolled{
+    background:rgba(250,246,236,.92);
+    border-color:rgba(194,179,154,.55);
+    box-shadow:0 10px 30px -24px rgba(42,48,40,.5);
+  }
+  .header-inner{height:72px;display:flex;align-items:center;gap:26px;}
+  .brand{
+    display:flex;align-items:center;gap:12px;flex:0 0 auto;
+    text-decoration:none;
+  }
+  .brand-mark{
+    position:relative;display:grid;place-items:center;width:40px;height:40px;
+    border-radius:13px;background:var(--ink);color:var(--surface);
+    font-family:var(--font-serif);font-size:20px;font-weight:800;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);
+  }
+  .brand-mark::after{
+    content:"";position:absolute;right:-5px;top:-5px;width:11px;height:11px;
+    border-radius:50%;background:var(--accent);border:2px solid var(--paper);
+  }
+  .brand-text{display:flex;flex-direction:column;line-height:1.2;}
+  .brand-text strong{font-size:15px;letter-spacing:.02em;}
+  .brand-text span{font-size:11px;color:var(--muted);letter-spacing:.08em;margin-top:3px;}
+  .site-nav{display:flex;align-items:center;gap:2px;margin-left:auto;}
+  .site-nav a{
+    padding:8px 11px;border-radius:999px;text-decoration:none;
+    color:var(--muted);font-size:13px;font-weight:600;
+    transition:color .2s, background .2s;
+  }
+  .site-nav a:hover{color:var(--ink);background:rgba(255,255,255,.55);}
+  .site-nav a.is-active{color:var(--surface);background:var(--ink);}
+  .teacher-btn{
+    display:inline-flex;align-items:center;gap:8px;margin-left:10px;
+    border:1px solid var(--ink);border-radius:999px;background:transparent;
+    padding:9px 15px;font-size:13px;font-weight:800;cursor:pointer;
+    transition:background .2s,color .2s,transform .2s;
+  }
+  .teacher-btn:hover{background:var(--ink);color:var(--surface);transform:translateY(-1px);}
+  .teacher-btn svg{width:16px;height:16px;}
+  .header-progress{
+    position:absolute;left:0;right:0;bottom:-1px;height:2px;
+    background:transparent;pointer-events:none;
+  }
+  .header-progress span{
+    display:block;height:100%;background:var(--accent);
+    transform:scaleX(0);transform-origin:0 50%;will-change:transform;
+  }
+
+  /* ---------- buttons ---------- */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:9px;
+    min-height:46px;padding:11px 20px;border-radius:999px;
+    border:1px solid transparent;background:transparent;
+    font-weight:800;font-size:14px;line-height:1;text-decoration:none;
+    cursor:pointer;transition:transform .2s,background .2s,color .2s,border-color .2s,box-shadow .2s;
+  }
+  .btn:hover{transform:translateY(-2px);}
+  .btn:active{transform:translateY(0);}
+  .btn-primary{background:var(--accent);color:#fff;box-shadow:0 10px 22px -14px rgba(169,67,36,.8);}
+  .btn-primary:hover{background:var(--accent-deep);}
+  .btn-dark{background:var(--ink);color:var(--surface);}
+  .btn-dark:hover{background:#111c1a;}
+  .btn-soft{background:var(--surface-soft);color:var(--ink);border-color:var(--line);}
+  .btn-soft:hover{background:var(--yellow-soft);}
+  .btn-quiet{background:transparent;color:var(--muted);border-color:transparent;min-height:auto;padding:8px 10px;}
+  .btn-quiet:hover{color:var(--ink);background:rgba(30,44,42,.06);}
+  .btn .arrow{transition:transform .2s;}
+  .btn:hover .arrow{transform:translateX(3px);}
+
+  /* ---------- hero ---------- */
+  .hero{
+    position:relative;overflow:hidden;
+    display:grid;grid-template-columns:minmax(0,1.05fr) minmax(380px,.95fr);
+    align-items:center;gap:42px;
+    padding-top:72px;padding-bottom:102px;
+    min-height:calc(100vh - 72px);
+  }
+  .hero-copy{position:relative;z-index:2;}
+  .hero h1{
+    margin:0 0 24px;
+    font-family:var(--font-serif);
+    font-size:clamp(46px,6vw,84px);
+    line-height:1.06;font-weight:800;letter-spacing:-.055em;
+    text-wrap:balance;
+  }
+  .hero h1 .line{display:block;white-space:nowrap;}
+  .hero h1 em{
+    position:relative;isolation:isolate;display:inline-block;
+    color:var(--accent);font-style:normal;
+  }
+  .hero h1 em::after{
+    content:"";position:absolute;z-index:-1;left:-.03em;right:-.03em;bottom:.02em;
+    height:.16em;border-radius:99px;background:var(--yellow);
+    transform:rotate(-1.2deg);
+  }
+  .hero-lead{
+    max-width:35em;margin:0 0 28px;color:var(--ink-soft);
+    font-size:clamp(16px,1.55vw,18px);line-height:1.95;
+  }
+  .hero-lead strong{color:var(--ink);}
+  .hero-tags{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:32px;}
+  .tag{
+    display:inline-flex;align-items:center;gap:7px;
+    padding:7px 11px;border:1px solid var(--line);border-radius:999px;
+    background:rgba(255,253,248,.6);color:var(--muted);
+    font-size:12px;font-weight:700;
+  }
+  .tag::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent);}
+  .tag:nth-child(2)::before{background:var(--green);}
+  .tag:nth-child(3)::before{background:var(--yellow);}
+  .hero-actions{display:flex;flex-wrap:wrap;align-items:center;gap:14px;}
+  .hero-note{display:flex;align-items:center;gap:9px;margin-top:22px;color:var(--muted);font-size:12px;}
+  .hero-note::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--line-strong);}
+  .hero-visual{
+    position:relative;z-index:1;display:grid;place-items:center;
+    min-height:510px;isolation:isolate;
+  }
+  .hero-ring{
+    position:absolute;z-index:-1;width:448px;height:448px;border-radius:50%;
+    border:1px dashed rgba(120,101,71,.34);
+    animation:spin 70s linear infinite;
+  }
+  .hero-ring::before,.hero-ring::after{
+    content:"";position:absolute;width:9px;height:9px;border-radius:50%;
+    background:var(--accent);
+  }
+  .hero-ring::before{left:50%;top:-5px;}
+  .hero-ring::after{left:50%;bottom:-5px;background:var(--yellow);}
+  .hero-blob{
+    position:absolute;z-index:-2;width:360px;height:360px;
+    border-radius:46% 54% 58% 42%;background:var(--yellow);opacity:.2;
+    transform:rotate(-13deg);
+  }
+  .hero-plate{position:relative;width:min(76vw,390px);filter:drop-shadow(0 32px 34px rgba(89,62,28,.18));}
+  .plate-svg{width:100%;height:auto;aspect-ratio:1/1;}
+  .plate-center{
+    position:absolute;left:50%;top:50%;width:47%;aspect-ratio:1;transform:translate(-50%,-50%);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    border-radius:50%;background:var(--surface);border:1px solid rgba(194,179,154,.7);
+    box-shadow:0 4px 0 rgba(113,94,62,.08), 0 16px 26px -18px rgba(42,48,40,.55);
+  }
+  .hero-frac{
+    display:flex;flex-direction:column;align-items:center;
+    font-family:var(--font-serif);font-weight:800;font-variant-numeric:tabular-nums;
+    line-height:.9;
+  }
+  .hero-frac .num,.hero-frac .den{font-size:clamp(48px,5vw,65px);}
+  .hero-frac .bar{width:1.4em;height:3px;margin:8px 0;border-radius:9px;background:var(--accent);}
+  .plate-center small{margin-top:10px;color:var(--muted);font-size:11px;letter-spacing:.08em;}
+  .float-note{
+    position:absolute;z-index:3;display:flex;align-items:center;gap:7px;
+    padding:9px 13px;border-radius:12px;background:var(--surface);
+    border:1px solid var(--line);box-shadow:var(--shadow-soft);
+    color:var(--ink-soft);font-size:12px;font-weight:800;white-space:nowrap;
+  }
+  .float-note::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent);}
+  .float-note.note-a{top:9%;left:0;transform:rotate(-4deg);}
+  .float-note.note-b{right:-1%;bottom:12%;transform:rotate(3deg);}
+  .float-note.note-b::before{background:var(--green);}
+  .hero-scroll{
+    position:absolute;left:50%;bottom:26px;transform:translateX(-50%);
+    display:flex;flex-direction:column;align-items:center;gap:5px;
+    color:var(--muted);font-size:10px;letter-spacing:.18em;
+  }
+  .hero-scroll::after{
+    content:"";width:1px;height:23px;background:linear-gradient(var(--line-strong),transparent);
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ---------- section scaffolding ---------- */
+  .section{position:relative;padding:86px 0;scroll-margin-top:86px;}
+  .section + .section{border-top:1px solid rgba(194,179,154,.44);}
+  .section-head{
+    display:grid;grid-template-columns:54px minmax(0,800px);gap:18px;
+    align-items:start;margin-bottom:36px;
+  }
+  .section-index{
+    display:grid;place-items:center;width:46px;height:46px;border-radius:50%;
+    border:1px solid var(--line-strong);color:var(--accent-deep);
+    font-family:var(--font-serif);font-size:15px;font-weight:800;
+    background:rgba(255,253,248,.42);
+  }
+  .section-head h2{
+    margin:2px 0 11px;font-family:var(--font-serif);
+    font-size:clamp(30px,3.7vw,46px);line-height:1.25;letter-spacing:-.03em;
+    font-weight:800;text-wrap:balance;
+  }
+  .section-head p{max-width:42em;margin:0;color:var(--muted);font-size:15px;line-height:1.9;}
+  .section-head .hl{color:var(--accent-deep);font-weight:800;}
+
+  .surface-card{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);
+  }
+
+  /* ---------- equal / pancake ---------- */
+  .equal-card{
+    display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);
+    gap:46px;align-items:center;padding:32px;
+  }
+  .pancake-stage{
+    position:relative;display:grid;place-items:center;min-height:386px;
+    overflow:hidden;border-radius:24px;border:1px dashed var(--line);
+    background:
+      radial-gradient(circle at 50% 47%, rgba(255,253,248,.96) 0 46%, transparent 47%),
+      radial-gradient(circle, rgba(194,179,154,.16) 1px, transparent 1.2px);
+    background-size:auto, 18px 18px;
+  }
+  .pancake-stage::before{
+    content:"";position:absolute;inset:42px;border-radius:50%;
+    border:1px solid rgba(194,179,154,.3);
+  }
+  .pancake-svg{position:relative;width:min(100%,360px);height:auto;aspect-ratio:1/1;filter:drop-shadow(0 20px 20px rgba(105,72,31,.16));}
+  .pancake-stage.is-nudging{animation:nudge .45s ease;}
+  @keyframes nudge{
+    0%,100%{transform:translateX(0);}
+    25%{transform:translateX(-5px);}
+    55%{transform:translateX(5px);}
+    80%{transform:translateX(-3px);}
+  }
+  .stage-tag{
+    position:absolute;left:18px;top:16px;padding:5px 9px;border-radius:999px;
+    background:rgba(255,253,248,.86);border:1px solid var(--line);
+    color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.08em;
+  }
+  .equal-copy h3{
+    margin:0 0 12px;font-family:var(--font-serif);
+    font-size:clamp(24px,2.7vw,34px);line-height:1.35;letter-spacing:-.02em;
+  }
+  .equal-copy > p{margin:0 0 22px;color:var(--muted);font-size:14px;line-height:1.9;}
+  .segmented{
+    display:grid;grid-template-columns:1fr 1fr;gap:4px;width:100%;max-width:330px;
+    padding:5px;border:1px solid var(--line);border-radius:999px;background:var(--surface-soft);
+  }
+  .segmented button{
+    min-height:40px;border:0;border-radius:999px;background:transparent;
+    color:var(--muted);font-size:13px;font-weight:800;cursor:pointer;
+    transition:background .2s,color .2s,box-shadow .2s;
+  }
+  .segmented button:hover{color:var(--ink);}
+  .segmented button[aria-pressed="true"]{
+    background:var(--ink);color:var(--surface);
+    box-shadow:0 6px 14px -9px rgba(30,44,42,.75);
+  }
+  .equal-feedback{
+    min-height:122px;margin:24px 0 18px;padding:17px 19px;
+    border-left:4px solid var(--line-strong);border-radius:0 16px 16px 0;
+    background:var(--surface-soft);transition:border-color .2s,background .2s;
+  }
+  .equal-feedback.is-success{border-color:var(--green);background:var(--green-soft);}
+  .equal-feedback.is-warn{border-color:var(--accent);background:#fbe8de;}
+  .equal-feedback strong{display:block;margin-bottom:5px;font-size:14px;}
+  .equal-feedback p{margin:0;color:var(--ink-soft);font-size:13px;line-height:1.8;}
+  .equal-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .micro-hint{color:var(--muted);font-size:11px;line-height:1.6;}
+
+  /* ---------- meaning / lab ---------- */
+  .whole-strip{
+    display:flex;flex-wrap:wrap;align-items:center;gap:9px;
+    margin:-8px 0 26px 72px;color:var(--muted);font-size:13px;
+  }
+  .whole-strip .whole-pill{
+    display:inline-flex;align-items:center;gap:7px;padding:7px 11px;
+    border-radius:999px;border:1px solid var(--line);background:var(--surface);
+    color:var(--ink-soft);font-weight:700;
+  }
+  .whole-pill svg{width:16px;height:16px;color:var(--accent);}
+  .lab{
+    display:grid;grid-template-columns:238px minmax(300px,1fr) 310px;
+    gap:24px;padding:26px;align-items:stretch;
+  }
+  .lab-controls{display:flex;flex-direction:column;gap:22px;padding:4px 2px;}
+  .control-block{display:flex;flex-direction:column;gap:10px;}
+  .control-label{display:block;color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.12em;}
+  .shape-tabs{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:4px;
+    padding:4px;border-radius:14px;background:var(--surface-soft);border:1px solid var(--line);
+  }
+  .shape-tab{
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+    min-height:60px;padding:8px 2px;border:0;border-radius:10px;background:transparent;
+    color:var(--muted);font-size:10px;font-weight:800;cursor:pointer;
+    transition:background .2s,color .2s,box-shadow .2s;
+  }
+  .shape-tab:hover{background:rgba(255,253,248,.8);color:var(--ink);}
+  .shape-tab[aria-pressed="true"]{background:var(--ink);color:var(--surface);box-shadow:0 5px 12px -9px #000;}
+  .shape-icon{display:block;width:21px;height:21px;border:1.6px solid currentColor;transition:border-radius .2s;}
+  .shape-icon.circle{border-radius:50%;}
+  .shape-icon.rect{width:23px;height:16px;border-radius:2px;}
+  .shape-icon.bar{width:23px;height:7px;border-radius:99px;}
+  .control-head{display:flex;align-items:baseline;gap:7px;color:var(--muted);font-size:12px;}
+  .control-head output{
+    min-width:25px;color:var(--ink);font-family:var(--font-serif);
+    font-size:26px;font-weight:800;line-height:1;text-align:right;
+  }
+  .control-head .unit{font-size:11px;}
+  input[type="range"]{
+    -webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:99px;
+    background:linear-gradient(90deg,var(--accent) 0%,var(--accent) 35%,var(--line) 35%,var(--line) 100%);
+    outline:none;cursor:pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:22px;height:22px;border-radius:50%;
+    background:var(--accent);border:3px solid var(--surface);
+    box-shadow:0 2px 7px rgba(73,48,26,.3);cursor:grab;
+  }
+  input[type="range"]::-moz-range-thumb{
+    width:18px;height:18px;border-radius:50%;background:var(--accent);
+    border:3px solid var(--surface);box-shadow:0 2px 7px rgba(73,48,26,.3);cursor:grab;
+  }
+  input[type="range"]:active::-webkit-slider-thumb{cursor:grabbing;}
+  .range-scale{display:flex;justify-content:space-between;color:var(--muted);font-size:9px;letter-spacing:.05em;}
+  .lab-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:4px;}
+  .lab-actions .btn{min-height:36px;padding:8px 13px;font-size:12px;}
+  .lab-tip{margin:0;padding-top:12px;border-top:1px dashed var(--line);color:var(--muted);font-size:10px;line-height:1.7;}
+
+  .lab-stage-wrap{display:flex;flex-direction:column;min-width:0;}
+  .lab-stage{
+    position:relative;display:grid;place-items:center;flex:1;min-height:390px;
+    padding:44px 18px 30px;border-radius:24px;border:1px dashed var(--line);
+    background:
+      radial-gradient(circle at 50% 50%, rgba(255,253,248,.94), rgba(250,243,229,.5) 62%, transparent 63%),
+      radial-gradient(circle, rgba(194,179,154,.17) 1px, transparent 1.3px);
+    background-size:auto, 20px 20px;
+    overflow:hidden;
+  }
+  .stage-caption{
+    position:absolute;left:15px;top:13px;z-index:2;padding:5px 9px;border-radius:999px;
+    background:rgba(255,253,248,.9);border:1px solid var(--line);
+    color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.07em;
+  }
+  .stage-hint{
+    position:absolute;left:0;right:0;bottom:11px;text-align:center;
+    color:var(--muted);font-size:10px;
+  }
+  .lab-stage.is-alert .stage-hint{color:var(--danger);font-weight:700;}
+  .piece-svg{width:min(100%,306px);height:auto;aspect-ratio:1/1;overflow:visible;}
+  .piece{
+    cursor:pointer;fill:#f6ecd8;stroke:#fffdf8;stroke-width:4;
+    transition:fill .18s ease, stroke .18s ease, filter .18s ease;
+  }
+  .piece:hover{fill:#f2d8b4;}
+  .piece.is-shaded{fill:var(--accent);}
+  .piece.is-shaded:hover{fill:var(--accent-deep);}
+  .piece:focus-visible{stroke:var(--yellow);stroke-width:5;outline:none;filter:drop-shadow(0 0 5px rgba(238,188,79,.8));}
+  .piece-label{
+    pointer-events:none;text-anchor:middle;dominant-baseline:middle;
+    fill:#fff8ef;font-family:var(--font-sans);font-size:12px;font-weight:800;
+    paint-order:stroke;stroke:rgba(120,50,25,.2);stroke-width:1px;
+  }
+  .piece-grid,.piece-bar{
+    display:grid;gap:3px;width:min(100%,306px);
+    background:rgba(255,253,248,.7);padding:3px;border-radius:9px;
+  }
+  .piece-grid{aspect-ratio:1.35;grid-auto-rows:1fr;}
+  .piece-bar{height:94px;grid-template-rows:1fr;}
+  .piece-cell{
+    display:grid;place-items:center;min-width:0;min-height:0;padding:0;
+    border:0;border-radius:4px;background:#f6ecd8;color:#fff;
+    font-size:10px;font-weight:800;cursor:pointer;
+    transition:background .18s,transform .18s,box-shadow .18s;
+  }
+  .piece-cell:hover{background:#f2d8b4;transform:scale(.98);}
+  .piece-cell.is-shaded{background:var(--accent);}
+  .piece-cell.is-shaded:hover{background:var(--accent-deep);}
+  .piece-cell span{opacity:.9;font-size:9px;letter-spacing:-.03em;}
+  .piece-cell:focus-visible{outline:3px solid var(--yellow);outline-offset:-3px;box-shadow:inset 0 0 0 2px var(--surface);}
+  .lab-note{min-height:31px;margin:10px 2px 0;color:var(--muted);font-size:10px;line-height:1.6;text-align:center;}
+  .lab-note.is-alert{color:var(--danger);font-weight:700;}
+
+  .lab-readout{
+    position:relative;display:flex;flex-direction:column;justify-content:center;
+    overflow:hidden;padding:28px 24px;border-radius:24px;
+    background:var(--ink);color:var(--surface);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
+  }
+  .lab-readout::before{
+    content:"";position:absolute;width:230px;height:230px;right:-120px;top:-110px;
+    border:1px solid rgba(238,188,79,.18);border-radius:50%;
+  }
+  .lab-readout::after{
+    content:"";position:absolute;width:145px;height:145px;right:-78px;top:-68px;
+    border:1px solid rgba(238,188,79,.12);border-radius:50%;
+  }
+  .readout-kicker{position:relative;z-index:1;margin:0 0 8px;color:var(--yellow);font-size:10px;font-weight:800;letter-spacing:.18em;}
+  .fraction-big{
+    position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;
+    width:max-content;margin:0 auto 8px;font-family:var(--font-serif);
+    font-variant-numeric:tabular-nums;line-height:.86;color:#fff;
+  }
+  .fraction-big #fNum,.fraction-big #fDen{font-size:clamp(58px,5vw,72px);font-weight:800;letter-spacing:-.04em;}
+  .fraction-big .fbar{width:1.35em;height:4px;margin:9px 0;border-radius:99px;background:var(--yellow);}
+  .read-as{position:relative;z-index:1;margin:0 0 18px;text-align:center;color:#c8d4cd;font-size:13px;}
+  .read-as strong{color:#fff;font-family:var(--font-serif);font-size:17px;}
+  .meaning-sentence{
+    position:relative;z-index:1;margin:0 0 18px;padding-top:16px;
+    border-top:1px solid rgba(255,255,255,.16);
+    color:#d7e0da;font-size:12px;line-height:1.9;
+  }
+  .meaning-sentence b{color:var(--yellow);font-size:15px;padding:0 1px;}
+  .unit-pill{
+    position:relative;z-index:1;padding:11px 12px;border-radius:12px;
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+    color:#dce6df;font-size:11px;line-height:1.75;
+  }
+  .unit-pill b{color:var(--yellow);}
+
+  .frac{
+    display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;
+    min-width:1.1em;margin:0 .14em;font-family:var(--font-serif);
+    font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;
+    letter-spacing:-.02em;
+  }
+  .frac__num,.frac__den{display:block;}
+  .frac__line{display:block;width:100%;min-width:1.1em;height:1.5px;margin:2px 0;background:currentColor;border-radius:99px;}
+  .frac.is-light{color:#fff;}
+  .frac.is-small{font-size:.9em;}
+
+  /* ---------- read / write ---------- */
+  .anatomy-card{
+    display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
+    overflow:hidden;
+  }
+  .anatomy-visual{
+    position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    min-height:430px;padding:44px 30px;overflow:hidden;
+    background:
+      radial-gradient(circle at 50% 46%, rgba(255,253,248,.95), rgba(250,243,229,.4) 66%, transparent 67%),
+      radial-gradient(circle, rgba(194,179,154,.16) 1px, transparent 1.2px);
+    background-size:auto,19px 19px;
+    border-right:1px solid var(--line);
+  }
+  .anatomy-visual::before{
+    content:"";position:absolute;left:50%;top:50%;width:330px;height:330px;
+    transform:translate(-50%,-50%);border-radius:50%;border:1px solid rgba(194,179,154,.35);
+  }
+  .anatomy-kicker{
+    position:absolute;top:21px;left:24px;margin:0;color:var(--muted);
+    font-size:10px;font-weight:800;letter-spacing:.14em;
+  }
+  .anatomy-fraction{
+    position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;
+    font-family:var(--font-serif);font-variant-numeric:tabular-nums;line-height:.9;
+  }
+  .part-btn{
+    display:grid;place-items:center;min-width:128px;padding:0;border:0;border-radius:12px;
+    background:transparent;color:var(--ink);font-family:inherit;font-weight:800;
+    font-size:clamp(70px,7vw,104px);line-height:1;cursor:pointer;
+    transition:color .2s,background .2s,transform .2s;
+  }
+  .part-btn:hover{color:var(--accent);transform:translateY(-2px);}
+  .part-btn[aria-pressed="true"]{color:var(--accent);background:rgba(246,216,200,.4);}
+  .part-btn.bar{
+    min-width:148px;height:26px;margin:8px 0;padding:0;border-radius:99px;
+    background:transparent;font-size:0;
+  }
+  .part-btn.bar::before{
+    content:"";display:block;width:100%;height:5px;border-radius:99px;
+    background:var(--ink);transition:background .2s,height .2s;
+  }
+  .part-btn.bar:hover::before,.part-btn.bar[aria-pressed="true"]::before{background:var(--accent);height:8px;}
+  .anatomy-read{
+    position:relative;z-index:1;margin:24px 0 0;padding:8px 14px;border-radius:999px;
+    background:var(--surface);border:1px solid var(--line);color:var(--muted);font-size:12px;
+  }
+  .anatomy-read strong{color:var(--accent-deep);}
+  .anatomy-hint{position:absolute;bottom:20px;left:0;right:0;margin:0;text-align:center;color:var(--muted);font-size:10px;}
+  .anatomy-copy{padding:42px 42px 38px;display:flex;flex-direction:column;justify-content:center;}
+  .part-kicker{display:flex;align-items:center;gap:9px;margin:0 0 10px;color:var(--accent-deep);font-size:11px;font-weight:800;letter-spacing:.12em;}
+  .part-kicker::before{content:"";width:18px;height:2px;border-radius:99px;background:currentColor;}
+  .anatomy-copy h3{
+    margin:0 0 14px;font-family:var(--font-serif);
+    font-size:clamp(26px,3vw,38px);line-height:1.3;letter-spacing:-.02em;
+  }
+  .anatomy-copy p{margin:0 0 18px;color:var(--muted);font-size:14px;line-height:1.9;}
+  .part-example{
+    padding:14px 16px;border-radius:12px;border:1px solid var(--line);
+    background:var(--surface-soft);color:var(--ink-soft);font-size:13px;line-height:1.8;
+  }
+  .part-example b{color:var(--accent-deep);}
+  .copy-swap{animation:copySwap .28s ease;}
+  @keyframes copySwap{
+    from{opacity:.35;transform:translateY(5px);}
+    to{opacity:1;transform:none;}
+  }
+  .rules-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:22px;}
+  .rule-card{
+    padding:25px 26px;border:1px solid var(--line);border-radius:22px;
+    background:rgba(255,253,248,.72);
+  }
+  .rule-card .rule-index{
+    display:grid;place-items:center;width:34px;height:34px;margin-bottom:15px;
+    border-radius:10px;background:var(--yellow);color:var(--ink);
+    font-family:var(--font-serif);font-size:15px;font-weight:800;
+  }
+  .rule-card:nth-child(2) .rule-index{background:var(--green-soft);color:var(--green-deep);}
+  .rule-card h3{margin:0 0 8px;font-size:17px;letter-spacing:-.01em;}
+  .rule-card p{margin:0 0 15px;color:var(--muted);font-size:12px;line-height:1.8;}
+  .rule-demo{
+    display:flex;align-items:center;flex-wrap:wrap;gap:7px;
+    padding:10px 12px;border-radius:10px;background:var(--surface);
+    border:1px dashed var(--line);color:var(--ink-soft);font-size:11px;
+  }
+  .rule-demo b{color:var(--accent-deep);font-family:var(--font-serif);font-size:15px;}
+  .rule-demo .arrow{color:var(--line-strong);}
+  .write-seq{display:flex;align-items:center;gap:8px;}
+  .write-seq span{
+    display:grid;place-items:center;min-width:36px;height:36px;padding:0 9px;
+    border-radius:9px;background:var(--surface);border:1px solid var(--line);
+    color:var(--ink);font-family:var(--font-serif);font-size:16px;font-weight:800;
+  }
+  .write-seq .line-mark{min-width:46px;font-size:20px;color:var(--accent);}
+  .write-seq .seq-arrow{min-width:auto;border:0;background:transparent;color:var(--line-strong);font-family:var(--font-sans);font-size:12px;padding:0;}
+  .read-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px;}
+  .read-card{
+    display:flex;flex-direction:column;align-items:center;gap:13px;
+    padding:24px 16px;border:1px solid var(--line);border-radius:18px;
+    background:var(--surface);cursor:pointer;text-align:center;
+    transition:transform .2s,border-color .2s,background .2s,box-shadow .2s;
+  }
+  .read-card:hover{transform:translateY(-3px);border-color:var(--line-strong);box-shadow:var(--shadow-soft);}
+  .read-card[aria-expanded="true"]{border-color:var(--green);background:var(--green-soft);}
+  .read-card .frac{font-size:24px;color:var(--ink);}
+  .read-reveal{
+    min-height:19px;color:var(--muted);font-size:11px;line-height:1.6;
+    opacity:0;visibility:hidden;transform:translateY(3px);
+    transition:color .2s,opacity .2s,visibility .2s,transform .2s;
+  }
+  .read-card[aria-expanded="true"] .read-reveal{opacity:1;visibility:visible;transform:none;}
+  .read-reveal strong{color:var(--green-deep);font-size:13px;}
+  .read-card .read-prompt{color:var(--line-strong);font-size:10px;letter-spacing:.08em;}
+  .read-card[aria-expanded="true"] .read-prompt{display:none;}
+
+  /* ---------- insights ---------- */
+  .pair-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+  .insight-card{
+    position:relative;overflow:hidden;padding:34px 34px 30px;
+    border-radius:28px;border:1px solid var(--line);background:var(--surface);
+    box-shadow:var(--shadow);
+  }
+  .insight-card.unit-card{background:linear-gradient(145deg,var(--surface),#fbf1df);}
+  .insight-card.division-card{background:var(--green);color:#f9f5ea;border-color:var(--green-deep);}
+  .insight-card .insight-label{display:flex;align-items:center;gap:8px;margin:0 0 18px;font-size:11px;font-weight:800;letter-spacing:.13em;color:var(--accent-deep);}
+  .insight-card.division-card .insight-label{color:var(--yellow);}
+  .insight-card .insight-label::before{content:"";width:17px;height:2px;border-radius:99px;background:currentColor;}
+  .insight-card h3{
+    margin:0 0 16px;font-family:var(--font-serif);
+    font-size:clamp(24px,2.7vw,33px);line-height:1.35;letter-spacing:-.02em;
+  }
+  .insight-card p{margin:0;font-size:13px;line-height:1.9;color:var(--muted);}
+  .insight-card.division-card p{color:#d2e2d9;}
+  .unit-equation{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:22px 0 18px;}
+  .unit-chip{
+    display:inline-flex;align-items:center;gap:6px;padding:8px 11px;border-radius:11px;
+    background:var(--surface);border:1px solid var(--line);
+    color:var(--ink);font-size:12px;font-weight:700;
+  }
+  .unit-chip .frac{font-size:14px;}
+  .plus{color:var(--line-strong);font-weight:800;}
+  .unit-picker{display:flex;gap:6px;flex-wrap:wrap;margin-top:18px;}
+  .unit-picker button{
+    padding:7px 10px;border-radius:999px;border:1px solid var(--line);
+    background:transparent;color:var(--muted);font-size:11px;font-weight:800;cursor:pointer;
+    transition:background .2s,color .2s,border-color .2s;
+  }
+  .unit-picker button:hover{border-color:var(--accent);color:var(--accent-deep);}
+  .unit-picker button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink);}
+  .unit-dynamic{
+    display:flex;align-items:center;gap:11px;min-height:56px;margin-top:11px;
+    padding:10px 14px;border-radius:12px;background:rgba(255,253,248,.8);
+    border:1px dashed var(--line);font-size:12px;color:var(--muted);
+  }
+  .unit-dynamic .frac{font-size:22px;color:var(--accent-deep);}
+  .division-eq{
+    display:flex;align-items:center;gap:13px;margin:22px 0 18px;
+    font-family:var(--font-serif);font-size:clamp(26px,3.2vw,40px);font-weight:800;
+  }
+  .division-eq .frac{font-size:.9em;color:var(--yellow);}
+  .division-eq .eq{color:#b8d4c5;font-family:var(--font-sans);font-weight:400;font-size:.7em;}
+  .cake-row{display:flex;align-items:center;gap:10px;margin:20px 0 18px;}
+  .cake{
+    position:relative;width:52px;height:52px;border-radius:50%;
+    background:conic-gradient(var(--yellow) 0 90deg,#e7f0e9 90deg 360deg);
+    border:3px solid #f9f5ea;box-shadow:0 0 0 1px rgba(255,255,255,.4),0 10px 15px -12px #000;
+  }
+  .cake::after{
+    content:"";position:absolute;inset:12px;border-radius:50%;
+    background:var(--green);opacity:.18;
+  }
+  .cake-label{
+    display:flex;flex-direction:column;gap:2px;margin-left:4px;
+    color:#d2e2d9;font-size:10px;line-height:1.6;
+  }
+  .cake-label b{color:#fff;font-size:13px;}
+  .formula{
+    display:inline-flex;align-items:center;gap:7px;margin-top:20px!important;
+    padding:9px 12px;border-radius:9px;background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.15);color:#e5eee8!important;
+    font-size:11px!important;
+  }
+  .formula .frac{font-size:14px;color:var(--yellow);}
+
+  /* ---------- quiz ---------- */
+  .quiz-section{
+    background:
+      radial-gradient(circle at 8% 0%, rgba(238,188,79,.14), transparent 28rem),
+      linear-gradient(180deg, rgba(235,225,205,.35), transparent 42%);
+  }
+  .quiz-shell{
+    max-width:920px;margin:0 auto;padding:34px;
+    border:1px solid var(--line);border-radius:30px;background:var(--surface);
+    box-shadow:var(--shadow);
+  }
+  .quiz-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:18px;}
+  .quiz-top h3{margin:0;font-family:var(--font-serif);font-size:clamp(24px,3vw,34px);letter-spacing:-.02em;}
+  .quiz-stats{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+  .quiz-stat{
+    padding:7px 10px;border-radius:999px;background:var(--surface-soft);
+    border:1px solid var(--line);color:var(--muted);font-size:11px;font-weight:800;white-space:nowrap;
+  }
+  .quiz-stat.score{background:var(--ink);color:var(--surface);border-color:var(--ink);}
+  .quiz-bar{height:6px;overflow:hidden;border-radius:99px;background:var(--surface-soft);margin-bottom:28px;}
+  .quiz-bar span{display:block;height:100%;border-radius:99px;background:var(--accent);transition:width .35s ease;}
+  .quiz-prompt{
+    margin:0 0 20px;font-size:clamp(18px,2vw,22px);line-height:1.7;font-weight:800;
+    letter-spacing:-.01em;
+  }
+  .quiz-prompt:focus{outline:none;}
+  .quiz-prompt .hl{color:var(--accent-deep);}
+  .quiz-options{display:grid;gap:9px;margin-bottom:18px;}
+  .quiz-options.is-visual{grid-template-columns:repeat(3,1fr);gap:12px;}
+  .quiz-options.is-fractions{grid-template-columns:repeat(3,1fr);gap:12px;}
+  .quiz-option{
+    position:relative;display:flex;align-items:center;gap:12px;width:100%;
+    min-height:56px;padding:13px 15px;border:1px solid var(--line);border-radius:14px;
+    background:var(--surface-soft);color:var(--ink);text-align:left;cursor:pointer;
+    transition:border-color .18s,background .18s,transform .18s,box-shadow .18s;
+  }
+  .quiz-option:hover:not(:disabled){border-color:var(--line-strong);background:#fff;transform:translateY(-1px);box-shadow:var(--shadow-soft);}
+  .quiz-option:disabled{cursor:default;opacity:1;}
+  .option-key{
+    display:grid;place-items:center;flex:0 0 27px;width:27px;height:27px;border-radius:8px;
+    background:rgba(30,44,42,.08);color:var(--muted);font-size:11px;font-weight:800;
+  }
+  .option-body{flex:1;min-width:0;font-size:13px;line-height:1.6;}
+  .quiz-options.is-visual .quiz-option,
+  .quiz-options.is-fractions .quiz-option{flex-direction:column;align-items:stretch;justify-content:center;min-height:126px;padding:15px;}
+  .quiz-options.is-visual .option-key,
+  .quiz-options.is-fractions .option-key{width:24px;height:24px;flex-basis:24px;font-size:10px;}
+  .quiz-options.is-visual .option-body,
+  .quiz-options.is-fractions .option-body{display:flex;align-items:center;justify-content:center;min-height:60px;}
+  .mini-bar{
+    display:flex;width:100%;max-width:158px;height:42px;overflow:hidden;
+    border:2px solid var(--ink);border-radius:8px;background:#fff;
+  }
+  .mini-bar i{display:block;flex:1;border-right:1.5px solid var(--ink);background:#fff;}
+  .mini-bar i:last-child{border-right:0;}
+  .mini-bar i.on{background:var(--accent);}
+  .mini-bar.uneven i:nth-child(1){flex:1.65;}
+  .mini-bar.uneven i:nth-child(2){flex:.55;}
+  .mini-bar.uneven i:nth-child(3){flex:1.1;}
+  .mini-caption{margin-top:8px;color:var(--muted);font-size:9px;letter-spacing:.03em;}
+  .quiz-option.is-correct{border-color:var(--green);background:var(--green-soft);box-shadow:inset 0 0 0 1px var(--green);}
+  .quiz-option.is-correct .option-key{background:var(--green);color:#fff;}
+  .quiz-option.is-wrong{border-color:var(--danger);background:#fbe9e5;box-shadow:inset 0 0 0 1px var(--danger);}
+  .quiz-option.is-wrong .option-key{background:var(--danger);color:#fff;}
+  .option-mark{
+    display:grid;place-items:center;flex:0 0 21px;width:21px;height:21px;
+    border-radius:50%;font-size:12px;font-weight:900;color:#fff;opacity:0;transform:scale(.6);
+    transition:opacity .18s,transform .18s;
+  }
+  .quiz-option.is-correct .option-mark{background:var(--green);opacity:1;transform:none;}
+  .quiz-option.is-wrong .option-mark{background:var(--danger);opacity:1;transform:none;}
+  .quiz-options.is-visual .option-mark,
+  .quiz-options.is-fractions .option-mark{position:absolute;right:9px;top:9px;}
+  .quiz-feedback{
+    margin-bottom:18px;padding:14px 16px;border-radius:12px;
+    border-left:4px solid var(--green);background:var(--green-soft);
+    color:var(--ink-soft);font-size:12px;line-height:1.85;
+  }
+  .quiz-feedback.is-wrong{border-color:var(--accent);background:#fbe9e2;}
+  .quiz-feedback strong{display:block;margin-bottom:2px;color:var(--ink);font-size:13px;}
+  .quiz-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:3px;}
+  .quiz-hint{color:var(--muted);font-size:10px;}
+  .quiz-footer .btn{min-height:42px;font-size:13px;}
+  .quiz-result{text-align:center;padding:20px 10px 10px;}
+  .result-badge{
+    display:grid;place-items:center;width:96px;height:96px;margin:0 auto 18px;
+    border-radius:50%;background:var(--yellow-soft);border:1px solid var(--yellow);
+    color:var(--accent-deep);font-family:var(--font-serif);font-size:30px;font-weight:800;
+    box-shadow:0 0 0 8px rgba(238,188,79,.13);
+  }
+  .quiz-result h3{margin:0 0 9px;font-family:var(--font-serif);font-size:clamp(27px,3vw,38px);letter-spacing:-.02em;}
+  .quiz-result p{max-width:30em;margin:0 auto 22px;color:var(--muted);font-size:13px;line-height:1.9;}
+  .result-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;}
+
+  /* ---------- summary ---------- */
+  .summary-card{
+    position:relative;overflow:hidden;padding:52px clamp(28px,5vw,64px) 40px;
+    border-radius:34px;background:var(--ink);color:var(--surface);
+    box-shadow:0 30px 60px -38px rgba(30,44,42,.9);
+  }
+  .summary-card::before{
+    content:"";position:absolute;right:-150px;top:-170px;width:520px;height:520px;
+    border-radius:50%;border:1px solid rgba(238,188,79,.15);
+  }
+  .summary-card::after{
+    content:"";position:absolute;right:-65px;top:-80px;width:300px;height:300px;
+    border-radius:50%;border:1px solid rgba(238,188,79,.1);
+  }
+  .summary-head{position:relative;z-index:1;display:flex;align-items:end;justify-content:space-between;gap:24px;margin-bottom:30px;}
+  .summary-head h2{margin:0;font-family:var(--font-serif);font-size:clamp(34px,4.4vw,56px);line-height:1.15;letter-spacing:-.04em;}
+  .summary-head .stamp{
+    flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    width:92px;height:92px;border-radius:50%;border:1px solid rgba(238,188,79,.55);
+    color:var(--yellow);font-size:9px;letter-spacing:.14em;line-height:1.7;transform:rotate(7deg);
+  }
+  .summary-head .stamp b{font-family:var(--font-serif);font-size:21px;letter-spacing:0;line-height:1.1;}
+  .summary-list{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin:0 0 30px;padding:0;list-style:none;background:rgba(255,255,255,.14);border-block:1px solid rgba(255,255,255,.14);}
+  .summary-list li{display:flex;flex-direction:column;gap:12px;padding:24px 26px 26px 0;background:var(--ink);}
+  .summary-list li + li{padding-left:26px;}
+  .summary-list .summary-num{color:var(--yellow);font-family:var(--font-serif);font-size:13px;font-weight:800;letter-spacing:.08em;}
+  .summary-list h3{margin:0 0 6px;font-size:17px;line-height:1.5;letter-spacing:-.01em;}
+  .summary-list p{margin:0;color:#c7d4cc;font-size:11px;line-height:1.8;}
+  .exit-ticket{
+    position:relative;z-index:1;border:1px solid rgba(255,255,255,.17);border-radius:14px;
+    background:rgba(255,255,255,.05);overflow:hidden;
+  }
+  .exit-ticket summary{
+    display:flex;align-items:center;gap:10px;padding:14px 17px;
+    color:#eaf0eb;font-size:12px;font-weight:700;cursor:pointer;list-style:none;
+  }
+  .exit-ticket summary::-webkit-details-marker{display:none;}
+  .exit-ticket summary::before{
+    content:"?";display:grid;place-items:center;flex:0 0 21px;width:21px;height:21px;
+    border-radius:50%;background:var(--yellow);color:var(--ink);font-size:11px;font-weight:900;
+  }
+  .exit-ticket summary::after{content:"展开";margin-left:auto;color:#aebdb3;font-size:10px;font-weight:500;}
+  .exit-ticket[open] summary::after{content:"收起";}
+  .exit-ticket p{margin:0;padding:0 17px 17px 48px;color:#c7d4cc;font-size:12px;line-height:1.9;}
+  .exit-ticket b{color:var(--yellow);}
+
+  /* ---------- footer ---------- */
+  .site-footer{padding:34px 0 46px;color:var(--muted);font-size:11px;}
+  .footer-inner{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+  .footer-inner p{margin:0;line-height:1.7;}
+  .footer-inner .footer-meta{display:flex;align-items:center;gap:14px;}
+  .to-top{
+    display:inline-flex;align-items:center;gap:6px;text-decoration:none;
+    color:var(--ink-soft);font-weight:700;
+  }
+  .to-top:hover{color:var(--accent-deep);}
+  .to-top svg{width:13px;height:13px;}
+
+  /* ---------- teacher dialog ---------- */
+  .teacher-drawer{
+    position:fixed;inset:0 0 0 auto;width:min(560px,100%);max-width:100%;
+    height:100dvh;max-height:100dvh;margin:0;padding:0;border:0;
+    background:var(--surface);color:var(--ink);
+    box-shadow:-24px 0 60px -30px rgba(30,44,42,.5);
+    opacity:0;transform:translateX(34px);
+    transition:opacity .25s ease,transform .25s ease;
+  }
+  .teacher-drawer[open]{opacity:1;transform:none;}
+  @starting-style{
+    .teacher-drawer[open]{opacity:0;transform:translateX(34px);}
+  }
+  .teacher-drawer::backdrop{background:rgba(23,34,32,.42);backdrop-filter:blur(4px);}
+  .drawer-shell{display:flex;flex-direction:column;height:100%;}
+  .drawer-head{
+    display:flex;align-items:flex-start;justify-content:space-between;gap:18px;
+    padding:27px 28px 22px;border-bottom:1px solid var(--line);background:var(--surface);
+  }
+  .drawer-head h2{margin:0;font-family:var(--font-serif);font-size:28px;letter-spacing:-.02em;}
+  .drawer-close{
+    display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;
+    border:1px solid var(--line);border-radius:50%;background:var(--surface-soft);
+    color:var(--muted);font-size:20px;line-height:1;cursor:pointer;transition:background .2s,color .2s;
+  }
+  .drawer-close:hover{background:var(--ink);color:var(--surface);}
+  .drawer-scroll{overflow:auto;padding:26px 28px 46px;overscroll-behavior:contain;}
+  .drawer-section + .drawer-section{margin-top:28px;padding-top:26px;border-top:1px solid var(--line);}
+  .drawer-section h3{margin:0 0 11px;font-size:15px;letter-spacing:-.01em;}
+  .drawer-section p{margin:0 0 10px;color:var(--ink-soft);font-size:12px;line-height:1.9;}
+  .drawer-section ul,.drawer-section ol{margin:0;padding-left:1.3em;color:var(--ink-soft);font-size:12px;line-height:1.9;}
+  .drawer-section li + li{margin-top:5px;}
+  .drawer-section b{color:var(--ink);}
+  .drawer-target{
+    margin:0 0 17px;padding:13px 15px;border-radius:12px;
+    background:var(--green-soft);border-left:4px solid var(--green);
+    color:var(--ink-soft);font-size:12px;line-height:1.85;
+  }
+  .time-list{list-style:none!important;padding:0!important;counter-reset:flow;}
+  .time-list li{
+    position:relative;padding:0 0 12px 58px!important;min-height:38px;
+    border-left:1px solid var(--line);margin-left:7px!important;
+  }
+  .time-list li:last-child{border-left-color:transparent;padding-bottom:0!important;}
+  .time-list li::before{
+    counter-increment:flow;content:counter(flow);
+    position:absolute;left:-8px;top:-1px;display:grid;place-items:center;
+    width:16px;height:16px;border-radius:50%;background:var(--yellow);
+    color:var(--ink);font-size:8px;font-weight:900;
+  }
+  .time-list b{display:block;font-size:12px;}
+  .time-list span{display:block;color:var(--muted);font-size:11px;line-height:1.8;}
+  .drawer-section .mini-formula{
+    display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:11px;
+    padding:10px 12px;border-radius:10px;background:var(--surface-soft);
+    border:1px dashed var(--line);font-size:11px;color:var(--muted);
+  }
+  .drawer-section .mini-formula .frac{font-size:13px;color:var(--accent-deep);}
+
+  /* ---------- motion / responsive ---------- */
+  .js [data-reveal]{
+    opacity:0;transform:translateY(20px);
+    transition:opacity .7s cubic-bezier(.2,.75,.25,1),transform .7s cubic-bezier(.2,.75,.25,1);
+    transition-delay:var(--reveal-delay,0ms);
+  }
+  .js [data-reveal].is-visible{opacity:1;transform:none;}
+
+  @media (max-width:1200px){
+    .lab{grid-template-columns:220px minmax(280px,1fr);}
+    .lab-readout{
+      grid-column:1/-1;display:grid;grid-template-columns:180px minmax(0,1fr);
+      gap:18px;align-items:center;padding:24px 28px;
+    }
+    .readout-kicker{grid-column:1/-1;margin-bottom:-2px;}
+    .fraction-big{margin:0 auto;}
+    .readout-copy{min-width:0;}
+    .read-as{text-align:left;margin-bottom:12px;}
+    .meaning-sentence{margin-bottom:12px;}
+  }
+  @media (max-width:980px){
+    .container{width:min(calc(100% - 36px),760px);}
+    .site-nav{display:none;}
+    .teacher-btn{margin-left:auto;}
+    .hero{grid-template-columns:1fr;min-height:auto;padding-top:54px;padding-bottom:72px;gap:16px;}
+    .hero-copy{max-width:680px;}
+    .hero-visual{min-height:450px;margin-top:6px;}
+    .hero-ring{width:390px;height:390px;}
+    .hero-blob{width:310px;height:310px;}
+    .hero-scroll{display:none;}
+    .equal-card{grid-template-columns:1fr;gap:30px;}
+    .pancake-stage{min-height:340px;}
+    .whole-strip{margin-left:0;}
+    .anatomy-card{grid-template-columns:1fr;}
+    .anatomy-visual{border-right:0;border-bottom:1px solid var(--line);min-height:380px;}
+    .rules-row{grid-template-columns:1fr;}
+    .pair-grid{grid-template-columns:1fr;}
+    .summary-list{grid-template-columns:1fr;gap:0;background:transparent;border-block:0;}
+    .summary-list li{padding:18px 0!important;border-top:1px solid rgba(255,255,255,.14);}
+    .summary-list li:last-child{border-bottom:1px solid rgba(255,255,255,.14);}
+    .summary-list li{flex-direction:row;gap:16px;align-items:flex-start;}
+    .summary-list .summary-num{flex:0 0 26px;padding-top:3px;}
+  }
+  @media (max-width:720px){
+    .container{width:calc(100% - 32px);}
+    .header-inner{height:64px;gap:12px;}
+    .brand-text span{display:none;}
+    .teacher-btn{padding:8px 12px;}
+    .teacher-btn .teacher-label{font-size:12px;}
+    .hero{padding-top:42px;padding-bottom:55px;}
+    .hero h1{font-size:clamp(46px,12.4vw,60px);}
+    .hero-lead{font-size:15px;}
+    .hero-visual{min-height:370px;}
+    .hero-plate{width:min(82vw,320px);}
+    .hero-ring{width:310px;height:310px;}
+    .hero-blob{width:260px;height:260px;}
+    .float-note{font-size:10px;padding:7px 10px;}
+    .float-note.note-a{top:5%;left:-2%;}
+    .float-note.note-b{right:-2%;bottom:5%;}
+    .section{padding:58px 0;}
+    .section-head{grid-template-columns:1fr;gap:12px;margin-bottom:26px;}
+    .section-index{width:37px;height:37px;font-size:13px;}
+    .section-head h2{margin-top:0;}
+    .equal-card{padding:18px;border-radius:24px;}
+    .pancake-stage{min-height:300px;}
+    .pancake-svg{width:min(100%,310px);}
+    .equal-copy h3{font-size:25px;}
+    .lab{padding:16px;gap:18px;grid-template-columns:1fr;}
+    .lab-controls{display:grid;grid-template-columns:1fr 1fr;gap:18px 16px;align-items:end;}
+    .lab-controls .control-block:first-child{grid-column:1/-1;}
+    .lab-actions{grid-column:1/-1;padding-top:0;}
+    .lab-tip{grid-column:1/-1;padding-top:8px;}
+    .lab-stage{min-height:320px;padding-top:42px;}
+    .piece-svg{width:min(100%,280px);}
+    .piece-grid,.piece-bar{width:min(100%,280px);}
+    .piece-bar{height:80px;}
+    .lab-readout{grid-template-columns:1fr;padding:24px 20px;text-align:center;}
+    .readout-kicker{grid-column:auto;text-align:left;}
+    .fraction-big #fNum,.fraction-big #fDen{font-size:60px;}
+    .read-as{text-align:center;}
+    .meaning-sentence{text-align:left;}
+    .unit-pill{text-align:left;}
+    .anatomy-copy{padding:30px 22px 28px;}
+    .anatomy-visual{min-height:350px;padding:38px 20px;}
+    .part-btn{font-size:78px;min-width:100px;}
+    .part-btn.bar{min-width:120px;}
+    .read-grid{grid-template-columns:1fr;gap:10px;}
+    .read-card{flex-direction:row;justify-content:space-between;padding:17px 18px;text-align:left;}
+    .read-card .read-reveal{text-align:right;}
+    .read-card .read-prompt{display:none;}
+    .insight-card{padding:27px 22px 25px;border-radius:24px;}
+    .cake{width:45px;height:45px;}
+    .quiz-shell{padding:22px 18px;border-radius:23px;}
+    .quiz-top{flex-direction:column;gap:13px;}
+    .quiz-stats{justify-content:flex-start;}
+    .quiz-options.is-visual,.quiz-options.is-fractions{grid-template-columns:1fr;}
+    .quiz-options.is-visual .quiz-option,.quiz-options.is-fractions .quiz-option{
+      flex-direction:row;align-items:center;justify-content:flex-start;min-height:72px;
+    }
+    .quiz-options.is-visual .option-body{justify-content:flex-start;min-height:auto;}
+    .quiz-options.is-fractions .option-body{justify-content:flex-start;min-height:auto;}
+    .quiz-options.is-visual .quiz-option .option-mark,
+    .quiz-options.is-fractions .quiz-option .option-mark{position:static;margin-left:auto;}
+    .quiz-footer{flex-direction:column;align-items:stretch;}
+    .quiz-footer .btn{width:100%;}
+    .summary-card{padding:34px 22px 28px;border-radius:26px;}
+    .summary-head{align-items:flex-start;}
+    .summary-head .stamp{width:68px;height:68px;font-size:7px;}
+    .summary-head .stamp b{font-size:16px;}
+    .summary-list h3{font-size:15px;}
+    .footer-inner{flex-direction:column;align-items:flex-start;}
+  }
+  @media (max-width:430px){
+    .lab-controls{grid-template-columns:1fr;}
+    .lab-controls .control-block:first-child{grid-column:auto;}
+    .shape-tabs{grid-template-columns:repeat(3,1fr);}
+    .hero-actions .btn{width:100%;}
+    .hero-tags{gap:7px;}
+    .tag{font-size:11px;}
+    .pancake-stage{min-height:260px;}
+    .pancake-stage::before{inset:28px;}
+    .quiz-result .result-badge{width:78px;height:78px;font-size:24px;}
+    .summary-head .stamp{display:none;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto;}
+    *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;}
+    .js [data-reveal]{opacity:1;transform:none;}
+  }
+</style>
+</head>
+<body id="top">
+<a class="skip-link" href="#main">跳到主要内容</a>
+
+<header class="site-header" id="siteHeader">
+  <div class="container header-inner">
+    <a class="brand" href="#top" aria-label="认识分数，回到顶部">
+      <span class="brand-mark" aria-hidden="true">分</span>
+      <span class="brand-text">
+        <strong>认识分数</strong>
+        <span>五年级 · 数学</span>
+      </span>
+    </a>
+    <nav class="site-nav" aria-label="页面导航">
+      <a href="#equal">平均分</a>
+      <a href="#meaning">分数的意义</a>
+      <a href="#read-write">读写</a>
+      <a href="#links">两个联系</a>
+      <a href="#quiz">闯关</a>
+    </nav>
+    <button class="teacher-btn" id="openTeacher" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+        <path d="M5 4.5h9.5A2.5 2.5 0 0 1 17 7v12.5H7.5A2.5 2.5 0 0 1 5 17V4.5Z"/>
+        <path d="M17 7h2v12.5h-2M8.5 8.5h5M8.5 12h5"/>
+      </svg>
+      <span class="teacher-label">教师锦囊</span>
+    </button>
+  </div>
+  <div class="header-progress" aria-hidden="true"><span id="scrollProgress"></span></div>
+</header>
+
+<main id="main">
+  <!-- 00 hero -->
+  <section class="hero container" aria-labelledby="hero-title">
+    <div class="hero-copy" data-reveal>
+      <p class="eyebrow">五年级数学 · 第 1 课时</p>
+      <h1 id="hero-title">
+        <span class="line">分数，</span>
+        <span class="line">是<em>分</em>出来的数。</span>
+      </h1>
+      <p class="hero-lead">
+        把一个整体<strong>平均分</strong>成若干份，表示这样一份或几份的数，叫作<strong>分数</strong>。
+        今天，我们从“分得公平”开始，把分数看个明白。
+      </p>
+      <div class="hero-tags" aria-label="本课关键词">
+        <span class="tag">平均分</span>
+        <span class="tag">单位“1”</span>
+        <span class="tag">分子与分母</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#equal">动手分一分 <span class="arrow" aria-hidden="true">→</span></a>
+        <a class="btn btn-soft" href="#read-write">先认识读写法</a>
+      </div>
+      <p class="hero-note">单文件 · 离线可用 · 鼠标 / 触屏都能操作</p>
+    </div>
+
+    <div class="hero-visual" data-reveal aria-hidden="true">
+      <div class="hero-ring"></div>
+      <div class="hero-blob"></div>
+      <div class="hero-plate">
+        <svg class="plate-svg" viewBox="0 0 400 400" role="presentation">
+          <circle cx="200" cy="200" r="187" fill="#eadcc4"/>
+          <circle cx="200" cy="200" r="174" fill="#fffaf0"/>
+          <path d="M200 200 L200 26 A174 174 0 0 1 374 200 Z" fill="#cf5c36" stroke="#fffaf0" stroke-width="7"/>
+          <path d="M200 200 L374 200 A174 174 0 0 1 200 374 Z" fill="#cf5c36" stroke="#fffaf0" stroke-width="7"/>
+          <path d="M200 200 L200 374 A174 174 0 0 1 26 200 Z" fill="#cf5c36" stroke="#fffaf0" stroke-width="7"/>
+          <path d="M200 200 L26 200 A174 174 0 0 1 200 26 Z" fill="#f3e3c4" stroke="#fffaf0" stroke-width="7"/>
+          <circle cx="200" cy="200" r="98" fill="#fffdf8" stroke="#e0d3bd" stroke-width="2"/>
+          <circle cx="200" cy="200" r="187" fill="none" stroke="#c2b39a" stroke-width="2" stroke-dasharray="3 7"/>
+        </svg>
+        <div class="plate-center">
+          <div class="hero-frac" aria-hidden="true">
+            <span class="num">3</span>
+            <span class="bar"></span>
+            <span class="den">4</span>
+          </div>
+          <small>读作：四分之三</small>
+        </div>
+      </div>
+      <span class="float-note note-a">平均分成 4 份</span>
+      <span class="float-note note-b">取其中 3 份</span>
+    </div>
+
+    <div class="hero-scroll" aria-hidden="true">向下看看</div>
+  </section>
+
+  <!-- 01 equal -->
+  <section class="section" id="equal" aria-labelledby="equal-title">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <span class="section-index">01</span>
+        <div>
+          <p class="eyebrow">先分一分</p>
+          <h2 id="equal-title">分数，必须从“平均分”开始</h2>
+          <p>同样是一块饼、同样分成 4 份，为什么有时能说每份是 <strong>1/4</strong>，有时却不能？先来检验：这 4 份，真的同样大吗？</p>
+        </div>
+      </div>
+
+      <div class="equal-card surface-card" data-reveal>
+        <div class="pancake-stage" id="pancakeStage">
+          <span class="stage-tag">单位“1” · 一个饼</span>
+          <svg class="pancake-svg" id="pancakeSvg" viewBox="0 0 360 360" role="img" aria-label="一个被平均分成四份的饼"></svg>
+        </div>
+
+        <div class="equal-copy">
+          <h3>这 4 份，一样大吗？</h3>
+          <p>切法不同，每份的大小也会不同。分数的第一前提，是每一份都<strong>同样大</strong>——也就是平均分。</p>
+
+          <div class="segmented" role="group" aria-label="选择分饼方式">
+            <button type="button" data-cut="equal" aria-pressed="true">平均分成 4 份</button>
+            <button type="button" data-cut="unequal" aria-pressed="false">随意分成 4 份</button>
+          </div>
+
+          <div class="equal-feedback is-success" id="equalFeedback" role="status" aria-live="polite">
+            <strong>这是平均分。</strong>
+            <p>4 份同样大，每一份都是这个饼的 <b>1/4</b>，读作“四分之一”。</p>
+          </div>
+
+          <div class="equal-actions">
+            <button class="btn btn-dark" id="revealPieces" type="button">标出每份</button>
+            <span class="micro-hint">先判断“平均分”，再谈分数。</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 meaning -->
+  <section class="section" id="meaning" aria-labelledby="meaning-title">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <span class="section-index">02</span>
+        <div>
+          <p class="eyebrow">动手建构</p>
+          <h2 id="meaning-title">把“1”平均分，分数就出现了</h2>
+          <p>拖动滑杆改变份数，再点击图形中的小份。观察：分母在变什么？分子又在数什么？</p>
+        </div>
+      </div>
+
+      <div class="whole-strip" data-reveal>
+        <span>单位“1”可以是一个饼、一条线段，也可以是一堆糖：</span>
+        <span class="whole-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/></svg>
+          一个饼
+        </span>
+        <span class="whole-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 17 20 7M4 17h16"/></svg>
+          一条线段
+        </span>
+        <span class="whole-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="7" cy="9" r="2.4"/><circle cx="16" cy="8" r="2.4"/><circle cx="11" cy="16" r="2.4"/></svg>
+          一堆糖
+        </span>
+      </div>
+
+      <div class="lab surface-card" data-reveal>
+        <div class="lab-controls">
+          <div class="control-block">
+            <span class="control-label">选择图形</span>
+            <div class="shape-tabs" role="group" aria-label="选择分数模型">
+              <button class="shape-tab" type="button" data-shape="circle" aria-pressed="true">
+                <span class="shape-icon circle" aria-hidden="true"></span>
+                <span>圆形</span>
+              </button>
+              <button class="shape-tab" type="button" data-shape="rect" aria-pressed="false">
+                <span class="shape-icon rect" aria-hidden="true"></span>
+                <span>长方形</span>
+              </button>
+              <button class="shape-tab" type="button" data-shape="bar" aria-pressed="false">
+                <span class="shape-icon bar" aria-hidden="true"></span>
+                <span>长条</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="control-block">
+            <div class="control-head">
+              <label for="denRange">平均分成</label>
+              <output id="denOut" for="denRange">4</output>
+              <span class="unit">份</span>
+            </div>
+            <input id="denRange" type="range" min="2" max="12" step="1" value="4" aria-label="平均分成的份数，即分母">
+            <div class="range-scale"><span>2 份</span><span>12 份</span></div>
+          </div>
+
+          <div class="control-block">
+            <div class="control-head">
+              <label for="numRange">取其中</label>
+              <output id="numOut" for="numRange">3</output>
+              <span class="unit">份</span>
+            </div>
+            <input id="numRange" type="range" min="1" max="4" step="1" value="3" aria-label="取出的份数，即分子">
+            <div class="range-scale"><span>1 份</span><span id="numMaxLabel">4 份</span></div>
+          </div>
+
+          <div class="lab-actions">
+            <button class="btn btn-soft" id="randomLab" type="button">换一组</button>
+            <button class="btn btn-quiet" id="resetLab" type="button">重置</button>
+          </div>
+          <p class="lab-tip">拖动滑杆，或直接点击图形中的每一小份。整个图形就是单位“1”。</p>
+        </div>
+
+        <div class="lab-stage-wrap">
+          <div class="lab-stage" id="labStage">
+            <span class="stage-caption">整个图形 = 单位“1”</span>
+            <svg class="piece-svg" id="pieceSvg" viewBox="0 0 300 300" aria-hidden="true"></svg>
+            <div class="piece-grid" id="pieceGrid" hidden></div>
+            <div class="piece-bar" id="pieceBar" hidden></div>
+            <span class="stage-hint" id="stageHint">点一点小份，改变涂色</span>
+          </div>
+          <p class="lab-note" id="labNote">平均分成 4 份，取其中 3 份。</p>
+        </div>
+
+        <aside class="lab-readout" aria-label="当前分数的说明">
+          <p class="readout-kicker">当前的分数</p>
+          <div class="fraction-big" aria-hidden="true">
+            <span id="fNum">3</span>
+            <span class="fbar"></span>
+            <span id="fDen">4</span>
+          </div>
+          <div class="readout-copy">
+            <p class="read-as">读作 <strong id="readText">四分之三</strong></p>
+            <p class="meaning-sentence" id="meaningText"></p>
+            <div class="unit-pill" id="unitText"></div>
+          </div>
+        </aside>
+        <p class="sr-only" id="labLive" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 read/write -->
+  <section class="section" id="read-write" aria-labelledby="read-title">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <span class="section-index">03</span>
+        <div>
+          <p class="eyebrow">读一读 · 写一写</p>
+          <h2 id="read-title">三个部分，各有各的名字</h2>
+          <p>点一点下面的大分数，认识分子、分母和分数线。再看两条规则：怎么读，怎么写。</p>
+        </div>
+      </div>
+
+      <div class="anatomy-card surface-card" data-reveal>
+        <div class="anatomy-visual">
+          <p class="anatomy-kicker">分数 · 各部分名称</p>
+          <div class="anatomy-fraction">
+            <button class="part-btn" type="button" data-part="numerator" aria-pressed="false" aria-label="分子 5，点击了解">5</button>
+            <button class="part-btn bar" type="button" data-part="bar" aria-pressed="false" aria-label="分数线，点击了解"></button>
+            <button class="part-btn" type="button" data-part="denominator" aria-pressed="false" aria-label="分母 8，点击了解">8</button>
+          </div>
+          <p class="anatomy-read">读作：<strong>八分之五</strong></p>
+          <p class="anatomy-hint">点一点数字和横线</p>
+        </div>
+
+        <div class="anatomy-copy" id="anatomyCopy">
+          <p class="part-kicker" id="partKicker">分数各部分</p>
+          <h3 id="partTitle">先认识三个名字</h3>
+          <p id="partBody">这个分数读作 <strong>八分之五</strong>。它的上面、中间和下面，分别叫什么？点一点这个分数中的数字和横线，看看它们各自表示什么。</p>
+          <div class="part-example" id="partExample">提示：分子在分数线的<strong>上面</strong>，分母在分数线的<strong>下面</strong>。</div>
+        </div>
+      </div>
+
+      <div class="rules-row">
+        <article class="rule-card" data-reveal>
+          <span class="rule-index">读</span>
+          <h3>先读分母，再读分子</h3>
+          <p>分母说“分成几份”，分子说“取了几份”。读的时候，从下往上读。</p>
+          <div class="rule-demo">
+            <b>8</b><span>→ 八</span><span class="arrow">·</span>
+            <b>5</b><span>→ 五</span><span class="arrow">→</span>
+            <span>八分之五</span>
+          </div>
+        </article>
+        <article class="rule-card" data-reveal>
+          <span class="rule-index">写</span>
+          <h3>先画线，再写分母、分子</h3>
+          <p>写分数也有顺序：先画分数线，再写下面的分母，最后写上面的分子。</p>
+          <div class="rule-demo">
+            <div class="write-seq">
+              <span class="line-mark" aria-label="分数线">—</span>
+              <span class="seq-arrow" aria-hidden="true">→</span>
+              <span>8</span>
+              <span class="seq-arrow" aria-hidden="true">→</span>
+              <span>5</span>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="read-grid" aria-label="读法自测卡">
+        <button class="read-card" type="button" aria-expanded="false">
+          <span class="frac" aria-hidden="true"><span class="frac__num">1</span><span class="frac__line"></span><span class="frac__den">3</span></span>
+          <span class="read-prompt">点一点，看读法</span>
+          <span class="read-reveal" aria-hidden="true">读作：<strong>三分之一</strong></span>
+        </button>
+        <button class="read-card" type="button" aria-expanded="false">
+          <span class="frac" aria-hidden="true"><span class="frac__num">5</span><span class="frac__line"></span><span class="frac__den">8</span></span>
+          <span class="read-prompt">点一点，看读法</span>
+          <span class="read-reveal" aria-hidden="true">读作：<strong>八分之五</strong></span>
+        </button>
+        <button class="read-card" type="button" aria-expanded="false">
+          <span class="frac" aria-hidden="true"><span class="frac__num">7</span><span class="frac__line"></span><span class="frac__den">10</span></span>
+          <span class="read-prompt">点一点，看读法</span>
+          <span class="read-reveal" aria-hidden="true">读作：<strong>十分之七</strong></span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 links -->
+  <section class="section" id="links" aria-labelledby="links-title">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <span class="section-index">04</span>
+        <div>
+          <p class="eyebrow">两个重要联系</p>
+          <h2 id="links-title">分母定分数单位，除法也能变分数</h2>
+          <p>分数不只是一个“涂色的图形”。它既表示“有几个分数单位”，也表示两个数相除的结果。</p>
+        </div>
+      </div>
+
+      <div class="pair-grid">
+        <article class="insight-card unit-card" data-reveal>
+          <p class="insight-label">分数单位</p>
+          <h3>分母，决定“一小份”有多大</h3>
+          <p>把单位“1”平均分成几份，其中的 <strong>1 份</strong>，就是分数的单位。分母是 4，分数单位就是 1/4。</p>
+
+          <div class="unit-equation" aria-label="四分之三等于三个四分之一">
+            <span class="unit-chip"><span class="frac is-small" aria-hidden="true"><span class="frac__num">1</span><span class="frac__line"></span><span class="frac__den">4</span></span></span>
+            <span class="plus" aria-hidden="true">+</span>
+            <span class="unit-chip"><span class="frac is-small" aria-hidden="true"><span class="frac__num">1</span><span class="frac__line"></span><span class="frac__den">4</span></span></span>
+            <span class="plus" aria-hidden="true">+</span>
+            <span class="unit-chip"><span class="frac is-small" aria-hidden="true"><span class="frac__num">1</span><span class="frac__line"></span><span class="frac__den">4</span></span></span>
+            <span class="plus" aria-hidden="true">=</span>
+            <span class="unit-chip"><span class="frac is-small" aria-hidden="true"><span class="frac__num">3</span><span class="frac__line"></span><span class="frac__den">4</span></span></span>
+          </div>
+          <p><strong>3/4</strong> 里有 3 个 <strong>1/4</strong>。分子数的是“有几个这样的分数单位”。</p>
+
+          <div class="unit-picker" role="group" aria-label="换一个分母，看看分数单位">
+            <button type="button" data-unit-den="3" aria-pressed="false">分母 3</button>
+            <button type="button" data-unit-den="4" aria-pressed="true">分母 4</button>
+            <button type="button" data-unit-den="5" aria-pressed="false">分母 5</button>
+            <button type="button" data-unit-den="8" aria-pressed="false">分母 8</button>
+          </div>
+          <div class="unit-dynamic" id="unitDynamic" aria-live="polite">
+            <span class="frac" aria-hidden="true"><span class="frac__num">1</span><span class="frac__line"></span><span class="frac__den">4</span></span>
+            <span>平均分成 4 份，其中的 1 份就是 <b>1/4</b>。</span>
+          </div>
+        </article>
+
+        <article class="insight-card division-card" data-reveal>
+          <p class="insight-label">分数与除法</p>
+          <h3>除法的结果，也能写成分数</h3>
+          <div class="division-eq">
+            <span>3 ÷ 4</span>
+            <span class="eq">=</span>
+            <span class="frac" aria-label="四分之三"><span class="frac__num">3</span><span class="frac__line"></span><span class="frac__den">4</span></span>
+          </div>
+          <div class="cake-row" aria-hidden="true">
+            <span class="cake"></span>
+            <span class="cake"></span>
+            <span class="cake"></span>
+            <span class="cake-label"><b>每人 3 个 1/4</b>合起来是 3/4 个</span>
+          </div>
+          <p>把 3 个月饼平均分给 4 人，每人分得 <strong>3 ÷ 4 = 3/4（个）</strong>。</p>
+          <p class="formula">被除数 ÷ 除数 = <span class="frac" aria-label="被除数除以除数"><span class="frac__num">被除数</span><span class="frac__line"></span><span class="frac__den">除数</span></span>（除数不为 0）</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 quiz -->
+  <section class="section quiz-section" id="quiz" aria-labelledby="quiz-title">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <span class="section-index">05</span>
+        <div>
+          <p class="eyebrow">闯关练习</p>
+          <h2 id="quiz-title">把新知识用起来</h2>
+          <p>5 道题，覆盖“平均分、读写、分数单位、分数与除法”。选完立即反馈，不用等老师公布答案。</p>
+        </div>
+      </div>
+
+      <div class="quiz-shell" data-reveal>
+        <div class="quiz-top">
+          <h3>分数小闯关</h3>
+          <div class="quiz-stats">
+            <span class="quiz-stat" id="quizProgress">第 1 / 5 题</span>
+            <span class="quiz-stat score" id="quizScore">得分 0</span>
+          </div>
+        </div>
+        <div class="quiz-bar" aria-hidden="true"><span id="quizBarFill" style="width:20%"></span></div>
+
+        <div id="quizCard">
+          <p class="quiz-prompt" id="quizPrompt" tabindex="-1"></p>
+          <div class="quiz-options" id="quizOptions"></div>
+          <div class="quiz-feedback" id="quizFeedback" hidden role="status" aria-live="polite"></div>
+          <div class="quiz-footer">
+            <span class="quiz-hint">每题只有一个正确答案 · 选完自动判定</span>
+            <button class="btn btn-primary" id="quizNext" type="button" hidden>下一题 <span class="arrow" aria-hidden="true">→</span></button>
+          </div>
+        </div>
+
+        <div class="quiz-result" id="quizResult" hidden>
+          <div class="result-badge" id="resultBadge" aria-hidden="true">5/5</div>
+          <h3 id="resultTitle">闯关完成</h3>
+          <p id="resultText"></p>
+          <div class="result-actions">
+            <button class="btn btn-primary" id="quizRestart" type="button">再闯一次</button>
+            <a class="btn btn-soft" href="#summary">看本课总结</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 summary -->
+  <section class="section" id="summary" aria-labelledby="summary-title">
+    <div class="container">
+      <div class="summary-card" data-reveal>
+        <div class="summary-head">
+          <div>
+            <p class="eyebrow is-light">本课收束</p>
+            <h2 id="summary-title">带走三句话</h2>
+          </div>
+          <div class="stamp" aria-hidden="true"><b>3/4</b>分数的意义</div>
+        </div>
+
+        <ol class="summary-list">
+          <li>
+            <span class="summary-num">01</span>
+            <div>
+              <h3>先有平均分，才有分数。</h3>
+              <p>4 份不一样大，就不能说每一份都是 1/4。</p>
+            </div>
+          </li>
+          <li>
+            <span class="summary-num">02</span>
+            <div>
+              <h3>分母数“分成几份”，分子数“取了几份”。</h3>
+              <p>读作“几分之几”，写时先画线，再写分母、分子。</p>
+            </div>
+          </li>
+          <li>
+            <span class="summary-num">03</span>
+            <div>
+              <h3>分母决定分数单位，除法也能写成分数。</h3>
+              <p>3/4 里有 3 个 1/4；3 ÷ 4 = 3/4。</p>
+            </div>
+          </li>
+        </ol>
+
+        <details class="exit-ticket">
+          <summary>出口条：用自己的话说说，3/4 表示什么？</summary>
+          <p>把单位“1”平均分成 <b>4 份</b>，取其中的 <b>3 份</b>，就是 3/4；3/4 里有 <b>3 个 1/4</b>。如果平均分的是 3 个月饼，每人分得的就是 3 ÷ 4 = <b>3/4 个</b>。</p>
+        </details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <p>认识分数 · 五年级互动课件　|　单文件离线运行，无需安装。</p>
+    <div class="footer-meta">
+      <span>教学设计：平均分 → 意义 → 读写 → 联系 → 应用</span>
+      <a class="to-top" href="#top">
+        回到顶部
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+      </a>
+    </div>
+  </div>
+</footer>
+
+<!-- teacher notes -->
+<dialog class="teacher-drawer" id="teacherDialog" aria-labelledby="drawerTitle">
+  <div class="drawer-shell">
+    <div class="drawer-head">
+      <div>
+        <p class="eyebrow">教师锦囊</p>
+        <h2 id="drawerTitle">教学要点</h2>
+      </div>
+      <button class="drawer-close" id="closeTeacher" type="button" aria-label="关闭教师锦囊">×</button>
+    </div>
+
+    <div class="drawer-scroll">
+      <div class="drawer-section">
+        <h3>教学目标</h3>
+        <ol>
+          <li>结合分饼、分绳等具体情境，理解分数的意义，认识单位“1”。</li>
+          <li>掌握分数的读法和写法，认识分子、分母和分数线。</li>
+          <li>理解分数单位，初步沟通分数与除法的联系，能解决简单的实际问题。</li>
+        </ol>
+      </div>
+
+      <div class="drawer-section">
+        <h3>重点与难点</h3>
+        <p><b>重点：</b>在“平均分”的基础上建构分数的意义；正确读、写分数。</p>
+        <p><b>难点：</b>理解单位“1”的整体性；区分“平均分成几份”和“取其中几份”；理解分数单位由分母决定，以及“每段占全长的几分之几”和“每段长多少”的区别。</p>
+        <div class="drawer-target">一句话主线：<b>把什么平均分？分成几份？取了几份？</b> 每个活动都回到这三个问题。</div>
+      </div>
+
+      <div class="drawer-section">
+        <h3>40 分钟流程建议</h3>
+        <ol class="time-list">
+          <li><b>5′ 情境导入</b><span>用“分饼公平吗”激活平均分经验，明确“同样大”是分数的前提。</span></li>
+          <li><b>15′ 操作建构</b><span>使用“分数实验室”，依次改变分母、分子，让学生说“把单位 1 平均分成几份，取了几份”。</span></li>
+          <li><b>8′ 读写巩固</b><span>点击分数各部分，建立名称与含义的对应；读法从下往上，写法按“线—分母—分子”的顺序。</span></li>
+          <li><b>7′ 联系提升</b><span>用分数单位解释分子，用“3 个饼分给 4 人”沟通分数与除法。</span></li>
+          <li><b>5′ 闯关总结</b><span>完成 5 道题，回扣三句话；用出口条检测“3/4 表示什么”。</span></li>
+        </ol>
+      </div>
+
+      <div class="drawer-section">
+        <h3>关键追问</h3>
+        <ul>
+          <li>“这里把什么看作单位‘1’？”</li>
+          <li>“平均分成了几份？分母是几？”</li>
+          <li>“取了几份？分子是几？”</li>
+          <li>“分数单位是多少？这个分数里有几个这样的单位？”</li>
+          <li>“3 ÷ 4 的结果，为什么可以写成 3/4？”</li>
+        </ul>
+      </div>
+
+      <div class="drawer-section">
+        <h3>易错点与应对</h3>
+        <ul>
+          <li><b>忽略平均分：</b>回到“随意分成 4 份”的对比，让学生自己发现“大小不同，不能说 1/4”。</li>
+          <li><b>分子、分母写反：</b>用“分母在下面，表示分成几份；分子在上面，表示取了几份”配合手势记忆。</li>
+          <li><b>把分数单位当成整个分数：</b>用“3/4 里有 3 个 1/4”反复对照，强调分母决定单位。</li>
+          <li><b>“占全长的几分之几”与“长多少米”混淆：</b>比较“每段是 1/4”和“每段是 3/4 米”，追问“把谁看作单位 1”。</li>
+        </ul>
+      </div>
+
+      <div class="drawer-section">
+        <h3>课堂使用建议</h3>
+        <p>建议投影或触屏使用。先让学生预测，再操作验证；每次拖动滑杆后，请学生完整说出“把单位‘1’平均分成（ ）份，取其中的（ ）份，就是（ ）”。</p>
+        <p>“闯关”适合独立完成或同桌互讲。错题不要只报答案，追一句“你是怎么想的”，把判断依据说清楚。</p>
+        <div class="mini-formula">
+          读法：<span class="frac" aria-label="八分之五"><span class="frac__num">5</span><span class="frac__line"></span><span class="frac__den">8</span></span> → 八分之五
+          <span style="color:var(--line-strong)">|</span>
+          写法：分数线 → 分母 → 分子
+        </div>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<script>
+(function(){
+  'use strict';
+
+  const $ = (sel, root) => (root || document).querySelector(sel);
+  const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
+  const cnNums = ['零','一','二','三','四','五','六','七','八','九','十','十一','十二'];
+  const cn = n => cnNums[n] || String(n);
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- scroll progress + nav ---------- */
+  const header = $('#siteHeader');
+  const progressBar = $('#scrollProgress');
+  const navLinks = $$('.site-nav a');
+  const navSections = navLinks.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+
+  function updateScrollUI(){
+    const root = document.documentElement;
+    const max = root.scrollHeight - root.clientHeight;
+    const ratio = max > 0 ? Math.min(1, Math.max(0, root.scrollTop / max)) : 0;
+    progressBar.style.transform = `scaleX(${ratio})`;
+    header.classList.toggle('is-scrolled', root.scrollTop > 16);
+
+    let current = null;
+    const probe = root.scrollTop + window.innerHeight * 0.34;
+    navSections.forEach(sec => {
+      if (sec.offsetTop <= probe) current = sec.id;
+    });
+    navLinks.forEach(a => a.classList.toggle('is-active', a.getAttribute('href') === '#' + current));
+  }
+  window.addEventListener('scroll', updateScrollUI, {passive:true});
+  window.addEventListener('resize', updateScrollUI);
+  updateScrollUI();
+
+  /* ---------- reveal ---------- */
+  const revealEls = $$('[data-reveal]');
+  if (!prefersReducedMotion && 'IntersectionObserver' in window){
+    revealEls.forEach((el, i) => el.style.setProperty('--reveal-delay', (i % 4) * 55 + 'ms'));
+    const revealObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting){
+          entry.target.classList.add('is-visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, {threshold:0.08, rootMargin:'0px 0px -6% 0px'});
+    revealEls.forEach(el => revealObserver.observe(el));
+  } else {
+    revealEls.forEach(el => el.classList.add('is-visible'));
+  }
+
+  /* ---------- teacher dialog ---------- */
+  const teacherDialog = $('#teacherDialog');
+  const openTeacher = $('#openTeacher');
+  const closeTeacher = $('#closeTeacher');
+
+  openTeacher.addEventListener('click', () => {
+    if (typeof teacherDialog.showModal === 'function') teacherDialog.showModal();
+    else teacherDialog.setAttribute('open','');
+    document.body.classList.add('drawer-open');
+  });
+  closeTeacher.addEventListener('click', () => teacherDialog.close());
+  teacherDialog.addEventListener('close', () => document.body.classList.remove('drawer-open'));
+  teacherDialog.addEventListener('click', event => {
+    if (event.target === teacherDialog) teacherDialog.close();
+  });
+
+  /* ---------- pancake / equal parts ---------- */
+  const pancakeSvg = $('#pancakeSvg');
+  const pancakeStage = $('#pancakeStage');
+  const equalFeedback = $('#equalFeedback');
+  const revealPiecesBtn = $('#revealPieces');
+  let cutMode = 'equal';
+  let piecesRevealed = false;
+  const pancakeCuts = {
+    equal: [0, 90, 180, 270, 360],
+    unequal: [0, 62, 151, 241, 360]
+  };
+  const pancakeFills = ['#efc063', '#e8b34c', '#f3cc78', '#e0a63f'];
+
+  function polar(cx, cy, r, angle){
+    const rad = (angle - 90) * Math.PI / 180;
+    return {x:cx + r * Math.cos(rad), y:cy + r * Math.sin(rad)};
+  }
+  function slicePath(cx, cy, r, a1, a2){
+    const p1 = polar(cx, cy, r, a1);
+    const p2 = polar(cx, cy, r, a2);
+    const large = (a2 - a1) > 180 ? 1 : 0;
+    return `M ${cx} ${cy} L ${p1.x.toFixed(2)} ${p1.y.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${p2.x.toFixed(2)} ${p2.y.toFixed(2)} Z`;
+  }
+  function renderPancake(){
+    const cuts = pancakeCuts[cutMode];
+    const equal = cutMode === 'equal';
+    let html = '<circle cx="180" cy="180" r="164" fill="#eadcc4"/>';
+    html += '<circle cx="180" cy="180" r="155" fill="#fffaf0" stroke="#d7c4a4" stroke-width="2"/>';
+    for (let i = 0; i < 4; i++){
+      html += `<path d="${slicePath(180,180,148,cuts[i],cuts[i+1])}" fill="${pancakeFills[i]}" stroke="#fffaf0" stroke-width="5"/>`;
+    }
+    if (piecesRevealed && equal){
+      for (let i = 0; i < 4; i++){
+        const mid = (cuts[i] + cuts[i+1]) / 2;
+        const point = polar(180, 180, 92, mid);
+        html += `<text x="${point.x.toFixed(2)}" y="${point.y.toFixed(2)}" text-anchor="middle" dominant-baseline="middle" fill="#6f4317" font-size="17" font-weight="800" font-family="Noto Sans SC, sans-serif">1/4</text>`;
+      }
+    }
+    html += '<circle cx="180" cy="180" r="148" fill="none" stroke="#b47a32" stroke-width="3"/>';
+    html += '<circle cx="180" cy="180" r="12" fill="#fffaf0" stroke="#b47a32" stroke-width="2"/>';
+    pancakeSvg.innerHTML = html;
+    pancakeSvg.setAttribute('aria-label', equal
+      ? '一个饼被平均分成四份，四份同样大'
+      : '一个饼被分成四份，四份大小不同');
+  }
+  function setCutMode(mode){
+    cutMode = mode;
+    piecesRevealed = false;
+    $$('.segmented [data-cut]').forEach(btn => {
+      btn.setAttribute('aria-pressed', String(btn.dataset.cut === mode));
+    });
+    revealPiecesBtn.textContent = '标出每份';
+    renderPancake();
+    if (mode === 'equal'){
+      equalFeedback.className = 'equal-feedback is-success';
+      equalFeedback.innerHTML = '<strong>这是平均分。</strong><p>4 份同样大，每一份都是这个饼的 <b>1/4</b>，读作“四分之一”。</p>';
+    } else {
+      equalFeedback.className = 'equal-feedback is-warn';
+      equalFeedback.innerHTML = '<strong>这不是平均分。</strong><p>4 份大小不同，就不能说每一份都是这个饼的 1/4。分数必须建立在平均分上。</p>';
+    }
+  }
+  $$('.segmented [data-cut]').forEach(btn => {
+    btn.addEventListener('click', () => setCutMode(btn.dataset.cut));
+  });
+  revealPiecesBtn.addEventListener('click', () => {
+    if (cutMode !== 'equal'){
+      equalFeedback.className = 'equal-feedback is-warn';
+      equalFeedback.innerHTML = '<strong>不能都标成 1/4。</strong><p>这 4 份不一样大，每一份都不是这个饼的 1/4。先平均分，才能用分数表示。</p>';
+      pancakeStage.classList.remove('is-nudging');
+      void pancakeStage.offsetWidth;
+      pancakeStage.classList.add('is-nudging');
+      window.setTimeout(() => pancakeStage.classList.remove('is-nudging'), 500);
+      return;
+    }
+    piecesRevealed = !piecesRevealed;
+    revealPiecesBtn.textContent = piecesRevealed ? '收起标注' : '标出每份';
+    renderPancake();
+  });
+  setCutMode('equal');
+
+  /* ---------- fraction lab ---------- */
+  const labStage = $('#labStage');
+  const pieceSvg = $('#pieceSvg');
+  const pieceGrid = $('#pieceGrid');
+  const pieceBar = $('#pieceBar');
+  const denRange = $('#denRange');
+  const numRange = $('#numRange');
+  const denOut = $('#denOut');
+  const numOut = $('#numOut');
+  const numMaxLabel = $('#numMaxLabel');
+  const fNum = $('#fNum');
+  const fDen = $('#fDen');
+  const readText = $('#readText');
+  const meaningText = $('#meaningText');
+  const unitText = $('#unitText');
+  const labLive = $('#labLive');
+  const labNote = $('#labNote');
+  const labStageHint = $('#stageHint');
+
+  const lab = {
+    shape:'circle',
+    den:4,
+    num:3,
+    shaded:new Set([0,1,2])
+  };
+
+  function fractionHTML(n, d, extra){
+    return `<span class="frac ${extra || ''}" aria-label="${cn(d)}分之${cn(n)}"><span class="frac__num">${n}</span><span class="frac__line"></span><span class="frac__den">${d}</span></span>`;
+  }
+
+  function setLabNum(value, preserveShade){
+    const next = Math.max(1, Math.min(lab.den, Number(value) || 1));
+    lab.num = next;
+    if (!preserveShade){
+      lab.shaded = new Set();
+      for (let i = 0; i < next; i++) lab.shaded.add(i);
+    } else if (lab.shaded.size !== next){
+      const existing = Array.from(lab.shaded).sort((a,b) => a-b).slice(0, next);
+      lab.shaded = new Set(existing);
+      let idx = 0;
+      while (lab.shaded.size < next){
+        lab.shaded.add(idx);
+        idx++;
+      }
+    }
+    renderLab();
+  }
+
+  function updateRangeFill(el, min, max){
+    const pct = ((Number(el.value) - min) / (max - min)) * 100;
+    el.style.background = `linear-gradient(90deg, var(--accent) 0%, var(--accent) ${pct}%, var(--line) ${pct}%, var(--line) 100%)`;
+  }
+
+  function updateLabCopy(){
+    const {den, num} = lab;
+    fNum.textContent = num;
+    fDen.textContent = den;
+    readText.textContent = `${cn(den)}分之${cn(num)}`;
+    meaningText.innerHTML = `把单位“1”平均分成 <b>${den}</b> 份，取其中的 <b>${num}</b> 份，<span class="nowrap">就是 ${fractionHTML(num, den, 'is-light')}。</span>`;
+    unitText.innerHTML = `${fractionHTML(num, den, 'is-light')} 里有 <b>${num}</b> 个 ${fractionHTML(1, den, 'is-light')}。`;
+    labNote.textContent = `平均分成 ${den} 份，取其中 ${num} 份。`;
+    labLive.textContent = `${cn(den)}分之${cn(num)}。把单位“1”平均分成 ${den} 份，取其中 ${num} 份。`;
+    labNote.classList.remove('is-alert');
+    denOut.textContent = den;
+    numOut.textContent = num;
+    numMaxLabel.textContent = `${den} 份`;
+    denRange.value = den;
+    numRange.max = den;
+    numRange.value = num;
+    updateRangeFill(denRange, 2, 12);
+    updateRangeFill(numRange, 1, den);
+    denRange.setAttribute('aria-valuetext', `平均分成 ${den} 份`);
+    numRange.setAttribute('aria-valuetext', `取其中 ${num} 份`);
+    labStageHint.textContent = den > 8 ? '份数越多，每一小份就越小' : '点一点小份，改变涂色';
+  }
+
+  function showLabMessage(message){
+    labNote.textContent = message;
+    labLive.textContent = message;
+    labNote.classList.add('is-alert');
+    window.clearTimeout(showLabMessage.timer);
+    showLabMessage.timer = window.setTimeout(() => {
+      labNote.textContent = `平均分成 ${lab.den} 份，取其中 ${lab.num} 份。`;
+      labNote.classList.remove('is-alert');
+      labLive.textContent = `${cn(lab.den)}分之${cn(lab.num)}。把单位“1”平均分成 ${lab.den} 份，取其中 ${lab.num} 份。`;
+    }, 2200);
+  }
+
+  function togglePiece(index){
+    if (lab.shaded.has(index)){
+      if (lab.shaded.size === 1){
+        showLabMessage('至少要保留 1 份，才是一个分数。');
+        return;
+      }
+      lab.shaded.delete(index);
+    } else {
+      lab.shaded.add(index);
+    }
+    lab.num = lab.shaded.size;
+    renderLab();
+  }
+
+  function bindPiece(el, index){
+    el.dataset.index = index;
+    el.addEventListener('click', () => togglePiece(index));
+    el.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' '){
+        event.preventDefault();
+        togglePiece(index);
+      }
+    });
+  }
+
+  function renderCircle(){
+    pieceSvg.hidden = false;
+    pieceSvg.removeAttribute('aria-hidden');
+    pieceSvg.setAttribute('role', 'group');
+    pieceSvg.setAttribute('aria-label', `单位“1”被平均分成 ${lab.den} 份，其中 ${lab.num} 份涂色`);
+    pieceGrid.hidden = true;
+    pieceBar.hidden = true;
+    const cx = 150, cy = 150, r = 132, step = 360 / lab.den;
+    let html = '';
+    for (let i = 0; i < lab.den; i++){
+      const a1 = i * step, a2 = (i + 1) * step;
+      const shaded = lab.shaded.has(i) ? ' is-shaded' : '';
+      html += `<path class="piece${shaded}" d="${slicePath(cx, cy, r, a1, a2)}" tabindex="0" role="button" data-index="${i}" aria-label="第 ${i+1} 份，${lab.shaded.has(i) ? '已涂色' : '未涂色'}，按回车切换"></path>`;
+      if (lab.shaded.has(i) && lab.den <= 8){
+        const point = polar(cx, cy, 88, a1 + step / 2);
+        html += `<text class="piece-label" x="${point.x.toFixed(2)}" y="${point.y.toFixed(2)}" aria-hidden="true">1/${lab.den}</text>`;
+      }
+    }
+    html += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#d9cdb8" stroke-width="2" pointer-events="none"/>`;
+    html += `<circle cx="${cx}" cy="${cy}" r="4" fill="#fffdf8" stroke="#c2b39a" stroke-width="1.5" pointer-events="none"/>`;
+    pieceSvg.innerHTML = html;
+    Array.from(pieceSvg.querySelectorAll('.piece')).forEach((el, i) => bindPiece(el, i));
+  }
+
+  function factorPair(n){
+    let best = [n, 1];
+    for (let c = 1; c <= n; c++){
+      if (n % c === 0){
+        const r = n / c;
+        if (Math.abs(c - r) < Math.abs(best[0] - best[1])) best = [c, r];
+      }
+    }
+    return {cols:best[0], rows:best[1]};
+  }
+
+  function renderGrid(isBar){
+    pieceSvg.hidden = true;
+    pieceSvg.setAttribute('aria-hidden', 'true');
+    pieceSvg.innerHTML = '';
+    pieceGrid.hidden = isBar;
+    pieceBar.hidden = !isBar;
+    const target = isBar ? pieceBar : pieceGrid;
+    target.innerHTML = '';
+    target.style.gridTemplateColumns = isBar
+      ? `repeat(${lab.den}, 1fr)`
+      : `repeat(${factorPair(lab.den).cols}, 1fr)`;
+    target.style.gridTemplateRows = isBar ? '1fr' : `repeat(${factorPair(lab.den).rows}, 1fr)`;
+    target.setAttribute('role', 'group');
+    target.setAttribute('aria-label', `单位“1”被平均分成 ${lab.den} 份，其中 ${lab.num} 份涂色`);
+    for (let i = 0; i < lab.den; i++){
+      const cell = document.createElement('button');
+      cell.type = 'button';
+      cell.className = 'piece-cell' + (lab.shaded.has(i) ? ' is-shaded' : '');
+      cell.dataset.index = i;
+      cell.setAttribute('aria-label', `第 ${i+1} 份，${lab.shaded.has(i) ? '已涂色' : '未涂色'}，按回车切换`);
+      if (lab.shaded.has(i) && lab.den <= 8) cell.innerHTML = `<span aria-hidden="true">1/${lab.den}</span>`;
+      cell.addEventListener('click', () => togglePiece(i));
+      target.appendChild(cell);
+    }
+  }
+
+  function renderLab(){
+    updateLabCopy();
+    if (lab.shape === 'circle') renderCircle();
+    else if (lab.shape === 'rect') renderGrid(false);
+    else renderGrid(true);
+  }
+
+  $$('.shape-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      lab.shape = btn.dataset.shape;
+      $$('.shape-tab').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+      renderLab();
+    });
+  });
+  denRange.addEventListener('input', () => {
+    lab.den = Math.max(2, Math.min(12, Number(denRange.value)));
+    if (lab.num > lab.den) lab.num = lab.den;
+    lab.shaded = new Set();
+    for (let i = 0; i < lab.num; i++) lab.shaded.add(i);
+    renderLab();
+  });
+  numRange.addEventListener('input', () => {
+    setLabNum(numRange.value, false);
+  });
+  $('#randomLab').addEventListener('click', () => {
+    const den = Math.floor(Math.random() * 9) + 3;
+    const num = Math.floor(Math.random() * (den - 1)) + 1;
+    lab.den = den;
+    lab.num = num;
+    lab.shaded = new Set();
+    for (let i = 0; i < num; i++) lab.shaded.add(i);
+    const shapes = ['circle','rect','bar'];
+    lab.shape = shapes[Math.floor(Math.random() * shapes.length)];
+    $$('.shape-tab').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.shape === lab.shape)));
+    renderLab();
+  });
+  $('#resetLab').addEventListener('click', () => {
+    lab.shape = 'circle';
+    lab.den = 4;
+    lab.num = 3;
+    lab.shaded = new Set([0,1,2]);
+    $$('.shape-tab').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.shape === 'circle')));
+    renderLab();
+  });
+  renderLab();
+
+  /* ---------- fraction anatomy ---------- */
+  const partData = {
+    numerator:{
+      kicker:'分子 · 分数线上方',
+      title:'取了几份',
+      body:'分子表示从平均分好的若干份中，取出了多少份。它写在分数线的上面。',
+      example:`在 ${fractionHTML(5, 8)} 中，分子是 <b>5</b>，表示取了其中的 5 份。`
+    },
+    denominator:{
+      kicker:'分母 · 分数线下方',
+      title:'平均分成几份',
+      body:'分母表示把单位“1”平均分成多少份。它写在分数线的下面，也决定分数单位。',
+      example:`在 ${fractionHTML(5, 8)} 中，分母是 <b>8</b>，表示把单位“1”平均分成 8 份，分数单位是 ${fractionHTML(1, 8)}。`
+    },
+    bar:{
+      kicker:'分数线 · 中间',
+      title:'表示平均分',
+      body:'分数线表示“平均分”，读作“分之”。它也可以看作除号：上面的数相当于被除数，下面的数相当于除数。',
+      example:`${fractionHTML(5, 8)} 可以读作“五除以八”，也就是 5 ÷ 8。`
+    }
+  };
+  const anatomyCopy = $('#anatomyCopy');
+  const partKicker = $('#partKicker');
+  const partTitle = $('#partTitle');
+  const partBody = $('#partBody');
+  const partExample = $('#partExample');
+  const partButtons = $$('.part-btn');
+
+  function showPart(key){
+    const data = partData[key];
+    if (!data) return;
+    partButtons.forEach(btn => btn.setAttribute('aria-pressed', String(btn.dataset.part === key)));
+    anatomyCopy.classList.remove('copy-swap');
+    void anatomyCopy.offsetWidth;
+    anatomyCopy.classList.add('copy-swap');
+    partKicker.textContent = data.kicker;
+    partTitle.textContent = data.title;
+    partBody.textContent = data.body;
+    partExample.innerHTML = data.example;
+  }
+  partButtons.forEach(btn => {
+    btn.addEventListener('click', () => showPart(btn.dataset.part));
+  });
+
+  /* ---------- read cards ---------- */
+  $$('.read-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const open = card.getAttribute('aria-expanded') !== 'true';
+      card.setAttribute('aria-expanded', String(open));
+      const reveal = $('.read-reveal', card);
+      reveal.setAttribute('aria-hidden', String(!open));
+    });
+  });
+
+  /* ---------- unit picker ---------- */
+  $$('.unit-picker [data-unit-den]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const d = Number(btn.dataset.unitDen);
+      $$('.unit-picker [data-unit-den]').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+      const unit = $('#unitDynamic');
+      unit.innerHTML = `<span class="frac" aria-hidden="true"><span class="frac__num">1</span><span class="frac__line"></span><span class="frac__den">${d}</span></span><span>平均分成 ${d} 份，其中的 1 份就是 <b>1/${d}</b>。分母是几，分数单位就是几分之一。</span>`;
+    });
+  });
+
+  /* ---------- quiz ---------- */
+  const quizData = [
+    {
+      prompt:'下面哪幅图的涂色部分可以用 <span class="hl">2/3</span> 表示？',
+      layout:'visual',
+      options:[
+        {aria:'选项A：平均分成4份，涂色2份', html:'<span class="mini-bar" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i><i></i></span>'},
+        {aria:'选项B：平均分成3份，涂色2份', html:'<span class="mini-bar" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span>'},
+        {aria:'选项C：分成3份但大小不同，涂色2份', html:'<span class="mini-bar uneven" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span>'}
+      ],
+      correct:1,
+      explain:'只有把单位“1”平均分成 3 份，取其中 2 份，才是 2/3。C 的三份不相等，不能用 2/3 表示。'
+    },
+    {
+      prompt:'“七分之四”写作（　）。',
+      layout:'fractions',
+      options:[
+        {aria:'选项A：四分之七', html:fractionHTML(7,4)},
+        {aria:'选项B：十分之四', html:fractionHTML(4,10)},
+        {aria:'选项C：七分之四', html:fractionHTML(4,7)}
+      ],
+      correct:2,
+      explain:'先写分数线，再写分母 7，最后写分子 4，所以写作 4/7。不要写成 7/4。'
+    },
+    {
+      prompt:'<span class="hl">3/5</span> 的分数单位是（　）。',
+      layout:'fractions',
+      options:[
+        {aria:'选项A：三分之一', html:fractionHTML(1,3)},
+        {aria:'选项B：五分之一', html:fractionHTML(1,5)},
+        {aria:'选项C：五分之三', html:fractionHTML(3,5)}
+      ],
+      correct:1,
+      explain:'把单位“1”平均分成 5 份，其中的 1 份就是 1/5。3/5 里有 3 个 1/5，所以分数单位是 1/5，不是 3/5。'
+    },
+    {
+      prompt:'把 3 米长的绳子平均分成 4 段，每段是全长的（　）。',
+      layout:'list',
+      options:[
+        {aria:'选项A：四分之三', html:'3/4'},
+        {aria:'选项B：四分之三米', html:'3/4 米'},
+        {aria:'选项C：四分之一', html:'1/4'}
+      ],
+      correct:2,
+      explain:'“每段占全长的几分之几”，要把全长看作单位“1”。平均分成 4 段，每段就是全长的 1/4。如果问“每段长多少米”，才是 3/4 米。'
+    },
+    {
+      prompt:'把 3 个月饼平均分给 4 人，每人分得（　）。',
+      layout:'list',
+      options:[
+        {aria:'选项A：四分之三个', html:'3/4 个'},
+        {aria:'选项B：四分之一个', html:'1/4 个'},
+        {aria:'选项C：三分之四个', html:'4/3 个'}
+      ],
+      correct:0,
+      explain:'3 ÷ 4 = 3/4，所以每人分得 3/4 个。也可以想：每人从每个饼里拿 1/4，3 个饼就是 3 个 1/4，合起来是 3/4。'
+    }
+  ];
+  const quizState = {index:0, score:0, answered:false};
+  const quizPrompt = $('#quizPrompt');
+  const quizOptions = $('#quizOptions');
+  const quizFeedback = $('#quizFeedback');
+  const quizNext = $('#quizNext');
+  const quizProgress = $('#quizProgress');
+  const quizScore = $('#quizScore');
+  const quizBarFill = $('#quizBarFill');
+  const quizCard = $('#quizCard');
+  const quizResult = $('#quizResult');
+  const quizRestart = $('#quizRestart');
+  const resultBadge = $('#resultBadge');
+  const resultTitle = $('#resultTitle');
+  const resultText = $('#resultText');
+  const letters = ['A','B','C','D'];
+
+  function renderQuiz(){
+    const q = quizData[quizState.index];
+    quizState.answered = false;
+    quizPrompt.innerHTML = q.prompt;
+    quizOptions.className = 'quiz-options' + (q.layout ? ' is-' + q.layout : '');
+    quizOptions.innerHTML = q.options.map((opt, i) => `
+      <button class="quiz-option" type="button" data-index="${i}" aria-label="${opt.aria}">
+        <span class="option-key" aria-hidden="true">${letters[i]}</span>
+        <span class="option-body">${opt.html}</span>
+        <span class="option-mark" aria-hidden="true"></span>
+      </button>
+    `).join('');
+    $$('.quiz-option', quizOptions).forEach(btn => {
+      btn.addEventListener('click', () => answerQuiz(Number(btn.dataset.index)));
+    });
+    quizFeedback.hidden = true;
+    quizFeedback.className = 'quiz-feedback';
+    quizFeedback.innerHTML = '';
+    quizNext.hidden = true;
+    quizProgress.textContent = `第 ${quizState.index + 1} / ${quizData.length} 题`;
+    quizScore.textContent = `得分 ${quizState.score}`;
+    quizBarFill.style.width = `${((quizState.index + 1) / quizData.length) * 100}%`;
+    quizPrompt.focus({preventScroll:true});
+  }
+
+  function answerQuiz(selected){
+    if (quizState.answered) return;
+    quizState.answered = true;
+    const q = quizData[quizState.index];
+    const correct = selected === q.correct;
+    if (correct) quizState.score++;
+    $$('.quiz-option', quizOptions).forEach((btn, i) => {
+      btn.disabled = true;
+      if (i === q.correct) btn.classList.add('is-correct');
+      if (i === selected && !correct) btn.classList.add('is-wrong');
+      const mark = $('.option-mark', btn);
+      if (i === q.correct) mark.textContent = '✓';
+      else if (i === selected) mark.textContent = '×';
+    });
+    quizFeedback.hidden = false;
+    quizFeedback.className = 'quiz-feedback' + (correct ? '' : ' is-wrong');
+    quizFeedback.innerHTML = `<strong>${correct ? '答对了！' : '再想一想。'}</strong>${q.explain}`;
+    quizScore.textContent = `得分 ${quizState.score}`;
+    quizNext.hidden = false;
+    quizNext.innerHTML = quizState.index === quizData.length - 1
+      ? '看结果 <span class="arrow" aria-hidden="true">→</span>'
+      : '下一题 <span class="arrow" aria-hidden="true">→</span>';
+  }
+
+  quizNext.addEventListener('click', () => {
+    if (quizState.index < quizData.length - 1){
+      quizState.index++;
+      renderQuiz();
+    } else {
+      showQuizResult();
+    }
+  });
+
+  function showQuizResult(){
+    quizCard.hidden = true;
+    quizResult.hidden = false;
+    quizBarFill.style.width = '100%';
+    const score = quizState.score;
+    resultBadge.textContent = `${score}/${quizData.length}`;
+    if (score === quizData.length){
+      resultTitle.textContent = '全部正确，分数小达人！';
+      resultText.textContent = '你已经能抓住“平均分、分母、分子、分数单位”这几个关键点。试着用自己的话把 3/4 的意义讲给同桌听。';
+    } else if (score >= 3){
+      resultTitle.textContent = '不错，再补最后一公里';
+      resultText.textContent = '大部分概念已经掌握。回看错题的解释，特别留意“平均分”和“每段占全长的几分之几”的区别。';
+    } else {
+      resultTitle.textContent = '别急，回到图形再走一遍';
+      resultText.textContent = '建议回到“分数实验室”，一边拖动滑杆，一边说“把单位 1 平均分成几份，取其中几份”，再来挑战一次。';
+    }
+    resultBadge.classList.toggle('is-perfect', score === quizData.length);
+  }
+
+  quizRestart.addEventListener('click', () => {
+    quizState.index = 0;
+    quizState.score = 0;
+    quizResult.hidden = true;
+    quizCard.hidden = false;
+    renderQuiz();
+  });
+
+  renderQuiz();
+
+  /* ---------- initial scroll UI after fonts/layout ---------- */
+  window.addEventListener('load', updateScrollUI);
+})();
+</script>
+</body>
+</html>

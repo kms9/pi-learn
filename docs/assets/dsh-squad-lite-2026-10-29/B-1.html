@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>认识分数 · 分数的意义与读写</title>
+<meta name="description" content="认识分数：分数的意义、读写法、分数单位、分数与除法的关系、真分数与假分数，含可点开答案的例题。">
+<style>
+:root{
+  --ink:#1b2735;
+  --ink-2:#3c4d61;
+  --muted:#6e7f93;
+  --paper:#f7f3ec;
+  --card:#fffdf9;
+  --line:#e6ddcf;
+  --accent:#d9480f;
+  --accent-soft:#fff0e6;
+  --blue:#1864ab;
+  --blue-soft:#e7f1fb;
+  --green:#2b8a3e;
+  --green-soft:#e6f4ea;
+  --red:#c92a2a;
+  --red-soft:#fdecec;
+  --amber-soft:#fff4db;
+  --radius:16px;
+  --shadow:0 1px 2px rgba(27,39,53,.05),0 10px 26px -18px rgba(27,39,53,.45);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:76px}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:17px;line-height:1.8;
+  background-image:radial-gradient(circle at 12% -5%,#fff6e6 0,rgba(255,246,230,0) 42%),
+                   radial-gradient(circle at 100% 18%,#eaf4ef 0,rgba(234,244,239,0) 36%);
+  background-repeat:no-repeat;
+}
+svg{max-width:100%}
+.wrap{max-width:1000px;margin:0 auto;padding:0 20px}
+#bar{position:fixed;top:0;left:0;height:3px;width:0;z-index:80;
+  background:linear-gradient(90deg,#d9480f,#f08c00 60%,#f7c948);transition:width .08s linear}
+
+/* 头部 */
+.hero{position:relative;overflow:hidden;padding:54px 0 46px;color:#fff;
+  background:linear-gradient(140deg,#16293a 0%,#23455b 52%,#2e5c56 100%)}
+.hero::after{content:"";position:absolute;right:-90px;bottom:-140px;width:360px;height:360px;
+  border-radius:50%;background:radial-gradient(circle,rgba(255,196,94,.30),rgba(255,196,94,0) 68%)}
+.hero .wrap{position:relative;z-index:1}
+.kicker{margin:0;font-size:.86rem;letter-spacing:.12em;color:#ffd9a8}
+.hero h1{margin:.15em 0 .12em;font-size:clamp(2rem,5.2vw,2.9rem);letter-spacing:.05em}
+.hero-sub{margin:0 0 1.1em;color:#d7e6ef;font-size:clamp(1rem,2.2vw,1.16rem)}
+.hero-tags{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 1em;padding:0;list-style:none}
+.hero-tags li{padding:5px 14px;border-radius:999px;background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.24);font-size:.9rem}
+.hero-note{margin:0;font-size:.84rem;color:#a8c1d1}
+
+/* 目录 */
+.toc{position:sticky;top:0;z-index:70;background:rgba(253,250,244,.95);
+  border-bottom:1px solid var(--line);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.toc-inner{display:flex;gap:6px;padding-top:9px;padding-bottom:9px;overflow-x:auto;scrollbar-width:none}
+.toc-inner::-webkit-scrollbar{display:none}
+.toc a{flex:0 0 auto;padding:6px 13px;border-radius:999px;border:1px solid transparent;
+  color:var(--ink-2);text-decoration:none;font-size:.89rem;white-space:nowrap;transition:.15s}
+.toc a:hover{background:#f1ece2}
+.toc a.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* 卡片 */
+main{padding:26px 0 56px;display:flex;flex-direction:column;gap:22px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:clamp(18px,3vw,32px);box-shadow:var(--shadow)}
+.card-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.no{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;
+  border-radius:12px;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:.92rem}
+.card h2{margin:0;font-size:clamp(1.16rem,2.6vw,1.44rem);letter-spacing:.02em}
+h3{font-size:1.02rem;margin:0 0 6px;line-height:1.5}
+p{margin:.55em 0}
+.lead{font-size:1.05rem}
+.muted{color:var(--muted);font-size:.92rem}
+.kw{background:linear-gradient(transparent 58%,#ffe066 58%);padding:0 .08em;font-weight:600}
+
+/* 分数排版 */
+.frac{display:inline-flex;flex-direction:column;justify-content:center;align-items:center;
+  vertical-align:middle;text-align:center;line-height:1.02;font-size:.9em;margin:0 .16em;
+  position:relative;top:-.06em;font-variant-numeric:tabular-nums}
+.frac .num{border-bottom:1.6px solid currentColor;padding:0 .22em .05em}
+.frac .den{padding:.05em .22em 0}
+.mixed{display:inline-flex;align-items:center;gap:.06em;vertical-align:middle}
+
+/* 导入对比 */
+.compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;max-width:440px;margin:16px auto 8px}
+.cmp{margin:0;text-align:center}
+.cmp svg{width:100%;height:auto;display:block;border-radius:50%;transition:box-shadow .25s,transform .25s}
+.cmp figcaption{margin-top:9px;font-size:.9rem;color:var(--muted)}
+.cmp.ok svg{box-shadow:0 0 0 5px #b2f2bb;transform:scale(1.01)}
+.cmp.bad svg{box-shadow:0 0 0 5px #ffc9c9}
+
+/* 按钮 */
+.btn{appearance:none;border:1px solid var(--ink);background:var(--ink);color:#fff;padding:8px 18px;
+  border-radius:999px;cursor:pointer;font:inherit;font-size:.95rem;line-height:1.5;
+  transition:transform .15s,box-shadow .15s,background .15s,color .15s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 6px 14px -8px rgba(27,39,53,.6)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.55;cursor:default;transform:none;box-shadow:none}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.ghost:hover{background:#f4efe6}
+.btn.small{padding:6px 14px;font-size:.9rem}
+.btn-row{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 0}
+button:focus-visible,summary:focus-visible,a:focus-visible,input:focus-visible,
+.candy-group:focus-visible,.choices button:focus-visible{outline:3px solid #f7b267;outline-offset:2px}
+
+/* 定义与卡片 */
+.definition{background:#fbf7ef;border:1px solid var(--line);border-left:4px solid var(--accent);
+  border-radius:12px;padding:14px 18px;margin:12px 0}
+.definition p{margin:.35em 0}
+.cards3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}
+.cards2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+.mini{background:#fbf8f2;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.mini p{margin:.25em 0;font-size:.95rem}
+.mini.blue{background:var(--blue-soft);border-color:#cfe4f7}
+.mini.orange{background:#fff4e6;border-color:#f7dcc2}
+.mini.green{background:var(--green-soft);border-color:#cfe8d8}
+.formula{margin:18px 0;padding:18px;border-radius:12px;text-align:center;font-size:1.06rem;
+  background:linear-gradient(135deg,#eef6fd,#f4fbf6);border:1px solid #d6e6f5}
+.formula.big{font-size:1.28rem;padding:22px}
+.try{margin-top:20px;border-top:1px dashed var(--line);padding-top:18px}
+
+/* 糖块 */
+.candy-wrap{position:relative;border:2px dashed #d9c7a8;border-radius:14px;padding:20px 16px 16px;
+  margin:16px 0 6px;background:#fffdf8}
+.candy-label{position:absolute;top:-13px;left:16px;background:var(--card);padding:0 8px;
+  font-size:.84rem;color:var(--accent);font-weight:600}
+.candies{display:flex;flex-wrap:wrap;gap:9px;justify-content:center}
+.candies.grouped{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;max-width:430px;margin:0 auto}
+.candy{display:inline-block;width:26px;height:26px;border-radius:50%;
+  background:radial-gradient(circle at 32% 30%,#ffb86b,#e8590c);
+  box-shadow:inset -2px -3px 0 rgba(0,0,0,.12);transition:transform .2s}
+.candy-group{display:flex;flex-direction:column;align-items:center;gap:9px;padding:10px 4px;
+  border:1.5px dashed transparent;border-radius:12px;cursor:pointer;transition:.2s}
+.candy-group:hover{border-color:#f0c48a;background:#fff8ec}
+.candy-group.picked{border-color:var(--accent);background:#fff3e4;transform:translateY(-2px)}
+.candy-group.dim{opacity:.3;filter:grayscale(1)}
+.candy-group.picked .candy{transform:scale(1.06)}
+.candy-group:nth-child(1) .candy{background:radial-gradient(circle at 32% 30%,#ffc078,#e8590c)}
+.candy-group:nth-child(2) .candy{background:radial-gradient(circle at 32% 30%,#a5d8ff,#1971c2)}
+.candy-group:nth-child(3) .candy{background:radial-gradient(circle at 32% 30%,#b2f2bb,#2f9e44)}
+.candy-group:nth-child(4) .candy{background:radial-gradient(circle at 32% 30%,#eebefa,#9c36b5)}
+
+/* 书写演示 */
+.write-demo{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin:14px 0 6px}
+.steps{display:flex;flex-direction:column;gap:8px;flex:1 1 190px;font-size:.94rem}
+.step{display:flex;gap:9px;align-items:center;padding:7px 11px;border-radius:10px;
+  border:1px solid var(--line);background:#fff;color:var(--muted);transition:.2s}
+.step.on{background:var(--amber-soft);border-color:#f3c67a;color:var(--ink);font-weight:600}
+.badge{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:50%;background:#efe7d8;color:var(--ink-2);font-size:.78rem;font-weight:700}
+.step.on .badge{background:var(--accent);color:#fff}
+.write-area{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  width:140px;height:172px;border:1px dashed #d9c7a8;border-radius:14px;background:#fffdf8;
+  font-size:42px;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
+.w-line{height:3px;width:0;background:var(--ink);border-radius:2px;margin:10px 0;transition:width .35s ease}
+.w-num,.w-den{padding:0 6px;opacity:0;transition:opacity .3s ease}
+.write-area.s1 .w-line{width:66px}
+.write-area.s2 .w-den{opacity:1}
+.write-area.s3 .w-num{opacity:1}
+
+/* 小工具 */
+.widget{border:1px solid var(--line);border-radius:14px;padding:16px;background:#fbf8f2;margin-top:18px}
+.widget label{display:block;font-size:.95rem;margin-bottom:6px}
+input[type=range]{width:100%;accent-color:var(--accent);margin:8px 0 12px;height:26px}
+.widget-out{font-size:1.02rem;text-align:center;background:#fff;border-radius:10px;
+  padding:14px;border:1px solid var(--line);line-height:2}
+.widget-out .muted{line-height:1.7}
+
+/* 判断题 */
+.quiz{background:#fcfaf5;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:14px}
+.quiz .q{margin:0 0 6px;font-weight:500}
+.choices{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 0}
+.choices button{border:1.5px solid var(--line);background:#fff;color:var(--ink);padding:8px 18px;
+  border-radius:12px;cursor:pointer;font:inherit;font-size:.95rem;transition:.15s}
+.choices button:hover{border-color:var(--ink);background:#fbf8f2}
+.choices button.right{border-color:var(--green);background:var(--green-soft);color:var(--green);font-weight:600}
+.choices button.wrong{border-color:var(--red);background:var(--red-soft);color:var(--red)}
+.fb{min-height:1.5em;margin:10px 0 0;font-size:.92rem;color:var(--ink-2)}
+.explain{margin-top:10px;border-left:3px solid var(--accent);background:#fff8f0;
+  padding:10px 14px;border-radius:0 10px 10px 0;font-size:.95rem}
+.explain[hidden]{display:none}
+.explain.reveal{animation:fade .3s ease}
+@keyframes fade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+/* 易错卡片 */
+.mistake{border:1px solid var(--line);border-radius:14px;padding:6px 18px 14px;margin-bottom:14px;background:#fffdf8}
+.mistake:last-child{margin-bottom:0}
+
+/* 例题 */
+.ex-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;
+  flex-wrap:wrap;margin-bottom:14px}
+.ex-toolbar p{margin:0}
+.ex{border:1px solid var(--line);border-radius:14px;background:#fffdf9;padding:16px 18px;margin-bottom:14px}
+.ex:last-child{margin-bottom:0}
+.ex-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.tag{background:var(--blue-soft);color:var(--blue);font-weight:700;padding:2px 10px;
+  border-radius:8px;font-size:.85rem}
+.lv{font-size:.78rem;color:var(--muted);border:1px solid var(--line);padding:2px 9px;border-radius:999px}
+.lv.ext{color:var(--accent);border-color:#f3c67a;background:#fff8ee}
+.stem{margin:0 0 10px}
+.stem p{margin:.18em 0}
+details.answer{margin-top:4px}
+details.answer summary{display:inline-flex;align-items:center;gap:6px;cursor:pointer;list-style:none;
+  background:#eef6fd;color:#1864ab;border:1px solid #cfe4f7;padding:6px 16px;border-radius:999px;
+  font-size:.9rem;font-weight:600;-webkit-user-select:none;user-select:none;transition:.15s}
+details.answer summary:hover{background:#e2effb}
+details.answer summary::-webkit-details-marker{display:none}
+details.answer summary::before{content:"▾";display:inline-block;transition:transform .2s}
+details.answer:not([open]) summary::before{transform:rotate(-90deg)}
+details.answer[open] summary{background:#dcebfa}
+.s-close{display:none}
+details[open] .s-open{display:none}
+details[open] .s-close{display:inline}
+.ans-body{margin-top:12px;border-left:3px solid #b2d8f5;background:#f4faff;
+  padding:12px 16px;border-radius:0 12px 12px 0}
+.ans-body p{margin:.3em 0}
+.mk{display:inline-block;font-size:.78rem;padding:1px 8px;border-radius:6px;background:#e7f1fb;
+  color:#1864ab;margin-right:6px;font-weight:600;vertical-align:1px}
+.mk.warn{background:#fff0e6;color:#d9480f}
+
+/* 表格与提示 */
+.table-wrap{overflow-x:auto;margin:14px 0}
+table{width:100%;border-collapse:collapse;font-size:.95rem;background:#fff;border-radius:12px;overflow:hidden}
+th,td{border:1px solid var(--line);padding:9px 14px;text-align:left}
+th{background:#f4efe6;font-weight:600}
+tbody tr:nth-child(even){background:#fdfbf7}
+.warn{background:#fff5f5;border:1px solid #ffd8d8;border-radius:12px;padding:12px 16px;
+  margin:14px 0;font-size:.96rem}
+.warn strong{color:var(--red)}
+.aside{background:#f4f9ff;border:1px solid #d6e6f5;border-radius:12px;padding:12px 16px;
+  margin:14px 0;font-size:.95rem}
+
+/* 数轴 */
+.numberline{width:100%;height:auto;display:block;margin:6px 0 2px}
+.numberline text{font-family:inherit}
+.legend{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:.88rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.dot.blue{background:#1864ab}
+.dot.orange{background:#d9480f}
+
+/* 小结 */
+.summary-box{background:#fbf7ef;border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin:10px 0 16px}
+.summary-box p{margin:.45em 0}
+.verse{background:#172c3d;color:#f6e8c9;padding:18px 22px;border-radius:14px;margin:16px 0;
+  text-align:center;line-height:2.1;font-size:1.02rem;letter-spacing:.03em}
+.verse p{margin:0}
+.checklist label{display:flex;gap:10px;align-items:flex-start;padding:9px 0;
+  border-bottom:1px dashed var(--line);font-size:.96rem;cursor:pointer}
+.checklist label:last-child{border-bottom:0}
+.checklist input{margin-top:.42em;accent-color:var(--accent);width:18px;height:18px;flex:0 0 auto}
+.checklist input:checked + span{color:var(--muted);text-decoration:line-through}
+
+footer{border-top:1px solid var(--line);padding:24px 0 44px;color:var(--muted);
+  font-size:.85rem;text-align:center}
+
+@media (max-width:720px){
+  body{font-size:16px}
+  .cards3,.cards2{grid-template-columns:1fr}
+  .write-demo{gap:14px}
+  .write-area{width:124px;height:156px;font-size:36px}
+  .candies.grouped{grid-template-columns:repeat(2,minmax(0,1fr));max-width:270px}
+  .toc a{font-size:.84rem;padding:5px 11px}
+}
+@media (max-width:420px){
+  .compare{gap:12px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none !important;animation:none !important}
+  html{scroll-behavior:auto}
+}
+@media print{
+  #bar,.toc{display:none}
+  body{background:#fff;font-size:12pt}
+  .hero{background:#fff;color:#000;padding:0 0 12px}
+  .hero-sub,.hero-note,.kicker{color:#333}
+  .hero-tags li{border-color:#ccc;background:#fff;color:#000}
+  .card,.ex,.quiz,.mini{box-shadow:none;break-inside:avoid}
+  details summary{display:none}
+  details > *{display:block !important}
+  .btn{display:none}
+}
+</style>
+</head>
+<body>
+<div id="bar" aria-hidden="true"></div>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="kicker">小学数学 · 五年级 · 一页课件</p>
+    <h1>认识分数</h1>
+    <p class="hero-sub">分数的意义与读写：从「平均分」到「单位 1」</p>
+    <ul class="hero-tags">
+      <li>说出分数的意义</li>
+      <li>正确读、写分数</li>
+      <li>分清真分数与假分数</li>
+    </ul>
+    <p class="hero-note">建议用时 20 分钟 · 答案可反复点开 · 不需要联网</p>
+  </div>
+</header>
+
+<nav class="toc" aria-label="本课目录">
+  <div class="wrap toc-inner">
+    <a href="#intro" class="active">01 导入</a>
+    <a href="#meaning">02 意义</a>
+    <a href="#readwrite">03 读写</a>
+    <a href="#division">04 除法</a>
+    <a href="#types">05 分类</a>
+    <a href="#mistakes">06 易错</a>
+    <a href="#examples">07 例题</a>
+    <a href="#summary">08 小结</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <!-- 01 导入 -->
+  <section class="card" id="intro">
+    <div class="card-head"><span class="no">01</span><h2>情境导入：怎样分才公平？</h2></div>
+    <p class="lead">小明过生日，要把一个蛋糕分给 4 个人。下面两种分法，哪一种的<strong>每一份</strong>，才是这个蛋糕的
+      <span class="frac"><span class="num">1</span><span class="den">4</span></span>？</p>
+
+    <div class="compare">
+      <figure class="cmp" data-cmp="fair">
+        <svg viewBox="0 0 100 100" role="img" aria-label="一个圆被平均分成四份，四份大小相同">
+          <circle cx="50" cy="50" r="44" fill="#f4e9d8"/>
+          <path d="M50 50 L50 6 A44 44 0 0 1 94 50 Z" fill="#ffd8a8"/>
+          <path d="M50 50 L94 50 A44 44 0 0 1 50 94 Z" fill="#ffc078"/>
+          <path d="M50 50 L50 94 A44 44 0 0 1 6 50 Z" fill="#ffa94d"/>
+          <path d="M50 50 L6 50 A44 44 0 0 1 50 6 Z" fill="#ff922b"/>
+          <circle cx="50" cy="50" r="44" fill="none" stroke="#a8551a" stroke-width="1.6"/>
+        </svg>
+        <figcaption>分法 A</figcaption>
+      </figure>
+      <figure class="cmp" data-cmp="unfair">
+        <svg viewBox="0 0 100 100" role="img" aria-label="一个圆被分成四份，四份大小不一样">
+          <circle cx="50" cy="50" r="44" fill="#efe9df"/>
+          <path d="M50 50 L50 6 A44 44 0 0 1 93.3 57.6 Z" fill="#d8d2c6"/>
+          <path d="M50 50 L93.3 57.6 A44 44 0 0 1 65.1 91.4 Z" fill="#e4ded2"/>
+          <path d="M50 50 L65.1 91.4 A44 44 0 0 1 6.7 42.4 Z" fill="#cfc8ba"/>
+          <path d="M50 50 L6.7 42.4 A44 44 0 0 1 50 6 Z" fill="#e9e3d7"/>
+          <circle cx="50" cy="50" r="44" fill="none" stroke="#8a8378" stroke-width="1.6"/>
+        </svg>
+        <figcaption>分法 B</figcaption>
+      </figure>
+    </div>
+
+    <div class="btn-row" style="justify-content:center">
+      <button class="btn" data-pick="fair" type="button">选分法 A</button>
+      <button class="btn ghost" data-pick="unfair" type="button">选分法 B</button>
+    </div>
+    <p class="fb" id="introFb" role="status">点一个分法，看看结果。</p>
+
+    <div class="aside" style="margin-top:16px">
+      <strong>关键前提：</strong>分数必须建立在「<strong>平均分</strong>」上——每一份一样大，才能用分数表示。不平均分，只能用别的说法。
+    </div>
+  </section>
+
+  <!-- 02 意义 -->
+  <section class="card" id="meaning">
+    <div class="card-head"><span class="no">02</span><h2>分数的意义</h2></div>
+    <p class="lead">先认识一个关键角色——<strong class="kw">单位「1」</strong>。</p>
+
+    <div class="definition">
+      <p>一个物体、一个计量单位，或者由许多物体组成的<strong>一个整体</strong>，都可以用自然数 <b>1</b> 表示，通常叫做<strong>单位「1」</strong>。</p>
+      <p>把单位「1」<strong class="kw">平均分成</strong>若干份，表示这样<strong>一份或几份</strong>的数，叫做<strong class="kw">分数</strong>；表示其中一份的数，叫做<strong class="kw">分数单位</strong>。</p>
+    </div>
+
+    <div class="cards3">
+      <div class="mini">
+        <h3>单位「1」</h3>
+        <p>可以是 1 个蛋糕、1 米、1 小时，也可以是 12 颗糖、全班 40 人这样的一整个整体。</p>
+      </div>
+      <div class="mini">
+        <h3>分数</h3>
+        <p>把单位「1」平均分成 <b>n</b> 份，取其中的 <b>m</b> 份，就是
+          <span class="frac"><span class="num">m</span><span class="den">n</span></span>。</p>
+      </div>
+      <div class="mini">
+        <h3>分数单位</h3>
+        <p>平均分成 <b>n</b> 份后，其中的 1 份就是
+          <span class="frac"><span class="num">1</span><span class="den">n</span></span>。
+          <span class="frac"><span class="num">3</span><span class="den">4</span></span> 的分数单位是
+          <span class="frac"><span class="num">1</span><span class="den">4</span></span>。</p>
+      </div>
+    </div>
+
+    <div class="formula">
+      把单位「1」平均分成 <b>n</b> 份，每份就是
+      <span class="frac"><span class="num">1</span><span class="den">n</span></span>，取 <b>m</b> 份就是
+      <span class="frac"><span class="num">m</span><span class="den">n</span></span>。
+    </div>
+
+    <div class="try">
+      <h3>试一试：把 12 颗糖看成一个整体</h3>
+      <p class="muted">下面是 12 颗糖，它们组成一个整体，这个整体就是单位「1」。</p>
+      <div class="candy-wrap">
+        <span class="candy-label">单位「1」：12 颗糖</span>
+        <div class="candies" id="candies">
+          <span class="candy"></span><span class="candy"></span><span class="candy"></span>
+          <span class="candy"></span><span class="candy"></span><span class="candy"></span>
+          <span class="candy"></span><span class="candy"></span><span class="candy"></span>
+          <span class="candy"></span><span class="candy"></span><span class="candy"></span>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn small" id="candySplit" type="button">平均分成 4 份</button>
+        <button class="btn small ghost" id="candyReset" type="button">还原</button>
+      </div>
+      <p class="fb" id="candyFb" role="status">先点「平均分成 4 份」，再点其中一份。</p>
+    </div>
+
+    <div class="widget">
+      <label for="denRange">分数单位小工具：分母 <b id="denVal">4</b>（拖动滑块试一试）</label>
+      <input type="range" id="denRange" min="2" max="12" step="1" value="4">
+      <div class="widget-out" id="widgetOut"></div>
+    </div>
+    <p class="muted" style="margin-top:10px">记住：<strong>分母</strong>决定分数单位是几分之一，<strong>分子</strong>决定有几个这样的分数单位。分数单位与分子无关。</p>
+  </section>
+
+  <!-- 03 读写 -->
+  <section class="card" id="readwrite">
+    <div class="card-head"><span class="no">03</span><h2>读一读，写一写</h2></div>
+
+    <div class="cards2">
+      <div class="mini">
+        <h3>读分数：先分母，后分子</h3>
+        <p>看到
+          <span class="frac"><span class="num">3</span><span class="den">4</span></span>，
+          先看下面的分母 4，读「四分之」，再看上面的分子 3，读「三」。</p>
+        <p><strong>读作：四分之三。</strong></p>
+        <p class="muted">不要读成「三分之四」——那是另一个数
+          <span class="frac"><span class="num">4</span><span class="den">3</span></span>。</p>
+      </div>
+      <div class="mini">
+        <h3>写分数：先分数线，再分母，最后分子</h3>
+        <div class="write-demo">
+          <div class="steps">
+            <div class="step"><span class="badge">1</span><span>先写分数线（一条横线）</span></div>
+            <div class="step"><span class="badge">2</span><span>再写分母 6（写在横线下面）</span></div>
+            <div class="step"><span class="badge">3</span><span>最后写分子 5（写在横线上面）</span></div>
+          </div>
+          <div class="write-area" id="writeArea" aria-label="按顺序写出六分之五">
+            <div class="w-num">5</div>
+            <div class="w-line"></div>
+            <div class="w-den">6</div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn small" id="writePlay" type="button">演示书写顺序</button>
+        </div>
+        <p class="muted">分数线画直，分子在上、分母在下，上下要对齐。</p>
+      </div>
+    </div>
+
+    <div class="quiz" data-answer="a">
+      <p class="q">看到
+        <span class="frac"><span class="num">5</span><span class="den">8</span></span>，
+        它应该怎么读？</p>
+      <div class="choices">
+        <button type="button" data-v="a" data-msg="对！先读分母 8，再读分子 5，读作「八分之五」。">八分之五</button>
+        <button type="button" data-v="b" data-msg="不对。「五分之八」先读了分子，顺序反了；而且它对应的是另一个分数 8/5。">五分之八</button>
+        <button type="button" data-v="c" data-msg="不规范。正确的读法是「八分之五」，中间的「之」字不能省。">八分五</button>
+      </div>
+      <p class="fb" role="status"></p>
+    </div>
+  </section>
+
+  <!-- 04 除法 -->
+  <section class="card" id="division">
+    <div class="card-head"><span class="no">04</span><h2>分数与除法的关系</h2></div>
+    <p>把 <b>a</b> 平均分成 <b>b</b> 份，每份就是 <b>a ÷ b</b>，也就是
+      <span class="frac"><span class="num">a</span><span class="den">b</span></span>。</p>
+
+    <div class="formula big">a ÷ b =
+      <span class="frac"><span class="num">a</span><span class="den">b</span></span>
+      <span style="font-size:.9rem;color:#6e7f93">（b ≠ 0）</span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <caption class="muted" style="text-align:left;padding-bottom:6px">除法与分数对照</caption>
+        <thead><tr><th scope="col">除法</th><th scope="col">分数</th></tr></thead>
+        <tbody>
+          <tr><td>被除数 a</td><td>分子 a</td></tr>
+          <tr><td>除数 b</td><td>分母 b</td></tr>
+          <tr><td>商</td><td>分数值</td></tr>
+          <tr><td>除号 ÷</td><td>分数线</td></tr>
+          <tr><td>除数不能为 0</td><td>分母不能为 0</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="warn">
+      <strong>为什么分母不能为 0？</strong>
+      因为 0 不能作除数。除法里除数不能是 0，所以写成分数时，<strong>分母也不能是 0</strong>。
+    </div>
+
+    <div class="aside">
+      <strong>快速练：</strong>7 ÷ 9 =
+      <span class="frac"><span class="num">7</span><span class="den">9</span></span>；
+      9 ÷ 7 =
+      <span class="frac"><span class="num">9</span><span class="den">7</span></span>（因为被除数比除数大，结果大于 1，是假分数）。
+    </div>
+  </section>
+
+  <!-- 05 分类 -->
+  <section class="card" id="types">
+    <div class="card-head"><span class="no">05</span><h2>真分数、假分数和带分数</h2></div>
+
+    <div class="cards3">
+      <div class="mini blue">
+        <h3>真分数</h3>
+        <p><strong>分子 &lt; 分母</strong></p>
+        <p>值小于 1，如
+          <span class="frac"><span class="num">3</span><span class="den">4</span></span>、
+          <span class="frac"><span class="num">5</span><span class="den">8</span></span>。</p>
+      </div>
+      <div class="mini orange">
+        <h3>假分数</h3>
+        <p><strong>分子 ≥ 分母</strong></p>
+        <p>值大于或等于 1，如
+          <span class="frac"><span class="num">7</span><span class="den">3</span></span>、
+          <span class="frac"><span class="num">5</span><span class="den">5</span></span>。
+          注意
+          <span class="frac"><span class="num">5</span><span class="den">5</span></span>
+          = 1，它也是假分数。</p>
+      </div>
+      <div class="mini green">
+        <h3>带分数</h3>
+        <p><strong>整数 + 真分数</strong></p>
+        <p>如
+          <span class="mixed"><span>2</span><span class="frac"><span class="num">1</span><span class="den">4</span></span></span>，
+          读作「二又四分之一」。</p>
+      </div>
+    </div>
+
+    <h3 class="sub" style="margin-top:20px">在数轴上看看</h3>
+    <svg class="numberline" viewBox="0 0 640 120" role="img" aria-label="数轴上标出四分之三、五分之五、三分之四和三分之七的位置">
+      <line x1="14" y1="64" x2="628" y2="64" stroke="#1b2735" stroke-width="2" stroke-linecap="round"/>
+      <polygon points="638,64 620,57 620,71" fill="#1b2735"/>
+      <g stroke="#1b2735" stroke-width="1.6">
+        <line x1="20" y1="57" x2="20" y2="71"/>
+        <line x1="220" y1="57" x2="220" y2="71"/>
+        <line x1="420" y1="57" x2="420" y2="71"/>
+        <line x1="620" y1="57" x2="620" y2="71"/>
+      </g>
+      <g fill="#1b2735" font-size="16" text-anchor="middle">
+        <text x="20" y="98">0</text>
+        <text x="220" y="98">1</text>
+        <text x="420" y="98">2</text>
+        <text x="620" y="98">3</text>
+      </g>
+      <circle cx="170" cy="64" r="6.5" fill="#1864ab"/>
+      <text x="170" y="40" fill="#1864ab" font-size="14" text-anchor="middle">3/4</text>
+      <circle cx="220" cy="64" r="6.5" fill="#d9480f"/>
+      <text x="220" y="40" fill="#d9480f" font-size="14" text-anchor="middle">5/5 = 1</text>
+      <circle cx="287" cy="64" r="6.5" fill="#d9480f"/>
+      <text x="287" y="40" fill="#d9480f" font-size="14" text-anchor="middle">4/3</text>
+      <circle cx="487" cy="64" r="6.5" fill="#d9480f"/>
+      <text x="487" y="40" fill="#d9480f" font-size="14" text-anchor="middle">7/3</text>
+    </svg>
+    <div class="legend">
+      <span><i class="dot blue"></i>真分数（小于 1）</span>
+      <span><i class="dot orange"></i>假分数（大于或等于 1）</span>
+    </div>
+
+    <div class="cards2">
+      <div class="mini">
+        <h3>假分数 → 带分数</h3>
+        <p>分子 ÷ 分母：<strong>商</strong>作整数，<strong>余数</strong>作分子，分母不变。</p>
+        <p>7 ÷ 3 = 2 余 1，所以
+          <span class="frac"><span class="num">7</span><span class="den">3</span></span> =
+          <span class="mixed"><span>2</span><span class="frac"><span class="num">1</span><span class="den">3</span></span></span>。</p>
+      </div>
+      <div class="mini">
+        <h3>带分数 → 假分数</h3>
+        <p><strong>整数 × 分母 + 分子</strong>，结果作分子，分母不变。</p>
+        <p>2 × 4 + 1 = 9，所以
+          <span class="mixed"><span>2</span><span class="frac"><span class="num">1</span><span class="den">4</span></span></span> =
+          <span class="frac"><span class="num">9</span><span class="den">4</span></span>。</p>
+      </div>
+    </div>
+
+    <div class="aside">
+      <strong>拓展一句：</strong>分子相同时，分母越大，分数反而越小。例如
+      <span class="frac"><span class="num">1</span><span class="den">2</span></span> &gt;
+      <span class="frac"><span class="num">1</span><span class="den">5</span></span>，
+      因为把同一个整体分成的份数越多，每一份就越小。
+    </div>
+  </section>
+
+  <!-- 06 易错 -->
+  <section class="card" id="mistakes">
+    <div class="card-head"><span class="no">06</span><h2>易错点：判断对错</h2></div>
+    <p class="muted">先自己判断，点「对」或「错」，再看解析。</p>
+
+    <div class="mistake">
+      <div class="quiz" data-answer="false" style="margin-top:12px">
+        <p class="q">① 把一个圆随意分成 4 份，取其中 1 份，就是圆的
+          <span class="frac"><span class="num">1</span><span class="den">4</span></span>。</p>
+        <div class="choices">
+          <button type="button" data-v="true">✓ 对</button>
+          <button type="button" data-v="false">✗ 错</button>
+        </div>
+        <p class="fb" role="status"></p>
+        <div class="explain" hidden>
+          <p><strong>这是错的。</strong>分数必须以<strong>平均分</strong>为前提。随意分成的 4 份大小不一样，其中一份可能比
+            <span class="frac"><span class="num">1</span><span class="den">4</span></span>
+            多，也可能比它少，不能叫
+            <span class="frac"><span class="num">1</span><span class="den">4</span></span>。</p>
+          <p>可以让学生比一比：只有每份一样大，那一份才是整个圆的四分之一。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="mistake">
+      <div class="quiz" data-answer="false" style="margin-top:12px">
+        <p class="q">②
+          <span class="frac"><span class="num">3</span><span class="den">4</span></span>
+          的分数单位是
+          <span class="frac"><span class="num">1</span><span class="den">3</span></span>。</p>
+        <div class="choices">
+          <button type="button" data-v="true">✓ 对</button>
+          <button type="button" data-v="false">✗ 错</button>
+        </div>
+        <p class="fb" role="status"></p>
+        <div class="explain" hidden>
+          <p><strong>这是错的。</strong>分数单位是「平均分成若干份后，其中的一份」，<strong>只看分母</strong>。</p>
+          <p>把单位「1」平均分成 4 份，一份就是
+            <span class="frac"><span class="num">1</span><span class="den">4</span></span>，所以
+            <span class="frac"><span class="num">3</span><span class="den">4</span></span> 的分数单位是
+            <span class="frac"><span class="num">1</span><span class="den">4</span></span>，它有 3 个这样的分数单位。</p>
+          <p>口诀：<strong>分母管“几分之一”，分子管“有几个”</strong>。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="mistake">
+      <div class="quiz" data-answer="false" style="margin-top:12px">
+        <p class="q">③ 假分数一定大于 1。</p>
+        <div class="choices">
+          <button type="button" data-v="true">✓ 对</button>
+          <button type="button" data-v="false">✗ 错</button>
+        </div>
+        <p class="fb" role="status"></p>
+        <div class="explain" hidden>
+          <p><strong>这是错的。</strong>假分数是分子大于或等于分母的分数，它的值<strong>大于或等于 1</strong>。</p>
+          <p>
+            <span class="frac"><span class="num">5</span><span class="den">5</span></span> 就是 1，
+            <span class="frac"><span class="num">4</span><span class="den">4</span></span>、
+            <span class="frac"><span class="num">6</span><span class="den">6</span></span>
+            也都是 1，它们都是假分数。</p>
+          <p>可以在数轴上找位置：不到 1 的是真分数，到 1 或超过 1 的是假分数。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 例题 -->
+  <section class="card" id="examples">
+    <div class="card-head"><span class="no">07</span><h2>例题：由浅入深</h2></div>
+    <div class="ex-toolbar">
+      <p class="muted">先自己算，再点开答案核对。例 1—例 4 必做，例 5—例 6 供学有余力者。</p>
+      <button class="btn small ghost" id="toggleAll" type="button">展开全部答案</button>
+    </div>
+
+    <article class="ex">
+      <div class="ex-head"><span class="tag">例 1</span><span class="lv">基础 · 读写法与意义</span></div>
+      <div class="stem">
+        <p>把一个蛋糕平均分成 8 份，取其中的 3 份。</p>
+        <p>(1) 用分数表示是多少？怎么读？</p>
+        <p>(2) 请写出分数
+          <span class="frac"><span class="num">5</span><span class="den">6</span></span>。</p>
+      </div>
+      <details class="answer">
+        <summary><span class="s-open">点开答案</span><span class="s-close">收起答案</span></summary>
+        <div class="ans-body">
+          <p><strong>(1)</strong>
+            <span class="frac"><span class="num">3</span><span class="den">8</span></span>，
+            读作「八分之三」。分母 8 表示把蛋糕平均分成 8 份，分子 3 表示取了其中的 3 份。</p>
+          <p><strong>(2)</strong>先写分数线，再写分母 6，最后写分子 5，得到
+            <span class="frac"><span class="num">5</span><span class="den">6</span></span>。</p>
+          <p><span class="mk">评分点</span>是否写对
+            <span class="frac"><span class="num">3</span><span class="den">8</span></span>；
+            读法是否「先分母后分子」；书写的上下位置是否正确。</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="ex">
+      <div class="ex-head"><span class="tag">例 2</span><span class="lv">基础 · 分数单位与单位「1」</span></div>
+      <div class="stem">
+        <p>(1)
+          <span class="frac"><span class="num">7</span><span class="den">9</span></span>
+          的分数单位是多少？它有几个这样的分数单位？</p>
+        <p>(2) 把 12 颗糖平均分成 4 份，每份是这些糖的几分之几？每份有几颗？</p>
+      </div>
+      <details class="answer">
+        <summary><span class="s-open">点开答案</span><span class="s-close">收起答案</span></summary>
+        <div class="ans-body">
+          <p><strong>(1)</strong>分数单位是
+            <span class="frac"><span class="num">1</span><span class="den">9</span></span>，
+            <span class="frac"><span class="num">7</span><span class="den">9</span></span>
+            有 7 个这样的分数单位。</p>
+          <p><strong>(2)</strong>每份是这些糖的
+            <span class="frac"><span class="num">1</span><span class="den">4</span></span>，
+            每份有 3 颗。这里的单位「1」是「12 颗糖」这个整体。</p>
+          <p><span class="mk">评分点</span>分数单位是否只看分母；能否把「许多物体」看成一个整体。</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="ex">
+      <div class="ex-head"><span class="tag">例 3</span><span class="lv">基础 · 分数与除法</span></div>
+      <div class="stem">
+        <p>把 3 米长的绳子平均分成 5 段。</p>
+        <p>(1) 每段长多少米？</p>
+        <p>(2) 每段占全长的几分之几？</p>
+      </div>
+      <details class="answer">
+        <summary><span class="s-open">点开答案</span><span class="s-close">收起答案</span></summary>
+        <div class="ans-body">
+          <p><strong>(1)</strong>3 ÷ 5 =
+            <span class="frac"><span class="num">3</span><span class="den">5</span></span>（米）。</p>
+          <p><strong>(2)</strong>1 ÷ 5 =
+            <span class="frac"><span class="num">1</span><span class="den">5</span></span>。</p>
+          <p><span class="mk warn">辨析</span>
+            <span class="frac"><span class="num">3</span><span class="den">5</span></span> 米是具体长度，要带单位「米」；
+            <span class="frac"><span class="num">1</span><span class="den">5</span></span> 是分率，表示占全长的比例，不带单位。</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="ex">
+      <div class="ex-head"><span class="tag">例 4</span><span class="lv">基础 · 假分数与带分数</span></div>
+      <div class="stem">
+        <p>(1) 把
+          <span class="frac"><span class="num">7</span><span class="den">3</span></span>
+          化成带分数。</p>
+        <p>(2) 把
+          <span class="mixed"><span>2</span><span class="frac"><span class="num">1</span><span class="den">4</span></span></span>
+          化成假分数。</p>
+        <p>(3) 判断：
+          <span class="frac"><span class="num">5</span><span class="den">5</span></span>
+          是真分数还是假分数？</p>
+      </div>
+      <details class="answer">
+        <summary><span class="s-open">点开答案</span><span class="s-close">收起答案</span></summary>
+        <div class="ans-body">
+          <p><strong>(1)</strong>7 ÷ 3 = 2 余 1，所以
+            <span class="frac"><span class="num">7</span><span class="den">3</span></span> =
+            <span class="mixed"><span>2</span><span class="frac"><span class="num">1</span><span class="den">3</span></span></span>。</p>
+          <p><strong>(2)</strong>2 × 4 + 1 = 9，所以
+            <span class="mixed"><span>2</span><span class="frac"><span class="num">1</span><span class="den">4</span></span></span> =
+            <span class="frac"><span class="num">9</span><span class="den">4</span></span>。</p>
+          <p><strong>(3)</strong>假分数，它的值等于 1。</p>
+          <p><span class="mk warn">易错</span>带分数化假分数时，分母不变；用「整数 × 分母 + 分子」作分子。</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="ex">
+      <div class="ex-head"><span class="tag">例 5</span><span class="lv ext">拓展 · 分数基本性质与约分</span></div>
+      <div class="stem">
+        <p>把
+          <span class="frac"><span class="num">18</span><span class="den">24</span></span>
+          化成最简分数。</p>
+      </div>
+      <details class="answer">
+        <summary><span class="s-open">点开答案</span><span class="s-close">收起答案</span></summary>
+        <div class="ans-body">
+          <p>18 和 24 同时除以 6：18 ÷ 6 = 3，24 ÷ 6 = 4，所以
+            <span class="frac"><span class="num">18</span><span class="den">24</span></span> =
+            <span class="frac"><span class="num">3</span><span class="den">4</span></span>。</p>
+          <p><strong>依据：</strong>分数的分子和分母同时乘或除以相同的数（0 除外），分数的大小不变。</p>
+          <p><span class="mk warn">易错</span>只能同时乘或同时除，不能同时加或同时减。</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="ex">
+      <div class="ex-head"><span class="tag">例 6</span><span class="lv ext">挑战 · 带单位与不带单位</span></div>
+      <div class="stem">
+        <p>一根绳子剪成两段，第一段长
+          <span class="frac"><span class="num">3</span><span class="den">5</span></span> 米，
+          第二段占全长的
+          <span class="frac"><span class="num">3</span><span class="den">5</span></span>。
+          哪一段长？</p>
+      </div>
+      <details class="answer">
+        <summary><span class="s-open">点开答案</span><span class="s-close">收起答案</span></summary>
+        <div class="ans-body">
+          <p><strong>第二段长。</strong></p>
+          <p>第二段占全长的
+            <span class="frac"><span class="num">3</span><span class="den">5</span></span>，所以第一段占全长的
+            1 −
+            <span class="frac"><span class="num">3</span><span class="den">5</span></span> =
+            <span class="frac"><span class="num">2</span><span class="den">5</span></span>。</p>
+          <p>第一段的
+            <span class="frac"><span class="num">3</span><span class="den">5</span></span>
+            米，正好对应全长的
+            <span class="frac"><span class="num">2</span><span class="den">5</span></span>，所以
+            全长 =
+            <span class="frac"><span class="num">3</span><span class="den">5</span></span> ÷
+            <span class="frac"><span class="num">2</span><span class="den">5</span></span> =
+            <span class="frac"><span class="num">3</span><span class="den">2</span></span>（米）。</p>
+          <p>第二段 =
+            <span class="frac"><span class="num">3</span><span class="den">2</span></span> ×
+            <span class="frac"><span class="num">3</span><span class="den">5</span></span> =
+            <span class="frac"><span class="num">9</span><span class="den">10</span></span>（米）。</p>
+          <p>
+            <span class="frac"><span class="num">9</span><span class="den">10</span></span> 米 &gt;
+            <span class="frac"><span class="num">3</span><span class="den">5</span></span> 米（=
+            <span class="frac"><span class="num">6</span><span class="den">10</span></span> 米），
+            所以第二段长。</p>
+          <p><span class="mk warn">提醒</span>「3/5 米」是具体长度，「占全长的 3/5」是分率，两者不能直接比较。</p>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- 08 小结 -->
+  <section class="card" id="summary">
+    <div class="card-head"><span class="no">08</span><h2>课堂小结</h2></div>
+
+    <div class="summary-box">
+      <p><strong>分数</strong>：把单位「1」平均分成若干份，表示这样一份或几份的数。</p>
+      <p>分母是平均分成的份数，分子是表示的份数；<strong>分母不能为 0</strong>。</p>
+      <p>分数单位是
+        <span class="frac"><span class="num">1</span><span class="den">n</span></span>，
+        只由分母决定；分子是几，就有几个这样的分数单位。</p>
+      <p>真分数小于 1，假分数大于或等于 1，带分数由整数和真分数组成。</p>
+    </div>
+
+    <div class="verse">
+      <p>单位「1」先圈定，平均分份记分明；</p>
+      <p>分母在下说份数，分子在上说取几；</p>
+      <p>写先横线再分母，读先分母再分子。</p>
+    </div>
+
+    <div class="checklist">
+      <p class="muted">下课前三问，勾一勾：</p>
+      <label><input type="checkbox"><span>我能说出分数必须建立在「平均分」上</span></label>
+      <label><input type="checkbox"><span>我能正确读出
+        <span class="frac"><span class="num">7</span><span class="den">9</span></span>，
+        并按顺序写出一个分数</span></label>
+      <label><input type="checkbox"><span>我能判断一个分数是真分数还是假分数</span></label>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>本页可离线使用，不加载任何外部字体、图片或脚本。答案可反复展开与收起。</p>
+    <p>教学设计依据：人教版《分数的初步认识》《分数的意义和性质》与《义务教育数学课程标准（2022 年版）》第三学段。</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- 工具：数字转中文、生成分数 ---------- */
+  var CN = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+  function cn(n) {
+    n = parseInt(n, 10);
+    if (isNaN(n)) return '';
+    if (n < 10) return CN[n];
+    if (n === 10) return '十';
+    if (n < 20) return '十' + CN[n % 10];
+    var t = Math.floor(n / 10), o = n % 10;
+    return CN[t] + '十' + (o ? CN[o] : '');
+  }
+  function frac(n, d) {
+    return '<span class="frac" aria-label="' + cn(d) + '分之' + cn(n) + '">' +
+      '<span class="num">' + n + '</span><span class="den">' + d + '</span></span>';
+  }
+
+  /* ---------- 进度条 + 目录高亮 ---------- */
+  var bar = document.getElementById('bar');
+  function updateBar() {
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    var p = max > 0 ? (h.scrollTop || document.body.scrollTop) / max : 0;
+    bar.style.width = (p * 100) + '%';
+  }
+  window.addEventListener('scroll', updateBar, { passive: true });
+  window.addEventListener('resize', updateBar);
+  updateBar();
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+  var sections = links.map(function (a) { return document.querySelector(a.getAttribute('href')); });
+  function setActive() {
+    var idx = 0;
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i] && sections[i].getBoundingClientRect().top <= 150) idx = i;
+    }
+    links.forEach(function (a, i) { a.classList.toggle('active', i === idx); });
+  }
+  window.addEventListener('scroll', setActive, { passive: true });
+  window.addEventListener('resize', setActive);
+  setActive();
+
+  /* ---------- 01 导入：选择分法 ---------- */
+  var introFb = document.getElementById('introFb');
+  var cmpFair = document.querySelector('.cmp[data-cmp="fair"]');
+  var cmpUnfair = document.querySelector('.cmp[data-cmp="unfair"]');
+  Array.prototype.forEach.call(document.querySelectorAll('[data-pick]'), function (btn) {
+    btn.addEventListener('click', function () {
+      var pick = btn.getAttribute('data-pick');
+      cmpFair.classList.remove('ok', 'bad');
+      cmpUnfair.classList.remove('ok', 'bad');
+      if (pick === 'fair') {
+        cmpFair.classList.add('ok');
+        introFb.innerHTML = '对！分法 A 每份一样大，是把蛋糕<strong>平均分成 4 份</strong>，每份就是这个蛋糕的 ' +
+          frac(1, 4) + '。';
+      } else {
+        cmpUnfair.classList.add('bad');
+        introFb.innerHTML = '再想想。分法 B 的 4 份大小不一样，不叫平均分，所以不能用 ' + frac(1, 4) + ' 表示。';
+      }
+    });
+  });
+
+  /* ---------- 02 糖块分组 ---------- */
+  var candyBox = document.getElementById('candies');
+  var candyFb = document.getElementById('candyFb');
+  var candies = Array.prototype.slice.call(candyBox.querySelectorAll('.candy'));
+
+  function bindGroups() {
+    var groups = candyBox.querySelectorAll('.candy-group');
+    Array.prototype.forEach.call(groups, function (box, idx) {
+      function pick() {
+        Array.prototype.forEach.call(groups, function (b, i) {
+          b.classList.toggle('picked', i === idx);
+          b.classList.toggle('dim', i !== idx);
+        });
+        candyFb.innerHTML = '这一份是 12 颗糖这个整体的 ' + frac(1, 4) +
+          '，有 3 颗。4 份合起来就是单位「1」。';
+      }
+      box.addEventListener('click', pick);
+      box.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); }
+      });
+    });
+  }
+
+  function splitCandies() {
+    candyBox.classList.add('grouped');
+    candyBox.innerHTML = '';
+    for (var g = 0; g < 4; g++) {
+      var box = document.createElement('div');
+      box.className = 'candy-group';
+      box.setAttribute('role', 'button');
+      box.tabIndex = 0;
+      box.setAttribute('data-group', String(g));
+      box.setAttribute('aria-label', '第 ' + (g + 1) + ' 份，3 颗糖');
+      for (var i = 0; i < 3; i++) {
+        box.appendChild(candies[g * 3 + i]);
+      }
+      candyBox.appendChild(box);
+    }
+    candyFb.innerHTML = '12 颗糖被平均分成了 4 份，每份 3 颗。点其中一份看看。';
+    bindGroups();
+  }
+
+  function resetCandies() {
+    candyBox.classList.remove('grouped');
+    candyBox.innerHTML = '';
+    candies.forEach(function (el) {
+      el.className = 'candy';
+      candyBox.appendChild(el);
+    });
+    candyFb.textContent = '先点「平均分成 4 份」，再点其中一份。';
+  }
+
+  document.getElementById('candySplit').addEventListener('click', splitCandies);
+  document.getElementById('candyReset').addEventListener('click', resetCandies);
+
+  /* ---------- 02 分数单位滑块 ---------- */
+  var denRange = document.getElementById('denRange');
+  var widgetOut = document.getElementById('widgetOut');
+  var denVal = document.getElementById('denVal');
+  function renderWidget() {
+    var n = parseInt(denRange.value, 10);
+    denVal.textContent = String(n);
+    widgetOut.innerHTML = '分数 ' + frac(3, n) + ' 的分数单位是 ' + frac(1, n) +
+      '，它有 <b>3</b> 个 ' + frac(1, n) + '。<br>' +
+      '<span class="muted">分子决定「有几个」，分母决定「分数单位是几分之一」。</span>';
+  }
+  denRange.addEventListener('input', renderWidget);
+  renderWidget();
+
+  /* ---------- 03 书写顺序演示 ---------- */
+  var writeArea = document.getElementById('writeArea');
+  var writeSteps = document.querySelectorAll('.write-demo .step');
+  var writeBtn = document.getElementById('writePlay');
+  var writeTimers = [];
+  function clearWriteTimers() {
+    writeTimers.forEach(function (t) { clearTimeout(t); });
+    writeTimers = [];
+  }
+  writeBtn.addEventListener('click', function () {
+    clearWriteTimers();
+    writeArea.classList.remove('s1', 's2', 's3');
+    Array.prototype.forEach.call(writeSteps, function (s) { s.classList.remove('on'); });
+    writeBtn.disabled = true;
+
+    writeTimers.push(setTimeout(function () {
+      writeArea.classList.add('s1');
+      writeSteps[0].classList.add('on');
+    }, 300));
+    writeTimers.push(setTimeout(function () {
+      writeArea.classList.add('s2');
+      writeSteps[1].classList.add('on');
+    }, 1000));
+    writeTimers.push(setTimeout(function () {
+      writeArea.classList.add('s3');
+      writeSteps[2].classList.add('on');
+    }, 1700));
+    writeTimers.push(setTimeout(function () {
+      writeBtn.disabled = false;
+    }, 2200));
+  });
+
+  /* ---------- 判断题（读法小测 + 易错点） ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll('.quiz[data-answer]'), function (q) {
+    var fb = q.querySelector('.fb');
+    var exp = q.querySelector('.explain');
+    var buttons = q.querySelectorAll('.choices button');
+    Array.prototype.forEach.call(buttons, function (btn) {
+      btn.addEventListener('click', function () {
+        var ok = btn.getAttribute('data-v') === q.getAttribute('data-answer');
+        Array.prototype.forEach.call(buttons, function (b) {
+          b.classList.remove('right', 'wrong');
+          b.setAttribute('aria-pressed', 'false');
+        });
+        btn.classList.add(ok ? 'right' : 'wrong');
+        btn.setAttribute('aria-pressed', 'true');
+        if (exp) exp.hidden = false;
+        if (fb) {
+          var msg = btn.getAttribute('data-msg');
+          fb.innerHTML = msg ? msg : (ok ? '答对了，看看解析巩固一下。' : '再想想，看看下面的解析。');
+        }
+      });
+    });
+  });
+
+  /* ---------- 07 全部展开 / 收起 ---------- */
+  var toggleAll = document.getElementById('toggleAll');
+  var allOpen = false;
+  toggleAll.addEventListener('click', function () {
+    allOpen = !allOpen;
+    Array.prototype.forEach.call(document.querySelectorAll('details.answer'), function (d) {
+      d.open = allOpen;
+    });
+    toggleAll.textContent = allOpen ? '收起全部答案' : '展开全部答案';
+  });
+
+  /* ---------- 无障碍：为静态分数补读法 ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll('.frac'), function (f) {
+    if (f.hasAttribute('aria-label')) return;
+    var num = f.querySelector('.num');
+    var den = f.querySelector('.den');
+    if (!num || !den) return;
+    var n = num.textContent.trim();
+    var d = den.textContent.trim();
+    if (/^\d+$/.test(n) && /^\d+$/.test(d)) {
+      f.setAttribute('aria-label', cn(d) + '分之' + cn(n));
+    }
+  });
+
+  /* ---------- 打印时展开全部答案 ---------- */
+  window.addEventListener('beforeprint', function () {
+    Array.prototype.forEach.call(document.querySelectorAll('details'), function (d) {
+      d.open = true;
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>分数的意义与读写 · 五年级</title>
+<style>
+  :root{
+    --ink:#2b2b2b; --ink-2:#6b6459; --paper:#fffdf8; --bg:#f6f1e7;
+    --line:#e7ddcb; --accent:#2f7fd1; --warm:#f0932b; --good:#2e9e6b; --bad:#d9534f;
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+    line-height:1.65;
+  }
+  header{max-width:1060px; margin:0 auto; padding:32px 20px 0}
+  h1{margin:0 0 4px; font-size:clamp(24px,3.4vw,36px); letter-spacing:.02em}
+  .sub{margin:0; color:var(--ink-2)}
+  .tabs{display:flex; flex-wrap:wrap; gap:8px; margin:22px 0 14px}
+  .tab{
+    border:1px solid var(--line); background:var(--paper); color:var(--ink-2);
+    padding:8px 14px; border-radius:999px; cursor:pointer; font-size:14px;
+    font-family:inherit; transition:.18s;
+  }
+  .tab:hover{border-color:#cfc3ac; color:var(--ink)}
+  .tab.active{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600}
+  main{max-width:1060px; margin:0 auto; padding:0 20px 60px}
+  .panel{display:none; animation:fade .25s ease}
+  .panel.active{display:block}
+  @keyframes fade{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none}}
+  .card{
+    background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
+    padding:22px 24px; box-shadow:0 2px 0 rgba(0,0,0,.02);
+  }
+  .card + .card{margin-top:16px}
+  .card h2{margin:0 0 6px; font-size:19px}
+  .card h2 .no{
+    display:inline-flex; width:26px; height:26px; border-radius:8px; background:#eaf2fb;
+    color:var(--accent); font-size:14px; align-items:center; justify-content:center;
+    margin-right:8px; vertical-align:2px;
+  }
+  .lead{margin:0 0 16px; color:var(--ink-2); font-size:14px}
+  .row{display:flex; flex-wrap:wrap; gap:26px; align-items:center}
+  .row > .grow{flex:1 1 280px; min-width:260px}
+  .frac{display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle;
+        font-weight:700; line-height:1.15; font-size:1.5em; margin:0 .12em}
+  .frac b{border-bottom:2.5px solid currentColor; padding:0 .22em; font-weight:700}
+  .frac i{font-style:normal; padding:0 .22em}
+  .frac.sm{font-size:1.05em}
+  .frac.big{font-size:2.6em}
+  .eq{font-size:20px; color:var(--ink)}
+  .hint{font-size:13px; color:var(--ink-2)}
+  .pill{display:inline-block; padding:2px 9px; border-radius:999px; background:#eef7f1;
+        color:var(--good); font-size:13px; font-weight:600}
+  .pill.warm{background:#fff3e2; color:#b96a00}
+  .pill.blue{background:#eaf2fb; color:var(--accent)}
+
+  /* controls */
+  .controls{display:flex; flex-direction:column; gap:14px; min-width:240px}
+  .ctl label{display:flex; justify-content:space-between; font-size:14px; font-weight:600}
+  .ctl output{color:var(--accent); font-variant-numeric:tabular-nums}
+  input[type=range]{width:100%; accent-color:var(--accent); margin:6px 0 0}
+  .btn{
+    border:0; background:var(--accent); color:#fff; padding:9px 18px; border-radius:10px;
+    font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; transition:.15s;
+  }
+  .btn:hover{filter:brightness(1.06)}
+  .btn.ghost{background:transparent; color:var(--accent); border:1px solid #bcd5f0}
+  .btn.small{padding:6px 13px; font-size:13px}
+  .btn-row{display:flex; gap:10px; flex-wrap:wrap; margin-top:4px}
+
+  /* pie */
+  #pie{width:210px; height:210px; flex:0 0 auto; filter:drop-shadow(0 3px 6px rgba(0,0,0,.06))}
+
+  /* labels for fraction parts */
+  .partmap{display:flex; align-items:center; gap:18px; flex-wrap:wrap; justify-content:center}
+  .partmap .big-frac{position:relative; padding:6px 26px}
+  .tag{font-size:13px; font-weight:700; padding:3px 10px; border-radius:8px; white-space:nowrap}
+  .tag.n{background:#e8f3ec; color:#2c8c5c}
+  .tag.bar{background:#fdeee6; color:#c0562b}
+  .tag.d{background:#e9f1fb; color:#2f7fd1}
+  .tag-arrow{color:#b8ae9c; font-weight:400; margin:0 2px}
+
+  /* choice cards */
+  .choices{display:flex; flex-wrap:wrap; gap:10px; margin-top:12px}
+  .choice{
+    border:2px solid var(--line); background:#fff; border-radius:12px; padding:10px 16px;
+    cursor:pointer; font-family:inherit; font-size:16px; color:var(--ink);
+    min-width:76px; transition:.15s; display:flex; align-items:center; justify-content:center;
+  }
+  .choice:hover{border-color:#c9d9ec; transform:translateY(-1px)}
+  .choice.correct{border-color:var(--good); background:#eef8f2; color:#1f7a52}
+  .choice.wrong{border-color:var(--bad); background:#fdf0ef; color:#a8352f}
+  .choice:disabled{cursor:default; opacity:.75}
+  .feedback{margin-top:10px; font-size:14px; min-height:22px}
+  .feedback.ok{color:var(--good)}
+  .feedback.no{color:var(--bad)}
+
+  /* bar */
+  .bar{display:flex; height:52px; border-radius:10px; overflow:hidden; border:2px solid #4b5563; background:#fff}
+  .bar span{flex:1; border-right:1px solid #d7cfc0; background:#fffdf8}
+  .bar span:last-child{border-right:0}
+  .bar span.on{background:var(--warm)}
+
+  /* candy */
+  .candies{display:flex; flex-wrap:wrap; gap:10px; margin:12px 0}
+  .group{display:flex; gap:4px; padding:6px; border-radius:10px; border:2px dashed #e3d8c4; font-size:26px; line-height:1}
+  .group.hi{border-color:var(--warm); background:#fff4e3}
+  .group.dim{opacity:.55}
+
+  /* quiz */
+  .q{border-top:1px dashed var(--line); padding:16px 0 6px}
+  .q:first-of-type{border-top:0; padding-top:6px}
+  .q p{margin:0 0 4px; font-weight:600}
+  .score{font-size:14px; color:var(--ink-2); font-weight:600}
+  .score b{color:var(--accent); font-size:16px}
+
+  /* teacher notes */
+  .teacher{background:#fbf6ec}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; margin-top:14px}
+  .note{border-left:3px solid var(--warm); padding:2px 0 2px 12px; font-size:14px}
+  .note h3{margin:0 0 4px; font-size:14px; color:#a8620a}
+  .note ul{margin:0; padding-left:18px}
+  .note li{margin:2px 0}
+  footer{text-align:center; color:#a79c88; font-size:12px; padding:0 0 30px}
+  @media (max-width:520px){
+    .card{padding:18px 16px}
+    #pie{width:170px; height:170px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>分数的意义与读写</h1>
+  <p class="sub">五年级 · 一页可交互课件 ｜ 拖动滑块、点一点，边操作边理解</p>
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-panel="p1">① 分一分</button>
+    <button class="tab" data-panel="p2">② 意义与读写</button>
+    <button class="tab" data-panel="p3">③ 单位「1」</button>
+    <button class="tab" data-panel="p4">④ 分数单位</button>
+    <button class="tab" data-panel="p5">⑤ 闯关练习</button>
+    <button class="tab" data-panel="p6">⑥ 教学要点</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ========== ① 分一分 ========== -->
+  <section class="panel active" id="p1">
+    <div class="card">
+      <h2><span class="no">1</span>平均分，才有分数</h2>
+      <p class="lead">把一张饼平均分成若干份，取其中的几份，就能用一个分数表示。</p>
+      <div class="row">
+        <svg id="pie" viewBox="0 0 200 200" role="img" aria-label="平均分饼示意图"></svg>
+        <div class="grow">
+          <p class="eq">
+            把一张饼平均分成 <b id="d1">4</b> 份，取其中的 <b id="n1">1</b> 份，就是这张饼的
+            <span id="f1"></span>
+          </p>
+          <p class="hint">读作：<b id="r1"></b>　·　它里面有 <b id="c1">1</b> 个 <span id="u1"></span></p>
+          <div class="controls">
+            <div class="ctl">
+              <label>平均分成几份（分母）<output id="o1d">4</output></label>
+              <input type="range" id="s1d" min="2" max="12" value="4" step="1">
+            </div>
+            <div class="ctl">
+              <label>取其中的几份（分子）<output id="o1n">1</output></label>
+              <input type="range" id="s1n" min="1" max="4" value="1" step="1">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="no">?</span>想一想：这样分，行不行？</h2>
+      <p class="lead">点击判断，看看你的想法对不对。</p>
+      <div id="p1-check"></div>
+    </div>
+  </section>
+
+  <!-- ========== ② 意义与读写 ========== -->
+  <section class="panel" id="p2">
+    <div class="card">
+      <h2><span class="no">2</span>分数各部分的名称</h2>
+      <p class="lead">分数由分子、分数线、分母组成。分母表示平均分成的份数，分子表示取了这样的几份。</p>
+      <div class="partmap">
+        <div>
+          <span class="tag n">分子</span><span class="tag-arrow">→ 取了几份</span><br>
+          <span class="tag bar">分数线</span><span class="tag-arrow">→ 平均分</span><br>
+          <span class="tag d">分母</span><span class="tag-arrow">→ 分成几份</span>
+        </div>
+        <div class="big-frac"><span class="frac big"><b>3</b><i>4</i></span></div>
+        <div class="eq" style="max-width:180px">
+          读作：<b>四分之三</b><br>
+          写作：<span class="frac sm"><b>3</b><i>4</i></span>
+        </div>
+      </div>
+      <p class="hint" style="margin-top:14px">读分数：<b>先读分母，再读分子</b>，中间用「分之」连起来。</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="no">读</span>读一读</h2>
+      <p class="lead">下面这个分数怎么读？</p>
+      <div class="row">
+        <div id="read-frac"></div>
+        <div class="grow">
+          <div class="choices" id="read-choices"></div>
+          <div class="feedback" id="read-feedback"></div>
+          <div class="btn-row"><button class="btn ghost small" id="read-next">换一个 ↻</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="no">写</span>写一写</h2>
+      <p class="lead">听到读法，选出对应的分数。</p>
+      <div class="row">
+        <p class="eq grow" id="write-prompt" style="margin:0"></p>
+        <div class="choices" id="write-choices" style="margin:0"></div>
+      </div>
+      <div class="feedback" id="write-feedback"></div>
+      <div class="btn-row"><button class="btn ghost small" id="write-next">换一个 ↻</button></div>
+    </div>
+  </section>
+
+  <!-- ========== ③ 单位「1」 ========== -->
+  <section class="panel" id="p3">
+    <div class="card">
+      <h2><span class="no">3</span>单位「1」可以是什么？</h2>
+      <p class="lead">分数的意义：把单位「1」平均分成若干份，表示这样一份或几份的数，叫做分数。
+        单位「1」不只是一个物体——它可以是一个图形、一条线段，也可以是许多物体组成的一个整体。</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="no">例</span>一个圆看作单位「1」</h2>
+      <div class="row">
+        <div>
+          <span class="frac big" id="f3a"></span>
+        </div>
+        <div class="grow">
+          <svg id="pie2" viewBox="0 0 200 200" style="width:150px;height:150px"></svg>
+        </div>
+        <div class="grow">
+          <div class="controls">
+            <div class="ctl">
+              <label>平均分成几份<output id="o3d">4</output></label>
+              <input type="range" id="s3d" min="2" max="10" value="4" step="1">
+            </div>
+          </div>
+          <p class="hint" id="t3a"></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="no">例</span>一条线段看作单位「1」</h2>
+      <p class="hint" style="margin:0 0 8px">把一条线段平均分成 5 份，这样的 3 份就是它的 <span class="frac sm"><b>3</b><i>5</i></span>。</p>
+      <div class="bar" id="bar3">
+        <span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span>
+      </div>
+      <p class="hint" style="margin-top:8px">蓝色段是整条线段的 <b>五分之三</b>。</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="no">例</span>12 颗糖看作一个整体（单位「1」）</h2>
+      <p class="lead">选一种分法，看看每份是这些糖的几分之几、又是几颗。</p>
+      <div class="candies" id="candies"></div>
+      <div class="btn-row" id="candy-btns"></div>
+      <p class="eq" id="candy-text" style="margin-top:14px"></p>
+    </div>
+  </section>
+
+  <!-- ========== ④ 分数单位 ========== -->
+  <section class="panel" id="p4">
+    <div class="card">
+      <h2><span class="no">4</span>分数单位：把单位「1」平均分成的每一份</h2>
+      <p class="lead">把单位「1」平均分成几份，表示其中一份的数，就是这个分数的分数单位。分子表示有几个这样的分数单位。</p>
+      <div class="row">
+        <div class="grow">
+          <div class="bar" id="bar4"></div>
+          <div class="controls" style="margin-top:18px">
+            <div class="ctl">
+              <label>平均分成几份<output id="o4d">5</output></label>
+              <input type="range" id="s4d" min="2" max="10" value="5" step="1">
+            </div>
+            <div class="ctl">
+              <label>取其中几份<output id="o4n">3</output></label>
+              <input type="range" id="s4n" min="1" max="5" value="3" step="1">
+            </div>
+          </div>
+        </div>
+        <div class="grow" style="flex:0 1 300px">
+          <p class="eq"><span id="f4"></span></p>
+          <p class="eq" style="font-size:16px">分数单位是 <span id="u4"></span></p>
+          <p class="eq" style="font-size:16px">它里面有 <b id="n4">3</b> 个 <span id="u4b"></span></p>
+          <p class="hint" id="t4"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== ⑤ 闯关 ========== -->
+  <section class="panel" id="p5">
+    <div class="card">
+      <h2><span class="no">5</span>闯关练习</h2>
+      <p class="lead">每题选一个答案，答对答错都会告诉你为什么。</p>
+      <p class="score">得分：<b id="score">0</b> / <span id="total">5</span>　
+        <button class="btn ghost small" id="quiz-reset" style="margin-left:8px">重新闯关 ↻</button>
+      </p>
+      <div id="quiz"></div>
+    </div>
+  </section>
+
+  <!-- ========== ⑥ 教学要点 ========== -->
+  <section class="panel" id="p6">
+    <div class="card teacher">
+      <h2><span class="no">师</span>教学要点（教师用）</h2>
+      <p class="lead">配这节课使用，可投屏讲解，也可打印。</p>
+      <div class="grid">
+        <div class="note">
+          <h3>教学目标</h3>
+          <ul>
+            <li>理解分数的意义：把单位「1」平均分成若干份，表示这样一份或几份的数。</li>
+            <li>认识分子、分母、分数线，会正确读、写分数。</li>
+            <li>理解分数单位，知道一个分数里有几个分数单位。</li>
+          </ul>
+        </div>
+        <div class="note">
+          <h3>重点 / 难点</h3>
+          <ul>
+            <li>重点：分数的意义与读写。</li>
+            <li>难点：单位「1」的抽象——从「一个物体」到「一个整体」。</li>
+            <li>易错：忘记「平均分」；把「分成几份」当成「平均分成几份」。</li>
+          </ul>
+        </div>
+        <div class="note">
+          <h3>课堂流程（约 40 分钟）</h3>
+          <ul>
+            <li>5′ 情境导入：分饼，出现「不满 1 个」怎么办。</li>
+            <li>10′ 操作探究：拖动滑块分饼，说「平均分成几份、取几份」。</li>
+            <li>10′ 意义建构：单位「1」的三个例子（圆、线段、12 颗糖）。</li>
+            <li>8′ 读写与分数单位：读作、写作、几个分数单位。</li>
+            <li>7′ 闯关练习＋小结。</li>
+          </ul>
+        </div>
+        <div class="note">
+          <h3>关键提问</h3>
+          <ul>
+            <li>每一份一样大吗？为什么必须平均分？</li>
+            <li>同一个 <span class="frac sm"><b>1</b><i>4</i></span>，为什么可以是 1 块饼，也可以是 3 颗糖？</li>
+            <li><span class="frac sm"><b>3</b><i>4</i></span> 和 <span class="frac sm"><b>1</b><i>4</i></span> 有什么关系？</li>
+          </ul>
+        </div>
+        <div class="note">
+          <h3>板书</h3>
+          <ul>
+            <li>平均分 → 单位「1」 → 若干份 → 一份或几份</li>
+            <li>3/4：分母 4（分成 4 份）、分子 3（取 3 份）、读作四分之三</li>
+            <li>分数单位 1/4，3/4 里有 3 个 1/4</li>
+          </ul>
+        </div>
+        <div class="note">
+          <h3>易错提醒</h3>
+          <ul>
+            <li>「分成 4 份」≠「平均分成 4 份」，课件第①页的判断题用来纠这个。</li>
+            <li>读法方向别反：先分母后分子。</li>
+            <li>分子、分母写反是高频错误，用「写一写」即时反馈。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+<footer>分数的意义与读写 · 单文件交互课件 · 可离线使用</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- 通用 ---------- */
+  var CN = ['零','一','二','三','四','五','六','七','八','九','十','十一','十二'];
+  function cn(n){ return CN[n] || String(n); }
+  function readFrac(n,d){ return cn(d) + '分之' + cn(n); }
+  function frac(n,d,cls){
+    return '<span class="frac ' + (cls||'') + '"><b>' + n + '</b><i>' + d + '</i></span>';
+  }
+  /* 把 "3/4" 这类字符串渲染成分数样式 */
+  function fmt(s){
+    if (/^\d+\/\d+$/.test(s)) { var p = s.split('/'); return frac(p[0], p[1]); }
+    return s;
+  }
+  function svgPie(svg, n, m){
+    var cx = 100, cy = 100, r = 90, html = '';
+    if (n <= 1) { return; }
+    for (var i = 0; i < n; i++) {
+      var a1 = (i / n) * Math.PI * 2 - Math.PI / 2;
+      var a2 = ((i + 1) / n) * Math.PI * 2 - Math.PI / 2;
+      var x1 = cx + r * Math.cos(a1), y1 = cy + r * Math.sin(a1);
+      var x2 = cx + r * Math.cos(a2), y2 = cy + r * Math.sin(a2);
+      var large = (a2 - a1) > Math.PI ? 1 : 0;
+      var fill = i < m ? '#f0932b' : '#fdf6ec';
+      html += '<path d="M' + cx + ',' + cy +
+              ' L' + x1.toFixed(2) + ',' + y1.toFixed(2) +
+              ' A' + r + ',' + r + ' 0 ' + large + ' 1 ' + x2.toFixed(2) + ',' + y2.toFixed(2) +
+              ' Z" fill="' + fill + '" stroke="#fffdf8" stroke-width="2"/>';
+    }
+    svg.innerHTML = html;
+  }
+
+  /* ---------- 标签页 ---------- */
+  var tabs = document.querySelectorAll('.tab');
+  var panels = document.querySelectorAll('.panel');
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){
+      tabs.forEach(function(x){ x.classList.remove('active'); });
+      panels.forEach(function(p){ p.classList.remove('active'); });
+      t.classList.add('active');
+      document.getElementById(t.dataset.panel).classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+
+  /* ---------- ① 分一分 ---------- */
+  var pie = document.getElementById('pie');
+  var s1d = document.getElementById('s1d'), s1n = document.getElementById('s1n');
+  var o1d = document.getElementById('o1d'), o1n = document.getElementById('o1n');
+
+  function updatePie(){
+    var d = +s1d.value, n = +s1n.value;
+    if (n > d) { n = d; s1n.value = d; }
+    s1n.max = d;
+    if (+s1n.value > d) s1n.value = d;
+    n = +s1n.value;
+    o1d.textContent = d; o1n.textContent = n;
+    document.getElementById('d1').textContent = d;
+    document.getElementById('n1').textContent = n;
+    document.getElementById('f1').innerHTML = frac(n, d, 'big');
+    document.getElementById('r1').textContent = readFrac(n, d);
+    document.getElementById('c1').textContent = n;
+    document.getElementById('u1').innerHTML = frac(1, d, 'sm');
+    svgPie(pie, d, n);
+  }
+  s1d.addEventListener('input', updatePie);
+  s1n.addEventListener('input', updatePie);
+  updatePie();
+
+  /* ① 概念判断题 */
+  var P1Q = [
+    { q: '把一张饼分成 4 份，其中的 1 份就是它的 1/4。',
+      opts: ['对','错'], ans: 1,
+      why: '错在「分成」。只有<b>平均</b>分成 4 份，每份才是 1/4；随便分成 4 份，大小可能不一样。' },
+    { q: '把一张饼平均分成 8 份，取 3 份，就是这张饼的 3/8。',
+      opts: ['对','错'], ans: 0,
+      why: '正确。平均分成 8 份，取其中 3 份，就是 3/8，读作八分之三。' },
+    { q: '1/4 和 2/8 都取同一张饼，它们表示的部分一样大吗？',
+      opts: ['一样大','不一样大'], ans: 0,
+      why: '一样大。把饼平均分成 4 份取 1 份，和平均分成 8 份取 2 份，涂色面积相同。' }
+  ];
+  (function renderP1(){
+    var host = document.getElementById('p1-check');
+    var html = '';
+    P1Q.forEach(function(item, qi){
+      html += '<div class="q"><p>' + (qi + 1) + '. ' + item.q + '</p>' +
+              '<div class="choices" data-q="' + qi + '">';
+      item.opts.forEach(function(o, oi){
+        html += '<button class="choice" data-q="' + qi + '" data-o="' + oi + '">' + fmt(o) + '</button>';
+      });
+      html += '</div><div class="feedback" id="fb1-' + qi + '"></div></div>';
+    });
+    host.innerHTML = html;
+    host.addEventListener('click', function(e){
+      var btn = e.target.closest('.choice');
+      if (!btn || btn.disabled) return;
+      var qi = +btn.dataset.q, oi = +btn.dataset.o, item = P1Q[qi];
+      var box = btn.parentElement, fb = document.getElementById('fb1-' + qi);
+      box.querySelectorAll('.choice').forEach(function(b){ b.disabled = true; });
+      if (oi === item.ans) {
+        btn.classList.add('correct');
+        fb.className = 'feedback ok';
+        fb.innerHTML = '✔ ' + item.why;
+      } else {
+        btn.classList.add('wrong');
+        box.querySelectorAll('.choice')[item.ans].classList.add('correct');
+        fb.className = 'feedback no';
+        fb.innerHTML = '✘ ' + item.why;
+      }
+    });
+  })();
+
+  /* ---------- ② 读一读 ---------- */
+  var RN = { n: 3, d: 4 };
+
+  function pickWrongRead(n, d){
+    var base = readFrac(n, d);
+    var pool = [readFrac(d, n)];
+    var n2 = n === 1 ? 2 : n - 1;
+    pool.push(readFrac(n2, d));
+    return pool.filter(function(x){ return x !== base; });
+  }
+
+  function renderRead(){
+    RN.n = 1 + Math.floor(Math.random() * 9);
+    RN.d = RN.n + 1 + Math.floor(Math.random() * (12 - RN.n));
+    document.getElementById('read-frac').innerHTML = frac(RN.n, RN.d, 'big');
+    var opts = pickWrongRead(RN.n, RN.d).slice(0, 2);
+    var all = opts.concat([readFrac(RN.n, RN.d)]);
+    all.sort(function(){ return Math.random() - 0.5; });
+    var host = document.getElementById('read-choices');
+    host.innerHTML = all.map(function(o){
+      return '<button class="choice" data-ok="' + (o === readFrac(RN.n, RN.d) ? 1 : 0) + '">' + o + '</button>';
+    }).join('');
+    document.getElementById('read-feedback').textContent = '';
+    document.getElementById('read-feedback').className = 'feedback';
+  }
+  document.getElementById('read-choices').addEventListener('click', function(e){
+    var btn = e.target.closest('.choice');
+    if (!btn || btn.disabled) return;
+    var host = this, fb = document.getElementById('read-feedback');
+    host.querySelectorAll('.choice').forEach(function(b){ b.disabled = true; });
+    if (btn.dataset.ok === '1') {
+      btn.classList.add('correct');
+      fb.className = 'feedback ok';
+      fb.innerHTML = '✔ 读作 <b>' + readFrac(RN.n, RN.d) + '</b>。先读分母，再读分子。';
+    } else {
+      btn.classList.add('wrong');
+      host.querySelectorAll('.choice').forEach(function(b){
+        if (b.dataset.ok === '1') b.classList.add('correct');
+      });
+      fb.className = 'feedback no';
+      fb.innerHTML = '✘ 应读作 <b>' + readFrac(RN.n, RN.d) + '</b>：先读分母「' + cn(RN.d) + '」，再读分子「' + cn(RN.n) + '」。';
+    }
+  });
+  document.getElementById('read-next').addEventListener('click', renderRead);
+  renderRead();
+
+  /* ---------- ② 写一写 ---------- */
+  var WN = { n: 2, d: 5 };
+
+  function renderWrite(){
+    WN.d = 2 + Math.floor(Math.random() * 10);
+    WN.n = 1 + Math.floor(Math.random() * (WN.d - 1));
+    document.getElementById('write-prompt').innerHTML =
+      '读作：<b>' + readFrac(WN.n, WN.d) + '</b>，写作？';
+    var right = WN.n + '/' + WN.d;
+    var pool = [
+      WN.d + '/' + WN.n,                                  /* 分子分母写反：最常见的错误 */
+      (WN.n + 1 <= WN.d ? WN.n + 1 : WN.n) + '/' + WN.d,
+      WN.n + '/' + (WN.d + 1)
+    ].filter(function(o, i, arr){ return o !== right && arr.indexOf(o) === i; });
+    var opts = [right].concat(pool.slice(0, 2));
+    while (opts.length < 3) { opts.push('1/' + (WN.d + 2 + opts.length)); }
+    opts.sort(function(){ return Math.random() - 0.5; });
+    var host = document.getElementById('write-choices');
+    host.innerHTML = opts.map(function(o){
+      return '<button class="choice" data-ok="' + (o === WN.n + '/' + WN.d ? 1 : 0) + '">' + fmt(o) + '</button>';
+    }).join('');
+    document.getElementById('write-feedback').textContent = '';
+    document.getElementById('write-feedback').className = 'feedback';
+  }
+  document.getElementById('write-choices').addEventListener('click', function(e){
+    var btn = e.target.closest('.choice');
+    if (!btn || btn.disabled) return;
+    var host = this, fb = document.getElementById('write-feedback');
+    host.querySelectorAll('.choice').forEach(function(b){ b.disabled = true; });
+    if (btn.dataset.ok === '1') {
+      btn.classList.add('correct');
+      fb.className = 'feedback ok';
+      fb.innerHTML = '✔ 写作 ' + frac(WN.n, WN.d) + '，分母 ' + WN.d + ' 在下面，分子 ' + WN.n + ' 在上面。';
+    } else {
+      btn.classList.add('wrong');
+      host.querySelectorAll('.choice').forEach(function(b){
+        if (b.dataset.ok === '1') b.classList.add('correct');
+      });
+      fb.className = 'feedback no';
+      fb.innerHTML = '✘ 应写作 ' + frac(WN.n, WN.d) + '。记住：分母在下面（分成 ' + WN.d + ' 份），分子在上面（取 ' + WN.n + ' 份）。';
+    }
+  });
+  document.getElementById('write-next').addEventListener('click', renderWrite);
+  renderWrite();
+
+  /* ---------- ③ 单位「1」：圆 ---------- */
+  var pie2 = document.getElementById('pie2');
+  var s3d = document.getElementById('s3d'), o3d = document.getElementById('o3d');
+  function updatePie2(){
+    var d = +s3d.value;
+    o3d.textContent = d;
+    svgPie(pie2, d, 1);
+    document.getElementById('f3a').innerHTML = '<b>1</b><i>' + d + '</i>';
+    document.getElementById('t3a').innerHTML =
+      '把一个圆看作单位「1」，平均分成 ' + d + ' 份，涂色部分是它的 ' + frac(1, d, 'sm') +
+      '，读作' + readFrac(1, d) + '。';
+  }
+  s3d.addEventListener('input', updatePie2);
+  updatePie2();
+
+  /* ---------- ③ 单位「1」：糖 ---------- */
+  var CANDY_D = [2, 3, 4, 6];
+  var candySel = 3;
+
+  function renderCandy(){
+    var d = candySel, per = 12 / d;
+    var html = '';
+    for (var g = 0; g < d; g++) {
+      var cls = g === 0 ? 'group hi' : 'group dim';
+      html += '<div class="' + cls + '" title="第 ' + (g + 1) + ' 份">';
+      for (var i = 0; i < per; i++) { html += '<span>🍬</span>'; }
+      html += '</div>';
+    }
+    document.getElementById('candies').innerHTML = html;
+    document.getElementById('candy-text').innerHTML =
+      '把 12 颗糖看作单位「1」，平均分成 ' + d + ' 份，每份是这些糖的 ' + frac(1, d, 'sm') +
+      '，每份有 <b>' + per + '</b> 颗糖。';
+    document.querySelectorAll('#candy-btns .btn').forEach(function(b){
+      b.classList.toggle('ghost', +b.dataset.d !== d);
+    });
+  }
+  (function initCandy(){
+    var host = document.getElementById('candy-btns');
+    host.innerHTML = CANDY_D.map(function(d){
+      return '<button class="btn small" data-d="' + d + '">平均分成 ' + d + ' 份</button>';
+    }).join('');
+    host.addEventListener('click', function(e){
+      var b = e.target.closest('.btn');
+      if (!b) return;
+      candySel = +b.dataset.d;
+      renderCandy();
+    });
+    renderCandy();
+  })();
+
+  /* ---------- ④ 分数单位 ---------- */
+  var s4d = document.getElementById('s4d'), s4n = document.getElementById('s4n');
+  var o4d = document.getElementById('o4d'), o4n = document.getElementById('o4n');
+  var bar4 = document.getElementById('bar4');
+
+  function updateUnit(){
+    var d = +s4d.value;
+    s4n.max = d;
+    if (+s4n.value > d) s4n.value = d;
+    var n = +s4n.value;
+    o4d.textContent = d; o4n.textContent = n;
+    var html = '';
+    for (var i = 0; i < d; i++) { html += '<span class="' + (i < n ? 'on' : '') + '"></span>'; }
+    bar4.innerHTML = html;
+    document.getElementById('f4').innerHTML = frac(n, d, 'big');
+    document.getElementById('u4').innerHTML = frac(1, d, 'sm');
+    document.getElementById('u4b').innerHTML = frac(1, d, 'sm');
+    document.getElementById('n4').textContent = n;
+    document.getElementById('t4').innerHTML =
+      '把单位「1」平均分成 ' + d + ' 份，每份是 ' + frac(1, d, 'sm') + '，也就是这个分数的分数单位；' +
+      frac(n, d, 'sm') + ' 里有 ' + n + ' 个 ' + frac(1, d, 'sm') + '。';
+  }
+  s4d.addEventListener('input', updateUnit);
+  s4n.addEventListener('input', updateUnit);
+  updateUnit();
+
+  /* ---------- ⑤ 闯关 ---------- */
+  var QUIZ = [
+    { q: '把一个圆<b>分成</b> 4 份，每份是这个圆的 1/4。',
+      opts: ['对','错'], ans: 1,
+      why: '错。必须是<b>平均分</b>，4 份一样大，每份才是 1/4。' },
+    { q: '3/7 的分数单位是：',
+      opts: ['1/7','3/7','1/3'], ans: 0,
+      why: '把单位「1」平均分成 7 份，每份 1/7 就是分数单位；分子 3 表示有 3 个这样的单位。' },
+    { q: '5/8 读作：',
+      opts: ['八分之五','五分之八','八分五'], ans: 0,
+      why: '先读分母「八」，再读分子「五」：八分之五。' },
+    { q: '把 12 颗糖平均分成 4 份，每份是这些糖的：',
+      opts: ['1/4','1/12','4/12'], ans: 0,
+      why: '把 12 颗糖看作一个整体（单位「1」），平均分成 4 份，每份是 1/4，也就是 3 颗。' },
+    { q: '2/9 里面有几个 1/9？',
+      opts: ['2 个','9 个','11 个'], ans: 0,
+      why: '分子是 2，表示有 2 个分数单位 1/9。' }
+  ];
+  var QUIZ_DONE = [];
+  var QUIZ_SCORE = 0;
+
+  function renderQuiz(){
+    QUIZ_DONE = QUIZ.map(function(){ return false; });
+    QUIZ_SCORE = 0;
+    document.getElementById('score').textContent = '0';
+    document.getElementById('total').textContent = QUIZ.length;
+    var host = document.getElementById('quiz');
+    host.innerHTML = QUIZ.map(function(item, qi){
+      var h = '<div class="q"><p>' + (qi + 1) + '. ' + item.q + '</p><div class="choices" data-q="' + qi + '">';
+      item.opts.forEach(function(o, oi){
+        h += '<button class="choice" data-q="' + qi + '" data-o="' + oi + '">' + fmt(o) + '</button>';
+      });
+      h += '</div><div class="feedback" id="qfb-' + qi + '"></div></div>';
+      return h;
+    }).join('');
+    host.addEventListener('click', onQuizClick);
+  }
+
+  function onQuizClick(e){
+    var btn = e.target.closest('.choice');
+    if (!btn || btn.disabled) return;
+    var qi = +btn.dataset.q, oi = +btn.dataset.o, item = QUIZ[qi];
+    var box = btn.parentElement, fb = document.getElementById('qfb-' + qi);
+    box.querySelectorAll('.choice').forEach(function(b){ b.disabled = true; });
+    if (oi === item.ans) {
+      btn.classList.add('correct');
+      fb.className = 'feedback ok';
+      fb.innerHTML = '✔ ' + item.why;
+      if (!QUIZ_DONE[qi]) { QUIZ_DONE[qi] = true; QUIZ_SCORE++; }
+    } else {
+      btn.classList.add('wrong');
+      box.querySelectorAll('.choice')[item.ans].classList.add('correct');
+      fb.className = 'feedback no';
+      fb.innerHTML = '✘ 正确答案：' + fmt(item.opts[item.ans]) + '。' + item.why;
+      QUIZ_DONE[qi] = true;
+    }
+    document.getElementById('score').textContent = QUIZ_SCORE;
+    if (QUIZ_DONE.every(Boolean)) {
+      var fbAll = document.createElement('p');
+      fbAll.className = 'eq';
+      fbAll.style.marginTop = '16px';
+      fbAll.innerHTML = QUIZ_SCORE === QUIZ.length
+        ? '🎉 全对！分数的意义、读写和分数单位都掌握了。'
+        : '继续加油！错的题目回到前面几页再操作一遍。';
+      var old = document.getElementById('quiz-end');
+      if (old) old.remove();
+      fbAll.id = 'quiz-end';
+      document.getElementById('quiz').appendChild(fbAll);
+    }
+  }
+
+  renderQuiz();
+  document.getElementById('quiz-reset').addEventListener('click', function(){
+    var host = document.getElementById('quiz');
+    host.removeEventListener('click', onQuizClick);
+    var old = document.getElementById('quiz-end');
+    if (old) old.remove();
+    renderQuiz();
+  });
+
+})();
+</script>
+</body>
+</html>

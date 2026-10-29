@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "workflow_id": "lesson",
+  "steps": [
+    { "id": "research", "role_ref": "researcher", "kind": "execute", "goal": "梳理本次知识点的定义、常见误区和由浅入深的例题", "depends_on": [] },
+    { "id": "build", "role_ref": "builder", "kind": "execute", "goal": "按教研要点制作一页 HTML 课件（lesson.html）", "depends_on": [{ "step": "research", "condition": "acceptance_accepted" }], "refs": [{ "task_id": "research", "result_revision": 0, "hash": "", "length": 0 }] },
+    { "id": "check", "role_ref": "checker", "kind": "execute", "goal": "检查课件能否打开、交互是否可用、有无外部引用", "depends_on": [{ "step": "build", "condition": "execution_completed" }], "refs": [{ "task_id": "build", "result_revision": 0, "hash": "", "length": 0 }] }
+  ]
+}

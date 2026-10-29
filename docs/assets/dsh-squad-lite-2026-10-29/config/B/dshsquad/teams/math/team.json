@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "team_id": "math",
+  "config_version": 1,
+  "leader": {
+    "agent_ref": "chief"
+  },
+  "members": [
+    {
+      "role_ref": "researcher",
+      "responsibility": "梳理知识点"
+    },
+    {
+      "role_ref": "builder",
+      "responsibility": "制作 HTML 课件"
+    },
+    {
+      "role_ref": "checker",
+      "responsibility": "检查格式与功能"
+    },
+    {
+      "role_ref": "reviewer",
+      "responsibility": "教学审核"
+    }
+  ],
+  "instructions_file": "instructions.md",
+  "default_workflow": "lesson",
+  "policy": {
+    "run_admission": "fifo_single_active",
+    "max_parallel_tasks": 2,
+    "max_delegate_depth": 2,
+    "max_total_tasks": 20,
+    "max_attempts_per_task": 3,
+    "allowed_tools": [
+      "read",
+      "grep",
+      "find",
+      "ls"
+    ],
+    "writable_roots": [],
+    "acceptance_policy": {
+      "mode": "on_completion",
+      "child_policy": "separate"
+    }
+  }
+}

@@ -1,0 +1,487 @@
+{
+  "report": "exp-2026-10-29T09-50-06-910Z.json",
+  "id": "exp-2026-10-29T09-50-06-910Z",
+  "mock": false,
+  "groups": [
+    {
+      "group": "S",
+      "run": 1,
+      "outcome": "answered",
+      "seconds": 882.9,
+      "model_calls": 80,
+      "tokens": {
+        "input": 59048,
+        "cache_read": 9686784,
+        "cache_write": 0,
+        "output": 120749,
+        "calls": 80,
+        "auxiliary_calls": 1,
+        "auxiliary_tokens": 1433,
+        "total": 9866581
+      },
+      "reviews": 0,
+      "reworks": 0,
+      "source": "file written in the bot workspace: fraction-courseware.html",
+      "judge": {
+        "judge": "courseware-fraction",
+        "version": 1,
+        "file": "/tmp/claude-1000/-workspace-dsh-squad-dev/663f22fd-f9b1-4de7-b481-25ec09c7ec99/scratchpad/lite-results/S-1.html",
+        "text_chars": 1930,
+        "counts": {
+          "interactive": 32,
+          "visuals": 8
+        },
+        "checks": [
+          {
+            "id": "L0",
+            "level": "must",
+            "ok": true,
+            "detail": "a complete HTML document (html and body)"
+          },
+          {
+            "id": "K1 分数的意义（平均分）",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "K2 分子与分母",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "K3 分数的读法与写法",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "K4 单位分数或几分之一",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "K5 例题或练习",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "K6 教学要点或易错点",
+            "level": "should",
+            "ok": false,
+            "detail": null
+          },
+          {
+            "id": "V1 有图示（svg、canvas 或 img）",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "F1 有可交互控件",
+            "level": "must",
+            "ok": true,
+            "detail": "32 control(s)"
+          },
+          {
+            "id": "F2 使用控件后页面内容有变化",
+            "level": "must",
+            "ok": true,
+            "detail": "tried button[button], button[button], button[button], button[button], button[button], button[button]"
+          },
+          {
+            "id": "C1 无控制台错误或页面异常",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6 无外部网络请求",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "M1 375 px 宽时无横向滚动",
+            "level": "should",
+            "ok": true,
+            "detail": "scrollWidth 375"
+          },
+          {
+            "id": "A1 无严重或严重级的无障碍违规（axe）",
+            "level": "should",
+            "ok": false,
+            "detail": "aria-prohibited-attr:serious:1; color-contrast:serious:4"
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 0.8571428571428571,
+        "goal_success": true
+      },
+      "artifact": "S-1.html"
+    },
+    {
+      "group": "A",
+      "run": 1,
+      "outcome": "the team went quiet",
+      "seconds": 262.7,
+      "model_calls": 21,
+      "tokens": {
+        "input": 22494,
+        "cache_read": 722816,
+        "cache_write": 0,
+        "output": 23357,
+        "calls": 21,
+        "auxiliary_calls": 1,
+        "auxiliary_tokens": 1355,
+        "total": 768667
+      },
+      "reviews": 0,
+      "reworks": 0,
+      "source": "file written in the bot workspace: 分数的意义与读写.html",
+      "judge": {
+        "judge": "courseware-fraction",
+        "version": 1,
+        "file": "/tmp/claude-1000/-workspace-dsh-squad-dev/663f22fd-f9b1-4de7-b481-25ec09c7ec99/scratchpad/lite-results/A-1.html",
+        "text_chars": 392,
+        "counts": {
+          "interactive": 44,
+          "visuals": 2
+        },
+        "checks": [
+          {
+            "id": "L0",
+            "level": "must",
+            "ok": true,
+            "detail": "a complete HTML document (html and body)"
+          },
+          {
+            "id": "K1 分数的意义（平均分）",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "K2 分子与分母",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "K3 分数的读法与写法",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "K4 单位分数或几分之一",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "K5 例题或练习",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "K6 教学要点或易错点",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "V1 有图示（svg、canvas 或 img）",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "F1 有可交互控件",
+            "level": "must",
+            "ok": true,
+            "detail": "44 control(s)"
+          },
+          {
+            "id": "F2 使用控件后页面内容有变化",
+            "level": "must",
+            "ok": true,
+            "detail": "tried button[submit], button[submit], button[submit], button[submit], button[submit], button[submit]"
+          },
+          {
+            "id": "C1 无控制台错误或页面异常",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6 无外部网络请求",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "M1 375 px 宽时无横向滚动",
+            "level": "should",
+            "ok": true,
+            "detail": "scrollWidth 375"
+          },
+          {
+            "id": "A1 无严重或严重级的无障碍违规（axe）",
+            "level": "should",
+            "ok": false,
+            "detail": "aria-required-children:critical:1; color-contrast:serious:2; label:critical:2"
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 0.9285714285714286,
+        "goal_success": true
+      },
+      "artifact": "A-1.html"
+    },
+    {
+      "group": "B",
+      "run": 1,
+      "outcome": "completed",
+      "seconds": 434.4,
+      "model_calls": 51,
+      "tokens": {
+        "input": 177538,
+        "cache_read": 1329664,
+        "cache_write": 0,
+        "output": 91316,
+        "calls": 51,
+        "auxiliary_calls": 0,
+        "auxiliary_tokens": 0,
+        "total": 1598518
+      },
+      "reviews": 0,
+      "reworks": 0,
+      "source": "squad artifact lesson.html (accepted=true)",
+      "judge": {
+        "judge": "courseware-fraction",
+        "version": 1,
+        "file": "/tmp/claude-1000/-workspace-dsh-squad-dev/663f22fd-f9b1-4de7-b481-25ec09c7ec99/scratchpad/lite-results/B-1.html",
+        "text_chars": 2780,
+        "counts": {
+          "interactive": 25,
+          "visuals": 3
+        },
+        "checks": [
+          {
+            "id": "L0",
+            "level": "must",
+            "ok": true,
+            "detail": "a complete HTML document (html and body)"
+          },
+          {
+            "id": "K1 分数的意义（平均分）",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "K2 分子与分母",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "K3 分数的读法与写法",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "K4 单位分数或几分之一",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "K5 例题或练习",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "K6 教学要点或易错点",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "V1 有图示（svg、canvas 或 img）",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "F1 有可交互控件",
+            "level": "must",
+            "ok": true,
+            "detail": "25 control(s)"
+          },
+          {
+            "id": "F2 使用控件后页面内容有变化",
+            "level": "must",
+            "ok": true,
+            "detail": "tried button[button], button[button], button[button], button[button], input[range], button[button]"
+          },
+          {
+            "id": "C1 无控制台错误或页面异常",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6 无外部网络请求",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "M1 375 px 宽时无横向滚动",
+            "level": "should",
+            "ok": true,
+            "detail": "scrollWidth 375"
+          },
+          {
+            "id": "A1 无严重或严重级的无障碍违规（axe）",
+            "level": "should",
+            "ok": false,
+            "detail": "color-contrast:serious:33"
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 0.9285714285714286,
+        "goal_success": true
+      },
+      "artifact": "B-1.html"
+    },
+    {
+      "group": "C",
+      "run": 1,
+      "outcome": "completed",
+      "seconds": 2205.8,
+      "model_calls": 218,
+      "tokens": {
+        "input": 552906,
+        "cache_read": 21891968,
+        "cache_write": 0,
+        "output": 325691,
+        "calls": 218,
+        "auxiliary_calls": 0,
+        "auxiliary_tokens": 0,
+        "total": 22770565
+      },
+      "reviews": 7,
+      "reworks": 4,
+      "source": "squad artifact lesson.html (accepted=true)",
+      "judge": {
+        "judge": "courseware-fraction",
+        "version": 1,
+        "file": "/tmp/claude-1000/-workspace-dsh-squad-dev/663f22fd-f9b1-4de7-b481-25ec09c7ec99/scratchpad/lite-results/C-1.html",
+        "text_chars": 5003,
+        "counts": {
+          "interactive": 45,
+          "visuals": 8
+        },
+        "checks": [
+          {
+            "id": "L0",
+            "level": "must",
+            "ok": true,
+            "detail": "a complete HTML document (html and body)"
+          },
+          {
+            "id": "K1 分数的意义（平均分）",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "K2 分子与分母",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "K3 分数的读法与写法",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "K4 单位分数或几分之一",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "K5 例题或练习",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "K6 教学要点或易错点",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "V1 有图示（svg、canvas 或 img）",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "F1 有可交互控件",
+            "level": "must",
+            "ok": true,
+            "detail": "45 control(s)"
+          },
+          {
+            "id": "F2 使用控件后页面内容有变化",
+            "level": "must",
+            "ok": true,
+            "detail": "tried input[range], input[range], button[button], button[button], button[button], button[button]"
+          },
+          {
+            "id": "C1 无控制台错误或页面异常",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6 无外部网络请求",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "M1 375 px 宽时无横向滚动",
+            "level": "should",
+            "ok": true,
+            "detail": "scrollWidth 375"
+          },
+          {
+            "id": "A1 无严重或严重级的无障碍违规（axe）",
+            "level": "should",
+            "ok": false,
+            "detail": "color-contrast:serious:15"
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 0.9285714285714286,
+        "goal_success": true
+      },
+      "artifact": "C-1.html"
+    }
+  ]
+}
