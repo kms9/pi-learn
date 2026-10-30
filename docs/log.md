@@ -989,3 +989,9 @@ tags:
 - 来源: kms9 对 `docs/dsh-squad-EXP01-04-实验计划-2026-10-29.md` 第 8 节的答复（全部按推荐）；分支 `feat/dsh-exp`（从 `97571ff`）。
 - 更新: `docs/dsh-squad-EXP01-04-实验计划-2026-10-29.md`（新）、`docs/index.md`。
 - 说明: 决策要点：D 模型先 `deepseek-flash`，之后只补跑 EXP-02；每组 5/5/5/3 次；题目认可（单摆、二次函数、12 bug + 2 诱饵、15 改进机会）；允许在 v0.2.0 上于 `dsh_squad/` 开发新功能（只改补丁，不改上游）；单智能体放进 Squad；固定分解用固定编排 Leader；LLM 判分用 `deepseek-v4-pro`；只提交汇总；EXP-02 加 B1；先在本机跑、用 inhibit 并验证；axe-core 用于无障碍判题；EXP-04 门槛 k=5。
+
+## [2026-10-29] decision | 实验运行器的卡住检测，从 EXP-02 起启用
+
+- 来源: kms9 的决定（同意加检测；EXP-01 中途不改运行器）；EXP-01 P1 第 3 轮重跑卡住约 1 小时（`exp01-P1-3`，`designer` 被控制器隔离，`needs_review`）。
+- 更新: `docs/decisions/2026-10-29-experiment-run-stall-detector.md`（新）、`docs/decisions/_index.md`。
+- 说明: Run 在 `needs_review` 且 10 分钟活动时间无变化即按环境中断结束并重跑；代码在 mock worktree 中开发，EXP-01 跑完后合入主树。真实卡住的路径尚未验证。

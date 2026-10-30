@@ -28,3 +28,4 @@ tags:
 - [[2026-09-25-squad-team-runtime-scope|2026-09-25 Squad 专属目录与启动身份]]
 - [[2026-09-27-squad-phase04-activation-and-split|2026-09-27 阶段 04 激活占用、阶段 03 并入与 4a/4b 分段]]
 - [[2026-09-27-squad-recovery-guidance-acceptance|2026-09-27 恢复、Leader 输入、授权与验收]]
+- [[2026-10-29-experiment-run-stall-detector|2026-10-29 实验运行器的卡住检测（从 EXP-02 起启用）]]
