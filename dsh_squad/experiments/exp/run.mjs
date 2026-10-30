@@ -19,6 +19,7 @@ import { fileURLToPath } from 'node:url'
 import { judgeExp01 } from './judges/exp01.mjs'
 import { judgeExp02 } from './judges/exp02.mjs'
 import { judgeExp03 } from './judges/exp03.mjs'
+import { checkStall } from './stall.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const SQUAD = dirname(dirname(HERE))
@@ -35,6 +36,8 @@ const arms = option('arms', spec.arms.join(',')).split(',').map(arm => arm.trim(
 const repeats = Math.max(1, Number(option('repeats', String(spec.repeats))))
 const basePort = Number(option('port', '3600'))
 const limitMs = Number(option('minutes', String(spec.minutes))) * 60_000
+// A Run that waits in needs_review this long with no change (active time) is stalled (stall.mjs).
+const STALL_MS = 10 * 60_000
 const sleep = ms => new Promise(done => setTimeout(done, ms))
 const judge = JUDGES[expId]
 if (!judge) { console.error(`no judge for ${expId}`); process.exit(2) }
@@ -109,20 +112,27 @@ async function runOnce(arm, round, order) {
     let current
     let tasks = []
     // The limit counts active time: the monotonic clock does not run while the machine sleeps.
+    // A Run in needs_review that changes nothing for STALL_MS of active time is stalled (stall.mjs).
+    const watch = { signature: null, since: 0 }
+    let stalled = false
     for (const deadline = performance.now() + limitMs; performance.now() < deadline;) {
       await sleep(2000)
       const snap = (await ui('view')).snapshot
       current = snap.views.runs.find(candidate => candidate.run_id === run.run_id)
       tasks = snap.views.tasks.filter(task => task.run_id === run.run_id)
       if (['completed', 'failed', 'cancelled', 'interrupted'].includes(current?.phase)) break
+      if (checkStall(watch, current, tasks, performance.now(), STALL_MS)) {
+        stalled = true
+        break
+      }
     }
     // A Run that is still going at the limit is a Runtime Failure (plan §6), not its phase.
     const terminal = ['completed', 'failed', 'cancelled', 'interrupted'].includes(current?.phase)
-    record.outcome = terminal ? current.phase : 'timed_out'
+    record.outcome = terminal ? current.phase : stalled ? 'stalled' : 'timed_out'
     record.phase_at_end = current?.phase ?? null
     record.final = await finalArtifact(project, tasks, spec.final_steps?.[arm] ?? spec.final_step)
     record.counts = { tasks: tasks.length, kinds: tasks.reduce((acc, t) => ({ ...acc, [t.kind]: (acc[t.kind] ?? 0) + 1 }), {}) }
-    if (record.final.text) {
+    if (record.final.text && !stalled) {
       const file = join(project, 'final', spec.artifact)
       mkdirSync(dirname(file), { recursive: true })
       writeFileSync(file, record.final.text)
@@ -145,7 +155,8 @@ async function runOnce(arm, round, order) {
     try { cli(project, 'down') } catch { /* already down */ }
     record.seconds = Math.round((Date.now() - started) / 100) / 10
     record.suspended_seconds = Math.round((sleeps.ms - sleptBefore) / 100) / 10
-    record.environment_interrupted = record.suspended_seconds > 5
+    // A stall is an environment interruption too: only a person can retry the quarantined execution.
+    record.environment_interrupted = record.suspended_seconds > 5 || record.outcome === 'stalled'
     // Goal Success needs the Controller's acceptance as well as the judge's must-checks.
     record.goal_success = record.outcome === 'completed' && record.final?.accepted === true && record.judge?.must_passed === true
   }

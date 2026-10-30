@@ -23,6 +23,8 @@ tags:
 - 结束记为 `outcome: "stalled"`，同时记为环境中断（`environment_interrupted: true`），不计入结果，由现有的重跑逻辑再跑一次（最多三次尝试，见 `docs/dsh-squad-EXP01-04-实验计划-2026-10-29.md` §6）。
 - 卡住的尝试不判题，也不计 `goal_success`。
 
+已于 2026-10-30 合入主树（运行器 `run.mjs`、`stall.mjs`、`stall.test.mjs`），由 kms9 决定，从 EXP-02 起启用。
+
 检测逻辑在 `dsh_squad/experiments/exp/stall.mjs`，单元测试 `stall.test.mjs`（4 项，通过）。
 
 ## 背景
