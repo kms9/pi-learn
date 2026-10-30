@@ -1,0 +1,3311 @@
+{
+  "schema": "dsh-squad-experiment/2",
+  "id": "exp01-2026-10-29T12-14-24-163Z",
+  "experiment": "exp01",
+  "title": "EXP-01 单页互动模块：B0 单智能体、B1 单智能体加流程、P1 三角色 DAG",
+  "created": "2026-10-29T12:14:24.164Z",
+  "mock": false,
+  "model": {
+    "provider": "deepseek-official",
+    "model": "deepseek-flash",
+    "effort": "high"
+  },
+  "arms": [
+    "B0",
+    "B1",
+    "P1"
+  ],
+  "repeats": 5,
+  "task": {
+    "goal": "为初三学生做一页可交互的讲解页面，讲二次函数 y = ax² + bx + c 的图像与性质，以 y = x² − 2x − 3 为例。只交付一个单文件 lesson.html，不引用任何外部资源（不用外部脚本、样式、字体、图片）。\n\n需求：\nR1 坐标系带刻度，x 从 −4 到 6，画出函数曲线（data-testid=\"curve\" 的 path）。\nR2 三个滑块 a、b、c（data-testid=\"slider-a\"、\"slider-b\"、\"slider-c\"；a 在 [−3, 3] 且 a ≠ 0，b、c 在 [−6, 6]），拖动时曲线实时更新。\nR3 显示顶点坐标（data-testid=\"vertex\"）、对称轴（data-testid=\"axis\"）、与 x 轴交点（data-testid=\"roots\"）；判别式 Δ < 0 时 roots 的文字包含「无实数根」。\nR4 讲解三部分：配方求顶点（data-testid=\"explain-completing-square\"）、求根公式（data-testid=\"explain-root-formula\"）、开口方向与 a 的关系（data-testid=\"explain-opening\"）。\nR5 练习：给出一条抛物线，学生输入顶点坐标。输入框 data-testid=\"practice-x\"（横坐标）和 \"practice-y\"（纵坐标），提交按钮 data-testid=\"practice-submit\"，容差 ±0.01。反馈元素 data-testid=\"feedback\" 的属性 data-result 为 \"correct\" 或 \"wrong\"，并有文字。\nR6 单文件，无任何外部网络请求。\nR7 375 px 宽时不横向滚动，控件在视口内可以点击。\nR8 所有控件有可访问名称，可以用 Tab 键到达，反馈有文字（不只靠颜色）。\n\n页面必须暴露接口 window.lesson（判题依赖它，不得改名）：\n- setParams({a, b, c})：设置参数并重绘曲线、文字和滑块；\n- getParams()：返回 {a, b, c}；\n- toPixel(x, y)：返回数学点 (x, y) 在曲线所在 SVG 中的 [px, py]，坐标系与 path 的 d 属性相同（不要对 path 或 svg 的祖先元素设置 transform）；\n- practice()：返回当前练习的 {a, b, c, vertex: [h, k]}。\n\n交付前请对照 R1–R8 与接口逐条检查，然后提交 lesson.html。",
+    "artifact": "lesson.html",
+    "final_steps": {
+      "B0": "build",
+      "B1": "fix",
+      "P1": "build"
+    }
+  },
+  "runs": [
+    {
+      "arm": "B0",
+      "repeat": 1,
+      "order": 1,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B0-1",
+      "outcome": "completed",
+      "run_id": "run-9ac78c3251ea05ac35821c98427e06a3f9d9688e58cd25d1f39b4640ced4846d",
+      "seconds": 572.9,
+      "suspended_seconds": 0,
+      "environment_interrupted": false,
+      "final": {
+        "task": "task-11d5b0925fcd9eb226ab008bcf7b691407c08a357bde71ad192faeb979c9158e",
+        "bytes": 31053,
+        "sha256": "2ae88d1a01aee3eef0d7e8a221b131ecd45ead0f9a622f72c5463938e9ea878b",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 1,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 1,
+        "kinds": {
+          "execute": 1
+        }
+      }
+    },
+    {
+      "arm": "B1",
+      "repeat": 1,
+      "order": 2,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B1-1",
+      "outcome": "completed",
+      "run_id": "run-4ae6b1d3668249475a89f20304f56644d0dc67e665f05d8a38dd074e3dc0dedf",
+      "seconds": 831.2,
+      "suspended_seconds": 0,
+      "environment_interrupted": false,
+      "final": {
+        "task": "task-e54d43db7d477b756a4a69c74a1d2ee92a1d0b08bc4c6a39c58a28c58f70ebe9",
+        "bytes": 24665,
+        "sha256": "8817159cb25e547c9e4041f596bb213a0b0cbfa2d3e1efc9ea873422bcf53502",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 1,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 4,
+        "kinds": {
+          "execute": 4
+        }
+      }
+    },
+    {
+      "arm": "P1",
+      "repeat": 1,
+      "order": 3,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-P1-1",
+      "outcome": "completed",
+      "run_id": "run-6094522c58216b7d98aa49714a64c2c18e6eedbc926b75b6b031a1d678a4875c",
+      "seconds": 1161.7,
+      "suspended_seconds": 0,
+      "environment_interrupted": false,
+      "final": {
+        "task": "task-81f003c6c43013afc7547bd5f2ee5643ae40e841ee22f9f697737eb1423c4ee0",
+        "bytes": 23258,
+        "sha256": "cbf82ff075c72f784d31cfb8fcaa6d3a6382ca49cfcfdbdd959c974ffef61de0",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 1,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 4,
+        "kinds": {
+          "execute": 2,
+          "review": 2
+        }
+      }
+    },
+    {
+      "arm": "B0",
+      "repeat": 2,
+      "order": 4,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B0-2",
+      "outcome": "completed",
+      "run_id": "run-64ea7c793506109aa504f04c05f41128d6eb99021536f4e0f1154894afd67cb3",
+      "seconds": 422.3,
+      "suspended_seconds": 0,
+      "environment_interrupted": false,
+      "final": {
+        "task": "task-6ade7d10368da9bb2740a7fb0af2f002bc24878ab914c2b6dfb39177f655a0f2",
+        "bytes": 25231,
+        "sha256": "b48a33f238981d1f9b8bfa08c1ba47266d7ac6efb1ff1f10412edbb2b3b70daf",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 1,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 1,
+        "kinds": {
+          "execute": 1
+        }
+      }
+    },
+    {
+      "arm": "B1",
+      "repeat": 2,
+      "order": 5,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B1-2",
+      "outcome": "completed",
+      "run_id": "run-b40873df89bd781db47c41429c27e277c8379c99c56f6f426ebc2ff13975b1f6",
+      "seconds": 1006.8,
+      "suspended_seconds": 0,
+      "environment_interrupted": false,
+      "final": {
+        "task": "task-8db8b79562c1092fb8cbbcb6bb25923cae4ea72e40e3b4340da196d2a7229aaa",
+        "bytes": 25428,
+        "sha256": "d381b66b42ae8f761afb32246e0a611fc5cde8723c4900c659db3a87fde2f322",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": false,
+            "detail": "axe color-contrast:serious:1"
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 0.875,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 4,
+        "kinds": {
+          "execute": 4
+        }
+      }
+    },
+    {
+      "arm": "P1",
+      "repeat": 2,
+      "order": 6,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-P1-2",
+      "outcome": "timed_out",
+      "run_id": "run-463727178f61a4505a58d5d7f3ad4979a555f05b1de1163bd7ceb026ca7c7f79",
+      "seconds": 1808.1,
+      "suspended_seconds": 969.1,
+      "environment_interrupted": true,
+      "final": {
+        "task": "task-ee0c578d2b36116867e1175109a98fa6111087bbe586688cfe1ba95ae91161b3",
+        "bytes": null,
+        "sha256": null,
+        "path": null,
+        "accepted": false
+      },
+      "judge": null,
+      "error": null,
+      "goal_success": false,
+      "phase_at_end": "running",
+      "counts": {
+        "tasks": 5,
+        "kinds": {
+          "execute": 3,
+          "review": 2
+        }
+      },
+      "discarded_first": true
+    },
+    {
+      "arm": "P1",
+      "repeat": 2,
+      "order": 6,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-P1-2",
+      "outcome": "timed_out",
+      "run_id": "run-a41b8860b448bc51a9dc2749210d14ca2f9abc80de31426a557277041877a0c3",
+      "seconds": 1912.2,
+      "suspended_seconds": 1645.4,
+      "environment_interrupted": true,
+      "final": {
+        "task": "task-b8a71450fc8d902be47ef2a5c14f430186270ceba5f0f3bfb5b82659efa0966a",
+        "bytes": null,
+        "sha256": null,
+        "path": null,
+        "accepted": false
+      },
+      "judge": null,
+      "error": null,
+      "goal_success": false,
+      "phase_at_end": "running",
+      "counts": {
+        "tasks": 2,
+        "kinds": {
+          "execute": 2
+        }
+      },
+      "discarded_first": true
+    },
+    {
+      "arm": "B0",
+      "repeat": 3,
+      "order": 7,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B0-3",
+      "outcome": "timed_out",
+      "run_id": "run-9b0d32fe7438141c868665c7302ba091a8d129319cb1ed7d9c346d9496ba8d94",
+      "seconds": 1810.5,
+      "suspended_seconds": 934.4,
+      "environment_interrupted": true,
+      "final": {
+        "task": "task-5a5545bbd6f82177852b27b6b0ae536fb1999b84c414589dce36429e32e00b16",
+        "bytes": null,
+        "sha256": null,
+        "path": null,
+        "accepted": false
+      },
+      "judge": null,
+      "error": null,
+      "goal_success": false,
+      "phase_at_end": "running",
+      "counts": {
+        "tasks": 1,
+        "kinds": {
+          "execute": 1
+        }
+      },
+      "discarded_first": true
+    },
+    {
+      "arm": "B0",
+      "repeat": 3,
+      "order": 7,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B0-3",
+      "outcome": "completed",
+      "run_id": "run-2df76d6069aafd6350e62c28a373f944033b23cabecf2218222632607e5f8b3e",
+      "seconds": 1663.2,
+      "suspended_seconds": 1162.4,
+      "environment_interrupted": true,
+      "final": {
+        "task": "task-3962625e71915ada9d14b940492cdbcddfb149c6b8f8cd867f7f571d9432c083",
+        "bytes": 30895,
+        "sha256": "6ebe2e7e602bf98c784cb678db60cadaf738d7b59969f19b9c468effc3180f88",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 1,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 1,
+        "kinds": {
+          "execute": 1
+        }
+      },
+      "discarded_first": true
+    },
+    {
+      "arm": "B1",
+      "repeat": 3,
+      "order": 8,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B1-3",
+      "outcome": "timed_out",
+      "run_id": "run-9dcb8ad7759932ab02554a1b0186a28c765a9caf254d5cbdce91070b46fa88d3",
+      "seconds": 1852,
+      "suspended_seconds": 1828.2,
+      "environment_interrupted": true,
+      "final": {
+        "task": "task-a31d479c1762059b66521edfaed8dc874ac50d8503b5ea98b48c74fc5dbb72ee",
+        "bytes": null,
+        "sha256": null,
+        "path": null,
+        "accepted": false
+      },
+      "judge": null,
+      "error": null,
+      "goal_success": false,
+      "phase_at_end": "running",
+      "counts": {
+        "tasks": 4,
+        "kinds": {
+          "execute": 4
+        }
+      },
+      "discarded_first": true
+    },
+    {
+      "arm": "B1",
+      "repeat": 3,
+      "order": 8,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B1-3",
+      "outcome": "timed_out",
+      "run_id": "run-e7072338ec32a53cde05ba5dcfddf05f4c112bdb860c5fb9f581080971f73bf2",
+      "seconds": 1814.6,
+      "suspended_seconds": 1130.3,
+      "environment_interrupted": true,
+      "final": {
+        "task": "task-354eab91ed116874d02e9545506cbac623d791d27b9750224e01d043dd5a34ec",
+        "bytes": null,
+        "sha256": null,
+        "path": null,
+        "accepted": false
+      },
+      "judge": null,
+      "error": null,
+      "goal_success": false,
+      "phase_at_end": "running",
+      "counts": {
+        "tasks": 4,
+        "kinds": {
+          "execute": 4
+        }
+      },
+      "discarded_first": true
+    },
+    {
+      "arm": "P1",
+      "repeat": 3,
+      "order": 9,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-P1-3",
+      "outcome": "timed_out",
+      "run_id": "run-42aea31d8d1e74abf71f744f4e6c6094f257debe23d72974c42a794832d8e97c",
+      "seconds": 1899.2,
+      "suspended_seconds": 1791.7,
+      "environment_interrupted": true,
+      "final": {
+        "task": "task-50fb920a1c6de7c8062d3c426de70f5eda607f2e602ac7b5d07e904ab21834f2",
+        "bytes": null,
+        "sha256": null,
+        "path": null,
+        "accepted": false
+      },
+      "judge": null,
+      "error": null,
+      "goal_success": false,
+      "phase_at_end": "running",
+      "counts": {
+        "tasks": 2,
+        "kinds": {
+          "execute": 2
+        }
+      },
+      "discarded_first": true
+    },
+    {
+      "arm": "P1",
+      "repeat": 3,
+      "order": 9,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-P1-3",
+      "outcome": "timed_out",
+      "run_id": "run-a0782e5a1384450d1b00ff61adf727336e87c1dcd72cbeba71d631303fc81a40",
+      "seconds": 1827.3,
+      "suspended_seconds": 1136,
+      "environment_interrupted": true,
+      "final": {
+        "task": "task-201b256d66e34d97d97203ecde6072128a3ba6610f43a2689acafa647f2e04cd",
+        "bytes": 20280,
+        "sha256": "744c90b32c05267f08149c6b23e6232361d1b1894ad014634272df11bc74b1f2",
+        "accepted": false
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 1,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": false,
+      "phase_at_end": "running",
+      "counts": {
+        "tasks": 4,
+        "kinds": {
+          "execute": 2,
+          "review": 2
+        }
+      },
+      "discarded_first": true
+    },
+    {
+      "arm": "B0",
+      "repeat": 4,
+      "order": 10,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B0-4",
+      "outcome": "completed",
+      "run_id": "run-df6b27049cb578a4b88cad46cc78c82731b1ac44bbaa2693b5066250ec4fde47",
+      "seconds": 1322.5,
+      "suspended_seconds": 680.1,
+      "environment_interrupted": true,
+      "final": {
+        "task": "task-936799be2708354ab6035d99d6a3b06bdc51714c196aa886f593c9c28b164664",
+        "bytes": 26060,
+        "sha256": "391bef81f924ec93408c9f0721c11b5118605be446b2a60bd073771e833a71f4",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 1,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 1,
+        "kinds": {
+          "execute": 1
+        }
+      },
+      "discarded_first": true
+    },
+    {
+      "arm": "B0",
+      "repeat": 4,
+      "order": 10,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B0-4",
+      "outcome": "completed",
+      "run_id": "run-8e9bed8425711a61714a2bc6ab8cecf5f31f133defeab66137a05a420cd7e489",
+      "seconds": 552.7,
+      "suspended_seconds": 174.9,
+      "environment_interrupted": true,
+      "final": {
+        "task": "task-cdf775382fd778386f030468c274c3768605b45dcdc23a62b2a33cafc10c493d",
+        "bytes": 29630,
+        "sha256": "00353befade707a31e89245b48bbe482fe6aaf80662b052cde00b3521a566c59",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 1,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 1,
+        "kinds": {
+          "execute": 1
+        }
+      },
+      "discarded_first": true
+    },
+    {
+      "arm": "P1",
+      "repeat": 2,
+      "order": 6,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-P1-2",
+      "outcome": "timed_out",
+      "run_id": "run-5b9645a098f1919ea7c136169ab5d4c0f976de9232564b049c9d08ab549537ce",
+      "seconds": 5526.9,
+      "suspended_seconds": 3716.4,
+      "environment_interrupted": true,
+      "final": {
+        "task": "task-6868c5031a3b9c5e2f9383f339252b743922b97b42157aea04e72d6357af84cb",
+        "bytes": null,
+        "sha256": null,
+        "path": null,
+        "accepted": false
+      },
+      "judge": null,
+      "error": null,
+      "goal_success": false,
+      "phase_at_end": "needs_review",
+      "counts": {
+        "tasks": 2,
+        "kinds": {
+          "execute": 2
+        }
+      },
+      "discarded_first": true
+    },
+    {
+      "arm": "P1",
+      "repeat": 2,
+      "order": 6,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-P1-2",
+      "outcome": "completed",
+      "run_id": "run-cd0e666c021b5aed7afc213571c5a46fd203b26c400aca76ebc3a843e71e9a28",
+      "seconds": 855.9,
+      "suspended_seconds": 0,
+      "environment_interrupted": false,
+      "final": {
+        "task": "task-58508dbc7ff151432859738253af786562a9f1510a77b3f9ba1f3789ab94ed08",
+        "bytes": 23408,
+        "sha256": "f89fa2a5654d3510b27cb2e9c9de164ab37037c98cb561c1af5b12b22c81a7e4",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 1,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 4,
+        "kinds": {
+          "execute": 2,
+          "review": 2
+        }
+      }
+    },
+    {
+      "arm": "B0",
+      "repeat": 3,
+      "order": 7,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B0-3",
+      "outcome": "completed",
+      "run_id": "run-daf63c744290eacbc94888c2f67c314fb4c92de5f1b7be2bbdd05a92b905396e",
+      "seconds": 466.1,
+      "suspended_seconds": 0,
+      "environment_interrupted": false,
+      "final": {
+        "task": "task-a7087e5351a3b008d559e7f36b94b633859301cdc26f139806080a0ea000a108",
+        "bytes": 26651,
+        "sha256": "dc7263add2ebddf1055f7a83beefbe7ba099e4beead1607e12fcd0713ee16b56",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 1,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 1,
+        "kinds": {
+          "execute": 1
+        }
+      }
+    },
+    {
+      "arm": "B1",
+      "repeat": 3,
+      "order": 8,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B1-3",
+      "outcome": "completed",
+      "run_id": "run-a8680a546ea1e72dafcddd2cd774ca718e2964f1029f14e424ef92ca0e4aec54",
+      "seconds": 538,
+      "suspended_seconds": 0,
+      "environment_interrupted": false,
+      "final": {
+        "task": "task-2f54d8a9ed3dd5076649ae7a835a3097ebe43c6040d77cc1995fec4260290f35",
+        "bytes": 21020,
+        "sha256": "ea68915300d701797a28a78d9b2551d0d69d7a0d2578acebf30de7d95bcaf9cd",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": false,
+            "detail": "axe color-contrast:serious:1"
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 0.875,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 4,
+        "kinds": {
+          "execute": 4
+        }
+      }
+    },
+    {
+      "arm": "P1",
+      "repeat": 3,
+      "order": 9,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-P1-3",
+      "outcome": "completed",
+      "run_id": "run-9ed2934ba115e1237b6a3de6ce202d9bba143f287a011d85cd6c94663e0fcfe7",
+      "seconds": 1349.6,
+      "suspended_seconds": 176.8,
+      "environment_interrupted": true,
+      "final": {
+        "task": "task-3c6aa21414092689b124b39a5fd32830b1a5705580f5b19d39fef75fb5d10e29",
+        "bytes": 23526,
+        "sha256": "57e380be6fe65d4151ee26c78357acadb0f766d6bd4e4203d5282511f884b083",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 1,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 4,
+        "kinds": {
+          "execute": 2,
+          "review": 2
+        }
+      },
+      "discarded_first": true
+    },
+    {
+      "arm": "P1",
+      "repeat": 3,
+      "order": 9,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-P1-3",
+      "outcome": "timed_out",
+      "run_id": "run-161b24378a224420f0077344131d6f6574278ab60756bfcff308a78135445a12",
+      "seconds": 5646.9,
+      "suspended_seconds": 3823.4,
+      "environment_interrupted": true,
+      "final": {
+        "task": "task-fe89fa313ff47651eaf8276d98c1963a9634e5ff4acd2cb77e40e006c6589ffb",
+        "bytes": null,
+        "sha256": null,
+        "path": null,
+        "accepted": false
+      },
+      "judge": null,
+      "error": null,
+      "goal_success": false,
+      "phase_at_end": "needs_review",
+      "counts": {
+        "tasks": 2,
+        "kinds": {
+          "execute": 2
+        }
+      },
+      "discarded_first": true
+    },
+    {
+      "arm": "P1",
+      "repeat": 3,
+      "order": 9,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-P1-3",
+      "outcome": "completed",
+      "run_id": "run-485786a39adcc388484d99885e555f47af47cb09631baf6e0cf89ecaa22a4322",
+      "seconds": 7190.8,
+      "suspended_seconds": 5915.4,
+      "environment_interrupted": true,
+      "final": {
+        "task": "task-e504ef32edcd23bc3c5f2d6db8715afe5e8ab90d7d330af9807bccd586fa7e9b",
+        "bytes": 20601,
+        "sha256": "01ae6e008238e0d0a762550d9e56daa78b366c27f8f21c0c5d48de01a5ab2000",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 1,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 4,
+        "kinds": {
+          "execute": 2,
+          "review": 2
+        }
+      },
+      "discarded_first": true
+    },
+    {
+      "arm": "B0",
+      "repeat": 4,
+      "order": 10,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B0-4",
+      "outcome": "completed",
+      "run_id": "run-8494d952f7f58506b156aeae550001b04d8cec40e8ad55c7d17dc73fa3c13550",
+      "seconds": 3038.8,
+      "suspended_seconds": 2375.1,
+      "environment_interrupted": true,
+      "final": {
+        "task": "task-62f3a809365aac00fbe556acb88f4e9024ce63bfa15a73f8807c7783deb3b088",
+        "bytes": 25354,
+        "sha256": "a496646d006b9f8df23be606c8a01b9cc3aeb3221f2f09724dc479e652e541fa",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": false,
+            "detail": "axe color-contrast:serious:1"
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 0.875,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 1,
+        "kinds": {
+          "execute": 1
+        }
+      },
+      "discarded_first": true
+    },
+    {
+      "arm": "B0",
+      "repeat": 4,
+      "order": 10,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B0-4",
+      "outcome": "completed",
+      "run_id": "run-905f9e134b1d7556632fc64dd3aebd74e26ec29e950f0a25dc681d5cc88b7bf7",
+      "seconds": 2311.5,
+      "suspended_seconds": 1490.4,
+      "environment_interrupted": true,
+      "final": {
+        "task": "task-6c3c481226a83f3fba2d31118fffffffb8e6b433b5af791ab65308ab94f825a7",
+        "bytes": 30083,
+        "sha256": "e4d16b49133145067b840a9215ef3c8523f2fffd4bdf81ed5bb8b91260a42cff",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 1,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 1,
+        "kinds": {
+          "execute": 1
+        }
+      },
+      "discarded_first": true
+    },
+    {
+      "arm": "B0",
+      "repeat": 4,
+      "order": 10,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B0-4",
+      "outcome": "completed",
+      "run_id": "run-409736f15b1af5a76a2a58558a1b9ded0b5539763dc7211fd7e245749907de85",
+      "seconds": 3436.1,
+      "suspended_seconds": 3031.5,
+      "environment_interrupted": true,
+      "final": {
+        "task": "task-c7b85f3ca95b624ae0f457256a63b5fde915b7c66489aad1ec49fce0a23dbe2a",
+        "bytes": 28765,
+        "sha256": "5ac84fceef224507fdfa35845a5ac003a29c74025cdfbdb2c184cdc8cfff0813",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 1,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 1,
+        "kinds": {
+          "execute": 1
+        }
+      },
+      "discarded_first": true
+    },
+    {
+      "arm": "B1",
+      "repeat": 4,
+      "order": 11,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B1-4",
+      "outcome": "error",
+      "run_id": "run-c9c51e58433455bc8e52806f2fcddc2daa120c514765fb0b61320fff6fb8d492",
+      "seconds": 5144.3,
+      "suspended_seconds": 4085.6,
+      "environment_interrupted": true,
+      "final": null,
+      "judge": null,
+      "error": "fetch failed",
+      "goal_success": false,
+      "discarded_first": true
+    },
+    {
+      "arm": "B1",
+      "repeat": 4,
+      "order": 11,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B1-4",
+      "outcome": "completed",
+      "run_id": "run-18057c57658f78f70ad31b67fd0566a49f1e6b0efc07c35b71506c4d570dafa6",
+      "seconds": 4018.2,
+      "suspended_seconds": 3075.8,
+      "environment_interrupted": true,
+      "final": {
+        "task": "task-3720a8a5f16c289ad56c7d6e0f0ceabb06f53d0e57e469640c728c4b14304b68",
+        "bytes": 26383,
+        "sha256": "90d1af1076d58ff4a84fed873a765396bae812c4eaf98746596c43ca4e4c7bbc",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 1,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 4,
+        "kinds": {
+          "execute": 4
+        }
+      },
+      "discarded_first": true
+    },
+    {
+      "arm": "B1",
+      "repeat": 4,
+      "order": 11,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B1-4",
+      "outcome": "completed",
+      "run_id": "run-6b491d8d90c9fdd6d756b84b0b63b91040d2139bd7034d1806a18396ab28db0f",
+      "seconds": 2170.9,
+      "suspended_seconds": 1201.4,
+      "environment_interrupted": true,
+      "final": {
+        "task": "task-dca4746ba216405f515f732e5e4566855f1cc091441d08ab3cae9bd5e944da7e",
+        "bytes": 25257,
+        "sha256": "2c646247d75a0421c59cd364faff130f6ad158babae4d7f9a9058b14b18f9909",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": false,
+            "detail": "axe color-contrast:serious:1"
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 0.875,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 4,
+        "kinds": {
+          "execute": 4
+        }
+      },
+      "discarded_first": true
+    },
+    {
+      "arm": "P1",
+      "repeat": 4,
+      "order": 12,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-P1-4",
+      "outcome": "completed",
+      "run_id": "run-98b65572b74a713e4c2c8769c0d053a994f564065f9f550d9483b254a6cc9390",
+      "seconds": 1097.1,
+      "suspended_seconds": 0,
+      "environment_interrupted": false,
+      "final": {
+        "task": "task-cb052b5e26f01a03398ed8c1211835d195553ee80cc569a278cca76d3aa8348c",
+        "bytes": 27456,
+        "sha256": "4389a7f87a211f196ebcf88caaa61f13371503f3aad5f4bf9dab0c43d3ee424c",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 1,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 4,
+        "kinds": {
+          "execute": 2,
+          "review": 2
+        }
+      }
+    },
+    {
+      "arm": "B0",
+      "repeat": 5,
+      "order": 13,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B0-5",
+      "outcome": "completed",
+      "run_id": "run-a76f06686d0e2f0081ff597202f4153dc5b47b64b195984a8551b7fe439678c4",
+      "seconds": 561.8,
+      "suspended_seconds": 0,
+      "environment_interrupted": false,
+      "final": {
+        "task": "task-280c175df8ae8e3a4c2ae0d906d85ad29334a007ec77c79cebd1e8a54105cfb2",
+        "bytes": 27559,
+        "sha256": "b83b179daf14aa4e217c03b30e6ab789a0c8efbbd202e3f3f804201dc66469d6",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 1,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 1,
+        "kinds": {
+          "execute": 1
+        }
+      }
+    },
+    {
+      "arm": "B1",
+      "repeat": 5,
+      "order": 14,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B1-5",
+      "outcome": "completed",
+      "run_id": "run-73e08ca6c34f94bd5a758c9160c352f37822dd07ca94a0b76c2d0e0a572c5b50",
+      "seconds": 695.5,
+      "suspended_seconds": 0,
+      "environment_interrupted": false,
+      "final": {
+        "task": "task-6c6884e465ee4a5e8b210a48e677c18f8e4700cf155d9e0460737a16fae8c414",
+        "bytes": 22412,
+        "sha256": "28be22507a5518a14184e26e91f43861f8b8c9540bff0b4b17639bf0457df4db",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": false,
+            "detail": "only 9 of 41 points of f inside the plot"
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": false,
+        "requirement_coverage": 0.875,
+        "goal_success": false,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": false,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 4,
+        "kinds": {
+          "execute": 4
+        }
+      }
+    },
+    {
+      "arm": "P1",
+      "repeat": 5,
+      "order": 15,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-P1-5",
+      "outcome": "completed",
+      "run_id": "run-227fdbc3f13c8c540e3694040f35c0b300ffa3f4b452eedeb996fbe65f64e7c9",
+      "seconds": 1175.6,
+      "suspended_seconds": 0,
+      "environment_interrupted": false,
+      "final": {
+        "task": "task-5ccd671c2785dac8a8486a673ffb937f34c7214a38bc7e62dd8eabe9dabd6f29",
+        "bytes": 24806,
+        "sha256": "796a041d7db20af053207235498fa8a3870162cb302dc9de56b4ddf20cc697b0",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 1,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 4,
+        "kinds": {
+          "execute": 2,
+          "review": 2
+        }
+      }
+    },
+    {
+      "arm": "P1",
+      "repeat": 3,
+      "order": 9,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-P1-3",
+      "outcome": "completed",
+      "run_id": "run-c8cdabb85259e081275eb39b9db44d56af328cf8683ddfd604b5ced43e5b2702",
+      "seconds": 1150,
+      "suspended_seconds": 0,
+      "environment_interrupted": false,
+      "final": {
+        "task": "task-67e274cc37aef14784f8838df75220ebbc5ea689baa988aa0d7ac82247f89eae",
+        "bytes": 24657,
+        "sha256": "c8b3bc3fa7cdaaacac5541607f55aa230ae0e01484ab20a75b3696f7b73ed649",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 1,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 4,
+        "kinds": {
+          "execute": 2,
+          "review": 2
+        }
+      }
+    },
+    {
+      "arm": "B0",
+      "repeat": 4,
+      "order": 10,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B0-4",
+      "outcome": "completed",
+      "run_id": "run-19b149e71daf07fb35e21fa94511815b8104cb736795b6ef8d965573d1d7d091",
+      "seconds": 457.3,
+      "suspended_seconds": 0,
+      "environment_interrupted": false,
+      "final": {
+        "task": "task-6b5dff623ecf68116cf2a6b445f8d7eb94b67847228b8557f0e350a370b65ceb",
+        "bytes": 28765,
+        "sha256": "cdc5f309b4ce5c758988bef2e53e5912856871b660e1e8f76601c1046cf570fd",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 1,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 1,
+        "kinds": {
+          "execute": 1
+        }
+      }
+    },
+    {
+      "arm": "B1",
+      "repeat": 4,
+      "order": 11,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B1-4",
+      "outcome": "completed",
+      "run_id": "run-031b12f0db27c7c21a1254b900bb10e45db162f0bbe5af3b9049644216cff15f",
+      "seconds": 2962.8,
+      "suspended_seconds": 2150.6,
+      "environment_interrupted": true,
+      "final": {
+        "task": "task-9f2e63b658aa2ed0d1bc768bb81fe33aa5a773ba8c86cde0a4d5e5a495fdfa78",
+        "bytes": 21392,
+        "sha256": "03ff124266b332e590af25e60c7a106b47101f5d17d037b12d7293e4fd9d5f21",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 1,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 4,
+        "kinds": {
+          "execute": 4
+        }
+      },
+      "discarded_first": true
+    },
+    {
+      "arm": "B1",
+      "repeat": 4,
+      "order": 11,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B1-4",
+      "outcome": "completed",
+      "run_id": "run-79f27f046bb4cbd155422a283fdd4386beae7fcb028bd2076ed521c9884d203c",
+      "seconds": 2801.1,
+      "suspended_seconds": 1851.6,
+      "environment_interrupted": true,
+      "final": {
+        "task": "task-c5bc057d62cf8e6c92f5377ae2b7e8ca4ac44382780a46139350b634f86d2a6b",
+        "bytes": 21566,
+        "sha256": "bb3707191fa1a2523893e606abf30aa7c32c1f63b86d7c0c7a0fff90764364f5",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 1,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 4,
+        "kinds": {
+          "execute": 4
+        }
+      },
+      "discarded_first": true
+    },
+    {
+      "arm": "B1",
+      "repeat": 4,
+      "order": 11,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B1-4",
+      "outcome": "completed",
+      "run_id": "run-338208c23860f4ef3883bfa2c565ff7c891707ea73f2ce9a2db2b07fd21c6535",
+      "seconds": 1490.5,
+      "suspended_seconds": 558.6,
+      "environment_interrupted": true,
+      "final": {
+        "task": "task-ae17178d36e33004888f33bd2e3290af7f4a18f00843086adf69071163736027",
+        "bytes": 19494,
+        "sha256": "cf2bfb72e0aaed0afd0396cd94316241d1644f50137345cbeed9a6fd964465b2",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 1,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 4,
+        "kinds": {
+          "execute": 4
+        }
+      },
+      "discarded_first": true
+    },
+    {
+      "arm": "B1",
+      "repeat": 4,
+      "order": 4,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B1-4",
+      "outcome": "completed",
+      "run_id": "run-bc69ee38e2ccd8847026f707f8cbde85d6495a38273c13ac357929f5fa63f034",
+      "seconds": 3037.1,
+      "suspended_seconds": 1504,
+      "environment_interrupted": true,
+      "final": {
+        "task": "task-3f2c48c72ab8fc80041f7cf9417542cbcb6cdabc398deed5e859c1aa7c5d9e6c",
+        "bytes": 22904,
+        "sha256": "7dc790e3d926c664785269a907a73a3ac4f36fba9ba7d6131a5b18cda17ff42c",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 1,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 4,
+        "kinds": {
+          "execute": 4
+        }
+      },
+      "discarded_first": true
+    },
+    {
+      "arm": "B1",
+      "repeat": 4,
+      "order": 4,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B1-4",
+      "outcome": "completed",
+      "run_id": "run-3d4ea24f663ad8ac08b2513db5d245a0369e5efdca5d13476e6d1bd35374f486",
+      "seconds": 1928.2,
+      "suspended_seconds": 1083.2,
+      "environment_interrupted": true,
+      "final": {
+        "task": "task-deb04f7b5b7d8a6d47309c0a70624421b000bd2777e2d3129dd12125e439dad1",
+        "bytes": 21821,
+        "sha256": "ed3e9bb1611ead40f23b1243f45c52f654206b46da97e085abd38b3ce5abcb40",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": false,
+            "detail": "axe color-contrast:serious:1"
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": true,
+        "requirement_coverage": 0.875,
+        "goal_success": true,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": true,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 4,
+        "kinds": {
+          "execute": 4
+        }
+      },
+      "discarded_first": true
+    },
+    {
+      "arm": "B1",
+      "repeat": 4,
+      "order": 4,
+      "project": "/workspace/dsh_squad_dev/dsh_squad/experiments/exp/.runs/exp01-B1-4",
+      "outcome": "completed",
+      "run_id": "run-d2e281f750e02c7b51e2b4a35c4a3244802b6dcc8cebda7d3ce376a715cea8fe",
+      "seconds": 2066.2,
+      "suspended_seconds": 1010.7,
+      "environment_interrupted": true,
+      "final": {
+        "task": "task-c96aeca4577a160d948ed94b6151c68029b83a15eb9e64c29f398eb1bf4fb478",
+        "bytes": 27633,
+        "sha256": "3f534e361d3b5f8074674650da7b37f92c5b3d35e69d942cdc05e8eb8c637270",
+        "accepted": true
+      },
+      "judge": {
+        "judge": "exp01",
+        "version": 3,
+        "tools": "/home/box/.cache/dsh-exp-tools",
+        "checks": [
+          {
+            "id": "C0",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R2",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R3",
+            "level": "must",
+            "ok": false,
+            "detail": "vertex {\"a\":1,\"b\":-4,\"c\":4}; axis {\"a\":1,\"b\":-4,\"c\":4}; roots {\"a\":1,\"b\":-4,\"c\":4}; vertex {\"a\":-1,\"b\":0,\"c\":-1} (+25)"
+          },
+          {
+            "id": "R4",
+            "level": "must",
+            "ok": false,
+            "detail": "missing or unrelated text: explain-completing-square"
+          },
+          {
+            "id": "R5",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R8",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R7",
+            "level": "should",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "R6",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          },
+          {
+            "id": "C1",
+            "level": "must",
+            "ok": true,
+            "detail": null
+          }
+        ],
+        "must_passed": false,
+        "requirement_coverage": 0.75,
+        "goal_success": false,
+        "consistent": true
+      },
+      "error": null,
+      "goal_success": false,
+      "phase_at_end": "completed",
+      "counts": {
+        "tasks": 4,
+        "kinds": {
+          "execute": 4
+        }
+      },
+      "discarded_first": true
+    }
+  ]
+}
